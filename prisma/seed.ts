@@ -1,0 +1,654 @@
+import { PrismaClient, type Prisma, type ProductOptionType } from "@prisma/client";
+
+import { hashPassword } from "../src/lib/auth/passwords";
+
+const prisma = new PrismaClient();
+
+type SeedProduct = Omit<
+  Prisma.ProductCreateInput,
+  | "category"
+  | "stoneType"
+  | "color"
+  | "style"
+  | "occasion"
+  | "availability"
+  | "tone"
+> & {
+  category: string;
+  stoneType: string;
+  color: string;
+  style: string;
+  occasion: string;
+  availability: string;
+  tone: string;
+  gallery: { url: string; alt: string; isCover?: boolean }[];
+};
+
+const optionSeeds = {
+  CATEGORY: [
+    { name: "Nyakl\u00e1ncok", slug: "necklaces" },
+    { name: "Kark\u00f6t\u0151k", slug: "bracelets" },
+    { name: "Anklets", slug: "anklets" },
+    { name: "Earrings", slug: "earrings" },
+  ],
+  STONE_TYPE: [
+    { name: "Pearl", slug: "pearl" },
+    { name: "Crystal", slug: "crystal" },
+    { name: "Opal", slug: "opal" },
+    { name: "Moonstone", slug: "moonstone" },
+    { name: "Rose Quartz", slug: "rose-quartz" },
+    { name: "Diamond", slug: "diamond" },
+  ],
+  COLOR: [
+    { name: "Gold", slug: "gold" },
+    { name: "Silver", slug: "silver" },
+    { name: "Rose Gold", slug: "rose-gold" },
+  ],
+  STYLE: [
+    { name: "Minimal", slug: "minimal" },
+    { name: "Statement", slug: "statement" },
+    { name: "Romantic", slug: "romantic" },
+    { name: "Layering", slug: "layering" },
+    { name: "Bridal", slug: "bridal" },
+  ],
+  OCCASION: [
+    { name: "Everyday", slug: "everyday" },
+    { name: "Wedding", slug: "wedding" },
+    { name: "Gift Edit", slug: "gift-edit" },
+    { name: "Evening", slug: "evening" },
+    { name: "Vacation", slug: "vacation" },
+  ],
+  AVAILABILITY: [
+    { name: "In Stock", slug: "in-stock" },
+    { name: "Low Stock", slug: "low-stock" },
+    { name: "Preorder", slug: "preorder" },
+  ],
+  VISUAL_TONE: [
+    { name: "Petal", slug: "petal" },
+    { name: "Champagne", slug: "champagne" },
+    { name: "Blush", slug: "blush" },
+    { name: "Pearl", slug: "pearl" },
+  ],
+} satisfies Record<ProductOptionType, { name: string; slug: string }[]>;
+
+async function seedOptions() {
+  const allOptions = Object.entries(optionSeeds).flatMap(([type, options]) =>
+    options.map((option, index) => ({
+      type: type as ProductOptionType,
+      name: option.name,
+      slug: option.slug,
+      sortOrder: index,
+      isActive: true,
+    })),
+  );
+
+  await prisma.productOption.createMany({
+    data: allOptions,
+  });
+}
+
+async function getOptionMap() {
+  const options = await prisma.productOption.findMany();
+  return new Map(options.map((option) => [`${option.type}:${option.slug}`, option.id]));
+}
+
+async function createProduct(
+  optionMap: Map<string, string>,
+  { gallery, category, stoneType, color, style, occasion, availability, tone, ...product }: SeedProduct,
+) {
+  const orderedGallery = gallery.map((image, index) => ({
+    ...image,
+    sortOrder: index,
+    isCover: image.isCover ?? index === 0,
+  }));
+  const coverImage = orderedGallery.find((image) => image.isCover) ?? orderedGallery[0];
+
+  const requireOptionId = (type: ProductOptionType, slug: string) => {
+    const id = optionMap.get(`${type}:${slug}`);
+    if (!id) {
+      throw new Error(`Missing option ${type}:${slug}`);
+    }
+    return id;
+  };
+
+  await prisma.product.create({
+    data: {
+      ...product,
+      category: { connect: { id: requireOptionId("CATEGORY", category) } },
+      stoneType: { connect: { id: requireOptionId("STONE_TYPE", stoneType) } },
+      color: { connect: { id: requireOptionId("COLOR", color) } },
+      style: { connect: { id: requireOptionId("STYLE", style) } },
+      occasion: { connect: { id: requireOptionId("OCCASION", occasion) } },
+      availability: { connect: { id: requireOptionId("AVAILABILITY", availability) } },
+      tone: { connect: { id: requireOptionId("VISUAL_TONE", tone) } },
+      imageUrl: coverImage?.url,
+      images: {
+        create: orderedGallery,
+      },
+    },
+  });
+}
+
+async function main() {
+  const adminPasswordHash = await hashPassword("admin1234");
+  const userPasswordHash = await hashPassword("user1234");
+  const emailVerifiedAt = new Date("2026-03-27T08:00:00.000Z");
+
+  await prisma.emailVerificationToken.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.favourite.deleteMany();
+  await prisma.productImage.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.productOption.deleteMany();
+  await prisma.user.deleteMany();
+
+  await seedOptions();
+
+  await prisma.user.createMany({
+    data: [
+      {
+        name: "Borbolya Admin",
+        email: "admin@chicksjewelry.com",
+        passwordHash: adminPasswordHash,
+        emailVerifiedAt,
+        role: "ADMIN",
+        phone: "+36 30 222 1144",
+        defaultShippingAddress: "1024 Budapest, Margit krt. 18. 3/12.",
+        newsletterSubscribed: true,
+      },
+      {
+        name: "Ariana Bloom",
+        email: "ariana@chicksjewelry.com",
+        passwordHash: userPasswordHash,
+        emailVerifiedAt,
+        role: "USER",
+        phone: "+36 20 555 0192",
+        birthDate: new Date("1995-05-12T00:00:00.000Z"),
+        profileImageUrl: "/seed/rose-necklace.svg",
+        defaultShippingAddress: "1117 Budapest, Karinthy Frigyes út 9. 5/2.",
+        newsletterSubscribed: true,
+      },
+      {
+        name: "Lena Hart",
+        email: "lena@chicksjewelry.com",
+        passwordHash: userPasswordHash,
+        emailVerifiedAt,
+        role: "USER",
+        phone: "+36 70 611 8842",
+        birthDate: new Date("1998-11-03T00:00:00.000Z"),
+        defaultShippingAddress: "6722 Szeged, Tisza Lajos krt. 42.",
+        newsletterSubscribed: false,
+      },
+    ],
+  });
+
+  const optionMap = await getOptionMap();
+
+  const galleryMap = {
+    rose: "/seed/rose-necklace.svg",
+    gold: "/seed/gold-earrings.svg",
+    pearl: "/seed/pearl-bracelet.svg",
+    moon: "/seed/moonstone-anklet.svg",
+    opal: "/seed/opal-necklace.svg",
+    petal: "/seed/petal-hoops.svg",
+  };
+
+  const products: SeedProduct[] = [
+    {
+      slug: "aurelia-ribbon-necklace",
+      name: "Aurelia Ribbon Necklace",
+      category: "necklaces",
+      price: 82,
+      shortDescription: "A ribbon-soft chain with a polished rose quartz drop.",
+      description:
+        "Aurelia balances a romantic silhouette with enough restraint for everyday layering. The soft pendant sits close to the collarbone for an easy quick-buy favorite.",
+      badge: "Signature",
+      collectionLabel: "Rose Atelier",
+      stoneType: "rose-quartz",
+      color: "rose-gold",
+      style: "romantic",
+      occasion: "gift-edit",
+      availability: "in-stock",
+      isNew: true,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "petal",
+      homepagePlacement: "SPOTLIGHT",
+      gallery: [
+        { url: galleryMap.rose, alt: "Aurelia necklace cover", isCover: true },
+        { url: galleryMap.petal, alt: "Aurelia necklace alternate angle" },
+      ],
+    },
+    {
+      slug: "lune-halo-earrings",
+      name: "Lune Halo Earrings",
+      category: "earrings",
+      price: 68,
+      compareAtPrice: 84,
+      shortDescription: "Soft crystal halos for evening light and clean sparkle.",
+      description:
+        "A luminous drop earring with a refined boutique proportion. Lune gives an elevated evening finish while staying light enough for all-night wear.",
+      badge: "Evening",
+      collectionLabel: "Afterglow",
+      stoneType: "crystal",
+      color: "gold",
+      style: "statement",
+      occasion: "evening",
+      availability: "low-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: true,
+      tone: "champagne",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.gold, alt: "Lune earrings cover", isCover: true },
+        { url: galleryMap.opal, alt: "Lune earrings styling image" },
+      ],
+    },
+    {
+      slug: "seraphine-cuff-bracelet",
+      name: "Seraphine Cuff Bracelet",
+      category: "bracelets",
+      price: 74,
+      shortDescription: "A sculpted cuff with smooth pearl-toned reflections.",
+      description:
+        "Seraphine is a clean, sculptural bracelet built for stacking or solo wear. Its softly rounded profile makes it feel polished without reading heavy.",
+      badge: "Editors Pick",
+      collectionLabel: "Maison Pearl",
+      stoneType: "pearl",
+      color: "silver",
+      style: "minimal",
+      occasion: "everyday",
+      availability: "in-stock",
+      isNew: true,
+      isGiftable: false,
+      isOnSale: false,
+      tone: "pearl",
+      homepagePlacement: "SPOTLIGHT",
+      gallery: [
+        { url: galleryMap.pearl, alt: "Seraphine bracelet cover", isCover: true },
+        { url: galleryMap.gold, alt: "Seraphine bracelet detail" },
+      ],
+    },
+    {
+      slug: "celeste-moonstone-anklet",
+      name: "Celeste Moonstone Anklet",
+      category: "anklets",
+      price: 59,
+      shortDescription: "A fine vacation anklet with soft moonstone shimmer.",
+      description:
+        "Celeste is designed for warm-weather dressing and understated movement. It sits lightly on the skin and catches light in a very controlled way.",
+      badge: "Holiday",
+      collectionLabel: "Summer Edit",
+      stoneType: "moonstone",
+      color: "gold",
+      style: "layering",
+      occasion: "vacation",
+      availability: "in-stock",
+      isNew: true,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "champagne",
+      homepagePlacement: "NEW_ARRIVALS",
+      gallery: [
+        { url: galleryMap.moon, alt: "Celeste anklet cover", isCover: true },
+        { url: galleryMap.gold, alt: "Celeste anklet detail" },
+      ],
+    },
+    {
+      slug: "odette-pearl-collar",
+      name: "Odette Pearl Collar",
+      category: "necklaces",
+      price: 98,
+      shortDescription: "Structured pearl drama with an editorial bridal edge.",
+      description:
+        "Odette is a stronger silhouette intended for occasion dressing. The placement and proportion are tuned to feel premium, feminine, and contemporary rather than vintage-heavy.",
+      badge: "Bridal",
+      collectionLabel: "Maison Pearl",
+      stoneType: "pearl",
+      color: "silver",
+      style: "bridal",
+      occasion: "wedding",
+      availability: "preorder",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "pearl",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.pearl, alt: "Odette pearl collar cover", isCover: true },
+        { url: galleryMap.rose, alt: "Odette pearl collar lookbook" },
+      ],
+    },
+    {
+      slug: "ines-petal-hoops",
+      name: "Ines Petal Hoops",
+      category: "earrings",
+      price: 64,
+      shortDescription: "Rounded floral hoops with a boutique pink-gold finish.",
+      description:
+        "Ines brings a floral note into a wearable everyday hoop. It feels romantic without becoming playful or ornate.",
+      badge: "Bestseller",
+      collectionLabel: "Rose Atelier",
+      stoneType: "opal",
+      color: "rose-gold",
+      style: "romantic",
+      occasion: "everyday",
+      availability: "in-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "blush",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.petal, alt: "Ines hoops cover", isCover: true },
+        { url: galleryMap.rose, alt: "Ines hoops styling image" },
+      ],
+    },
+    {
+      slug: "mirren-charm-bracelet",
+      name: "Mirren Charm Bracelet",
+      category: "bracelets",
+      price: 61,
+      compareAtPrice: 76,
+      shortDescription: "Collected charms with a gift-ready polished finish.",
+      description:
+        "Mirren is intentionally sentimental and softly detailed. It is one of the most giftable styles in the collection because the silhouette reads personal straight away.",
+      badge: "Giftable",
+      collectionLabel: "Keepsake Notes",
+      stoneType: "diamond",
+      color: "gold",
+      style: "statement",
+      occasion: "gift-edit",
+      availability: "low-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: true,
+      tone: "petal",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.gold, alt: "Mirren bracelet cover", isCover: true },
+        { url: galleryMap.petal, alt: "Mirren bracelet close-up" },
+      ],
+    },
+    {
+      slug: "noa-halo-chain",
+      name: "Noa Halo Chain",
+      category: "necklaces",
+      price: 72,
+      shortDescription: "An airy layering chain with a brighter crystal rhythm.",
+      description:
+        "Noa was designed as a collection anchor for layered looks. The spacing and shine feel elevated, clean, and easy to add to bag.",
+      badge: "New",
+      collectionLabel: "Afterglow",
+      stoneType: "crystal",
+      color: "silver",
+      style: "layering",
+      occasion: "everyday",
+      availability: "in-stock",
+      isNew: true,
+      isGiftable: false,
+      isOnSale: false,
+      tone: "blush",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.opal, alt: "Noa chain cover", isCover: true },
+        { url: galleryMap.gold, alt: "Noa chain detail" },
+      ],
+    },
+    {
+      slug: "mara-blossom-hoops",
+      name: "Mara Blossom Hoops",
+      category: "earrings",
+      price: 57,
+      shortDescription: "Petite hoops with a soft blossom silhouette and glow.",
+      description:
+        "Mara sits between stud and hoop, offering a clean floral cue in a compact scale. It is ideal for gifting and polished daily wear.",
+      badge: "Just Landed",
+      collectionLabel: "Garden Notes",
+      stoneType: "rose-quartz",
+      color: "rose-gold",
+      style: "minimal",
+      occasion: "gift-edit",
+      availability: "in-stock",
+      isNew: true,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "petal",
+      homepagePlacement: "NEW_ARRIVALS",
+      gallery: [
+        { url: galleryMap.petal, alt: "Mara hoops cover", isCover: true },
+        { url: galleryMap.rose, alt: "Mara hoops detail" },
+      ],
+    },
+    {
+      slug: "elara-layered-necklace",
+      name: "Elara Layered Necklace",
+      category: "necklaces",
+      price: 88,
+      shortDescription: "Double-chain layering with a sculpted opal focal point.",
+      description:
+        "Elara creates an editorial layered look without needing styling effort. The dual-chain structure gives it quick-purchase clarity on the product page.",
+      badge: "Spotlight",
+      collectionLabel: "Light Study",
+      stoneType: "opal",
+      color: "gold",
+      style: "layering",
+      occasion: "evening",
+      availability: "in-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "champagne",
+      homepagePlacement: "SPOTLIGHT",
+      gallery: [
+        { url: galleryMap.opal, alt: "Elara necklace cover", isCover: true },
+        { url: galleryMap.rose, alt: "Elara necklace editorial image" },
+      ],
+    },
+    {
+      slug: "soline-pearl-drop-earrings",
+      name: "Soline Pearl Drop Earrings",
+      category: "earrings",
+      price: 79,
+      shortDescription: "Graceful pearl drops refined for ceremony and dinner.",
+      description:
+        "Soline is built around balance: a visible pearl finish, a light line, and enough movement to feel special without excess drama.",
+      badge: "Premium",
+      collectionLabel: "Maison Pearl",
+      stoneType: "pearl",
+      color: "gold",
+      style: "bridal",
+      occasion: "wedding",
+      availability: "in-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "pearl",
+      homepagePlacement: "SPOTLIGHT",
+      gallery: [
+        { url: galleryMap.pearl, alt: "Soline earrings cover", isCover: true },
+        { url: galleryMap.gold, alt: "Soline earrings alternate image" },
+      ],
+    },
+    {
+      slug: "veda-stone-cuff",
+      name: "Veda Stone Cuff",
+      category: "bracelets",
+      price: 66,
+      compareAtPrice: 81,
+      shortDescription: "A modern cuff softened by a centered moonstone detail.",
+      description:
+        "Veda carries just enough contrast between metal and stone to feel premium. It works particularly well in modern gift edits and pared-back stacks.",
+      badge: "Refined",
+      collectionLabel: "Light Study",
+      stoneType: "moonstone",
+      color: "silver",
+      style: "minimal",
+      occasion: "everyday",
+      availability: "low-stock",
+      isNew: false,
+      isGiftable: true,
+      isOnSale: true,
+      tone: "blush",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.moon, alt: "Veda cuff cover", isCover: true },
+        { url: galleryMap.pearl, alt: "Veda cuff alternate image" },
+      ],
+    },
+    {
+      slug: "liora-chain-anklet",
+      name: "Liora Chain Anklet",
+      category: "anklets",
+      price: 52,
+      shortDescription: "A slim chain anklet with a clean polished holiday shine.",
+      description:
+        "Liora is a core warm-weather style with a reduced, minimal profile. It is intentionally easy to wear from day to dinner.",
+      badge: "Vacation",
+      collectionLabel: "Summer Edit",
+      stoneType: "diamond",
+      color: "rose-gold",
+      style: "minimal",
+      occasion: "vacation",
+      availability: "in-stock",
+      isNew: false,
+      isGiftable: false,
+      isOnSale: false,
+      tone: "blush",
+      homepagePlacement: "NONE",
+      gallery: [
+        { url: galleryMap.moon, alt: "Liora anklet cover", isCover: true },
+        { url: galleryMap.petal, alt: "Liora anklet close-up" },
+      ],
+    },
+    {
+      slug: "vera-crystal-tennis-bracelet",
+      name: "Vera Crystal Tennis Bracelet",
+      category: "bracelets",
+      price: 92,
+      shortDescription: "An evening tennis bracelet with softened crystal light.",
+      description:
+        "Vera gives classic tennis-bracelet polish a slightly warmer boutique direction. It is intended to feel elegant, not formal or severe.",
+      badge: "Occasion",
+      collectionLabel: "Afterglow",
+      stoneType: "crystal",
+      color: "silver",
+      style: "statement",
+      occasion: "evening",
+      availability: "preorder",
+      isNew: true,
+      isGiftable: true,
+      isOnSale: false,
+      tone: "pearl",
+      homepagePlacement: "NEW_ARRIVALS",
+      gallery: [
+        { url: galleryMap.gold, alt: "Vera bracelet cover", isCover: true },
+        { url: galleryMap.pearl, alt: "Vera bracelet alternate image" },
+      ],
+    },
+  ];
+
+  for (const product of products) {
+    await createProduct(optionMap, product);
+  }
+
+  const [ariana, lena] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { email: "ariana@chicksjewelry.com" } }),
+    prisma.user.findUniqueOrThrow({ where: { email: "lena@chicksjewelry.com" } }),
+  ]);
+
+  const selectedProducts = await prisma.product.findMany({
+    where: {
+      slug: {
+        in: [
+          "aurelia-ribbon-necklace",
+          "seraphine-cuff-bracelet",
+          "soline-pearl-drop-earrings",
+          "ines-petal-hoops",
+          "elara-layered-necklace",
+        ],
+      },
+    },
+  });
+
+  const productBySlug = new Map(selectedProducts.map((product) => [product.slug, product]));
+  const aurelia = productBySlug.get("aurelia-ribbon-necklace");
+  const seraphine = productBySlug.get("seraphine-cuff-bracelet");
+  const soline = productBySlug.get("soline-pearl-drop-earrings");
+  const ines = productBySlug.get("ines-petal-hoops");
+  const elara = productBySlug.get("elara-layered-necklace");
+
+  if (!aurelia || !seraphine || !soline || !ines || !elara) {
+    throw new Error("Missing seeded products for account data.");
+  }
+
+  await prisma.favourite.createMany({
+    data: [
+      { userId: ariana.id, productId: aurelia.id },
+      { userId: ariana.id, productId: soline.id },
+      { userId: lena.id, productId: ines.id },
+    ],
+  });
+
+  await prisma.cart.create({
+    data: {
+      userId: ariana.id,
+      items: {
+        create: [
+          { productId: aurelia.id, quantity: 1 },
+          { productId: seraphine.id, quantity: 2 },
+        ],
+      },
+    },
+  });
+
+  await prisma.order.create({
+    data: {
+      userId: ariana.id,
+      orderNumber: "CJ-20260325-1001",
+      status: "Feldolgozás alatt",
+      subtotal: aurelia.price + elara.price,
+      total: aurelia.price + elara.price,
+      shippingName: "Ariana Bloom",
+      shippingPhone: ariana.phone ?? "",
+      shippingAddress: ariana.defaultShippingAddress ?? "",
+      paymentMethod: "Bankkártya",
+      createdAt: new Date("2026-03-22T09:15:00.000Z"),
+      items: {
+        create: [
+          {
+            productId: aurelia.id,
+            productName: aurelia.name,
+            productSlug: aurelia.slug,
+            imageUrl: aurelia.imageUrl,
+            unitPrice: aurelia.price,
+            quantity: 1,
+          },
+          {
+            productId: elara.id,
+            productName: elara.name,
+            productSlug: elara.slug,
+            imageUrl: elara.imageUrl,
+            unitPrice: elara.price,
+            quantity: 1,
+          },
+        ],
+      },
+    },
+  });
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (error) => {
+    console.error(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

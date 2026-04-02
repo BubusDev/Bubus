@@ -1,0 +1,19 @@
+.next/
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env*
+
+# local sqlite
+prisma/**/*.db
+prisma/**/*.db-journal
+
+# macOS / editor noise
+.DS_Store
+*.swp

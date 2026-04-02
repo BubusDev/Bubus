@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff7fc"/>
+      <stop offset="55%" stop-color="#f4d6e7"/>
+      <stop offset="100%" stop-color="#d28db7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1400" fill="url(#bg)"/>
+  <circle cx="600" cy="620" r="250" fill="#fffafc" opacity=".95"/>
+  <circle cx="600" cy="620" r="205" fill="none" stroke="#d6a170" stroke-width="42"/>
+  <path d="M600 490l60 60-60 60-60-60 60-60z" fill="#fff"/>
+  <text x="90" y="1240" fill="#7d4566" font-family="Georgia, serif" font-size="82">Rose Atelier</text>
+  <text x="90" y="1325" fill="#9a6a86" font-family="Arial, sans-serif" font-size="38" letter-spacing="8">CHICKS JEWELRY</text>
+</svg>

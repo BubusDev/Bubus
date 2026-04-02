@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum HomepagePlacement {
+  NONE
+  SPOTLIGHT
+  NEW_ARRIVALS
+}
+
+enum ProductOptionType {
+  CATEGORY
+  STONE_TYPE
+  COLOR
+  STYLE
+  OCCASION
+  AVAILABILITY
+  VISUAL_TONE
+}
+
+enum AnnouncementVariant {
+  DEFAULT
+  SALE
+  SPECIAL_EDITION
+  NEW_COLLECTION
+}
+
+model User {
+  id                     String     @id @default(cuid())
+  name                   String
+  email                  String     @unique
+  passwordHash           String
+  emailVerifiedAt        DateTime?
+  role                   UserRole   @default(USER)
+  phone                  String?
+  birthDate              DateTime?
+  profileImageUrl        String?
+  defaultShippingAddress String?
+  newsletterSubscribed   Boolean    @default(true)
+  emailVerificationTokens EmailVerificationToken[]
+  emailChangeTokens      EmailChangeToken[]
+  passwordResetTokens    PasswordResetToken[]
+  favourites             Favourite[]
+  cart                   Cart?
+  orders                 Order[]
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model EmailChangeToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newEmail  String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+  @@index([newEmail, expiresAt])
+}
+
+model Product {
+  id                String             @id @default(cuid())
+  slug              String             @unique
+  name              String
+  categoryId        String
+  category          ProductOption      @relation("ProductCategory", fields: [categoryId], references: [id])
+  price             Int
+  compareAtPrice    Int?
+  shortDescription  String
+  description       String
+  badge             String
+  collectionLabel   String
+  stoneTypeId       String
+  stoneType         ProductOption      @relation("ProductStoneType", fields: [stoneTypeId], references: [id])
+  colorId           String
+  color             ProductOption      @relation("ProductColor", fields: [colorId], references: [id])
+  styleId           String
+  style             ProductOption      @relation("ProductStyle", fields: [styleId], references: [id])
+  occasionId        String
+  occasion          ProductOption      @relation("ProductOccasion", fields: [occasionId], references: [id])
+  availabilityId    String
+  availability      ProductOption      @relation("ProductAvailability", fields: [availabilityId], references: [id])
+  isNew             Boolean            @default(false)
+  isGiftable        Boolean            @default(false)
+  isOnSale          Boolean            @default(false)
+  toneId            String
+  tone              ProductOption      @relation("ProductTone", fields: [toneId], references: [id])
+  imageUrl          String?
+  images            ProductImage[]
+  favourites        Favourite[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  specialEditionEntries SpecialEditionEntry[]
+  homepagePlacement HomepagePlacement  @default(NONE)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([categoryId])
+  @@index([stoneTypeId])
+  @@index([colorId])
+  @@index([styleId])
+  @@index([occasionId])
+  @@index([availabilityId])
+  @@index([toneId])
+  @@index([homepagePlacement])
+  @@index([isNew])
+  @@index([isGiftable])
+  @@index([isOnSale])
+}
+
+model ProductOption {
+  id                   String            @id @default(cuid())
+  type                 ProductOptionType
+  name                 String
+  slug                 String
+  isActive             Boolean           @default(true)
+  sortOrder            Int               @default(0)
+  productsAsCategory   Product[]         @relation("ProductCategory")
+  productsAsStoneType  Product[]         @relation("ProductStoneType")
+  productsAsColor      Product[]         @relation("ProductColor")
+  productsAsStyle      Product[]         @relation("ProductStyle")
+  productsAsOccasion   Product[]         @relation("ProductOccasion")
+  productsAsAvailability Product[]       @relation("ProductAvailability")
+  productsAsTone       Product[]         @relation("ProductTone")
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@unique([type, slug])
+  @@unique([type, name])
+  @@index([type, isActive, sortOrder])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  isCover   Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+  @@index([productId, isCover])
+}
+
+model SpecialEditionCampaign {
+  id              String                @id @default(cuid())
+  slug            String                @unique @default("gifts")
+  isActive        Boolean               @default(false)
+  bannerImageUrl  String?
+  bannerImageAlt  String?
+  entries         SpecialEditionEntry[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
+
+model SpecialEditionEntry {
+  id                String                 @id @default(cuid())
+  campaignId        String
+  campaign          SpecialEditionCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  promoImageUrl     String
+  promoImageAlt     String?
+  productImageUrl   String
+  productImageAlt   String?
+  sortOrder         Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([campaignId, sortOrder])
+  @@index([productId])
+}
+
+model AnnouncementBar {
+  id        String              @id @default(cuid())
+  text      String
+  href      String?
+  isActive  Boolean             @default(false)
+  variant   AnnouncementVariant @default(DEFAULT)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([isActive, updatedAt])
+}
+
+model Favourite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId, createdAt])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId, updatedAt])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  orderNumber     String      @unique
+  status          String
+  subtotal        Int
+  total           Int
+  shippingName    String
+  shippingPhone   String
+  shippingAddress String
+  paymentMethod   String
+  items           OrderItem[]
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  productName String
+  productSlug String
+  imageUrl    String?
+  unitPrice   Int
+  quantity    Int
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}

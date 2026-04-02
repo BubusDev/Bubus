@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffaf4"/>
+      <stop offset="55%" stop-color="#f2dfcb"/>
+      <stop offset="100%" stop-color="#d9b88a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1400" fill="url(#bg)"/>
+  <path d="M340 520c70 80 140 120 260 120s190-40 260-120" fill="none" stroke="#ddb66e" stroke-width="22"/>
+  <ellipse cx="600" cy="760" rx="110" ry="145" fill="#f6ffff" stroke="#d8efe8" stroke-width="18"/>
+  <text x="90" y="1240" fill="#7b6148" font-family="Georgia, serif" font-size="82">Light Study</text>
+  <text x="90" y="1325" fill="#a88e6e" font-family="Arial, sans-serif" font-size="38" letter-spacing="8">CHICKS JEWELRY</text>
+</svg>
