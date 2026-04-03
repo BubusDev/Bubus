@@ -37,6 +37,8 @@ function getErrorMessage(error?: string) {
       return "Passwords do not match.";
     case "termsAccepted":
       return "You must accept the terms to continue.";
+    case "service":
+      return "Registration is temporarily unavailable. Please try again shortly.";
     default:
       return null;
   }

@@ -25,28 +25,41 @@ export async function POST(request: Request) {
   const nextPath =
     typeof formData.get("next") === "string" ? String(formData.get("next")) : "/account";
 
-  const result = await registerUser({
-    email,
-    password,
-    passwordConfirm,
-    termsAccepted,
-  });
+  try {
+    const result = await registerUser({
+      email,
+      password,
+      passwordConfirm,
+      termsAccepted,
+    });
 
-  if (!result.ok) {
-    const firstError = Object.keys(result.fieldErrors)[0] ?? "email";
+    if (!result.ok) {
+      const firstError = Object.keys(result.fieldErrors)[0] ?? "email";
+
+      return NextResponse.redirect(
+        new URL(
+          `/sign-up?error=${encodeURIComponent(firstError)}&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+          request.url,
+        ),
+        { status: 303 },
+      );
+    }
+
+    const successUrl = new URL(
+      `/sign-up?status=submitted&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+      request.url,
+    );
+
+    return NextResponse.redirect(successUrl, { status: 303 });
+  } catch (error) {
+    console.error("[auth/register] Registration failed", error);
 
     return NextResponse.redirect(
       new URL(
-        `/sign-up?error=${encodeURIComponent(firstError)}&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+        `/sign-up?error=service&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
         request.url,
       ),
+      { status: 303 },
     );
   }
-
-  const successUrl = new URL(
-    `/sign-up?status=submitted&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
-    request.url,
-  );
-
-  return NextResponse.redirect(successUrl);
 }
