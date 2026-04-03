@@ -18,3 +18,5 @@ prisma/**/*.db-journal
 # macOS / editor noise
 .DS_Store
 *.swp
+.vercel
+.env*.local
