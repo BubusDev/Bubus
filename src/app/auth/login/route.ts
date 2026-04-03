@@ -3,6 +3,8 @@ import { AuthError } from "next-auth";
 
 import { signIn } from "../../../../auth";
 
+export const runtime = "nodejs";
+
 function normalizeNextPath(nextPath: string | null) {
   if (!nextPath || !nextPath.startsWith("/")) {
     return "/account";

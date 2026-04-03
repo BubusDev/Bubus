@@ -16,8 +16,17 @@ type ProductPageProps = {
 };
 
 export async function generateStaticParams() {
-  const slugs = await getAllProductSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllProductSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch (error) {
+    console.warn(
+      "Skipping product static generation because the database is not configured or reachable.",
+      error,
+    );
+
+    return [];
+  }
 }
 
 export async function generateMetadata({

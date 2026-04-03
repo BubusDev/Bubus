@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { registerUser } from "@/lib/auth/register";
 
+export const runtime = "nodejs";
+
 function normalizeNextPath(nextPath: string | null) {
   if (!nextPath || !nextPath.startsWith("/")) {
     return "/account";

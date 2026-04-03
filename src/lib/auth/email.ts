@@ -1,3 +1,5 @@
+import { getAuthBaseUrl } from "@/lib/env";
+
 type EmailPreviewResult = {
   previewUrl?: string;
 };
@@ -7,12 +9,12 @@ function isDevelopment() {
 }
 
 export function buildEmailVerificationUrl(token: string) {
-  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const baseUrl = getAuthBaseUrl();
   return new URL(`/verify-email?token=${encodeURIComponent(token)}`, baseUrl).toString();
 }
 
 export function buildEmailChangeConfirmationUrl(token: string) {
-  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const baseUrl = getAuthBaseUrl();
   return new URL(
     `/confirm-email-change?token=${encodeURIComponent(token)}`,
     baseUrl,
@@ -31,7 +33,7 @@ export async function sendVerificationEmailPreview(token: string): Promise<Email
 }
 
 export async function sendPasswordResetEmailPreview(token: string): Promise<EmailPreviewResult> {
-  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const baseUrl = getAuthBaseUrl();
   const previewUrl = new URL(
     `/reset-password?token=${encodeURIComponent(token)}`,
     baseUrl,

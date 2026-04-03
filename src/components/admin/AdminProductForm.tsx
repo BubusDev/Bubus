@@ -380,6 +380,7 @@ function SelectField({
         <div className="min-w-0 flex-1">
           <InputShell label={label} error={error}>
             <select
+              name={fieldName}
               value={selectedValue}
               onChange={(event) => onChange(event.target.value)}
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
@@ -551,6 +552,13 @@ function getFirstInvalidStep(errors: FormErrorState) {
   return stepDefinitions.findIndex((step) => step.fields.some((field) => errors[field]));
 }
 
+function filterErrorsForStep(errors: FormErrorState, stepIndex: number) {
+  const stepFields = new Set(stepDefinitions[stepIndex]?.fields ?? []);
+  return Object.fromEntries(
+    Object.entries(errors).filter(([fieldName]) => stepFields.has(fieldName as FormFieldName)),
+  ) as FormErrorState;
+}
+
 export function AdminProductForm({
   action,
   options,
@@ -673,14 +681,14 @@ export function AdminProductForm({
   const isFirstStep = step === 0;
   const isLastStep = step === stepDefinitions.length - 1;
 
-  const validateAndSetErrors = () => {
+  const validateAndSetErrors = (stepIndex?: number) => {
     const nextErrors = validateFormState(formValues, dynamicOptions);
-    setErrors(nextErrors);
+    setErrors(typeof stepIndex === "number" ? filterErrorsForStep(nextErrors, stepIndex) : nextErrors);
     return nextErrors;
   };
 
   function handleNextStep() {
-    const nextErrors = validateAndSetErrors();
+    const nextErrors = validateAndSetErrors(step);
     const currentStepHasErrors = stepDefinitions[step].fields.some((field) => nextErrors[field]);
     if (currentStepHasErrors) {
       return;
@@ -707,26 +715,7 @@ export function AdminProductForm({
         <input key={image.id} type="hidden" name="retainedImageIds" value={image.id} />
       ))}
 
-      <input type="hidden" name="name" value={formValues.name} />
-      <input type="hidden" name="slug" value={formValues.slug} />
-      <input type="hidden" name="badge" value={formValues.badge} />
-      <input type="hidden" name="collectionLabel" value={formValues.collectionLabel} />
-      <input type="hidden" name="price" value={formValues.price} />
-      <input type="hidden" name="compareAtPrice" value={formValues.compareAtPrice} />
-      <input type="hidden" name="shortDescription" value={formValues.shortDescription} />
-      <input type="hidden" name="description" value={formValues.description} />
-      <input type="hidden" name="category" value={formValues.category} />
-      <input type="hidden" name="stoneType" value={formValues.stoneType} />
-      <input type="hidden" name="color" value={formValues.color} />
-      <input type="hidden" name="style" value={formValues.style} />
-      <input type="hidden" name="occasion" value={formValues.occasion} />
-      <input type="hidden" name="availability" value={formValues.availability} />
-      <input type="hidden" name="tone" value={formValues.tone} />
-      <input type="hidden" name="homepagePlacement" value={formValues.homepagePlacement} />
       <input type="hidden" name="coverImageKey" value={effectiveCoverImageKey} />
-      {formValues.isNew ? <input type="hidden" name="isNew" value="on" /> : null}
-      {formValues.isGiftable ? <input type="hidden" name="isGiftable" value="on" /> : null}
-      {formValues.isOnSale ? <input type="hidden" name="isOnSale" value="on" /> : null}
 
       <section className="rounded-[1.8rem] border border-[#efd8e5] bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(255,245,250,0.92))] p-4 shadow-[0_10px_24px_rgba(191,117,162,0.06)] sm:p-5">
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
@@ -764,6 +753,7 @@ export function AdminProductForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <InputShell label="Termek neve" error={errors.name}>
             <input
+              name="name"
               value={formValues.name}
               onChange={(event) => handleFieldChange("name", event.target.value)}
               placeholder="Pl. Aurora Ribbon Necklace"
@@ -773,6 +763,7 @@ export function AdminProductForm({
 
           <InputShell label="Slug" error={errors.slug}>
             <input
+              name="slug"
               value={formValues.slug}
               onChange={(event) => handleFieldChange("slug", event.target.value)}
               placeholder="pl. aurora-ribbon-necklace"
@@ -782,6 +773,7 @@ export function AdminProductForm({
 
           <InputShell label="Badge cimke" error={errors.badge}>
             <input
+              name="badge"
               value={formValues.badge}
               onChange={(event) => handleFieldChange("badge", event.target.value)}
               placeholder="Pl. Ujdonsag"
@@ -791,6 +783,7 @@ export function AdminProductForm({
 
           <InputShell label="Kollekcio cimke" error={errors.collectionLabel}>
             <input
+              name="collectionLabel"
               value={formValues.collectionLabel}
               onChange={(event) => handleFieldChange("collectionLabel", event.target.value)}
               placeholder="Pl. Beach"
@@ -891,6 +884,7 @@ export function AdminProductForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <InputShell label="Ar" error={errors.price}>
             <input
+              name="price"
               type="number"
               min={0}
               value={formValues.price}
@@ -901,6 +895,7 @@ export function AdminProductForm({
 
           <InputShell label="Eredeti ar" error={errors.compareAtPrice}>
             <input
+              name="compareAtPrice"
               type="number"
               min={0}
               value={formValues.compareAtPrice}
@@ -920,6 +915,7 @@ export function AdminProductForm({
                 className="flex items-center gap-3 rounded-[1.2rem] border border-[#f2dce7] bg-[#fff8fb] px-4 py-3 text-sm text-[#5a374e]"
               >
                 <input
+                  name={item.field}
                   type="checkbox"
                   checked={formValues[item.field]}
                   onChange={(event) => handleFieldChange(item.field, event.target.checked)}
@@ -941,6 +937,7 @@ export function AdminProductForm({
         <div className="grid gap-4">
           <InputShell label="Rovid leiras" error={errors.shortDescription}>
             <textarea
+              name="shortDescription"
               value={formValues.shortDescription}
               onChange={(event) => handleFieldChange("shortDescription", event.target.value)}
               rows={3}
@@ -950,6 +947,7 @@ export function AdminProductForm({
 
           <InputShell label="Leiras" error={errors.description}>
             <textarea
+              name="description"
               value={formValues.description}
               onChange={(event) => handleFieldChange("description", event.target.value)}
               rows={6}
@@ -1059,6 +1057,7 @@ export function AdminProductForm({
 
           <InputShell label="Homepage kihelyezes" error={errors.homepagePlacement}>
             <select
+              name="homepagePlacement"
               value={formValues.homepagePlacement}
               onChange={(event) =>
                 handleFieldChange(

@@ -4,18 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:fix-category-option-names": "node prisma/fix-category-option-names.cjs"
+    "db:fix-category-option-names": "node prisma/fix-category-option-names.cjs",
+    "vercel-build": "npm run db:migrate:deploy && npm run build"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.19.2",
+    "@vercel/blob": "^2.3.3",
+    "dotenv": "^16.6.1",
     "lucide-react": "^1.0.1",
     "next": "^16.2.1",
     "next-auth": "^5.0.0-beta.30",
@@ -35,8 +41,5 @@
     "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }

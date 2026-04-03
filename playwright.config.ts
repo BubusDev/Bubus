@@ -11,7 +11,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3000",
     browserName: "chromium",
     launchOptions: {
       executablePath: chromeExecutable,
@@ -20,7 +20,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run start",
-    url: "http://127.0.0.1:3000",
+    url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 120_000,
   },

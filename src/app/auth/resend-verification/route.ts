@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
 
+export const runtime = "nodejs";
+
 function normalizeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/")) {
     return "/verify-email";

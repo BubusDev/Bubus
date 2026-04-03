@@ -7,125 +7,149 @@
 # Test info
 
 - Name: admin-new-product.spec.ts >> submits successfully with valid required values
-- Location: tests\e2e\admin-new-product.spec.ts:91:5
+- Location: tests/e2e/admin-new-product.spec.ts:91:5
 
 # Error details
 
 ```
-Error: locator.fill: Error: strict mode violation: getByLabel('Ar') resolved to 6 elements:
-    1) <input min="0" value="0" type="number" class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"/> aka getByLabel('Ar', { exact: true })
-    2) <input min="0" value="" type="number" class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"/> aka getByLabel('Eredeti ar')
-    3) <select class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]">…</select> aka getByLabel('KategoriaValassz...Nyaklá')
-    4) <select class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]">…</select> aka getByLabel('KotipusValassz...')
-    5) <select class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]">…</select> aka getByLabel('Vizualis tonusValassz...')
-    6) <select class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none">…</select> aka getByLabel('Homepage kihelyezesValassz...')
+Test timeout of 60000ms exceeded.
+```
 
+```
+Error: locator.fill: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for getByLabel('Ar')
+  - waiting for getByLabel('Ar', { exact: true })
+    - locator resolved to <input min="0" value="0" name="price" type="number" class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"/>
+    - fill("149")
+  - attempting fill action
+    2 × waiting for element to be visible, enabled and editable
+      - element is not visible
+    - retrying fill action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and editable
+      - element is not visible
+    - retrying fill action
+      - waiting 100ms
+    80 × waiting for element to be visible, enabled and editable
+       - element is not visible
+     - retrying fill action
+       - waiting 500ms
+    - waiting for" http://127.0.0.1:3000/admin/products/new" navigation to finish...
+    - navigated to "http://127.0.0.1:3000/admin/products/new"
+    - waiting for element to be visible, enabled and editable
+  - element was detached from the DOM, retrying
+    - locator resolved to <input min="0" value="0" name="price" type="number" class="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"/>
+    - fill("149")
+  - attempting fill action
+    2 × waiting for element to be visible, enabled and editable
+      - element is not visible
+    - retrying fill action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and editable
+      - element is not visible
+    - retrying fill action
+      - waiting 100ms
+    34 × waiting for element to be visible, enabled and editable
+       - element is not visible
+     - retrying fill action
+       - waiting 500ms
 
 ```
 
 # Page snapshot
 
 ```yaml
-- generic [ref=e1]:
-  - generic [ref=e4]: 10 új kollekció, brand new charmokkal, most elérhető!
-  - banner [ref=e5]:
-    - generic [ref=e6]:
-      - link "Boutique ékszer webáruház Chicks Jewelry" [ref=e7] [cursor=pointer]:
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Boutique ékszer webáruház Chicks Jewelry" [ref=e4] [cursor=pointer]:
         - /url: /
-        - generic [ref=e13]:
-          - paragraph [ref=e14]: Boutique ékszer webáruház
-          - paragraph [ref=e15]: Chicks Jewelry
-      - navigation "Hasznos navigáció" [ref=e16]:
-        - link "Kedvencek" [ref=e17] [cursor=pointer]:
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Boutique ékszer webáruház
+          - paragraph [ref=e12]: Chicks Jewelry
+      - navigation "Hasznos navigáció" [ref=e13]:
+        - link "Kedvencek" [ref=e14] [cursor=pointer]:
           - /url: /favourites
-          - img [ref=e19]
-        - link "Kosár" [ref=e21] [cursor=pointer]:
+          - img [ref=e16]
+        - link "Kosár" [ref=e18] [cursor=pointer]:
           - /url: /cart
-          - img [ref=e23]
-        - button "Profil menü megnyitása" [ref=e27]:
-          - generic [ref=e28]: BA
-          - generic [ref=e29]:
-            - generic [ref=e30]: Fiók
-            - generic [ref=e31]: Admin
-          - img [ref=e32]
-  - navigation "Category navigation" [ref=e34]:
-    - generic [ref=e35]:
-      - link "Újdonságok" [ref=e36] [cursor=pointer]:
+          - img [ref=e20]
+        - button "Profil menü megnyitása" [ref=e24]:
+          - generic [ref=e25]: BA
+          - generic [ref=e26]:
+            - generic [ref=e27]: Fiók
+            - generic [ref=e28]: Admin
+          - img [ref=e29]
+  - navigation "Category navigation" [ref=e31]:
+    - generic [ref=e32]:
+      - link "Újdonságok" [ref=e33] [cursor=pointer]:
         - /url: /new-in
-      - link "Limitált darabok" [ref=e37] [cursor=pointer]:
-        - /url: /special-edition
-      - link "Akció" [ref=e38] [cursor=pointer]:
+      - link "Akció" [ref=e34] [cursor=pointer]:
         - /url: /sale
-      - link "Nyakláncok" [ref=e39] [cursor=pointer]:
+      - link "Nyakláncok" [ref=e35] [cursor=pointer]:
         - /url: /necklaces
-      - link "Karkötők" [ref=e40] [cursor=pointer]:
+      - link "Karkötők" [ref=e36] [cursor=pointer]:
         - /url: /bracelets
-  - main [ref=e41]:
-    - generic [ref=e42]:
-      - generic [ref=e44]:
-        - generic [ref=e45]:
-          - paragraph [ref=e46]: Admin Atelier
-          - heading "Create Product" [level=1] [ref=e47]
-          - paragraph [ref=e48]: Add a new storefront product with complete merchandising, filtering, and homepage-placement metadata.
-        - navigation [ref=e49]:
-          - link "Dashboard" [ref=e50] [cursor=pointer]:
+  - main [ref=e37]:
+    - generic [ref=e38]:
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - paragraph [ref=e42]: Admin Atelier
+          - heading "Create Product" [level=1] [ref=e43]
+          - paragraph [ref=e44]: Add a new storefront product with complete merchandising, filtering, and homepage-placement metadata.
+        - navigation [ref=e45]:
+          - link "Dashboard" [ref=e46] [cursor=pointer]:
             - /url: /admin
-          - link "Products" [ref=e51] [cursor=pointer]:
+          - link "Products" [ref=e47] [cursor=pointer]:
             - /url: /admin/products
-          - link "New Product" [ref=e52] [cursor=pointer]:
+          - link "New Product" [ref=e48] [cursor=pointer]:
             - /url: /admin/products/new
-          - link "Announcement" [ref=e53] [cursor=pointer]:
+          - link "Announcement" [ref=e49] [cursor=pointer]:
             - /url: /admin/announcement
-          - link "Special Edition" [ref=e54] [cursor=pointer]:
+          - link "Special Edition" [ref=e50] [cursor=pointer]:
             - /url: /admin/special-edition
-      - generic [ref=e56]:
-        - generic [ref=e58]:
-          - button "1. lepes Alapadatok" [ref=e59]:
-            - paragraph [ref=e60]: 1. lepes
-            - paragraph [ref=e61]: Alapadatok
-          - button "2. lepes Kepek" [ref=e62]:
-            - paragraph [ref=e63]: 2. lepes
-            - paragraph [ref=e64]: Kepek
-          - button "3. lepes Arazas es statusz" [ref=e65]:
-            - paragraph [ref=e66]: 3. lepes
-            - paragraph [ref=e67]: Arazas es statusz
-          - button "4. lepes Szovegek" [ref=e68]:
-            - paragraph [ref=e69]: 4. lepes
-            - paragraph [ref=e70]: Szovegek
-          - button "5. lepes Besorolas" [ref=e71]:
-            - paragraph [ref=e72]: 5. lepes
-            - paragraph [ref=e73]: Besorolas
-        - generic [ref=e74]:
+      - generic [ref=e52]:
+        - generic [ref=e54]:
+          - button "1. lepes Alapadatok" [ref=e55]:
+            - paragraph [ref=e56]: 1. lepes
+            - paragraph [ref=e57]: Alapadatok
+          - button "2. lepes Kepek" [ref=e58]:
+            - paragraph [ref=e59]: 2. lepes
+            - paragraph [ref=e60]: Kepek
+          - button "3. lepes Arazas es statusz" [ref=e61]:
+            - paragraph [ref=e62]: 3. lepes
+            - paragraph [ref=e63]: Arazas es statusz
+          - button "4. lepes Szovegek" [ref=e64]:
+            - paragraph [ref=e65]: 4. lepes
+            - paragraph [ref=e66]: Szovegek
+          - button "5. lepes Besorolas" [ref=e67]:
+            - paragraph [ref=e68]: 5. lepes
+            - paragraph [ref=e69]: Besorolas
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - paragraph [ref=e72]: 1. lepes
+            - heading "Alapadatok" [level=2] [ref=e73]
+            - paragraph [ref=e74]: A termek alap nevei es bolti cimkei.
           - generic [ref=e75]:
-            - paragraph [ref=e76]: 1. lepes
-            - heading "Alapadatok" [level=2] [ref=e77]
-            - paragraph [ref=e78]: A termek alap nevei es bolti cimkei.
-          - generic [ref=e79]:
-            - generic [ref=e80]:
+            - generic [ref=e76]:
               - text: Termek neve
-              - textbox "Termek neve" [ref=e81]:
+              - textbox "Termek neve" [ref=e77]:
                 - /placeholder: Pl. Aurora Ribbon Necklace
-                - text: Playwright Product
-            - generic [ref=e82]:
+            - generic [ref=e78]:
               - text: Slug
-              - textbox "Slug" [ref=e83]:
+              - textbox "Slug" [ref=e79]:
                 - /placeholder: pl. aurora-ribbon-necklace
-                - text: playwright-product-1775053732663
-            - generic [ref=e84]:
+            - generic [ref=e80]:
               - text: Badge cimke
-              - textbox "Badge cimke" [ref=e85]:
+              - textbox "Badge cimke" [ref=e81]:
                 - /placeholder: Pl. Ujdonsag
-                - text: QA
-            - generic [ref=e86]:
+            - generic [ref=e82]:
               - text: Kollekcio cimke
-              - textbox "Kollekcio cimke" [ref=e87]:
+              - textbox "Kollekcio cimke" [ref=e83]:
                 - /placeholder: Pl. Beach
-                - text: Automation
-        - generic [ref=e89]:
-          - paragraph [ref=e90]: Alapadatok
-          - button "Tovabb" [active] [ref=e92]
+        - generic [ref=e85]:
+          - paragraph [ref=e86]: Alapadatok
+          - button "Tovabb" [ref=e88]
 ```
 
 # Test source
@@ -149,9 +173,9 @@ Call log:
   16  | });
   17  | 
   18  | test("persists values across step navigation and keeps step field mapping isolated", async ({ page }) => {
-  19  |   await expect(page.getByText("Alapadatok")).toBeVisible();
+  19  |   await expect(page.getByRole("heading", { name: "Alapadatok" })).toBeVisible();
   20  |   await expect(page.getByLabel("Termek neve")).toBeVisible();
-  21  |   await expect(page.getByLabel("Ar")).toBeHidden();
+  21  |   await expect(page.getByLabel("Ar", { exact: true })).toBeHidden();
   22  | 
   23  |   await page.getByLabel("Termek neve").fill("Persistence Product");
   24  |   await page.getByLabel("Slug").fill("persistence-product");
@@ -159,27 +183,27 @@ Call log:
   26  |   await page.getByLabel("Kollekcio cimke").fill("Beach");
   27  | 
   28  |   await page.getByRole("button", { name: "Tovabb" }).click();
-  29  |   await expect(page.getByText("Kepek")).toBeVisible();
+  29  |   await expect(page.getByRole("heading", { name: "Kepek" })).toBeVisible();
   30  |   await expect(page.getByLabel("Termek neve")).toBeHidden();
   31  | 
   32  |   await page.getByRole("button", { name: "Tovabb" }).click();
-  33  |   await expect(page.getByLabel("Ar")).toBeVisible();
-  34  |   await page.getByLabel("Ar").fill("12345");
+  33  |   await expect(page.getByLabel("Ar", { exact: true })).toBeVisible();
+  34  |   await page.getByLabel("Ar", { exact: true }).fill("12345");
   35  |   await page.getByLabel("Eredeti ar").fill("15000");
   36  |   await page.getByLabel("Uj termek").check();
   37  | 
   38  |   await page.getByRole("button", { name: "Vissza" }).click();
-  39  |   await expect(page.getByText("Kepek")).toBeVisible();
+  39  |   await expect(page.getByRole("heading", { name: "Kepek" })).toBeVisible();
   40  |   await page.getByRole("button", { name: "Vissza" }).click();
   41  |   await expect(page.getByLabel("Termek neve")).toHaveValue("Persistence Product");
   42  |   await expect(page.getByLabel("Slug")).toHaveValue("persistence-product");
   43  |   await expect(page.getByLabel("Badge cimke")).toHaveValue("New");
   44  |   await expect(page.getByLabel("Kollekcio cimke")).toHaveValue("Beach");
-  45  |   await expect(page.getByLabel("Ar")).toBeHidden();
+  45  |   await expect(page.getByLabel("Ar", { exact: true })).toBeHidden();
   46  | 
   47  |   await page.getByRole("button", { name: "Tovabb" }).click();
   48  |   await page.getByRole("button", { name: "Tovabb" }).click();
-  49  |   await expect(page.getByLabel("Ar")).toHaveValue("12345");
+  49  |   await expect(page.getByLabel("Ar", { exact: true })).toHaveValue("12345");
   50  |   await expect(page.getByLabel("Eredeti ar")).toHaveValue("15000");
   51  |   await expect(page.getByLabel("Uj termek")).toBeChecked();
   52  | });
@@ -231,8 +255,8 @@ Call log:
   98  |   await page.getByRole("button", { name: "Tovabb" }).click();
   99  |   await page.getByRole("button", { name: "Tovabb" }).click();
   100 | 
-> 101 |   await page.getByLabel("Ar").fill("149");
-      |                               ^ Error: locator.fill: Error: strict mode violation: getByLabel('Ar') resolved to 6 elements:
+> 101 |   await page.getByLabel("Ar", { exact: true }).fill("149");
+      |                                                ^ Error: locator.fill: Test timeout of 60000ms exceeded.
   102 |   await page.getByRole("button", { name: "Tovabb" }).click();
   103 | 
   104 |   await page.getByLabel("Rovid leiras").fill("Created by Playwright.");

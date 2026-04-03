@@ -16,9 +16,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("persists values across step navigation and keeps step field mapping isolated", async ({ page }) => {
-  await expect(page.getByText("Alapadatok")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Alapadatok" })).toBeVisible();
   await expect(page.getByLabel("Termek neve")).toBeVisible();
-  await expect(page.getByLabel("Ar")).toBeHidden();
+  await expect(page.getByLabel("Ar", { exact: true })).toBeHidden();
 
   await page.getByLabel("Termek neve").fill("Persistence Product");
   await page.getByLabel("Slug").fill("persistence-product");
@@ -26,27 +26,27 @@ test("persists values across step navigation and keeps step field mapping isolat
   await page.getByLabel("Kollekcio cimke").fill("Beach");
 
   await page.getByRole("button", { name: "Tovabb" }).click();
-  await expect(page.getByText("Kepek")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kepek" })).toBeVisible();
   await expect(page.getByLabel("Termek neve")).toBeHidden();
 
   await page.getByRole("button", { name: "Tovabb" }).click();
-  await expect(page.getByLabel("Ar")).toBeVisible();
-  await page.getByLabel("Ar").fill("12345");
+  await expect(page.getByLabel("Ar", { exact: true })).toBeVisible();
+  await page.getByLabel("Ar", { exact: true }).fill("12345");
   await page.getByLabel("Eredeti ar").fill("15000");
   await page.getByLabel("Uj termek").check();
 
   await page.getByRole("button", { name: "Vissza" }).click();
-  await expect(page.getByText("Kepek")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kepek" })).toBeVisible();
   await page.getByRole("button", { name: "Vissza" }).click();
   await expect(page.getByLabel("Termek neve")).toHaveValue("Persistence Product");
   await expect(page.getByLabel("Slug")).toHaveValue("persistence-product");
   await expect(page.getByLabel("Badge cimke")).toHaveValue("New");
   await expect(page.getByLabel("Kollekcio cimke")).toHaveValue("Beach");
-  await expect(page.getByLabel("Ar")).toBeHidden();
+  await expect(page.getByLabel("Ar", { exact: true })).toBeHidden();
 
   await page.getByRole("button", { name: "Tovabb" }).click();
   await page.getByRole("button", { name: "Tovabb" }).click();
-  await expect(page.getByLabel("Ar")).toHaveValue("12345");
+  await expect(page.getByLabel("Ar", { exact: true })).toHaveValue("12345");
   await expect(page.getByLabel("Eredeti ar")).toHaveValue("15000");
   await expect(page.getByLabel("Uj termek")).toBeChecked();
 });
@@ -98,7 +98,7 @@ test("submits successfully with valid required values", async ({ page }) => {
   await page.getByRole("button", { name: "Tovabb" }).click();
   await page.getByRole("button", { name: "Tovabb" }).click();
 
-  await page.getByLabel("Ar").fill("149");
+  await page.getByLabel("Ar", { exact: true }).fill("149");
   await page.getByRole("button", { name: "Tovabb" }).click();
 
   await page.getByLabel("Rovid leiras").fill("Created by Playwright.");
