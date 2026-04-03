@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { sendVerificationEmail } from "@/lib/auth/email";
+import { EmailDeliveryError, sendVerificationEmail } from "@/lib/auth/email";
 import { hashPassword } from "@/lib/auth/passwords";
 import { createExpiryDate, createRawToken, hashToken } from "@/lib/auth/tokens";
 import {
@@ -34,6 +34,53 @@ type RegisterFieldErrors = Partial<
 const GENERIC_MESSAGE =
   "If the details are valid, we will prepare your account and email a verification link.";
 
+export class RegisterUserError extends Error {
+  constructor(
+    message: string,
+    readonly code: "verification_email_failed",
+    readonly cause?: unknown,
+  ) {
+    super(message);
+    this.name = "RegisterUserError";
+  }
+}
+
+async function sendVerificationEmailOrThrow({
+  email,
+  token,
+  userId,
+  cleanup,
+}: {
+  email: string;
+  token: string;
+  userId: string;
+  cleanup: () => Promise<void>;
+}) {
+  console.info("[auth/register] Dispatching verification email", { email, userId });
+
+  try {
+    return await sendVerificationEmail(email, token);
+  } catch (error) {
+    console.error("[auth/register] Verification email failed", { email, userId, error });
+
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      console.error("[auth/register] Failed to clean up registration after email failure", {
+        email,
+        userId,
+        cleanupError,
+      });
+    }
+
+    if (error instanceof EmailDeliveryError) {
+      throw new RegisterUserError(error.message, "verification_email_failed", error);
+    }
+
+    throw error;
+  }
+}
+
 export async function registerUser(input: RegisterUserInput): Promise<RegisterUserResult> {
   const email = normalizeEmail(input.email);
   const fieldErrors: RegisterFieldErrors = {};
@@ -66,24 +113,34 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
   if (existingUser) {
     if (!existingUser.emailVerifiedAt) {
       const token = createRawToken();
-
-      await db.$transaction([
-        db.emailVerificationToken.deleteMany({
+      const verificationToken = await db.$transaction(async (tx) => {
+        await tx.emailVerificationToken.deleteMany({
           where: {
             userId: existingUser.id,
             usedAt: null,
           },
-        }),
-        db.emailVerificationToken.create({
+        });
+
+        return tx.emailVerificationToken.create({
           data: {
             userId: existingUser.id,
             tokenHash: hashToken(token),
             expiresAt: createExpiryDate(24),
           },
-        }),
-      ]);
+          select: { id: true },
+        });
+      });
 
-      await sendVerificationEmail(email, token);
+      await sendVerificationEmailOrThrow({
+        email,
+        token,
+        userId: existingUser.id,
+        cleanup: async () => {
+          await db.emailVerificationToken.deleteMany({
+            where: { id: verificationToken.id },
+          });
+        },
+      });
     }
 
     return { ok: true, message: GENERIC_MESSAGE };
@@ -93,25 +150,38 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
   const token = createRawToken();
   const tokenHash = hashToken(token);
 
-  const user = await db.user.create({
-    data: {
-      email,
-      name: email.split("@")[0] || "Customer",
-      passwordHash,
-      emailVerifiedAt: null,
-    },
-    select: { id: true },
+  const registration = await db.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        email,
+        name: email.split("@")[0] || "Customer",
+        passwordHash,
+        emailVerifiedAt: null,
+      },
+      select: { id: true },
+    });
+
+    await tx.emailVerificationToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt: createExpiryDate(24),
+      },
+    });
+
+    return user;
   });
 
-  await db.emailVerificationToken.create({
-    data: {
-      userId: user.id,
-      tokenHash,
-      expiresAt: createExpiryDate(24),
+  const { previewUrl } = await sendVerificationEmailOrThrow({
+    email,
+    token,
+    userId: registration.id,
+    cleanup: async () => {
+      await db.user.delete({
+        where: { id: registration.id },
+      });
     },
   });
-
-  const { previewUrl } = await sendVerificationEmail(email, token);
 
   return {
     ok: true,

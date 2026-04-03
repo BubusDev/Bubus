@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 type SignUpPageProps = {
   searchParams: Promise<{
     error?: string;
+    message?: string;
     next?: string;
     status?: string;
   }>;
@@ -27,7 +28,7 @@ function normalizeNextPath(nextPath: string | null | undefined) {
   return nextPath;
 }
 
-function getErrorMessage(error?: string) {
+function getErrorMessage(error?: string, message?: string) {
   switch (error) {
     case "email":
       return "Enter a valid email address.";
@@ -37,6 +38,8 @@ function getErrorMessage(error?: string) {
       return "Passwords do not match.";
     case "termsAccepted":
       return "You must accept the terms to continue.";
+    case "emailDelivery":
+      return message ?? "We created your account, but the verification email could not be sent. Please try again.";
     case "service":
       return "Registration is temporarily unavailable. Please try again shortly.";
     default:
@@ -48,7 +51,10 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
-  const errorMessage = getErrorMessage(resolvedSearchParams.error);
+  const errorMessage = getErrorMessage(
+    resolvedSearchParams.error,
+    resolvedSearchParams.message,
+  );
 
   if (user?.emailVerifiedAt) {
     redirect(nextPath);

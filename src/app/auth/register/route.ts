@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { registerUser } from "@/lib/auth/register";
+import { RegisterUserError, registerUser } from "@/lib/auth/register";
 
 export const runtime = "nodejs";
 
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const termsAccepted = formData.get("termsAccepted") === "true";
   const nextPath =
     typeof formData.get("next") === "string" ? String(formData.get("next")) : "/account";
+  const normalizedNextPath = normalizeNextPath(nextPath);
 
   try {
     const result = await registerUser({
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
 
       return NextResponse.redirect(
         new URL(
-          `/sign-up?error=${encodeURIComponent(firstError)}&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+          `/sign-up?error=${encodeURIComponent(firstError)}&next=${encodeURIComponent(normalizedNextPath)}`,
           request.url,
         ),
         { status: 303 },
@@ -46,17 +47,31 @@ export async function POST(request: Request) {
     }
 
     const successUrl = new URL(
-      `/sign-up?status=submitted&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+      `/sign-up?status=submitted&next=${encodeURIComponent(normalizedNextPath)}`,
       request.url,
     );
 
     return NextResponse.redirect(successUrl, { status: 303 });
   } catch (error) {
-    console.error("[auth/register] Registration failed", error);
+    console.error("[auth/register] Registration failed", {
+      email,
+      nextPath: normalizedNextPath,
+      error,
+    });
+
+    if (error instanceof RegisterUserError) {
+      return NextResponse.redirect(
+        new URL(
+          `/sign-up?error=emailDelivery&message=${encodeURIComponent(error.message)}&next=${encodeURIComponent(normalizedNextPath)}`,
+          request.url,
+        ),
+        { status: 303 },
+      );
+    }
 
     return NextResponse.redirect(
       new URL(
-        `/sign-up?error=service&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+        `/sign-up?error=service&next=${encodeURIComponent(normalizedNextPath)}`,
         request.url,
       ),
       { status: 303 },

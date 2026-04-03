@@ -4,6 +4,17 @@ type EmailPreviewResult = {
   previewUrl?: string;
 };
 
+export class EmailDeliveryError extends Error {
+  constructor(
+    message: string,
+    readonly code: "email_not_configured" | "email_send_failed",
+    readonly cause?: unknown,
+  ) {
+    super(message);
+    this.name = "EmailDeliveryError";
+  }
+}
+
 function isDevelopment() {
   return process.env.NODE_ENV !== "production";
 }
@@ -44,10 +55,13 @@ async function sendEmail({
       return;
     }
 
-    throw new Error(
+    throw new EmailDeliveryError(
       "Email delivery is not configured. Set RESEND_API_KEY and AUTH_EMAIL_FROM (or EMAIL_FROM).",
+      "email_not_configured",
     );
   }
+
+  console.info("[auth/email] Sending email via Resend", { to, subject });
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -66,8 +80,30 @@ async function sendEmail({
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to send email: ${response.status} ${errorText}`);
+    let resendMessage = errorText;
+
+    try {
+      const parsed = JSON.parse(errorText) as { message?: string; error?: string };
+      resendMessage = parsed.message ?? parsed.error ?? errorText;
+    } catch {
+      resendMessage = errorText;
+    }
+
+    console.error("[auth/email] Resend request failed", {
+      status: response.status,
+      body: resendMessage,
+      to,
+      subject,
+    });
+
+    throw new EmailDeliveryError(
+      `Verification email could not be sent: ${response.status} ${resendMessage}`.trim(),
+      "email_send_failed",
+      { status: response.status, body: resendMessage },
+    );
   }
+
+  console.info("[auth/email] Email accepted by Resend", { to, subject });
 }
 
 export async function sendVerificationEmail(
