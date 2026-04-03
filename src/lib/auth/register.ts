@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { sendVerificationEmailPreview } from "@/lib/auth/email";
+import { sendVerificationEmail } from "@/lib/auth/email";
 import { hashPassword } from "@/lib/auth/passwords";
 import { createExpiryDate, createRawToken, hashToken } from "@/lib/auth/tokens";
 import {
@@ -60,10 +60,32 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
 
   const existingUser = await db.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, emailVerifiedAt: true },
   });
 
   if (existingUser) {
+    if (!existingUser.emailVerifiedAt) {
+      const token = createRawToken();
+
+      await db.$transaction([
+        db.emailVerificationToken.deleteMany({
+          where: {
+            userId: existingUser.id,
+            usedAt: null,
+          },
+        }),
+        db.emailVerificationToken.create({
+          data: {
+            userId: existingUser.id,
+            tokenHash: hashToken(token),
+            expiresAt: createExpiryDate(24),
+          },
+        }),
+      ]);
+
+      await sendVerificationEmail(email, token);
+    }
+
     return { ok: true, message: GENERIC_MESSAGE };
   }
 
@@ -89,7 +111,7 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
     },
   });
 
-  const { previewUrl } = await sendVerificationEmailPreview(token);
+  const { previewUrl } = await sendVerificationEmail(email, token);
 
   return {
     ok: true,

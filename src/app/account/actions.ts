@@ -161,10 +161,6 @@ export async function resendVerificationAction(formData: FormData) {
     result.status === "cooldown" ? "verification-cooldown" : "verification-sent",
   );
 
-  if (result.previewUrl && process.env.NODE_ENV !== "production") {
-    nextUrl.searchParams.set("preview", result.previewUrl);
-  }
-
   redirect(`${nextUrl.pathname}${nextUrl.search}`);
 }
 

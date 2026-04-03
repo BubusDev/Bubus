@@ -48,9 +48,5 @@ export async function POST(request: Request) {
     request.url,
   );
 
-  if (result.previewUrl && process.env.NODE_ENV !== "production") {
-    successUrl.searchParams.set("preview", result.previewUrl);
-  }
-
   return NextResponse.redirect(successUrl);
 }

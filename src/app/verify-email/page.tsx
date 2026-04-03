@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 
 type VerifyEmailPageProps = {
   searchParams: Promise<{
-    preview?: string;
     status?: string;
     token?: string;
   }>;
@@ -80,17 +79,6 @@ export default async function VerifyEmailPage({
               If there is an unverified account for that email, a fresh verification link has been
               prepared.
             </p>
-            {process.env.NODE_ENV !== "production" && resolvedSearchParams.preview ? (
-              <p>
-                Development preview:{" "}
-                <a
-                  href={resolvedSearchParams.preview}
-                  className="underline underline-offset-4"
-                >
-                  open verification link
-                </a>
-              </p>
-            ) : null}
           </div>
         ) : null}
 

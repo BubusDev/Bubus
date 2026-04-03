@@ -15,7 +15,6 @@ type SignUpPageProps = {
   searchParams: Promise<{
     error?: string;
     next?: string;
-    preview?: string;
     status?: string;
   }>;
 };
@@ -101,17 +100,6 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
             <p>
               If the details are valid, we will prepare your account and email a verification link.
             </p>
-            {process.env.NODE_ENV !== "production" && resolvedSearchParams.preview ? (
-              <p>
-                Development preview:{" "}
-                <a
-                  href={resolvedSearchParams.preview}
-                  className="underline underline-offset-4"
-                >
-                  open verification link
-                </a>
-              </p>
-            ) : null}
           </div>
         ) : null}
 

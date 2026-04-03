@@ -24,6 +24,10 @@ export async function verifyEmailToken(token: string): Promise<VerifyEmailResult
   }
 
   if (verificationToken.usedAt) {
+    await db.emailVerificationToken.delete({
+      where: { id: verificationToken.id },
+    });
+
     const user = await db.user.findUnique({
       where: { id: verificationToken.userId },
       select: { emailVerifiedAt: true },
@@ -32,17 +36,22 @@ export async function verifyEmailToken(token: string): Promise<VerifyEmailResult
   }
 
   if (verificationToken.expiresAt.getTime() < Date.now()) {
+    await db.emailVerificationToken.delete({
+      where: { id: verificationToken.id },
+    });
+
     return "expired";
   }
 
   await db.$transaction([
-    db.emailVerificationToken.update({
-      where: { id: verificationToken.id },
-      data: { usedAt: new Date() },
-    }),
     db.user.update({
       where: { id: verificationToken.userId },
       data: { emailVerifiedAt: new Date() },
+    }),
+    db.emailVerificationToken.deleteMany({
+      where: {
+        userId: verificationToken.userId,
+      },
     }),
   ]);
 

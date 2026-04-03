@@ -25,9 +25,5 @@ export async function POST(request: Request) {
     result.status === "cooldown" ? "verification-cooldown" : "verification-sent",
   );
 
-  if (result.previewUrl && process.env.NODE_ENV !== "production") {
-    nextUrl.searchParams.set("preview", result.previewUrl);
-  }
-
   return NextResponse.redirect(nextUrl);
 }

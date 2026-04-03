@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { sendVerificationEmailPreview } from "@/lib/auth/email";
+import { sendVerificationEmail } from "@/lib/auth/email";
 import { createExpiryDate, createRawToken, hashToken } from "@/lib/auth/tokens";
 import { isValidEmail, normalizeEmail } from "@/lib/auth/validation";
 
@@ -59,7 +59,7 @@ export async function resendVerificationEmail(emailInput: string) {
     }),
   ]);
 
-  const { previewUrl } = await sendVerificationEmailPreview(token);
+  const { previewUrl } = await sendVerificationEmail(email, token);
 
   return {
     ok: true as const,
