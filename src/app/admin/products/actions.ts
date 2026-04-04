@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 import { type ProductOptionType } from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
+import { getImageAltTextFromUrl } from "@/lib/blob-upload";
 import { db } from "@/lib/db";
-import { deleteProductImageFile, saveUploadedProductImages } from "@/lib/product-images";
+import { deleteProductImageFile } from "@/lib/product-images";
 import { parseProductFormData, slugifyOptionName } from "@/lib/products";
 
 function revalidateCatalogPaths() {
@@ -19,62 +20,72 @@ function revalidateCatalogPaths() {
   revalidatePath("/", "layout");
 }
 
-function getUploadedFiles(formData: FormData) {
+function getUploadedImageUrls(formData: FormData) {
   return formData
-    .getAll("images")
-    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+    .getAll("imageUrls")
+    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }
 
-async function buildProductImageRecords(formData: FormData, existingImageIds: string[] = []) {
-  const uploadedFiles = getUploadedFiles(formData);
-  const uploadedImages = await saveUploadedProductImages(uploadedFiles);
+function getUploadedImageKeys(formData: FormData) {
+  return formData
+    .getAll("imageKeys")
+    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
+}
+
+function buildProductImageRecords(
+  formData: FormData,
+  productName: string,
+  existingImageIds: string[] = [],
+) {
+  const uploadedImageUrls = getUploadedImageUrls(formData);
+  const uploadedImageKeys = getUploadedImageKeys(formData);
+  const uploadedImages = uploadedImageUrls.map((url, index) => ({
+    url,
+    alt: getImageAltTextFromUrl(url) || productName,
+    key: uploadedImageKeys[index] ?? `upload:${index}`,
+    sortOrder: existingImageIds.length + index,
+  }));
   const coverImageKey =
     typeof formData.get("coverImageKey") === "string" ? String(formData.get("coverImageKey")) : "";
-
-  const existingImages = existingImageIds.map((id, index) => ({
-    id,
-    key: id,
-    sortOrder: index,
-  }));
-
-  const newImages = uploadedImages.map((image, index) => ({
-    ...image,
-    key: `upload:${index}`,
-    sortOrder: existingImages.length + index,
-  }));
 
   return {
     uploadedImages,
     coverImageKey,
-    newImages,
   };
 }
 
 export async function createProductAction(formData: FormData) {
   await requireAdminUser("/admin/products/new");
   const data = await parseProductFormData(formData);
-  const { uploadedImages, coverImageKey, newImages } = await buildProductImageRecords(formData);
+  const { uploadedImages, coverImageKey } = buildProductImageRecords(formData, data.name);
 
   const coverUrl =
-    newImages.find((image) => image.key === coverImageKey)?.url ?? uploadedImages[0]?.url ?? null;
+    uploadedImages.find((image) => image.key === coverImageKey)?.url ?? uploadedImages[0]?.url ?? null;
 
-  const product = await db.product.create({
-    data: {
-      ...data,
-      imageUrl: coverUrl,
-      images: {
-        create: uploadedImages.map((image, index) => ({
-          url: image.url,
-          alt: image.alt,
-          sortOrder: index,
-          isCover:
-            coverImageKey.length > 0
-              ? coverImageKey === `upload:${index}`
-              : index === 0,
-        })),
-      },
-    },
-  });
+  const product = await (async () => {
+    try {
+      return await db.product.create({
+        data: {
+          ...data,
+          imageUrl: coverUrl,
+          images: {
+            create: uploadedImages.map((image, index) => ({
+              url: image.url,
+              alt: image.alt,
+              sortOrder: index,
+              isCover:
+                coverImageKey.length > 0
+                  ? coverImageKey === image.key
+                  : index === 0,
+            })),
+          },
+        },
+      });
+    } catch (error) {
+      await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
+      throw error;
+    }
+  })();
 
   revalidateCatalogPaths();
   revalidatePath(`/product/${product.slug}`);
@@ -112,8 +123,9 @@ export async function updateProductAction(formData: FormData) {
   );
 
   const data = await parseProductFormData(formData);
-  const { uploadedImages, coverImageKey } = await buildProductImageRecords(
+  const { uploadedImages, coverImageKey } = buildProductImageRecords(
     formData,
+    data.name,
     retainedImageIds,
   );
 
@@ -123,38 +135,43 @@ export async function updateProductAction(formData: FormData) {
 
   const nextImageUrl =
     retainedImages.find((image) => image.id === coverImageKey)?.url ??
-    uploadedImages[Number.parseInt(coverImageKey.replace("upload:", ""), 10)]?.url ??
+    uploadedImages.find((image) => image.key === coverImageKey)?.url ??
     retainedImages[0]?.url ??
     uploadedImages[0]?.url ??
     null;
 
-  await db.product.update({
-    where: { id: productId },
-    data: {
-      ...data,
-      imageUrl: nextImageUrl,
-      images: {
-        deleteMany: {
-          id: {
-            notIn: retainedImageIds.length > 0 ? retainedImageIds : ["__none__"],
+  try {
+    await db.product.update({
+      where: { id: productId },
+      data: {
+        ...data,
+        imageUrl: nextImageUrl,
+        images: {
+          deleteMany: {
+            id: {
+              notIn: retainedImageIds.length > 0 ? retainedImageIds : ["__none__"],
+            },
           },
+          updateMany: retainedImages.map((image, index) => ({
+            where: { id: image.id },
+            data: {
+              sortOrder: index,
+              isCover: image.id === coverImageKey,
+            },
+          })),
+          create: uploadedImages.map((image, index) => ({
+            url: image.url,
+            alt: image.alt,
+            sortOrder: retainedImages.length + index,
+            isCover: coverImageKey === image.key,
+          })),
         },
-        updateMany: retainedImages.map((image, index) => ({
-          where: { id: image.id },
-          data: {
-            sortOrder: index,
-            isCover: image.id === coverImageKey,
-          },
-        })),
-        create: uploadedImages.map((image, index) => ({
-          url: image.url,
-          alt: image.alt,
-          sortOrder: retainedImages.length + index,
-          isCover: coverImageKey === `upload:${index}`,
-        })),
       },
-    },
-  });
+    });
+  } catch (error) {
+    await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
+    throw error;
+  }
 
   await Promise.all(removedImages.map((image) => deleteProductImageFile(image.url)));
 

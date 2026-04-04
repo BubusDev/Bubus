@@ -1,12 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { upload } from "@vercel/blob/client";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Plus, Trash2, X } from "lucide-react";
 
 import {
   createProductOptionAction,
   deleteProductOptionAction,
 } from "@/app/admin/products/actions";
+import { createProductImageUploadPathname } from "@/lib/blob-upload";
 import { homepagePlacementLabels } from "@/lib/catalog";
 import {
   type AdminProductFormOptions,
@@ -25,9 +36,12 @@ type AdminProductFormProps = {
 
 type PendingImage = {
   id: string;
-  url: string;
+  previewUrl: string;
   name: string;
   kind: "existing" | "upload";
+  uploadedUrl: string;
+  status: "ready" | "uploading" | "error";
+  errorMessage?: string;
 };
 
 type ProductFormState = {
@@ -559,6 +573,14 @@ function filterErrorsForStep(errors: FormErrorState, stepIndex: number) {
   ) as FormErrorState;
 }
 
+async function uploadProductImage(file: File) {
+  return upload(createProductImageUploadPathname(file.name), file, {
+    access: "public",
+    contentType: file.type || undefined,
+    handleUploadUrl: "/api/admin/product-images/upload",
+  });
+}
+
 export function AdminProductForm({
   action,
   options,
@@ -571,9 +593,11 @@ export function AdminProductForm({
     () =>
       values.images.map((image) => ({
         id: image.id,
-        url: image.url,
+        previewUrl: image.url,
         name: image.alt,
         kind: "existing",
+        uploadedUrl: image.url,
+        status: "ready",
       })),
     [values],
   );
@@ -589,22 +613,35 @@ export function AdminProductForm({
   const [existingImages, setExistingImages] = useState<PendingImage[]>(initialExistingImages);
   const [uploadedImages, setUploadedImages] = useState<PendingImage[]>([]);
   const [coverImageKey, setCoverImageKey] = useState<string>(initialCoverImageKey);
+  const uploadedImagesRef = useRef(uploadedImages);
+
+  useEffect(() => {
+    uploadedImagesRef.current = uploadedImages;
+  }, [uploadedImages]);
 
   useEffect(() => {
     return () => {
-      for (const image of uploadedImages) {
-        URL.revokeObjectURL(image.url);
+      for (const image of uploadedImagesRef.current) {
+        URL.revokeObjectURL(image.previewUrl);
       }
     };
-  }, [uploadedImages]);
+  }, []);
 
   const allImages = useMemo(() => [...existingImages, ...uploadedImages], [existingImages, uploadedImages]);
+  const completedUploadedImages = useMemo(
+    () => uploadedImages.filter((image) => image.status === "ready" && image.uploadedUrl.length > 0),
+    [uploadedImages],
+  );
+  const hasUploadingImages = uploadedImages.some((image) => image.status === "uploading");
+  const uploadErrors = uploadedImages
+    .filter((image) => image.status === "error" && image.errorMessage)
+    .map((image) => image.errorMessage as string);
   const effectiveCoverImageKey = useMemo(() => {
-    if (allImages.some((image) => image.id === coverImageKey)) {
+    if (allImages.some((image) => image.id === coverImageKey && image.status === "ready")) {
       return coverImageKey;
     }
 
-    return allImages[0]?.id ?? "";
+    return allImages.find((image) => image.status === "ready")?.id ?? "";
   }, [allImages, coverImageKey]);
 
   const handleFieldChange = <K extends FormFieldName>(fieldName: K, nextValue: ProductFormState[K]) => {
@@ -678,6 +715,68 @@ export function AdminProductForm({
     });
   };
 
+  async function handleImageSelection(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const nextImages = files.map((file, index) => ({
+      id: `upload:${Date.now()}-${index}`,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      kind: "upload" as const,
+      uploadedUrl: "",
+      status: "uploading" as const,
+    }));
+
+    setUploadedImages((current) => [...current, ...nextImages]);
+
+    await Promise.all(
+      nextImages.map(async (image, index) => {
+        try {
+          const blob = await uploadProductImage(files[index]);
+          setUploadedImages((current) =>
+            current.map((currentImage) =>
+              currentImage.id === image.id
+                ? {
+                    ...currentImage,
+                    uploadedUrl: blob.url,
+                    status: "ready",
+                  }
+                : currentImage,
+            ),
+          );
+        } catch (error) {
+          setUploadedImages((current) =>
+            current.map((currentImage) =>
+              currentImage.id === image.id
+                ? {
+                    ...currentImage,
+                    status: "error",
+                    errorMessage:
+                      error instanceof Error ? error.message : "A kep feltoltese nem sikerult.",
+                  }
+                : currentImage,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
+  function removeImage(image: PendingImage) {
+    if (image.kind === "existing") {
+      setExistingImages((current) => current.filter((existingImage) => existingImage.id !== image.id));
+      return;
+    }
+
+    URL.revokeObjectURL(image.previewUrl);
+    setUploadedImages((current) => current.filter((uploadedImage) => uploadedImage.id !== image.id));
+  }
+
   const isFirstStep = step === 0;
   const isLastStep = step === stepDefinitions.length - 1;
 
@@ -704,6 +803,11 @@ export function AdminProductForm({
     if (firstInvalidStep !== -1) {
       event.preventDefault();
       setStep(firstInvalidStep);
+      return;
+    }
+
+    if (hasUploadingImages) {
+      event.preventDefault();
     }
   }
 
@@ -713,6 +817,14 @@ export function AdminProductForm({
 
       {existingImages.map((image) => (
         <input key={image.id} type="hidden" name="retainedImageIds" value={image.id} />
+      ))}
+
+      {completedUploadedImages.map((image) => (
+        <input key={image.id} type="hidden" name="imageUrls" value={image.uploadedUrl} />
+      ))}
+
+      {completedUploadedImages.map((image) => (
+        <input key={`${image.id}-key`} type="hidden" name="imageKeys" value={image.id} />
       ))}
 
       <input type="hidden" name="coverImageKey" value={effectiveCoverImageKey} />
@@ -803,28 +915,30 @@ export function AdminProductForm({
           <label className="flex min-h-32 cursor-pointer items-center justify-center rounded-[1.4rem] border border-dashed border-[#e4bfd3] bg-[#fff8fb] px-5 py-6 text-center text-sm text-[#7a6070] transition hover:bg-white">
             <input
               type="file"
-              name="images"
               accept="image/*"
               multiple
               className="hidden"
-              onChange={(event) => {
-                const files = Array.from(event.target.files ?? []);
-                setUploadedImages((current) => {
-                  current.forEach((image) => URL.revokeObjectURL(image.url));
-                  return files.map((file, index) => ({
-                    id: `upload:${index}`,
-                    url: URL.createObjectURL(file),
-                    name: file.name,
-                    kind: "upload",
-                  }));
-                });
-              }}
+              onChange={handleImageSelection}
             />
             <div className="space-y-2">
               <p className="text-sm font-medium text-[#5a374e]">Termekkeppek kivalasztasa</p>
-              <p className="text-sm text-[#7a6070]">PNG, JPG vagy WEBP. Tobb fajl is feltoltheto.</p>
+              <p className="text-sm text-[#7a6070]">
+                PNG, JPG vagy WEBP. A kep kozvetlenul a Vercel Blob tarhelyre toltodik fel.
+              </p>
             </div>
           </label>
+
+          {hasUploadingImages ? (
+            <div className="rounded-[1.3rem] border border-[#f2d7e6] bg-[#fff8fb] px-4 py-3 text-sm text-[#7a6070]">
+              Kepfeltoltes folyamatban...
+            </div>
+          ) : null}
+
+          {uploadErrors.length > 0 ? (
+            <div className="rounded-[1.3rem] border border-[#f3ccd9] bg-[#fff4f7] px-4 py-3 text-sm text-[#9b476f]">
+              {uploadErrors[0]}
+            </div>
+          ) : null}
 
           {allImages.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -834,35 +948,40 @@ export function AdminProductForm({
                   className="overflow-hidden rounded-[1.35rem] border border-[#ecd3e3] bg-white"
                 >
                   <div className="aspect-[4/4.2] bg-[#fff4f8]">
-                    <img src={image.url} alt={image.name} className="h-full w-full object-cover" />
+                    <img src={image.previewUrl} alt={image.name} className="h-full w-full object-cover" />
                   </div>
 
                   <div className="space-y-3 p-4">
                     <p className="truncate text-sm text-[#6d5260]">{image.name}</p>
+
+                    {image.status === "uploading" ? (
+                      <p className="text-sm text-[#7a6070]">Feltoltes...</p>
+                    ) : null}
+
+                    {image.status === "error" ? (
+                      <p className="text-sm text-[#9b476f]">
+                        {image.errorMessage ?? "A kep feltoltese nem sikerult."}
+                      </p>
+                    ) : null}
 
                     <label className="flex items-center gap-2 text-sm text-[#5a374e]">
                       <input
                         type="radio"
                         checked={effectiveCoverImageKey === image.id}
                         onChange={() => setCoverImageKey(image.id)}
+                        disabled={image.status !== "ready"}
                         className="h-4 w-4 accent-[#f183bc]"
                       />
                       Boritokep
                     </label>
 
-                    {image.kind === "existing" ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExistingImages((current) =>
-                            current.filter((existingImage) => existingImage.id !== image.id),
-                          )
-                        }
-                        className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
-                      >
-                        Eltavolitas
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(image)}
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
+                    >
+                      Eltavolitas
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1104,9 +1223,10 @@ export function AdminProductForm({
             ) : (
               <button
                 type="submit"
+                disabled={hasUploadingImages}
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_12px_28px_rgba(241,131,188,0.22)] transition hover:bg-[#ea6fb0]"
               >
-                {submitLabel}
+                {hasUploadingImages ? "Kepek feltoltese..." : submitLabel}
               </button>
             )}
           </div>
