@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { getAvailableToSell, isInStock } from "@/lib/inventory";
 
 const productInclude = {
   images: {
@@ -18,6 +19,9 @@ export type FavouriteProduct = {
   price: number;
   collectionLabel: string;
   stockQuantity: number;
+  reservedQuantity: number;
+  soldOutAt?: Date | null;
+  inStock: boolean;
   imageUrl?: string | null;
 };
 
@@ -30,6 +34,9 @@ export type CartItemSummary = {
   price: number;
   quantity: number;
   stockQuantity: number;
+  reservedQuantity: number;
+  soldOutAt?: Date | null;
+  availableToSell: number;
   isAvailable: boolean;
   exceedsStock: boolean;
   imageUrl?: string | null;
@@ -133,6 +140,9 @@ export async function getFavouriteProducts(userId: string) {
       price: entry.product.price,
       collectionLabel: entry.product.collectionLabel,
       stockQuantity: entry.product.stockQuantity,
+      reservedQuantity: entry.product.reservedQuantity,
+      soldOutAt: entry.product.soldOutAt,
+      inStock: isInStock(entry.product),
       imageUrl: coverImage?.url ?? entry.product.imageUrl,
     };
   });
@@ -174,8 +184,11 @@ export async function getCartForUser(userId: string) {
       price: item.product.price,
       quantity: item.quantity,
       stockQuantity: item.product.stockQuantity,
-      isAvailable: item.product.stockQuantity > 0,
-      exceedsStock: item.quantity > item.product.stockQuantity,
+      reservedQuantity: item.product.reservedQuantity,
+      soldOutAt: item.product.soldOutAt,
+      availableToSell: getAvailableToSell(item.product),
+      isAvailable: isInStock(item.product),
+      exceedsStock: item.quantity > getAvailableToSell(item.product),
       imageUrl: coverImage?.url ?? item.product.imageUrl,
       lineTotal: item.product.price * item.quantity,
     };
@@ -231,10 +244,12 @@ export async function addProductToCart(
   return db.$transaction(async (tx) => {
     const product = await tx.product.findUnique({
       where: { id: productId },
-      select: { stockQuantity: true },
+      select: { stockQuantity: true, reservedQuantity: true },
     });
 
-    if (!product || product.stockQuantity <= 0) {
+    const availableToSell = product ? getAvailableToSell(product) : 0;
+
+    if (!product || availableToSell <= 0) {
       return false;
     }
 
@@ -248,7 +263,7 @@ export async function addProductToCart(
     });
 
     const nextQuantity = Math.min(
-      product.stockQuantity,
+      availableToSell,
       (existing?.quantity ?? 0) + Math.max(1, Math.floor(quantity)),
     );
 

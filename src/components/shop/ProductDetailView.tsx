@@ -4,6 +4,7 @@ import { addFavouriteAction } from "@/app/account/actions";
 import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
 import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
+import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
 import {
   formatPrice,
@@ -82,23 +83,13 @@ export function ProductDetailView({
 
       <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.82fr)] xl:gap-10">
         <div className="space-y-4">
-          <div
+          <ProductImageFrame
+            alt={coverImage?.alt ?? product.name}
+            imageUrl={coverImage?.url}
+            soldOut={isOutOfStock}
+            palette={[from, via, to]}
             className="relative aspect-[4/5] overflow-hidden bg-[#f4f1ef]"
-            style={
-              coverImage
-                ? undefined
-                : {
-                    background: `linear-gradient(160deg, ${from}, ${via} 58%, ${to})`,
-                  }
-            }
-          >
-            {coverImage ? (
-              <img
-                src={coverImage.url}
-                alt={coverImage.alt ?? product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
+            fallback={
               <div className="flex h-full items-center justify-center">
                 <div className="relative h-44 w-44">
                   <div className="absolute inset-0 rounded-full border-[12px] border-[#f7e4bf]/90 shadow-[0_14px_30px_rgba(118,76,37,0.16)]" />
@@ -106,8 +97,8 @@ export function ProductDetailView({
                   <div className="absolute left-1/2 top-[31%] h-6 w-6 -translate-x-1/2 rotate-45 rounded-[0.45rem] bg-white/95 shadow-[0_0_28px_rgba(255,255,255,0.8)]" />
                 </div>
               </div>
-            )}
-          </div>
+            }
+          />
 
           <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             {(galleryImages.length > 0
@@ -131,7 +122,9 @@ export function ProductDetailView({
                   <img
                     src={item.url}
                     alt={item.alt ?? product.name}
-                    className="aspect-[4/4.7] w-full object-cover"
+                    className={`aspect-[4/4.7] w-full object-cover ${
+                      isOutOfStock ? "blur-[2px] saturate-[0.55] brightness-[0.9]" : ""
+                    }`}
                   />
                 )}
                 <p className="text-[10px] leading-4 text-[#7a6070]">
@@ -179,7 +172,7 @@ export function ProductDetailView({
 
                 <p
                   className={`text-[13px] ${
-                    isOutOfStock ? "font-medium text-[#a13f6b]" : "text-[#7d6272]"
+                    isOutOfStock ? "font-medium text-[#7f7078]" : "text-[#7d6272]"
                   }`}
                 >
                   {getDisplayValue(availabilityLabel)}
@@ -220,7 +213,7 @@ export function ProductDetailView({
                     disabled={isOutOfStock}
                     className={`inline-flex h-11 w-full items-center justify-center gap-2 px-5 text-[13px] font-medium transition ${
                       isOutOfStock
-                        ? "cursor-not-allowed bg-[#eadfe5] text-[#8c7180]"
+                        ? "cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
                         : justAdded
                           ? "bg-[#4d2741] text-white"
                           : "bg-[#2f2230] text-white hover:opacity-90"

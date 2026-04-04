@@ -8,6 +8,7 @@ import type {
 } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { getAvailableToSell, isInStock } from "@/lib/inventory";
 import {
   editorialCategoryDefinitions,
   editorialCategoryOrder,
@@ -198,6 +199,10 @@ function mapProduct(product: DbProductWithRelations): Product {
     badge: product.badge,
     collectionLabel: product.collectionLabel,
     stockQuantity: product.stockQuantity,
+    reservedQuantity: product.reservedQuantity,
+    soldOutAt: product.soldOutAt,
+    inStock: isInStock(product),
+    availableToSell: getAvailableToSell(product),
     stoneType: product.stoneType.slug,
     color: product.color.slug,
     style: product.style.slug,

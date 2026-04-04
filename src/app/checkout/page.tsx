@@ -14,6 +14,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   const user = await requireUser("/checkout");
   const { user: profile, cart } = await getCheckoutContext(user.id);
   const resolvedSearchParams = await searchParams;
+  const hasUnavailableItems = cart.items.some((item) => !item.isAvailable || item.exceedsStock);
 
   if (cart.items.length === 0) {
     return (
@@ -52,6 +53,11 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
             <div className="rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
               Egy vagy több termék időközben elfogyott vagy már nincs elegendő készleten.
               Ellenőrizd a kosarat a rendelés leadása előtt.
+            </div>
+          ) : null}
+          {hasUnavailableItems ? (
+            <div className="rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
+              A kosárban jelenleg van nem elérhető tétel vagy túl magas mennyiség. Frissítsd a kosarat, mielőtt véglegesíted a rendelést.
             </div>
           ) : null}
 
@@ -183,7 +189,12 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
 
           <button
             type="submit"
-            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
+            disabled={hasUnavailableItems}
+            className={`mt-6 inline-flex h-12 w-full items-center justify-center rounded-full px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition ${
+              hasUnavailableItems
+                ? "cursor-not-allowed bg-[#d8c1cc] shadow-none"
+                : "bg-[#f183bc] hover:bg-[#ea6fb0]"
+            }`}
           >
             Rendelés leadása
           </button>

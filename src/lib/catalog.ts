@@ -35,6 +35,10 @@ export type Product = {
   badge: string;
   collectionLabel: string;
   stockQuantity: number;
+  reservedQuantity: number;
+  soldOutAt?: Date | null;
+  inStock: boolean;
+  availableToSell: number;
   stoneType: StoneType;
   color: MetalColor;
   style: StyleType;
@@ -56,14 +60,22 @@ export type Product = {
   labels: ProductOptionLabels;
 };
 
-export function isProductOutOfStock(product: Pick<Product, "stockQuantity">) {
-  return product.stockQuantity <= 0;
+export function isProductOutOfStock(
+  product: Pick<Product, "stockQuantity" | "reservedQuantity">,
+) {
+  return !isInStock(product);
 }
 
 export function getProductAvailabilityLabel(
-  product: Pick<Product, "labels" | "stockQuantity">,
+  product: Pick<Product, "labels" | "stockQuantity" | "reservedQuantity">,
 ) {
   return isProductOutOfStock(product) ? "Elfogyott" : product.labels.availability;
+}
+
+export function getProductAvailableToSell(
+  product: Pick<Product, "stockQuantity" | "reservedQuantity">,
+) {
+  return getAvailableToSell(product);
 }
 
 export type CategoryDefinition = {
@@ -377,3 +389,4 @@ export function toTitleCase(value: string) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
+import { getAvailableToSell, isInStock } from "@/lib/inventory";

@@ -8,6 +8,7 @@ import {
   removeFavouriteAction,
 } from "@/app/account/actions";
 import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
+import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import {
   formatPrice,
   getProductAvailabilityLabel,
@@ -38,28 +39,16 @@ export function ProductCard({
         href={productHref}
         className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
       >
-        <div
+        <ProductImageFrame
+          alt={product.name}
+          imageUrl={coverImage}
+          soldOut={isOutOfStock}
+          palette={[from, via, to]}
           className="relative aspect-[4/5] overflow-hidden bg-[#f4f1ef]"
-          style={
-            coverImage
-              ? undefined
-              : {
-                  background: `linear-gradient(160deg, ${from}, ${via} 55%, ${to})`,
-                }
-          }
-        >
-          {isOutOfStock ? (
-            <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#4d2741] px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-white">
-              Elfogyott
-            </span>
-          ) : null}
-          {coverImage ? (
-            <img
-              src={coverImage}
-              alt={product.name}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-            />
-          ) : (
+          imageClassName={`h-full w-full object-cover transition duration-500 ${
+            isOutOfStock ? "" : "group-hover:scale-[1.02]"
+          }`}
+          fallback={
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative h-32 w-32 sm:h-36 sm:w-36">
                 <div className="absolute inset-0 rounded-full border-[10px] border-[#f2dfbc]/90" />
@@ -67,8 +56,8 @@ export function ProductCard({
                 <div className="absolute left-1/2 top-[30%] h-4 w-4 -translate-x-1/2 rotate-45 rounded-[0.3rem] bg-white/85" />
               </div>
             </div>
-          )}
-        </div>
+          }
+        />
       </Link>
 
       <div className="flex flex-1 flex-col gap-1 px-1 pb-1 pt-2">

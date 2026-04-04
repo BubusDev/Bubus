@@ -7,6 +7,7 @@ import { type ProductOptionType } from "@prisma/client";
 import { requireAdminUser } from "@/lib/auth";
 import { getImageAltTextFromUrl } from "@/lib/blob-upload";
 import { db } from "@/lib/db";
+import { getSoldOutTimestamp } from "@/lib/inventory";
 import { deleteProductImageFile } from "@/lib/product-images";
 import { parseProductFormData, slugifyOptionName } from "@/lib/products";
 
@@ -115,12 +116,15 @@ export async function createProductAction(formData: FormData) {
 
   const coverUrl =
     uploadedImages.find((image) => image.key === coverImageKey)?.url ?? uploadedImages[0]?.url ?? null;
+  const nextStockQuantity = data.stockQuantity ?? 0;
 
   const product = await (async () => {
     try {
-      return await db.product.create({
+      const createdProduct = await db.product.create({
         data: {
           ...data,
+          reservedQuantity: 0,
+          soldOutAt: getSoldOutTimestamp(null, nextStockQuantity),
           imageUrl: coverUrl,
           images: {
             create: uploadedImages.map((image, index) => ({
@@ -135,6 +139,20 @@ export async function createProductAction(formData: FormData) {
           },
         },
       });
+
+      if (createdProduct.stockQuantity > 0) {
+        await db.inventoryEvent.create({
+          data: {
+            productId: createdProduct.id,
+            type: "INITIAL_STOCK",
+            quantityDelta: createdProduct.stockQuantity,
+            stockAfter: createdProduct.stockQuantity,
+            note: "Initial stock set during product creation.",
+          },
+        });
+      }
+
+      return createdProduct;
     } catch (error) {
       await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
       throw error;
@@ -193,10 +211,11 @@ export async function updateProductAction(formData: FormData) {
     null;
 
   try {
-    await db.product.update({
+    const updatedProduct = await db.product.update({
       where: { id: productId },
       data: {
         ...data,
+        soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, data.stockQuantity ?? 0),
         imageUrl: nextImageUrl,
         images: {
           deleteMany: {
@@ -220,6 +239,24 @@ export async function updateProductAction(formData: FormData) {
         },
       },
     });
+
+    const stockDelta = updatedProduct.stockQuantity - existingProduct.stockQuantity;
+
+    if (stockDelta !== 0) {
+      await db.inventoryEvent.create({
+        data: {
+          productId: updatedProduct.id,
+          type: "MANUAL_ADJUSTMENT",
+          quantityDelta: stockDelta,
+          stockAfter: updatedProduct.stockQuantity,
+          note: "Manual stock update from admin.",
+          metadata: {
+            previousStockQuantity: existingProduct.stockQuantity,
+            nextStockQuantity: updatedProduct.stockQuantity,
+          },
+        },
+      });
+    }
   } catch (error) {
     await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
     throw error;

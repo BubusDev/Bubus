@@ -9,6 +9,11 @@ import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
 import { db } from "@/lib/db";
+import {
+  applyCompletedOrderInventory,
+  getAvailableToSell,
+  InsufficientStockError,
+} from "@/lib/inventory";
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -54,7 +59,7 @@ export async function updateCartItemQuantityAction(formData: FormData) {
     where: { id: itemId, cartId: cart.id },
     include: {
       product: {
-        select: { stockQuantity: true },
+        select: { stockQuantity: true, reservedQuantity: true },
       },
     },
   });
@@ -64,7 +69,9 @@ export async function updateCartItemQuantityAction(formData: FormData) {
     return;
   }
 
-  if (cartItem.product.stockQuantity <= 0) {
+  const availableToSell = getAvailableToSell(cartItem.product);
+
+  if (availableToSell <= 0) {
     await db.cartItem.delete({
       where: { id: cartItem.id },
     });
@@ -75,7 +82,7 @@ export async function updateCartItemQuantityAction(formData: FormData) {
 
   await db.cartItem.updateMany({
     where: { id: itemId, cartId: cart.id },
-    data: { quantity: Math.min(quantity, cartItem.product.stockQuantity) },
+    data: { quantity: Math.min(quantity, availableToSell) },
   });
 
   revalidatePath("/cart");
@@ -282,55 +289,55 @@ export async function placeOrderAction(formData: FormData) {
     1000 + Math.random() * 9000,
   )}`;
 
-  const order = await db.$transaction(async (tx) => {
-    for (const item of cart.items) {
-      const updated = await tx.product.updateMany({
-        where: {
-          id: item.productId,
-          stockQuantity: { gte: item.quantity },
-        },
+  let order;
+
+  try {
+    order = await db.$transaction(async (tx) => {
+      const createdOrder = await tx.order.create({
         data: {
-          stockQuantity: {
-            decrement: item.quantity,
+          userId: user.id,
+          orderNumber,
+          status: "Visszaigazolva",
+          subtotal: cart.subtotal,
+          total: cart.total,
+          shippingName,
+          shippingPhone,
+          shippingAddress,
+          paymentMethod,
+          items: {
+            create: cart.items.map((item: CartItemValue) => ({
+              productId: item.productId,
+              productName: item.name,
+              productSlug: item.slug,
+              imageUrl: item.imageUrl,
+              unitPrice: item.price,
+              quantity: item.quantity,
+            })),
           },
         },
       });
 
-      if (updated.count === 0) {
-        redirect("/checkout?status=stock");
-      }
+      await applyCompletedOrderInventory(tx, {
+        orderId: createdOrder.id,
+        items: cart.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      });
+
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id },
+      });
+
+      return createdOrder;
+    });
+  } catch (error) {
+    if (error instanceof InsufficientStockError) {
+      redirect("/checkout?status=stock");
     }
 
-    const createdOrder = await tx.order.create({
-      data: {
-        userId: user.id,
-        orderNumber,
-        status: "Visszaigazolva",
-        subtotal: cart.subtotal,
-        total: cart.total,
-        shippingName,
-        shippingPhone,
-        shippingAddress,
-        paymentMethod,
-        items: {
-          create: cart.items.map((item: CartItemValue) => ({
-            productId: item.productId,
-            productName: item.name,
-            productSlug: item.slug,
-            imageUrl: item.imageUrl,
-            unitPrice: item.price,
-            quantity: item.quantity,
-          })),
-        },
-      },
-    });
-
-    await tx.cartItem.deleteMany({
-      where: { cartId: cart.id },
-    });
-
-    return createdOrder;
-  });
+    throw error;
+  }
 
   await db.user.update({
     where: { id: user.id },

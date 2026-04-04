@@ -38,6 +38,12 @@ enum AnnouncementVariant {
   NEW_COLLECTION
 }
 
+enum InventoryEventType {
+  INITIAL_STOCK
+  MANUAL_ADJUSTMENT
+  ORDER_COMPLETED
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -111,6 +117,8 @@ model Product {
   badge             String
   collectionLabel   String
   stockQuantity     Int                @default(0)
+  reservedQuantity  Int                @default(0)
+  soldOutAt         DateTime?
   stoneTypeId       String
   stoneType         ProductOption      @relation("ProductStoneType", fields: [stoneTypeId], references: [id])
   colorId           String
@@ -131,6 +139,7 @@ model Product {
   favourites        Favourite[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
+  inventoryEvents   InventoryEvent[]
   specialEditionEntries SpecialEditionEntry[]
   homepagePlacement HomepagePlacement  @default(NONE)
   createdAt         DateTime           @default(now())
@@ -147,6 +156,7 @@ model Product {
   @@index([isNew])
   @@index([isGiftable])
   @@index([isOnSale])
+  @@index([stockQuantity, reservedQuantity])
 }
 
 model ProductOption {
@@ -293,4 +303,21 @@ model OrderItem {
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+}
+
+model InventoryEvent {
+  id          String             @id @default(cuid())
+  productId   String
+  orderId     String?
+  type        InventoryEventType
+  quantityDelta Int
+  stockAfter  Int
+  note        String?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt])
+  @@index([orderId])
+  @@index([type, createdAt])
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
+import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import {
   formatPrice,
   isProductOutOfStock,
@@ -93,24 +94,13 @@ function ProductEditorialCard({
         href={productHref}
         className="mt-8 block w-full max-w-[320px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2"
       >
-        <div
-          className="aspect-[4/4.7] w-full overflow-hidden bg-[#f6f2f4]"
-          style={
-            coverImage
-              ? undefined
-              : {
-                  background: `linear-gradient(155deg, ${from}, ${via} 55%, ${to})`,
-                }
-          }
-        >
-          {coverImage ? (
-            <img
-              src={coverImage}
-              alt={entry.productImageAlt}
-              className="h-full w-full object-cover"
-            />
-          ) : null}
-        </div>
+        <ProductImageFrame
+          alt={entry.productImageAlt}
+          imageUrl={coverImage}
+          soldOut={isOutOfStock}
+          palette={[from, via, to]}
+          className="relative aspect-[4/4.7] w-full overflow-hidden bg-[#f6f2f4]"
+        />
       </Link>
 
       <p className="mt-7 text-[1rem] font-medium tracking-[0.02em] text-[#2f2230]">
@@ -118,7 +108,7 @@ function ProductEditorialCard({
       </p>
 
       {isOutOfStock ? (
-        <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-[#a13f6b]">
+        <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-[#7f7078]">
           Elfogyott
         </p>
       ) : null}
@@ -135,7 +125,7 @@ function ProductEditorialCard({
             disabled={isOutOfStock}
             className={`mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 px-6 text-[11px] font-medium uppercase tracking-[0.16em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2 ${
               isOutOfStock
-                ? "cursor-not-allowed bg-[#ded7da] text-[#816d79]"
+                ? "cursor-not-allowed bg-[#e8e2e5] text-[#7d7177]"
                 : justAdded
                   ? "bg-[#5E0034] text-white"
                   : "bg-[#121313] text-white hover:opacity-90"

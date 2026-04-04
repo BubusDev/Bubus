@@ -67,8 +67,8 @@ export async function generateMetadata({
   };
 }
 
-function getSchemaAvailability(stockQuantity: number) {
-  return stockQuantity <= 0
+function getSchemaAvailability(inStock: boolean) {
+  return !inStock
     ? "https://schema.org/OutOfStock"
     : "https://schema.org/InStock";
 }
@@ -123,7 +123,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       url: productUrl,
       price: product.price,
       priceCurrency: "EUR",
-      availability: getSchemaAvailability(product.stockQuantity),
+      availability: getSchemaAvailability(product.inStock),
     },
   };
   const breadcrumbSchema = {

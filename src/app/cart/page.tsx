@@ -6,9 +6,10 @@ import {
   removeCartItemAction,
   updateCartItemQuantityAction,
 } from "@/app/account/actions";
+import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getCartForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -72,6 +73,9 @@ function CartEmptyState() {
 }
 
 function CartItemRow({ item }: { item: CartItemSummary }) {
+  const isOutOfStock = isProductOutOfStock(item);
+  const incrementDisabled = isOutOfStock || item.quantity >= item.availableToSell;
+
   return (
     <article className="border-b border-[#f1dfe8] py-6 first:pt-0 last:border-b-0 last:pb-0 sm:py-8">
       <div className="grid gap-5 sm:grid-cols-[140px_minmax(0,1fr)] lg:grid-cols-[160px_minmax(0,1fr)]">
@@ -79,15 +83,16 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
           href={`/product/${item.slug}?redirectTo=/cart`}
           className="block overflow-hidden rounded-[1.5rem] bg-[#fff5fa]"
         >
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              className="aspect-square h-full w-full object-cover transition duration-500 hover:scale-[1.02]"
-            />
-          ) : (
-            <div className="aspect-square h-full w-full bg-[#fff5fa]" />
-          )}
+          <ProductImageFrame
+            alt={item.name}
+            imageUrl={item.imageUrl}
+            soldOut={isOutOfStock}
+            className="relative aspect-square h-full w-full overflow-hidden bg-[#fff5fa]"
+            imageClassName={`aspect-square h-full w-full object-cover transition duration-500 ${
+              isOutOfStock ? "" : "hover:scale-[1.02]"
+            }`}
+            palette={["#fff8fb", "#f8edf3", "#f3e3ec"]}
+          />
         </Link>
 
         <div className="flex min-w-0 flex-col justify-between gap-5">
@@ -105,6 +110,15 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               <p className="pt-1 text-sm text-[#7a6070]">
                 Egységár: {formatPrice(item.price)}
               </p>
+              {isOutOfStock ? (
+                <p className="text-xs uppercase tracking-[0.22em] text-[#8f6c7d]">
+                  Elfogyott
+                </p>
+              ) : item.exceedsStock ? (
+                <p className="text-xs text-[#9b476f]">
+                  Már csak {item.availableToSell} db érhető el.
+                </p>
+              ) : null}
             </div>
 
             <div className="shrink-0 text-left md:text-right">
@@ -138,7 +152,12 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                   name="quantity"
                   value={item.quantity + 1}
                   aria-label={`${item.name} mennyiségének növelése`}
-                  className="px-3.5 font-serif text-lg leading-none text-[#c0a0b4] transition hover:text-[#4d2741]"
+                  disabled={incrementDisabled}
+                  className={`px-3.5 font-serif text-lg leading-none transition ${
+                    incrementDisabled
+                      ? "cursor-not-allowed text-[#d2c1cb]"
+                      : "text-[#c0a0b4] hover:text-[#4d2741]"
+                  }`}
                 >
                   +
                 </button>
@@ -162,7 +181,15 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
   );
 }
 
-function CartSummary({ subtotal, total }: { subtotal: number; total: number }) {
+function CartSummary({
+  subtotal,
+  total,
+  hasUnavailableItems,
+}: {
+  subtotal: number;
+  total: number;
+  hasUnavailableItems: boolean;
+}) {
   return (
     <aside className="lg:sticky lg:top-28 lg:h-fit">
       <div className="border-t border-[#f1dfe8] pt-6 lg:border-t-0 lg:pt-0">
@@ -194,12 +221,18 @@ function CartSummary({ subtotal, total }: { subtotal: number; total: number }) {
           </div>
         </div>
 
-        <Link
-          href="/checkout"
-          className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
-        >
-          Tovább a pénztárhoz
-        </Link>
+        {hasUnavailableItems ? (
+          <div className="mt-8 rounded-[1.4rem] border border-[#f0d7e4] bg-[#fff7fa] px-4 py-3 text-sm text-[#8c6077]">
+            Egy vagy több termék már nem elérhető a jelenlegi mennyiségben. Frissítsd a kosarat a pénztár előtt.
+          </div>
+        ) : (
+          <Link
+            href="/checkout"
+            className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+          >
+            Tovább a pénztárhoz
+          </Link>
+        )}
 
         <p className="mt-4 text-xs leading-6 text-[#8b7080]">
           A rendelés következő lépésében megadhatod a szállítási és fizetési adatokat.
@@ -212,6 +245,7 @@ function CartSummary({ subtotal, total }: { subtotal: number; total: number }) {
 export default async function CartPage() {
   const user = await requireUser("/cart");
   const cart = await getCartForUser(user.id);
+  const hasUnavailableItems = cart.items.some((item) => !item.isAvailable || item.exceedsStock);
 
   return (
     <main className="min-h-screen">
@@ -238,7 +272,11 @@ export default async function CartPage() {
               </div>
             </section>
 
-            <CartSummary subtotal={cart.subtotal} total={cart.total} />
+            <CartSummary
+              subtotal={cart.subtotal}
+              total={cart.total}
+              hasUnavailableItems={hasUnavailableItems}
+            />
           </div>
         )}
       </section>
