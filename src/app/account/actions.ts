@@ -27,20 +27,20 @@ function readPositiveInt(formData: FormData, key: string, fallback = 1) {
 type CartItemValue = Awaited<ReturnType<typeof getCartForUser>>["items"][number];
 
 export async function addToCartAction(formData: FormData) {
-  const user = await requireUser("/cart");
+  const redirectTo = readString(formData, "redirectTo") || "/";
+  const user = await requireUser(redirectTo);
   const productId = readString(formData, "productId");
   const quantity = readPositiveInt(formData, "quantity");
-  const redirectTo = readString(formData, "redirectTo") || "/cart";
 
   if (!productId) {
-    redirect(redirectTo);
+    return;
   }
 
   await addProductToCart(user.id, productId, quantity);
   revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/cart");
   revalidatePath("/favourites");
-  redirect(redirectTo);
 }
 
 export async function updateCartItemQuantityAction(formData: FormData) {

@@ -8,10 +8,10 @@ type AdminShellProps = {
 };
 
 const navItems = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/products/new", label: "New Product" },
-  { href: "/admin/announcement", label: "Announcement" },
+  { href: "/admin", label: "Áttekintés" },
+  { href: "/admin/products", label: "Termékek" },
+  { href: "/admin/products/new", label: "Új termék" },
+  { href: "/admin/announcement", label: "Üzenetsáv" },
   { href: "/admin/special-edition", label: "Special Edition" },
 ];
 
@@ -23,7 +23,7 @@ export function AdminShell({ title, description, children }: AdminShellProps) {
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.34em] text-[#af7795]">
-                Admin Atelier
+                Admin felület
               </p>
 
               <h1 className="font-[family:var(--font-display)] text-[2.2rem] leading-[0.95] tracking-[-0.05em] text-[#4d2741] sm:text-[3rem]">

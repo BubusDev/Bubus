@@ -25,28 +25,28 @@ export default async function AdminPage() {
 
   return (
     <AdminShell
-      title="Boutique Control"
-      description="Manage the product catalog, homepage editorial placement, and Special Edition campaign state from one workspace."
+      title="Webshop irányítópult"
+      description="Innen kezelheted a termékkatalógust, a kezdőlapi kiemeléseket, valamint a Special Edition és az üzenetsáv aktuális állapotát."
     >
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-6">
         {[
-          { label: "Products", value: productCount, note: "SQLite-backed catalog records" },
-          { label: "Spotlight", value: spotlightCount, note: "Homepage spotlight items" },
+          { label: "Termékek", value: productCount, note: "Aktív termék a katalógusban" },
+          { label: "Fókuszban", value: spotlightCount, note: "Kezdőlapi kiemelt termék" },
           {
-            label: "New Arrivals",
+            label: "Újdonságok",
             value: newArrivalCount,
-            note: "Homepage new-arrival items",
+            note: "Kezdőlapi újdonságként megjelenő termék",
           },
-          { label: "Users", value: userCount, note: "Temporary auth accounts" },
+          { label: "Felhasználók", value: userCount, note: "Regisztrált vásárlói fiók" },
           {
             label: "Special Edition",
-            value: specialEditionCampaign?.isActive ? "Live" : "Off",
-            note: `${specialEditionCampaign?.entries.length ?? 0} campaign entries`,
+            value: specialEditionCampaign?.isActive ? "Aktív" : "Inaktív",
+            note: `${specialEditionCampaign?.entries.length ?? 0} kampányelem beállítva`,
           },
           {
-            label: "Announcement",
-            value: announcement.isActive ? "Live" : "Off",
-            note: announcement.text || "No current campaign microcopy",
+            label: "Üzenetsáv",
+            value: announcement.isActive ? "Aktív" : "Inaktív",
+            note: announcement.text || "Jelenleg nincs közzétett üzenet",
           },
         ].map((item) => (
           <div
@@ -66,33 +66,33 @@ export default async function AdminPage() {
 
       <div className="mt-8 rounded-[2.2rem] border border-white/70 bg-white/76 p-6 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl">
         <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">
-          Next Actions
+          Gyors műveletek
         </p>
         <h2 className="mt-3 font-[family:var(--font-display)] text-[2.2rem] text-[#4d2741]">
-          Product and campaign operations are live.
+          A katalógus és a kampányok innen azonnal kezelhetők.
         </h2>
         <p className="mt-3 max-w-[58ch] text-sm leading-7 text-[#765f6d]">
-          Standard catalog products keep their existing admin flow. Special Edition now has a
-          dedicated campaign workspace with its own active state and entry-specific image mapping.
+          A termékkezelés, a kezdőlapi kommunikáció és a Special Edition kampány külön felületen
+          szerkeszthető, így minden fontos tartalom egy helyről frissíthető.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/admin/announcement"
             className="inline-flex h-12 items-center justify-center rounded-full border border-[#ecd3e3] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0] hover:bg-white"
           >
-            Edit Announcement
+            Üzenetsáv szerkesztése
           </Link>
           <Link
             href="/admin/products"
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
           >
-            Open Product Management
+            Termékkezelés megnyitása
           </Link>
           <Link
             href="/admin/special-edition"
             className="inline-flex h-12 items-center justify-center rounded-full border border-[#ecd3e3] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0] hover:bg-white"
           >
-            Open Special Edition
+            Special Edition megnyitása
           </Link>
         </div>
       </div>

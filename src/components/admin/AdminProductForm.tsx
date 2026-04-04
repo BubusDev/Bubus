@@ -748,6 +748,8 @@ export function AdminProductForm({
     [uploadedImages],
   );
   const hasUploadingImages = uploadedImages.some((image) => image.status === "uploading");
+  const hasImageUploadErrors = uploadedImages.some((image) => image.status === "error");
+  const hasPendingImageResolution = hasUploadingImages || hasImageUploadErrors;
   const uploadErrors = uploadedImages
     .filter((image) => image.status === "error" && image.errorMessage)
     .map((image) => image.errorMessage as string);
@@ -838,6 +840,8 @@ export function AdminProductForm({
       return;
     }
 
+    setSubmitError(null);
+
     const nextImages = files.map((file, index) => ({
       id: `upload:${Date.now()}-${index}`,
       previewUrl: URL.createObjectURL(file),
@@ -883,6 +887,8 @@ export function AdminProductForm({
   }
 
   function removeImage(image: PendingImage) {
+    setSubmitError(null);
+
     if (image.kind === "existing") {
       setExistingImages((current) => current.filter((existingImage) => existingImage.id !== image.id));
       return;
@@ -902,12 +908,22 @@ export function AdminProductForm({
   };
 
   function handleNextStep() {
+    if (step === 1 && hasPendingImageResolution) {
+      setSubmitError(
+        hasUploadingImages
+          ? "Várd meg, amíg az összes kép feltöltése befejeződik."
+          : "A hibás képfeltöltéseket javítsd vagy távolítsd el, mielőtt továbblépsz.",
+      );
+      return;
+    }
+
     const nextErrors = validateAndSetErrors(step);
     const currentStepHasErrors = stepDefinitions[step].fields.some((field) => nextErrors[field]);
     if (currentStepHasErrors) {
       return;
     }
 
+    setSubmitError(null);
     setStep((current) => Math.min(current + 1, stepDefinitions.length - 1));
   }
 
@@ -976,7 +992,13 @@ export function AdminProductForm({
       return;
     }
 
-    if (hasUploadingImages) {
+    if (hasPendingImageResolution) {
+      setStep(1);
+      setSubmitError(
+        hasUploadingImages
+          ? "A mentés csak akkor folytatható, ha minden kiválasztott kép feltöltése befejeződött."
+          : "A mentés előtt rendezd a hibás képfeltöltéseket: töltsd fel újra vagy távolítsd el őket.",
+      );
       return;
     }
 
@@ -1182,7 +1204,10 @@ export function AdminProductForm({
                       <input
                         type="radio"
                         checked={effectiveCoverImageKey === image.id}
-                        onChange={() => setCoverImageKey(image.id)}
+                        onChange={() => {
+                          setCoverImageKey(image.id);
+                          setSubmitError(null);
+                        }}
                         disabled={image.status !== "ready"}
                         className="h-4 w-4 accent-[#f183bc]"
                       />

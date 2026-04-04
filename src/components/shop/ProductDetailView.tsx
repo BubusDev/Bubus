@@ -1,6 +1,7 @@
 import { Heart, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
 
-import { addFavouriteAction, addToCartAction } from "@/app/account/actions";
+import { addFavouriteAction } from "@/app/account/actions";
+import { AddToCartForm } from "@/components/shop/AddToCartForm";
 import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
@@ -197,9 +198,7 @@ export function ProductDetailView({
             </div>
 
             <div className="flex flex-col gap-2.5 pt-1">
-              <form action={addToCartAction}>
-                <input type="hidden" name="productId" value={product.id} />
-                <input type="hidden" name="redirectTo" value="/cart" />
+              <AddToCartForm productId={product.id} redirectTo={`/product/${product.slug}`}>
                 <button
                   type="submit"
                   className="inline-flex h-11 w-full items-center justify-center gap-2 bg-[#2f2230] px-5 text-[13px] font-medium text-white transition hover:opacity-90"
@@ -207,7 +206,7 @@ export function ProductDetailView({
                   <ShoppingBag className="h-4 w-4 translate-y-[1px]" />
                   Kosárba rakom
                 </button>
-              </form>
+              </AddToCartForm>
 
               <form action={addFavouriteAction}>
                 <input type="hidden" name="productId" value={product.id} />

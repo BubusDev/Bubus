@@ -21,7 +21,7 @@ function EditorialBrandBlock() {
       <div className="max-w-[420px] space-y-8">
         <div className="space-y-4">
           <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
-            Boutique jewelry webshop
+            Butik ékszer webáruház
           </p>
 
           <div className="space-y-2">
@@ -101,8 +101,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
           <div className="space-y-6 sm:space-y-8">
             <HomeProductSection
-              eyebrow="Curated favorites"
-              title="IN SPOTLIGHT"
+              eyebrow="Válogatott kedvencek"
+              title="FÓKUSZBAN"
               href="/new-in"
               products={spotlightData.products}
               redirectTo={homeRedirectTo}
@@ -113,8 +113,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             />
 
             <HomeProductSection
-              eyebrow="Fresh keepsakes"
-              title="NEW ARRIVALS"
+              eyebrow="Friss kincsek"
+              title="ÚJDONSÁGOK"
               href="/new-in"
               products={newArrivalData.products}
               redirectTo={homeRedirectTo}

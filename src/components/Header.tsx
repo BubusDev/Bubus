@@ -27,11 +27,13 @@ function HeaderActionButton({
   children,
 }: HeaderActionButtonProps) {
   const hasBadge = typeof badgeCount === "number" && badgeCount > 0;
+  const isCartButton = href === "/cart";
 
   return (
     <Link
       href={href}
       aria-label={label}
+      data-cart-icon-target={isCartButton ? "cart" : undefined}
       className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/80 text-[#6d5260] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
     >
       <span className="transition duration-300 group-hover:scale-105">

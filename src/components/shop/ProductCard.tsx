@@ -5,9 +5,9 @@ import { Heart, ShoppingBag } from "lucide-react";
 
 import {
   addFavouriteAction,
-  addToCartAction,
   removeFavouriteAction,
 } from "@/app/account/actions";
+import { AddToCartForm } from "@/components/shop/AddToCartForm";
 import { formatPrice, type Product } from "@/lib/catalog";
 
 type ProductCardProps = {
@@ -73,10 +73,7 @@ export function ProductCard({
         </p>
 
         <div className="relative z-10 mt-auto flex items-center justify-between pt-2">
-          <form action={addToCartAction}>
-            <input type="hidden" name="productId" value={product.id} />
-            <input type="hidden" name="quantity" value="1" />
-            <input type="hidden" name="redirectTo" value={redirectTo} />
+          <AddToCartForm productId={product.id} quantity={1} redirectTo={redirectTo}>
             <button
               type="submit"
               aria-label={`Kosárba: ${product.name}`}
@@ -84,7 +81,7 @@ export function ProductCard({
             >
               <ShoppingBag className="h-5 w-5" />
             </button>
-          </form>
+          </AddToCartForm>
 
           <form action={favouriteAction}>
             <input type="hidden" name="productId" value={product.id} />

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
-import { addToCartAction } from "@/app/account/actions";
+import { AddToCartForm } from "@/components/shop/AddToCartForm";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import {
   formatPrice,
@@ -116,18 +116,15 @@ function ProductEditorialCard({
         {formatPrice(product.price)}
       </p>
 
-      <form action={addToCartAction} className="mt-7 w-full max-w-[320px]">
-        <input type="hidden" name="productId" value={product.id} />
-        <input type="hidden" name="quantity" value="1" />
-        <input type="hidden" name="redirectTo" value={redirectTo} />
+      <AddToCartForm productId={product.id} quantity={1} redirectTo={redirectTo}>
         <button
           type="submit"
-          className="inline-flex h-11 w-full items-center justify-center gap-2 bg-[#121313] px-6 text-[11px] font-medium uppercase tracking-[0.16em] text-white transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2"
+          className="mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 bg-[#121313] px-6 text-[11px] font-medium uppercase tracking-[0.16em] text-white transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2"
         >
           <ShoppingBag className="h-4 w-4" />
           Vásárlás
         </button>
-      </form>
+      </AddToCartForm>
 
       <Link
         href={productHref}
