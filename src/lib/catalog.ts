@@ -34,6 +34,7 @@ export type Product = {
   description: string;
   badge: string;
   collectionLabel: string;
+  stockQuantity: number;
   stoneType: StoneType;
   color: MetalColor;
   style: StyleType;
@@ -54,6 +55,16 @@ export type Product = {
   homepagePlacement: HomepagePlacement;
   labels: ProductOptionLabels;
 };
+
+export function isProductOutOfStock(product: Pick<Product, "stockQuantity">) {
+  return product.stockQuantity <= 0;
+}
+
+export function getProductAvailabilityLabel(
+  product: Pick<Product, "labels" | "stockQuantity">,
+) {
+  return isProductOutOfStock(product) ? "Elfogyott" : product.labels.availability;
+}
 
 export type CategoryDefinition = {
   slug: CategorySlug;

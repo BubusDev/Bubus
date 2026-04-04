@@ -16,6 +16,7 @@ export type FavouriteProduct = {
   shortDescription: string;
   price: number;
   collectionLabel: string;
+  stockQuantity: number;
   imageUrl?: string | null;
 };
 
@@ -23,9 +24,13 @@ export type CartItemSummary = {
   id: string;
   productId: string;
   slug: string;
+  category: string;
   name: string;
   price: number;
   quantity: number;
+  stockQuantity: number;
+  isAvailable: boolean;
+  exceedsStock: boolean;
   imageUrl?: string | null;
   lineTotal: number;
 };
@@ -126,6 +131,7 @@ export async function getFavouriteProducts(userId: string) {
       shortDescription: entry.product.shortDescription,
       price: entry.product.price,
       collectionLabel: entry.product.collectionLabel,
+      stockQuantity: entry.product.stockQuantity,
       imageUrl: coverImage?.url ?? entry.product.imageUrl,
     };
   });
@@ -162,9 +168,13 @@ export async function getCartForUser(userId: string) {
       id: item.id,
       productId: item.productId,
       slug: item.product.slug,
+      category: item.product.category.slug,
       name: item.product.name,
       price: item.product.price,
       quantity: item.quantity,
+      stockQuantity: item.product.stockQuantity,
+      isAvailable: item.product.stockQuantity > 0,
+      exceedsStock: item.quantity > item.product.stockQuantity,
       imageUrl: coverImage?.url ?? item.product.imageUrl,
       lineTotal: item.product.price * item.quantity,
     };
@@ -217,30 +227,47 @@ export async function addProductToCart(
   quantity = 1,
 ) {
   const cart = await getOrCreateCart(userId);
-
-  const existing = await db.cartItem.findUnique({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId,
-      },
-    },
-  });
-
-  if (existing) {
-    await db.cartItem.update({
-      where: { id: existing.id },
-      data: { quantity: existing.quantity + quantity },
+  return db.$transaction(async (tx) => {
+    const product = await tx.product.findUnique({
+      where: { id: productId },
+      select: { stockQuantity: true },
     });
-  } else {
-    await db.cartItem.create({
+
+    if (!product || product.stockQuantity <= 0) {
+      return false;
+    }
+
+    const existing = await tx.cartItem.findUnique({
+      where: {
+        cartId_productId: {
+          cartId: cart.id,
+          productId,
+        },
+      },
+    });
+
+    const nextQuantity = Math.min(
+      product.stockQuantity,
+      (existing?.quantity ?? 0) + Math.max(1, Math.floor(quantity)),
+    );
+
+    if (existing) {
+      await tx.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity: nextQuantity },
+      });
+      return true;
+    }
+
+    await tx.cartItem.create({
       data: {
         cartId: cart.id,
         productId,
-        quantity,
+        quantity: nextQuantity,
       },
     });
-  }
+    return true;
+  });
 }
 
 export async function getCheckoutContext(userId: string) {

@@ -33,14 +33,15 @@ export async function addToCartAction(formData: FormData) {
   const quantity = readPositiveInt(formData, "quantity");
 
   if (!productId) {
-    return;
+    return { added: false };
   }
 
-  await addProductToCart(user.id, productId, quantity);
+  const added = await addProductToCart(user.id, productId, quantity);
   revalidatePath("/");
   revalidatePath("/", "layout");
   revalidatePath("/cart");
   revalidatePath("/favourites");
+  return { added };
 }
 
 export async function updateCartItemQuantityAction(formData: FormData) {
@@ -49,10 +50,32 @@ export async function updateCartItemQuantityAction(formData: FormData) {
   const quantity = readPositiveInt(formData, "quantity");
 
   const cart = await getOrCreateCart(user.id);
+  const cartItem = await db.cartItem.findFirst({
+    where: { id: itemId, cartId: cart.id },
+    include: {
+      product: {
+        select: { stockQuantity: true },
+      },
+    },
+  });
+
+  if (!cartItem) {
+    revalidatePath("/cart");
+    return;
+  }
+
+  if (cartItem.product.stockQuantity <= 0) {
+    await db.cartItem.delete({
+      where: { id: cartItem.id },
+    });
+    revalidatePath("/");
+    revalidatePath("/cart");
+    return;
+  }
 
   await db.cartItem.updateMany({
     where: { id: itemId, cartId: cart.id },
-    data: { quantity },
+    data: { quantity: Math.min(quantity, cartItem.product.stockQuantity) },
   });
 
   revalidatePath("/cart");
@@ -255,34 +278,58 @@ export async function placeOrderAction(formData: FormData) {
     redirect("/checkout?status=error");
   }
 
-  const order = await db.order.create({
-    data: {
-      userId: user.id,
-      orderNumber: `CJ-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Math.floor(
-        1000 + Math.random() * 9000,
-      )}`,
-      status: "Visszaigazolva",
-      subtotal: cart.subtotal,
-      total: cart.total,
-      shippingName,
-      shippingPhone,
-      shippingAddress,
-      paymentMethod,
-      items: {
-        create: cart.items.map((item: CartItemValue) => ({
-          productId: item.productId,
-          productName: item.name,
-          productSlug: item.slug,
-          imageUrl: item.imageUrl,
-          unitPrice: item.price,
-          quantity: item.quantity,
-        })),
-      },
-    },
-  });
+  const orderNumber = `CJ-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Math.floor(
+    1000 + Math.random() * 9000,
+  )}`;
 
-  await db.cartItem.deleteMany({
-    where: { cartId: cart.id },
+  const order = await db.$transaction(async (tx) => {
+    for (const item of cart.items) {
+      const updated = await tx.product.updateMany({
+        where: {
+          id: item.productId,
+          stockQuantity: { gte: item.quantity },
+        },
+        data: {
+          stockQuantity: {
+            decrement: item.quantity,
+          },
+        },
+      });
+
+      if (updated.count === 0) {
+        redirect("/checkout?status=stock");
+      }
+    }
+
+    const createdOrder = await tx.order.create({
+      data: {
+        userId: user.id,
+        orderNumber,
+        status: "Visszaigazolva",
+        subtotal: cart.subtotal,
+        total: cart.total,
+        shippingName,
+        shippingPhone,
+        shippingAddress,
+        paymentMethod,
+        items: {
+          create: cart.items.map((item: CartItemValue) => ({
+            productId: item.productId,
+            productName: item.name,
+            productSlug: item.slug,
+            imageUrl: item.imageUrl,
+            unitPrice: item.price,
+            quantity: item.quantity,
+          })),
+        },
+      },
+    });
+
+    await tx.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+
+    return createdOrder;
   });
 
   await db.user.update({
@@ -296,7 +343,15 @@ export async function placeOrderAction(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/cart");
+  revalidatePath("/checkout");
   revalidatePath("/orders");
+  revalidatePath("/new-in");
+  revalidatePath("/sale");
+  revalidatePath("/special-edition");
+  for (const item of cart.items) {
+    revalidatePath(`/product/${item.slug}`);
+    revalidatePath(`/${item.category}`);
+  }
   redirect(`/checkout/confirmation/${order.id}`);
 }
 

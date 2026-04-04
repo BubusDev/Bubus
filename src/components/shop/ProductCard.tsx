@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart } from "lucide-react";
 
 import {
   addFavouriteAction,
   removeFavouriteAction,
 } from "@/app/account/actions";
-import { AddToCartForm } from "@/components/shop/AddToCartForm";
-import { formatPrice, type Product } from "@/lib/catalog";
+import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
+import {
+  formatPrice,
+  getProductAvailabilityLabel,
+  isProductOutOfStock,
+  type Product,
+} from "@/lib/catalog";
 
 type ProductCardProps = {
   product: Product;
@@ -25,6 +30,7 @@ export function ProductCard({
   const coverImage = product.imageUrl;
   const productHref = `/product/${product.slug}`;
   const favouriteAction = isFavourite ? removeFavouriteAction : addFavouriteAction;
+  const isOutOfStock = isProductOutOfStock(product);
 
   return (
     <article className="group flex h-full flex-col bg-transparent">
@@ -42,6 +48,11 @@ export function ProductCard({
                 }
           }
         >
+          {isOutOfStock ? (
+            <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#4d2741] px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-white">
+              Elfogyott
+            </span>
+          ) : null}
           {coverImage ? (
             <img
               src={coverImage}
@@ -71,16 +82,33 @@ export function ProductCard({
         <p className="text-[0.95rem] font-medium leading-none text-[#2f2230]">
           {formatPrice(product.price)}
         </p>
+        <p className="pt-1 text-[11px] uppercase tracking-[0.18em] text-[#8d6c81]">
+          {getProductAvailabilityLabel(product)}
+        </p>
 
         <div className="relative z-10 mt-auto flex items-center justify-between pt-2">
-          <AddToCartForm productId={product.id} quantity={1} redirectTo={redirectTo}>
-            <button
-              type="submit"
-              aria-label={`Kosárba: ${product.name}`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-[#2f2230] transition hover:bg-[#f8eef4] hover:text-[#d45c9c] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
-            >
-              <ShoppingBag className="h-5 w-5" />
-            </button>
+          <AddToCartForm
+            productId={product.id}
+            quantity={1}
+            redirectTo={redirectTo}
+            disabled={isOutOfStock}
+          >
+            {({ isPending, justAdded }) => (
+              <button
+                type="submit"
+                aria-label={isOutOfStock ? `${product.name} elfogyott` : `Kosárba: ${product.name}`}
+                disabled={isOutOfStock}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 ${
+                  isOutOfStock
+                    ? "cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
+                    : justAdded
+                      ? "bg-[#2f2230] text-white"
+                      : "text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+                } ${isPending ? "scale-[0.96]" : ""}`}
+              >
+                <AddToCartIcon justAdded={justAdded} className="h-5 w-5" />
+              </button>
+            )}
           </AddToCartForm>
 
           <form action={favouriteAction}>

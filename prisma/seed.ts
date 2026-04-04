@@ -94,7 +94,18 @@ async function getOptionMap() {
 
 async function createProduct(
   optionMap: Map<string, string>,
-  { gallery, category, stoneType, color, style, occasion, availability, tone, ...product }: SeedProduct,
+  {
+    gallery,
+    category,
+    stoneType,
+    color,
+    style,
+    occasion,
+    availability,
+    tone,
+    stockQuantity,
+    ...product
+  }: SeedProduct,
 ) {
   const orderedGallery = gallery.map((image, index) => ({
     ...image,
@@ -114,6 +125,14 @@ async function createProduct(
   await prisma.product.create({
     data: {
       ...product,
+      stockQuantity:
+        typeof stockQuantity === "number"
+          ? stockQuantity
+          : availability === "low-stock"
+            ? 3
+            : availability === "preorder"
+              ? 8
+              : 12,
       category: { connect: { id: requireOptionId("CATEGORY", category) } },
       stoneType: { connect: { id: requireOptionId("STONE_TYPE", stoneType) } },
       color: { connect: { id: requireOptionId("COLOR", color) } },

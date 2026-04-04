@@ -105,11 +105,16 @@ export default async function FavouritesPage() {
                     <input type="hidden" name="productId" value={item.productId} />
                     <button
                       type="submit"
+                      disabled={item.stockQuantity <= 0}
                       aria-label={`${item.name} hozzáadása a táskához`}
-                      className="flex items-center gap-1.5 text-[12px] uppercase tracking-[0.14em] text-[#6b425a] transition hover:text-[#d45c9c]"
+                      className={`flex items-center gap-1.5 text-[12px] uppercase tracking-[0.14em] transition ${
+                        item.stockQuantity <= 0
+                          ? "cursor-not-allowed text-[#b69dad]"
+                          : "text-[#6b425a] hover:text-[#d45c9c]"
+                      }`}
                     >
                       <ShoppingBag className="h-3.5 w-3.5" />
-                      
+                      {item.stockQuantity <= 0 ? "Elfogyott" : "Kosárba"}
                     </button>
                   </form>
 

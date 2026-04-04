@@ -50,6 +50,7 @@ type ProductFormState = {
   badge: string;
   collectionLabel: string;
   price: string;
+  stockQuantity: string;
   compareAtPrice: string;
   shortDescription: string;
   description: string;
@@ -122,7 +123,7 @@ const stepDefinitions: StepDefinition[] = [
     eyebrow: "3. lépés",
     title: "Árazás és státusz",
     description: "Ár, eredeti ár és kiemelt állapotok.",
-    fields: ["price", "compareAtPrice", "isNew", "isGiftable", "isOnSale"],
+    fields: ["price", "stockQuantity", "compareAtPrice", "isNew", "isGiftable", "isOnSale"],
   },
   {
     id: "content",
@@ -608,6 +609,7 @@ function buildInitialFormState(values: AdminProductFormValues): ProductFormState
     badge: values.badge,
     collectionLabel: values.collectionLabel,
     price: String(values.price),
+    stockQuantity: String(values.stockQuantity),
     compareAtPrice: values.compareAtPrice,
     shortDescription: values.shortDescription,
     description: values.description,
@@ -643,6 +645,11 @@ function validateFormState(
   const price = Number(formValues.price);
   if (!Number.isFinite(price) || price < 0) {
     errors.price = "Az árnak érvényes, nem negatív számnak kell lennie.";
+  }
+
+  const stockQuantity = Number(formValues.stockQuantity);
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+    errors.stockQuantity = "A készlet legyen érvényes, nem negatív egész szám.";
   }
 
   if (formValues.compareAtPrice.trim().length > 0) {
@@ -944,6 +951,7 @@ export function AdminProductForm({
     formData.append("badge", formValues.badge);
     formData.append("collectionLabel", formValues.collectionLabel);
     formData.append("price", formValues.price);
+    formData.append("stockQuantity", formValues.stockQuantity);
     formData.append("compareAtPrice", formValues.compareAtPrice);
     formData.append("shortDescription", formValues.shortDescription);
     formData.append("description", formValues.description);
@@ -1247,6 +1255,18 @@ export function AdminProductForm({
               min={0}
               value={formValues.price}
               onChange={(event) => handleFieldChange("price", event.target.value)}
+              className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
+            />
+          </InputShell>
+
+          <InputShell label="Készlet (db)" error={errors.stockQuantity}>
+            <input
+              name="stockQuantity"
+              type="number"
+              min={0}
+              step={1}
+              value={formValues.stockQuantity}
+              onChange={(event) => handleFieldChange("stockQuantity", event.target.value)}
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             />
           </InputShell>

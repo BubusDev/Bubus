@@ -197,6 +197,7 @@ function mapProduct(product: DbProductWithRelations): Product {
     description: product.description,
     badge: product.badge,
     collectionLabel: product.collectionLabel,
+    stockQuantity: product.stockQuantity,
     stoneType: product.stoneType.slug,
     color: product.color.slug,
     style: product.style.slug,
@@ -477,6 +478,7 @@ export type AdminProductFormValues = {
   name: string;
   category: string;
   price: number;
+  stockQuantity: number;
   compareAtPrice: string;
   shortDescription: string;
   description: string;
@@ -573,6 +575,7 @@ export function toAdminProductFormValues(
       name: "",
       category: options.categories[0]?.id ?? "",
       price: 0,
+      stockQuantity: 0,
       compareAtPrice: "",
       shortDescription: "",
       description: "",
@@ -605,6 +608,7 @@ export function toAdminProductFormValues(
     name: product.name,
     category: product.categoryId,
     price: product.price,
+    stockQuantity: product.stockQuantity,
     compareAtPrice:
       typeof product.compareAtPrice === "number" ? String(product.compareAtPrice) : "",
     shortDescription: product.shortDescription,
@@ -656,6 +660,7 @@ export async function parseProductFormData(
   );
   const description = requireNonEmptyString(formData, "description", "A leírás kötelező.");
   const price = readNumber(formData, "price");
+  const stockQuantity = readNumber(formData, "stockQuantity");
   const compareAtPrice = readString(formData, "compareAtPrice");
   const homepagePlacement = requireNonEmptyString(
     formData,
@@ -665,6 +670,10 @@ export async function parseProductFormData(
 
   if (!Number.isFinite(price) || price < 0) {
     throw new Error("Az árnak érvényes, nem negatív számnak kell lennie.");
+  }
+
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+    throw new Error("A készlet legyen érvényes, nem negatív egész szám.");
   }
 
   if (!homepagePlacements.includes(homepagePlacement as HomepagePlacement)) {
@@ -704,6 +713,7 @@ export async function parseProductFormData(
     name,
     categoryId,
     price,
+    stockQuantity,
     compareAtPrice: compareAtPriceNumber,
     shortDescription,
     description,

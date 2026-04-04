@@ -48,6 +48,12 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
               Kérjük, tölts ki minden szükséges mezőt a rendelés leadásához.
             </div>
           ) : null}
+          {resolvedSearchParams.status === "stock" ? (
+            <div className="rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
+              Egy vagy több termék időközben elfogyott vagy már nincs elegendő készleten.
+              Ellenőrizd a kosarat a rendelés leadása előtt.
+            </div>
+          ) : null}
 
           <section className="rounded-[2rem] border border-white/70 bg-white/78 p-6 shadow-[0_18px_40px_rgba(198,129,167,0.12)] backdrop-blur-xl">
             <div className="flex items-center gap-3">

@@ -1,11 +1,16 @@
-import { Heart, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
+import { Heart, ShieldCheck, Truck } from "lucide-react";
 
 import { addFavouriteAction } from "@/app/account/actions";
-import { AddToCartForm } from "@/components/shop/AddToCartForm";
+import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
 import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
-import { formatPrice, type Product } from "@/lib/catalog";
+import {
+  formatPrice,
+  getProductAvailabilityLabel,
+  isProductOutOfStock,
+  type Product,
+} from "@/lib/catalog";
 
 type ProductDetailViewProps = {
   product: Product;
@@ -52,13 +57,15 @@ export function ProductDetailView({
     "A termék részletes leírása hamarosan elérhető lesz.";
   const detailText =
     description && description !== introText ? description : null;
+  const isOutOfStock = isProductOutOfStock(product);
+  const availabilityLabel = getProductAvailabilityLabel(product);
   const detailItems = [
     { label: "Kategória", value: categoryTitle || product.labels.category },
     { label: "Kőtípus", value: product.labels.stoneType },
     { label: "Szín", value: product.labels.color },
     { label: "Stílus", value: product.labels.style },
     { label: "Alkalom", value: product.labels.occasion },
-    { label: "Elérhetőség", value: product.labels.availability },
+    { label: "Elérhetőség", value: availabilityLabel },
     { label: "Hangulat", value: product.labels.tone },
   ];
 
@@ -170,8 +177,12 @@ export function ProductDetailView({
                   ) : null}
                 </div>
 
-                <p className="text-[13px] text-[#7d6272]">
-                  {getDisplayValue(product.labels.availability)}
+                <p
+                  className={`text-[13px] ${
+                    isOutOfStock ? "font-medium text-[#a13f6b]" : "text-[#7d6272]"
+                  }`}
+                >
+                  {getDisplayValue(availabilityLabel)}
                 </p>
               </div>
             </div>
@@ -198,14 +209,27 @@ export function ProductDetailView({
             </div>
 
             <div className="flex flex-col gap-2.5 pt-1">
-              <AddToCartForm productId={product.id} redirectTo={`/product/${product.slug}`}>
-                <button
-                  type="submit"
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 bg-[#2f2230] px-5 text-[13px] font-medium text-white transition hover:opacity-90"
-                >
-                  <ShoppingBag className="h-4 w-4 translate-y-[1px]" />
-                  Kosárba rakom
-                </button>
+              <AddToCartForm
+                productId={product.id}
+                redirectTo={`/product/${product.slug}`}
+                disabled={isOutOfStock}
+              >
+                {({ isPending, justAdded }) => (
+                  <button
+                    type="submit"
+                    disabled={isOutOfStock}
+                    className={`inline-flex h-11 w-full items-center justify-center gap-2 px-5 text-[13px] font-medium transition ${
+                      isOutOfStock
+                        ? "cursor-not-allowed bg-[#eadfe5] text-[#8c7180]"
+                        : justAdded
+                          ? "bg-[#4d2741] text-white"
+                          : "bg-[#2f2230] text-white hover:opacity-90"
+                    } ${isPending ? "scale-[0.99]" : ""}`}
+                  >
+                    <AddToCartIcon justAdded={justAdded} className="h-4 w-4 translate-y-[1px]" />
+                    {isOutOfStock ? "Elfogyott" : justAdded ? "Kosárban" : "Kosárba rakom"}
+                  </button>
+                )}
               </AddToCartForm>
 
               <form action={addFavouriteAction}>

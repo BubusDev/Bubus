@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
 
-import { AddToCartForm } from "@/components/shop/AddToCartForm";
+import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import {
   formatPrice,
+  isProductOutOfStock,
   type CategoryDefinition,
 } from "@/lib/catalog";
 import type { SpecialEditionEntryView } from "@/lib/products";
@@ -77,6 +77,7 @@ function ProductEditorialCard({
   const productHref = `/product/${product.slug}`;
   const coverImage = entry.productImageUrl;
   const [from, via, to] = product.imagePalette;
+  const isOutOfStock = isProductOutOfStock(product);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-8 py-10 text-center sm:px-12 lg:px-16">
@@ -116,14 +117,34 @@ function ProductEditorialCard({
         {formatPrice(product.price)}
       </p>
 
-      <AddToCartForm productId={product.id} quantity={1} redirectTo={redirectTo}>
-        <button
-          type="submit"
-          className="mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 bg-[#121313] px-6 text-[11px] font-medium uppercase tracking-[0.16em] text-white transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2"
-        >
-          <ShoppingBag className="h-4 w-4" />
-          Vásárlás
-        </button>
+      {isOutOfStock ? (
+        <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-[#a13f6b]">
+          Elfogyott
+        </p>
+      ) : null}
+
+      <AddToCartForm
+        productId={product.id}
+        quantity={1}
+        redirectTo={redirectTo}
+        disabled={isOutOfStock}
+      >
+        {({ isPending, justAdded }) => (
+          <button
+            type="submit"
+            disabled={isOutOfStock}
+            className={`mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 px-6 text-[11px] font-medium uppercase tracking-[0.16em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2 ${
+              isOutOfStock
+                ? "cursor-not-allowed bg-[#ded7da] text-[#816d79]"
+                : justAdded
+                  ? "bg-[#5E0034] text-white"
+                  : "bg-[#121313] text-white hover:opacity-90"
+            } ${isPending ? "scale-[0.99]" : ""}`}
+          >
+            <AddToCartIcon justAdded={justAdded} className="h-4 w-4" />
+            {isOutOfStock ? "Elfogyott" : justAdded ? "Kosárban" : "Vásárlás"}
+          </button>
+        )}
       </AddToCartForm>
 
       <Link

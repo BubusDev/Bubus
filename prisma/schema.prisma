@@ -110,6 +110,7 @@ model Product {
   description       String
   badge             String
   collectionLabel   String
+  stockQuantity     Int                @default(0)
   stoneTypeId       String
   stoneType         ProductOption      @relation("ProductStoneType", fields: [stoneTypeId], references: [id])
   colorId           String

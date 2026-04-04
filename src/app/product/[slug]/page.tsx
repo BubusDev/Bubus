@@ -67,15 +67,10 @@ export async function generateMetadata({
   };
 }
 
-function getSchemaAvailability(availability: string) {
-  switch (availability) {
-    case "in-stock":
-      return "https://schema.org/InStock";
-    case "out-of-stock":
-      return "https://schema.org/OutOfStock";
-    default:
-      return "https://schema.org/InStock";
-  }
+function getSchemaAvailability(stockQuantity: number) {
+  return stockQuantity <= 0
+    ? "https://schema.org/OutOfStock"
+    : "https://schema.org/InStock";
 }
 
 function formatCategoryLabel(category: string) {
@@ -128,7 +123,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       url: productUrl,
       price: product.price,
       priceCurrency: "EUR",
-      availability: getSchemaAvailability(product.availability),
+      availability: getSchemaAvailability(product.stockQuantity),
     },
   };
   const breadcrumbSchema = {
