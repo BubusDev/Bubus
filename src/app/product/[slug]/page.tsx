@@ -12,7 +12,6 @@ import { getAbsoluteUrl, siteName } from "@/lib/site";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateStaticParams() {
@@ -96,12 +95,8 @@ function formatCategoryLabel(category: string) {
   }
 }
 
-export default async function ProductPage({
-  params,
-  searchParams,
-}: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const resolvedSearchParams = await searchParams;
   const product = await getProductBySlug(slug);
 
   if (!product) {
@@ -112,12 +107,6 @@ export default async function ProductPage({
     getRelatedProducts(product),
     getCategoryDefinition(product.category),
   ]);
-
-  const redirectToParam = resolvedSearchParams.redirectTo;
-  const redirectTo =
-    typeof redirectToParam === "string" && redirectToParam.startsWith("/")
-      ? redirectToParam
-      : undefined;
 
   const productUrl = getAbsoluteUrl(`/product/${product.slug}`);
   const productImage = product.imageUrl
@@ -181,7 +170,6 @@ export default async function ProductPage({
         product={product}
         categoryTitle={categoryLabel}
         relatedProducts={relatedProducts}
-        redirectTo={redirectTo}
       />
     </>
   );

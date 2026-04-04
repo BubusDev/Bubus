@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Heart, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
 
 import { addFavouriteAction, addToCartAction } from "@/app/account/actions";
+import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
 import { formatPrice, type Product } from "@/lib/catalog";
@@ -10,7 +10,6 @@ type ProductDetailViewProps = {
   product: Product;
   categoryTitle: string;
   relatedProducts: Product[];
-  redirectTo?: string;
 };
 
 function DetailMetaItem({
@@ -34,19 +33,11 @@ export function ProductDetailView({
   product,
   categoryTitle,
   relatedProducts,
-  redirectTo,
 }: ProductDetailViewProps) {
   const [from, via, to] = product.imagePalette;
   const galleryImages = product.images.length > 0 ? product.images : [];
   const coverImage =
     galleryImages.find((image) => image.isCover) ?? galleryImages[0];
-  const backHref = redirectTo ?? `/${product.category}`;
-  const backLabel =
-    redirectTo === "/favourites"
-      ? "Vissza a kedvencekhez"
-      : redirectTo === "/cart"
-        ? "Vissza a kosárhoz"
-        : "Vissza a kategóriához";
 
   return (
     <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-8">
@@ -222,12 +213,7 @@ export function ProductDetailView({
             </div>
 
             <div className="pt-1">
-              <Link
-                href={backHref}
-                className="inline-flex items-center gap-2 text-[13px] font-medium text-[#6b425a] transition hover:text-[#d45c9c]"
-              >
-                ← {backLabel}
-              </Link>
+              <ProductBackLink fallbackHref={`/${product.category}`} />
             </div>
           </div>
         </div>

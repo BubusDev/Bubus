@@ -52,6 +52,11 @@ async function readUploadedCampaignImage(formData: FormData, key: string) {
   return uploadedImage ?? null;
 }
 
+function hasUploadedFile(formData: FormData, key: string) {
+  const file = formData.get(key);
+  return file instanceof File && file.size > 0;
+}
+
 export async function updateSpecialEditionCampaignStateAction(formData: FormData) {
   await requireAdminUser("/admin/special-edition");
   const campaign = await getOrCreateSpecialEditionCampaign();
@@ -117,6 +122,10 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
 
   if (!product) {
     throw new Error("Selected product was not found.");
+  }
+
+  if (!hasUploadedFile(formData, "promoImage") || !hasUploadedFile(formData, "productImage")) {
+    throw new Error("Both promo and product images are required.");
   }
 
   const [promoImage, productImage] = await Promise.all([

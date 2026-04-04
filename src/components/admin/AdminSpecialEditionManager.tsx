@@ -72,12 +72,14 @@ function ImageField({
   altName,
   defaultAlt,
   helper,
+  required = false,
 }: {
   label: string;
   inputName: string;
   altName: string;
   defaultAlt?: string;
   helper: string;
+  required?: boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -87,6 +89,7 @@ function ImageField({
           type="file"
           name={inputName}
           accept="image/*"
+          required={required}
           className="block w-full rounded-2xl border border-[#edd1e1] bg-white px-4 py-3 text-sm text-[#4d2741] file:mr-4 file:rounded-full file:border-0 file:bg-[#f183bc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
         />
       </label>
@@ -218,12 +221,14 @@ export function AdminSpecialEditionManager({
               inputName="promoImage"
               altName="promoImageAlt"
               helper="Shown on the left side of the Special Edition layout."
+              required
             />
             <ImageField
               label="Right-side product image"
               inputName="productImage"
               altName="productImageAlt"
               helper="Shown on the right side above the product details."
+              required
             />
           </div>
 

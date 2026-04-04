@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Header } from "@/components/Header";
 import { getHeaderCounts } from "@/lib/account";
@@ -31,14 +32,16 @@ export default async function RootLayout({
   return (
     <html lang="hu">
       <body>
-        <AnnouncementBar announcement={announcement} />
-        <Header
-          user={user ?? undefined}
-          favouritesCount={counts.favourites}
-          cartCount={counts.cartItems}
-        />
-        <CategoryNav />
-        {children}
+        <AuthSessionProvider>
+          <AnnouncementBar announcement={announcement} />
+          <Header
+            user={user ?? undefined}
+            favouritesCount={counts.favourites}
+            cartCount={counts.cartItems}
+          />
+          <CategoryNav />
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );
