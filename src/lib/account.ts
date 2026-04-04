@@ -6,6 +6,7 @@ const productInclude = {
   images: {
     orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
   },
+  category: true,
 } satisfies Prisma.ProductInclude;
 
 export type FavouriteProduct = {
