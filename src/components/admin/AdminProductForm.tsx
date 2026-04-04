@@ -78,6 +78,30 @@ type StepDefinition = {
   fields: FormFieldName[];
 };
 
+type UploadedImagePayload = {
+  key: string;
+  url: string;
+};
+
+type SubmissionEntrySummary = {
+  field: string;
+  count: number;
+  bytes: number;
+  containsFile: boolean;
+  containsBlob: boolean;
+  containsDataImage: boolean;
+  containsBase64DataUri: boolean;
+  preview: string;
+};
+
+type SubmissionInspection = {
+  totalBytes: number;
+  fields: SubmissionEntrySummary[];
+  hasBinaryEntry: boolean;
+  hasInlineDataImage: boolean;
+  hasBase64DataUri: boolean;
+};
+
 const stepDefinitions: StepDefinition[] = [
   {
     id: "basics",
@@ -155,6 +179,90 @@ const optionListKeyByField: Record<
   availability: "availability",
   tone: "tones",
 };
+
+const textEncoder = new TextEncoder();
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function truncateForPreview(value: string, limit = 120) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= limit) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, limit)}...`;
+}
+
+function inspectSubmissionFormData(formData: FormData): SubmissionInspection {
+  const byField = new Map<string, SubmissionEntrySummary>();
+  let totalBytes = 0;
+  let hasBinaryEntry = false;
+  let hasInlineDataImage = false;
+  let hasBase64DataUri = false;
+
+  for (const [field, value] of formData.entries()) {
+    const entry =
+      byField.get(field) ??
+      {
+        field,
+        count: 0,
+        bytes: 0,
+        containsFile: false,
+        containsBlob: false,
+        containsDataImage: false,
+        containsBase64DataUri: false,
+        preview: "",
+      };
+
+    entry.count += 1;
+
+    if (typeof value === "string") {
+      const bytes = textEncoder.encode(value).length;
+      const containsDataImage = /data:image\//i.test(value);
+      const containsBase64DataUri = /data:[^;,]+;base64,/i.test(value);
+
+      entry.bytes += bytes;
+      entry.containsDataImage ||= containsDataImage;
+      entry.containsBase64DataUri ||= containsBase64DataUri;
+      entry.preview ||= truncateForPreview(value);
+
+      totalBytes += bytes;
+      hasInlineDataImage ||= containsDataImage;
+      hasBase64DataUri ||= containsBase64DataUri;
+    } else {
+      const bytes = value.size;
+      const isFile = typeof File !== "undefined" && value instanceof File;
+
+      entry.bytes += bytes;
+      entry.containsBlob = true;
+      entry.containsFile ||= isFile;
+      entry.preview ||= isFile ? `File(${value.name}, ${formatBytes(value.size)})` : "Blob";
+
+      totalBytes += bytes;
+      hasBinaryEntry = true;
+    }
+
+    byField.set(field, entry);
+  }
+
+  return {
+    totalBytes,
+    fields: [...byField.values()].sort((left, right) => right.bytes - left.bytes),
+    hasBinaryEntry,
+    hasInlineDataImage,
+    hasBase64DataUri,
+  };
+}
 
 function InputShell({
   children,
@@ -800,6 +908,11 @@ export function AdminProductForm({
 
   function buildSubmissionFormData() {
     const formData = new FormData();
+    const retainedImageIds = existingImages.map((image) => image.id);
+    const uploadedImagesPayload: UploadedImagePayload[] = completedUploadedImages.map((image) => ({
+      key: image.id,
+      url: image.uploadedUrl,
+    }));
 
     if (values.id) {
       formData.append("productId", values.id);
@@ -834,13 +947,12 @@ export function AdminProductForm({
       formData.append("isOnSale", "on");
     }
 
-    for (const image of existingImages) {
-      formData.append("retainedImageIds", image.id);
+    if (retainedImageIds.length > 0) {
+      formData.append("retainedImageIdsCsv", retainedImageIds.join(","));
     }
 
-    for (const image of completedUploadedImages) {
-      formData.append("imageUrls", image.uploadedUrl);
-      formData.append("imageKeys", image.id);
+    if (uploadedImagesPayload.length > 0) {
+      formData.append("uploadedImagesJson", JSON.stringify(uploadedImagesPayload));
     }
 
     formData.append("coverImageKey", effectiveCoverImageKey);
@@ -866,6 +978,51 @@ export function AdminProductForm({
     setSubmitError(null);
 
     const formData = buildSubmissionFormData();
+    const inspection = inspectSubmissionFormData(formData);
+    const oversizedFields = inspection.fields.filter((field) => field.bytes >= 50 * 1024);
+
+    console.groupCollapsed(
+      `[AdminProductForm] Server Action payload ${formatBytes(inspection.totalBytes)}`,
+    );
+    console.table(
+      inspection.fields.map((field) => ({
+        field: field.field,
+        count: field.count,
+        bytes: field.bytes,
+        size: formatBytes(field.bytes),
+        file: field.containsFile,
+        blob: field.containsBlob,
+        dataImage: field.containsDataImage,
+        base64DataUri: field.containsBase64DataUri,
+        preview: field.preview,
+      })),
+    );
+    if (oversizedFields.length > 0) {
+      console.warn(
+        "[AdminProductForm] Oversized fields",
+        oversizedFields.map((field) => ({
+          field: field.field,
+          bytes: field.bytes,
+          size: formatBytes(field.bytes),
+        })),
+      );
+    }
+    console.info("[AdminProductForm] Final request shape", {
+      keys: inspection.fields.map((field) => field.field),
+      totalBytes: inspection.totalBytes,
+      totalSize: formatBytes(inspection.totalBytes),
+      hasBinaryEntry: inspection.hasBinaryEntry,
+      hasInlineDataImage: inspection.hasInlineDataImage,
+      hasBase64DataUri: inspection.hasBase64DataUri,
+    });
+    console.groupEnd();
+
+    if (inspection.hasBinaryEntry || inspection.hasInlineDataImage || inspection.hasBase64DataUri) {
+      setSubmitError(
+        "A bekuldes meg mindig inline kepadatot vagy binaris payloadot tartalmaz. Ellenorizd a konzol logokat.",
+      );
+      return;
+    }
 
     startSubmitTransition(async () => {
       try {

@@ -32,17 +32,71 @@ function getUploadedImageKeys(formData: FormData) {
     .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }
 
+function getRetainedImageIds(formData: FormData) {
+  const compactValue = formData.get("retainedImageIdsCsv");
+
+  if (typeof compactValue === "string" && compactValue.trim().length > 0) {
+    return compactValue
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+  }
+
+  return formData
+    .getAll("retainedImageIds")
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+function getUploadedImages(formData: FormData) {
+  const compactValue = formData.get("uploadedImagesJson");
+
+  if (typeof compactValue === "string" && compactValue.trim().length > 0) {
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(compactValue);
+    } catch {
+      throw new Error("Invalid uploadedImagesJson payload.");
+    }
+
+    if (!Array.isArray(parsed)) {
+      throw new Error("Invalid uploadedImagesJson payload.");
+    }
+
+    return parsed
+      .filter(
+        (entry): entry is { key: string; url: string } =>
+          typeof entry === "object" &&
+          entry !== null &&
+          typeof entry.key === "string" &&
+          entry.key.length > 0 &&
+          typeof entry.url === "string" &&
+          entry.url.length > 0,
+      )
+      .map((entry) => ({
+        key: entry.key,
+        url: entry.url,
+      }));
+  }
+
+  const uploadedImageUrls = getUploadedImageUrls(formData);
+  const uploadedImageKeys = getUploadedImageKeys(formData);
+
+  return uploadedImageUrls.map((url, index) => ({
+    url,
+    key: uploadedImageKeys[index] ?? `upload:${index}`,
+  }));
+}
+
 function buildProductImageRecords(
   formData: FormData,
   productName: string,
   existingImageIds: string[] = [],
 ) {
-  const uploadedImageUrls = getUploadedImageUrls(formData);
-  const uploadedImageKeys = getUploadedImageKeys(formData);
-  const uploadedImages = uploadedImageUrls.map((url, index) => ({
-    url,
-    alt: getImageAltTextFromUrl(url) || productName,
-    key: uploadedImageKeys[index] ?? `upload:${index}`,
+  const uploadedImages = getUploadedImages(formData).map((image, index) => ({
+    url: image.url,
+    alt: getImageAltTextFromUrl(image.url) || productName,
+    key: image.key,
     sortOrder: existingImageIds.length + index,
   }));
   const coverImageKey =
@@ -114,9 +168,7 @@ export async function updateProductAction(formData: FormData) {
     throw new Error("Product not found.");
   }
 
-  const retainedImageIds = formData
-    .getAll("retainedImageIds")
-    .filter((value): value is string => typeof value === "string" && value.length > 0);
+  const retainedImageIds = getRetainedImageIds(formData);
 
   const removedImages = existingProduct.images.filter(
     (image) => !retainedImageIds.includes(image.id),
