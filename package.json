@@ -18,6 +18,7 @@
     "vercel-build": "npm run db:migrate:deploy && npm run build"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.19.2",
     "@vercel/blob": "^2.3.3",

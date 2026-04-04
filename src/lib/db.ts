@@ -20,10 +20,23 @@ function getValidatedDatabaseUrl() {
   return databaseUrl;
 }
 
+function getSafeDatabaseIdentity(databaseUrl: string) {
+  const { hostname, pathname } = new URL(databaseUrl);
+
+  return {
+    host: hostname,
+    database: pathname.replace(/^\//, ""),
+  };
+}
+
 export const db =
   globalForPrisma.prisma ??
   (() => {
-    getValidatedDatabaseUrl();
+    const databaseUrl = getValidatedDatabaseUrl();
+
+    if (process.env.DEBUG_DATABASE_IDENTITY === "true") {
+      console.info("[db] Prisma runtime database identity", getSafeDatabaseIdentity(databaseUrl));
+    }
 
     return new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
