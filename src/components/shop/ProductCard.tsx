@@ -1,17 +1,13 @@
 "use client";
 
+import { useTransition } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 
-import {
-  addFavouriteAction,
-  removeFavouriteAction,
-} from "@/app/account/actions";
 import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import {
   formatPrice,
-  getProductAvailabilityLabel,
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
@@ -19,19 +15,24 @@ import {
 type ProductCardProps = {
   product: Product;
   isFavourite?: boolean;
+  isFavouritePending?: boolean;
+  onFavouriteToggle?: (productId: string, isFavourite: boolean) => Promise<void> | void;
   redirectTo?: string;
 };
 
 export function ProductCard({
   product,
   isFavourite = false,
+  isFavouritePending = false,
+  onFavouriteToggle,
   redirectTo = "/",
 }: ProductCardProps) {
+  const [isWishlistPending, startWishlistTransition] = useTransition();
   const [from, via, to] = product.imagePalette;
   const coverImage = product.imageUrl;
   const productHref = `/product/${product.slug}`;
-  const favouriteAction = isFavourite ? removeFavouriteAction : addFavouriteAction;
   const isOutOfStock = isProductOutOfStock(product);
+  const isHeartPending = isFavouritePending || isWishlistPending;
 
   return (
     <article className="group flex h-full flex-col bg-transparent">
@@ -71,9 +72,11 @@ export function ProductCard({
         <p className="text-[0.95rem] font-medium leading-none text-[#2f2230]">
           {formatPrice(product.price)}
         </p>
-        <p className="pt-1 text-[11px] uppercase tracking-[0.18em] text-[#8d6c81]">
-          {getProductAvailabilityLabel(product)}
-        </p>
+        {isOutOfStock ? (
+          <p className="pt-1 text-[11px] uppercase tracking-[0.18em] text-[#8d6c81]">
+            Elfogyott
+          </p>
+        ) : null}
 
         <div className="relative z-10 mt-auto flex items-center justify-between pt-2">
           <AddToCartForm
@@ -91,7 +94,7 @@ export function ProductCard({
                   isOutOfStock
                     ? "cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
                     : justAdded
-                      ? "bg-[#2f2230] text-white"
+                      ? "bg-[#f3e3eb] text-[#7d4a69]"
                       : "text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
                 } ${isPending ? "scale-[0.96]" : ""}`}
               >
@@ -100,11 +103,13 @@ export function ProductCard({
             )}
           </AddToCartForm>
 
-          <form action={favouriteAction}>
-            <input type="hidden" name="productId" value={product.id} />
-            {!isFavourite ? (
-              <input type="hidden" name="redirectTo" value={redirectTo} />
-            ) : null}
+          <form
+            action={() => {
+              startWishlistTransition(async () => {
+                await onFavouriteToggle?.(product.id, isFavourite);
+              });
+            }}
+          >
             <button
               type="submit"
               aria-label={
@@ -113,10 +118,17 @@ export function ProductCard({
                   : `Kedvencekhez adás: ${product.name}`
               }
               aria-pressed={isFavourite}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-[#2f2230] transition hover:bg-[#f8eef4] hover:text-[#d45c9c] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+              disabled={isHeartPending}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 ${
+                isFavourite
+                  ? "bg-[#f9eff4] text-[#d45c9c]"
+                  : "text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+              } ${isHeartPending ? "opacity-75" : ""}`}
             >
               <Heart
-                className={`h-5 w-5 ${isFavourite ? "fill-current text-[#d45c9c]" : ""}`}
+                className={`h-5 w-5 transition duration-200 ${
+                  isFavourite ? "fill-current text-[#d45c9c]" : ""
+                }`}
               />
             </button>
           </form>

@@ -28,13 +28,14 @@ export function AddToCartIcon({
   return (
     <span className={`relative inline-flex items-center justify-center ${className}`}>
       <ShoppingBagIcon
-        className={`absolute inset-0 h-full w-full transition-all duration-300 ease-out ${
-          justAdded ? "scale-75 opacity-0" : "scale-100 opacity-100"
+        className={`absolute inset-0 h-full w-full transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          justAdded ? "scale-[0.82] opacity-0" : "scale-100 opacity-100"
         }`}
       />
       <Check
-        className={`absolute inset-0 h-full w-full transition-all duration-300 ease-out ${
-          justAdded ? "scale-100 opacity-100" : "scale-75 opacity-0"
+        strokeWidth={2.4}
+        className={`absolute left-1/2 top-1/2 h-[68%] w-[68%] -translate-x-1/2 -translate-y-1/2 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          justAdded ? "scale-100 opacity-100" : "scale-[0.82] opacity-0"
         }`}
       />
     </span>
