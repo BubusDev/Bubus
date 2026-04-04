@@ -231,7 +231,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
       } catch (actionError) {
         setGroupError(
           type,
-          getErrorMessage(actionError, "Nem sikerult letrehozni az opciot."),
+          getErrorMessage(actionError, "Nem sikerült létrehozni az opciót."),
         );
       } finally {
         setPendingCreateType(null);
@@ -276,7 +276,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
           persistedId: created.id,
         });
       } catch (actionError) {
-        setGroupError(type, getErrorMessage(actionError, "Nem sikerult menteni az opciot."));
+        setGroupError(type, getErrorMessage(actionError, "Nem sikerült menteni az opciót."));
       } finally {
         setPendingSaveId(null);
       }
@@ -301,7 +301,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
         await deleteProductOptionAction(formData);
         removeLocalOption(type, option.clientId);
       } catch (actionError) {
-        setGroupError(type, getErrorMessage(actionError, "Nem sikerult torolni az opciot."));
+        setGroupError(type, getErrorMessage(actionError, "Nem sikerült törölni az opciót."));
       } finally {
         setPendingDeleteId(null);
       }
@@ -318,11 +318,11 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.28em] text-[#af7795]">
-                Option Set
+                Opciókészlet
               </p>
               <h2 className="mt-2 text-xl font-semibold text-[#4d2741]">{group.label}</h2>
               <p className="mt-2 text-sm text-[#7a6070]">
-                Huzd a fogantyut az elemek atrendezeshez. A sorrend automatikusan mentodik.
+                Húzd a fogantyút az elemek átrendezéséhez. A sorrend automatikusan mentődik.
               </p>
             </div>
           </div>
@@ -338,12 +338,12 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             <input type="hidden" name="type" value={group.type} />
             <input
               name="name"
-              placeholder={`New ${group.label} name`}
+              placeholder={`Új ${group.label.toLowerCase()} neve`}
               className="h-11 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             />
             <input
               name="slug"
-              placeholder="Slug (optional)"
+              placeholder="Slug (opcionális)"
               className="h-11 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             />
             <button
@@ -351,7 +351,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
               disabled={isPending && pendingCreateType === group.type}
               className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white disabled:opacity-60"
             >
-              Add option
+              Opció hozzáadása
             </button>
           </form>
 
@@ -404,8 +404,8 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         }}
                         onDragEnd={() => setDraggedOptionId(null)}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#ecd3e3] bg-[#fff8fb] text-[#8b6279] transition hover:border-[#e8b2cf] hover:bg-white"
-                        aria-label={`${option.name} atrendezese`}
-                        title="Huzd az elem atrendezesehez"
+                        aria-label={`${option.name} átrendezése`}
+                        title="Húzd az elem átrendezéséhez"
                       >
                         <GripVertical className="h-4 w-4" />
                       </button>
@@ -416,7 +416,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                           disabled={isPending || index === 0}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
-                          aria-label={`${option.name} mozgatasa felfele`}
+                          aria-label={`${option.name} mozgatása felfelé`}
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </button>
@@ -425,7 +425,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                           disabled={isPending || index === group.options.length - 1}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
-                          aria-label={`${option.name} mozgatasa lefele`}
+                          aria-label={`${option.name} mozgatása lefelé`}
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </button>
@@ -454,14 +454,14 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         defaultChecked={option.isActive}
                         className="h-4 w-4 accent-[#f183bc]"
                       />
-                      Active
+                      Aktív
                     </label>
                     <button
                       type="submit"
                       disabled={isPendingSave || isPendingDelete}
                       className="inline-flex h-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white px-4 text-sm font-medium text-[#6b425a] disabled:opacity-60"
                     >
-                      Save
+                      Mentés
                     </button>
                     <button
                       type="button"
@@ -469,7 +469,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                       onClick={() => handleDelete(group.type, option)}
                       className="inline-flex h-11 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] disabled:opacity-60"
                     >
-                      Delete
+                      Törlés
                     </button>
                     <div className="hidden gap-2 sm:flex">
                       <button
@@ -477,7 +477,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                         disabled={isPending || index === 0}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
-                        aria-label={`${option.name} mozgatasa felfele`}
+                        aria-label={`${option.name} mozgatása felfelé`}
                       >
                         <ArrowUp className="h-4 w-4" />
                       </button>
@@ -486,7 +486,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                         disabled={isPending || index === group.options.length - 1}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
-                        aria-label={`${option.name} mozgatasa lefele`}
+                        aria-label={`${option.name} mozgatása lefelé`}
                       >
                         <ArrowDown className="h-4 w-4" />
                       </button>

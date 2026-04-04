@@ -56,11 +56,11 @@ function getUploadedImages(formData: FormData) {
     try {
       parsed = JSON.parse(compactValue);
     } catch {
-      throw new Error("Invalid uploadedImagesJson payload.");
+      throw new Error("Érvénytelen feltöltött kép csomag.");
     }
 
     if (!Array.isArray(parsed)) {
-      throw new Error("Invalid uploadedImagesJson payload.");
+      throw new Error("Érvénytelen feltöltött kép csomag.");
     }
 
     return parsed
@@ -152,7 +152,7 @@ export async function updateProductAction(formData: FormData) {
   const productId = formData.get("productId");
 
   if (typeof productId !== "string" || !productId) {
-    throw new Error("Missing product id.");
+    throw new Error("Hiányzik a termék azonosítója.");
   }
 
   const existingProduct = await db.product.findUnique({
@@ -165,7 +165,7 @@ export async function updateProductAction(formData: FormData) {
   });
 
   if (!existingProduct) {
-    throw new Error("Product not found.");
+    throw new Error("A termék nem található.");
   }
 
   const retainedImageIds = getRetainedImageIds(formData);
@@ -240,7 +240,7 @@ export async function deleteProductAction(formData: FormData) {
   const productId = formData.get("productId");
 
   if (typeof productId !== "string" || !productId) {
-    throw new Error("Missing product id.");
+    throw new Error("Hiányzik a termék azonosítója.");
   }
 
   const existingProduct = await db.product.findUnique({
@@ -249,7 +249,7 @@ export async function deleteProductAction(formData: FormData) {
   });
 
   if (!existingProduct) {
-    throw new Error("Product not found.");
+    throw new Error("A termék nem található.");
   }
 
   await db.product.delete({
@@ -272,11 +272,11 @@ export async function createProductOptionAction(formData: FormData) {
     typeof formData.get("slug") === "string" ? String(formData.get("slug")).trim() : "";
 
   if (!type || typeof type !== "string") {
-    throw new Error("Missing option type.");
+    throw new Error("Hiányzik az opció típusa.");
   }
 
   if (!name) {
-    throw new Error("Option name is required.");
+    throw new Error("Az opció neve kötelező.");
   }
 
   const slug = slugifyOptionName(slugInput || name);
@@ -324,7 +324,7 @@ export async function updateProductOptionAction(formData: FormData) {
     typeof formData.get("sortOrder") === "string" ? String(formData.get("sortOrder")).trim() : "";
 
   if (!optionId || !name) {
-    throw new Error("Option id and name are required.");
+    throw new Error("Az opció azonosítója és neve kötelező.");
   }
 
   const sortOrder = Number(sortOrderRaw);
@@ -334,7 +334,7 @@ export async function updateProductOptionAction(formData: FormData) {
   });
 
   if (!existingOption) {
-    throw new Error("Option no longer exists. Refresh the page and try again.");
+    throw new Error("Az opció már nem létezik. Frissítsd az oldalt, és próbáld újra.");
   }
 
   await db.productOption.update({
@@ -359,11 +359,11 @@ export async function reorderProductOptionsAction(formData: FormData) {
     .filter((value): value is string => typeof value === "string" && value.length > 0);
 
   if (!type) {
-    throw new Error("Missing option type.");
+    throw new Error("Hiányzik az opció típusa.");
   }
 
   if (orderedOptionIds.length === 0) {
-    throw new Error("Missing option order.");
+    throw new Error("Hiányzik az opciók sorrendje.");
   }
 
   const existingOptions = await db.productOption.findMany({
@@ -372,12 +372,12 @@ export async function reorderProductOptionsAction(formData: FormData) {
   });
 
   if (new Set(orderedOptionIds).size !== orderedOptionIds.length) {
-    throw new Error("Option reorder payload is invalid.");
+    throw new Error("Érvénytelen opciósorrend érkezett.");
   }
 
   const existingIds = new Set(existingOptions.map((option) => option.id));
   if (orderedOptionIds.some((id) => !existingIds.has(id))) {
-    throw new Error("Option reorder payload is invalid.");
+    throw new Error("Érvénytelen opciósorrend érkezett.");
   }
 
   await db.$transaction(
@@ -398,7 +398,7 @@ export async function deleteProductOptionAction(formData: FormData) {
   const optionId = typeof formData.get("optionId") === "string" ? String(formData.get("optionId")) : "";
 
   if (!optionId) {
-    throw new Error("Missing option id.");
+    throw new Error("Hiányzik az opció azonosítója.");
   }
 
   const existingOption = await db.productOption.findUnique({
@@ -407,7 +407,7 @@ export async function deleteProductOptionAction(formData: FormData) {
   });
 
   if (!existingOption) {
-    throw new Error("Option no longer exists. Refresh the page and try again.");
+    throw new Error("Az opció már nem létezik. Frissítsd az oldalt, és próbáld újra.");
   }
 
   const inUse = await db.product.count({

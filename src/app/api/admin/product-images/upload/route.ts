@@ -10,14 +10,14 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
 
   if (!user || !user.emailVerifiedAt || user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Nincs jogosultság a feltöltéshez." }, { status: 401 });
   }
 
   if (!isBlobReadWriteTokenConfigured()) {
     return NextResponse.json(
       {
         error:
-          "Vercel Blob is not configured. Set BLOB_READ_WRITE_TOKEN before uploading product images.",
+          "A Vercel Blob nincs beállítva. Állítsd be a BLOB_READ_WRITE_TOKEN változót a termékképek feltöltéséhez.",
       },
       { status: 500 },
     );
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as HandleUploadBody;
   } catch {
-    return NextResponse.json({ error: "Invalid upload request." }, { status: 400 });
+    return NextResponse.json({ error: "Érvénytelen feltöltési kérés." }, { status: 400 });
   }
 
   try {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       body,
       onBeforeGenerateToken: async (pathname) => {
         if (!pathname.startsWith("products/")) {
-          throw new Error("Invalid upload pathname.");
+          throw new Error("Érvénytelen feltöltési útvonal.");
         }
 
         return {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Image upload failed.",
+        error: error instanceof Error ? error.message : "A képfeltöltés nem sikerült.",
       },
       { status: 400 },
     );

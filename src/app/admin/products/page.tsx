@@ -3,7 +3,7 @@ import Link from "next/link";
 import { deleteProductAction } from "@/app/admin/products/actions";
 import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { formatPrice, homepagePlacementLabels, toTitleCase } from "@/lib/catalog";
+import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
 import { getAdminProducts, getProductOptionGroups } from "@/lib/products";
 
 export default async function AdminProductsPage() {
@@ -14,15 +14,15 @@ export default async function AdminProductsPage() {
 
   return (
     <AdminShell
-      title="Products"
-      description="Create, edit, and delete products while controlling homepage placement and storefront filtering data from SQLite."
+      title="Termékek"
+      description="Termékek létrehozása, szerkesztése és törlése egységes szűrési és kezdőlapi kihelyezési adatokkal."
     >
       <div className="mb-5 flex justify-end">
         <Link
           href="/admin/products/new"
           className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
         >
-          Create Product
+          Új termék
         </Link>
       </div>
 
@@ -31,12 +31,12 @@ export default async function AdminProductsPage() {
           <table className="min-w-full text-left">
             <thead className="border-b border-[#f0d8e5] bg-[#fff7fb] text-[10px] uppercase tracking-[0.28em] text-[#af7795]">
               <tr>
-                <th className="px-5 py-4">Product</th>
-                <th className="px-5 py-4">Category</th>
-                <th className="px-5 py-4">Price</th>
-                <th className="px-5 py-4">Placement</th>
-                <th className="px-5 py-4">Flags</th>
-                <th className="px-5 py-4">Actions</th>
+                <th className="px-5 py-4">Termék</th>
+                <th className="px-5 py-4">Kategória</th>
+                <th className="px-5 py-4">Ár</th>
+                <th className="px-5 py-4">Kihelyezés</th>
+                <th className="px-5 py-4">Jelölések</th>
+                <th className="px-5 py-4">Műveletek</th>
               </tr>
             </thead>
             <tbody>
@@ -63,17 +63,17 @@ export default async function AdminProductsPage() {
                     <div className="flex flex-wrap gap-2">
                       {product.isNew ? (
                         <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          New
+                          Új
                         </span>
                       ) : null}
                       {product.isGiftable ? (
                         <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          Giftable
+                          Ajándékozható
                         </span>
                       ) : null}
                       {product.isOnSale ? (
                         <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          Sale
+                          Akciós
                         </span>
                       ) : null}
                     </div>
@@ -84,7 +84,7 @@ export default async function AdminProductsPage() {
                         href={`/admin/products/${product.id}/edit`}
                         className="inline-flex h-10 items-center justify-center rounded-full border border-[#ecd3e3] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0] hover:bg-white"
                       >
-                        Edit
+                        Szerkesztés
                       </Link>
                       <form action={deleteProductAction}>
                         <input type="hidden" name="productId" value={product.id} />
@@ -92,7 +92,7 @@ export default async function AdminProductsPage() {
                           type="submit"
                           className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
                         >
-                          Delete
+                          Törlés
                         </button>
                       </form>
                     </div>

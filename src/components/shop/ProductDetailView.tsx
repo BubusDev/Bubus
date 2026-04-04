@@ -12,6 +12,11 @@ type ProductDetailViewProps = {
   relatedProducts: Product[];
 };
 
+function getDisplayValue(value?: string | null, fallback = "Nincs megadva") {
+  const normalizedValue = typeof value === "string" ? value.trim() : "";
+  return normalizedValue || fallback;
+}
+
 function DetailMetaItem({
   label,
   value,
@@ -38,6 +43,23 @@ export function ProductDetailView({
   const galleryImages = product.images.length > 0 ? product.images : [];
   const coverImage =
     galleryImages.find((image) => image.isCover) ?? galleryImages[0];
+  const shortDescription = product.shortDescription.trim();
+  const description = product.description.trim();
+  const introText =
+    shortDescription ||
+    description ||
+    "A termék részletes leírása hamarosan elérhető lesz.";
+  const detailText =
+    description && description !== introText ? description : null;
+  const detailItems = [
+    { label: "Kategória", value: categoryTitle || product.labels.category },
+    { label: "Kőtípus", value: product.labels.stoneType },
+    { label: "Szín", value: product.labels.color },
+    { label: "Stílus", value: product.labels.style },
+    { label: "Alkalom", value: product.labels.occasion },
+    { label: "Elérhetőség", value: product.labels.availability },
+    { label: "Hangulat", value: product.labels.tone },
+  ];
 
   return (
     <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-8">
@@ -148,22 +170,30 @@ export function ProductDetailView({
                 </div>
 
                 <p className="text-[13px] text-[#7d6272]">
-                  {product.availability}
+                  {getDisplayValue(product.labels.availability)}
                 </p>
               </div>
             </div>
 
             <div className="space-y-3">
               <p className="max-w-[58ch] text-[13px] leading-6 text-[#745b6b]">
-                {product.description}
+                {introText}
               </p>
+              {detailText ? (
+                <p className="max-w-[58ch] text-[13px] leading-6 text-[#745b6b]">
+                  {detailText}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid gap-1.5">
-              <DetailMetaItem label="Kő" value={product.stoneType} />
-              <DetailMetaItem label="Szín" value={product.color} />
-              <DetailMetaItem label="Stílus" value={product.style} />
-              <DetailMetaItem label="Alkalom" value={product.occasion} />
+              {detailItems.map((item) => (
+                <DetailMetaItem
+                  key={item.label}
+                  label={item.label}
+                  value={getDisplayValue(item.value)}
+                />
+              ))}
             </div>
 
             <div className="flex flex-col gap-2.5 pt-1">

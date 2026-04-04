@@ -16,6 +16,7 @@ import {
   getTonePalette,
   homepagePlacements,
   mainNavigationDefinitions,
+  toTitleCase,
   type CategoryDefinition,
   type CategorySlug,
   type FilterGroup,
@@ -68,13 +69,13 @@ const optionTypeMeta: Record<
   ProductOptionType,
   { label: string; fieldName: ProductOptionGroup["fieldName"] }
 > = {
-  CATEGORY: { label: "Category", fieldName: "category" },
-  STONE_TYPE: { label: "Stone Type", fieldName: "stoneType" },
-  COLOR: { label: "Color", fieldName: "color" },
-  STYLE: { label: "Style", fieldName: "style" },
-  OCCASION: { label: "Occasion", fieldName: "occasion" },
-  AVAILABILITY: { label: "Availability", fieldName: "availability" },
-  VISUAL_TONE: { label: "Visual Tone", fieldName: "tone" },
+  CATEGORY: { label: "kategória", fieldName: "category" },
+  STONE_TYPE: { label: "kőtípus", fieldName: "stoneType" },
+  COLOR: { label: "szín", fieldName: "color" },
+  STYLE: { label: "stílus", fieldName: "style" },
+  OCCASION: { label: "alkalom", fieldName: "occasion" },
+  AVAILABILITY: { label: "elérhetőség", fieldName: "availability" },
+  VISUAL_TONE: { label: "vizuális tónus", fieldName: "tone" },
 };
 
 const homepagePlacementMap: Record<DbHomepagePlacement, HomepagePlacement> = {
@@ -144,6 +145,22 @@ function mapImage(image: DbProductImage) {
   };
 }
 
+function getOptionLabel(name?: string | null, slug?: string | null) {
+  const normalizedName = typeof name === "string" ? name.trim() : "";
+
+  if (normalizedName) {
+    return normalizedName;
+  }
+
+  const normalizedSlug = typeof slug === "string" ? slug.trim() : "";
+
+  if (normalizedSlug) {
+    return toTitleCase(normalizedSlug.replace(/-/g, " "));
+  }
+
+  return "Nincs megadva";
+}
+
 function getMappedImages(product: Pick<DbProductWithRelations, "images" | "imageUrl" | "name">) {
   const mapped = product.images.map(mapImage);
 
@@ -193,6 +210,15 @@ function mapProduct(product: DbProductWithRelations): Product {
     images,
     imagePalette: getTonePalette(product.tone.slug),
     homepagePlacement: homepagePlacementMap[product.homepagePlacement],
+    labels: {
+      category: getOptionLabel(product.category.name, product.category.slug),
+      stoneType: getOptionLabel(product.stoneType.name, product.stoneType.slug),
+      color: getOptionLabel(product.color.name, product.color.slug),
+      style: getOptionLabel(product.style.name, product.style.slug),
+      occasion: getOptionLabel(product.occasion.name, product.occasion.slug),
+      availability: getOptionLabel(product.availability.name, product.availability.slug),
+      tone: getOptionLabel(product.tone.name, product.tone.slug),
+    },
   };
 }
 
@@ -280,7 +306,7 @@ export async function getRelatedProducts(product: Product, limit = 4) {
     where: {
       slug: { not: product.slug },
       OR: [
-        { category: { slug: product.category } },
+        { category: { slug: { in: getCategorySlugAliases(product.category) } } },
         { occasion: { slug: product.occasion } },
       ],
     },
@@ -606,7 +632,7 @@ async function requireOption(optionId: string, type: ProductOptionType) {
   });
 
   if (!option) {
-    throw new Error(`Invalid ${optionTypeMeta[type].label.toLowerCase()}.`);
+    throw new Error(`Érvénytelen ${optionTypeMeta[type].label}.`);
   }
 
   return option.id;
@@ -615,34 +641,34 @@ async function requireOption(optionId: string, type: ProductOptionType) {
 export async function parseProductFormData(
   formData: FormData,
 ): Promise<Prisma.ProductUncheckedCreateInput> {
-  const slug = requireNonEmptyString(formData, "slug", "Slug is required.");
-  const name = requireNonEmptyString(formData, "name", "Name is required.");
-  const badge = requireNonEmptyString(formData, "badge", "Badge is required.");
+  const slug = requireNonEmptyString(formData, "slug", "A slug kötelező.");
+  const name = requireNonEmptyString(formData, "name", "A termék neve kötelező.");
+  const badge = requireNonEmptyString(formData, "badge", "A címke kötelező.");
   const collectionLabel = requireNonEmptyString(
     formData,
     "collectionLabel",
-    "Collection label is required.",
+    "A kollekciócímke kötelező.",
   );
   const shortDescription = requireNonEmptyString(
     formData,
     "shortDescription",
-    "Short description is required.",
+    "A rövid leírás kötelező.",
   );
-  const description = requireNonEmptyString(formData, "description", "Description is required.");
+  const description = requireNonEmptyString(formData, "description", "A leírás kötelező.");
   const price = readNumber(formData, "price");
   const compareAtPrice = readString(formData, "compareAtPrice");
   const homepagePlacement = requireNonEmptyString(
     formData,
     "homepagePlacement",
-    "Homepage placement is required.",
+    "A kezdőlapi kihelyezés kötelező.",
   );
 
   if (!Number.isFinite(price) || price < 0) {
-    throw new Error("Price must be a valid positive number.");
+    throw new Error("Az árnak érvényes, nem negatív számnak kell lennie.");
   }
 
   if (!homepagePlacements.includes(homepagePlacement as HomepagePlacement)) {
-    throw new Error("Invalid homepage placement.");
+    throw new Error("Érvénytelen kezdőlapi kihelyezés.");
   }
 
   const compareAtPriceNumber =
@@ -652,7 +678,7 @@ export async function parseProductFormData(
     typeof compareAtPriceNumber === "number" &&
     (!Number.isFinite(compareAtPriceNumber) || compareAtPriceNumber < 0)
   ) {
-    throw new Error("Compare-at price must be empty or a valid positive number.");
+    throw new Error("Az eredeti ár mező legyen üres vagy érvényes, nem negatív szám.");
   }
 
   const [

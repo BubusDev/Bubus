@@ -33,7 +33,7 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
           {
             key: "price",
             value: "price",
-            label: `${state.priceMin ? formatPrice(state.priceMin) : "Any"} - ${state.priceMax ? formatPrice(state.priceMax) : "Any"}`,
+            label: `${state.priceMin ? formatPrice(state.priceMin) : "Bármennyi"} - ${state.priceMax ? formatPrice(state.priceMax) : "Bármennyi"}`,
           },
         ]
       : []),

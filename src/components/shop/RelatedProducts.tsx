@@ -18,10 +18,10 @@ export function RelatedProducts({
     <section className="mt-16 space-y-6">
       <div>
         <p className="text-[10px] uppercase tracking-[0.32em] text-[#b06b8e]">
-          Related pieces
+          Kapcsolódó darabok
         </p>
         <h2 className="mt-3 font-[family:var(--font-display)] text-[2.5rem] leading-none text-[#4d2741]">
-          Continue the jewelry story
+          Illenek ehhez a termékhez
         </h2>
       </div>
       <ProductGrid products={products} redirectTo={redirectTo} />

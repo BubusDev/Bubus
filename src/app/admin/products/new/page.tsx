@@ -15,14 +15,14 @@ export default async function NewAdminProductPage() {
 
   return (
     <AdminShell
-      title="Create Product"
-      description="Add a new storefront product with complete merchandising, filtering, and homepage-placement metadata."
+      title="Új termék"
+      description="Új termék felvétele minden szükséges bolti, szűrési és kezdőlapi kihelyezési adattal."
     >
       <AdminProductForm
         action={createProductAction}
         options={options}
         optionGroups={optionGroups}
-        submitLabel="Create Product"
+        submitLabel="Termék létrehozása"
         values={toAdminProductFormValues(null, options)}
       />
     </AdminShell>

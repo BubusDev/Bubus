@@ -77,16 +77,16 @@ function PriceLinks({
   const searchParams = useSearchParams();
 
   const presets = [
-    { label: "Under 60 EUR", min: undefined, max: 60 },
+    { label: "60 EUR alatt", min: undefined, max: 60 },
     { label: "60-80 EUR", min: 60, max: 80 },
-    { label: "Over 80 EUR", min: 80, max: undefined },
+    { label: "80 EUR felett", min: 80, max: undefined },
   ];
 
   return (
     <div className="space-y-2.5 pt-1">
       <div className="pb-2 text-sm text-[#6e5564]">
         <span className="text-[9px] uppercase tracking-[0.24em] text-[#ab7f97]">
-          Current price range
+          Aktuális ársáv
         </span>
         <p className="mt-1 text-sm font-medium text-[#4d2741]">
           {formatPrice(availableFilters.priceRange[0])} -{" "}
@@ -157,10 +157,10 @@ function FilterPanel({
       <div className="flex items-center justify-between gap-4 border-b border-[#eee4ea] pb-4">
         <div>
           <p className="text-[9px] uppercase tracking-[0.28em] text-[#ab7f97]">
-            Filters
+            Szűrők
           </p>
           <h2 className="mt-1.5 text-[1.15rem] font-medium leading-none text-[#4d2741]">
-            Refine
+            Finomítás
           </h2>
         </div>
 
@@ -228,8 +228,8 @@ function FilterPanel({
             className="flex w-full items-center gap-3 py-3 text-left"
             aria-expanded={openGroups.includes("price")}
           >
-            <span className="min-w-0 flex-1 text-[0.95rem] font-medium text-[#5f4254]">
-              Price
+              <span className="min-w-0 flex-1 text-[0.95rem] font-medium text-[#5f4254]">
+              Ár
             </span>
 
             {hasActivePriceRange ? (
@@ -260,7 +260,7 @@ function FilterPanel({
             href={pathname}
             className="inline-flex text-sm font-medium text-[#9f5a82] transition hover:text-[#8f456d]"
           >
-            Clear all filters
+            Összes szűrő törlése
           </Link>
         </div>
       ) : null}
@@ -280,7 +280,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
           className="inline-flex items-center gap-2 border-b border-[#eadce4] pb-2 text-sm font-medium text-[#6b425a]"
         >
           <SlidersHorizontal className="h-4 w-4" />
-          Filters
+          Szűrők
         </button>
       </div>
 

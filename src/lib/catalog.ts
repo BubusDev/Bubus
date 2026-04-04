@@ -13,6 +13,16 @@ export type ProductTone = string;
 export type HomepagePlacement = (typeof homepagePlacements)[number];
 export type UserRole = "user" | "admin";
 
+export type ProductOptionLabels = {
+  category: string;
+  stoneType: string;
+  color: string;
+  style: string;
+  occasion: string;
+  availability: string;
+  tone: string;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -42,6 +52,7 @@ export type Product = {
   }[];
   imagePalette: [string, string, string];
   homepagePlacement: HomepagePlacement;
+  labels: ProductOptionLabels;
 };
 
 export type CategoryDefinition = {
@@ -151,18 +162,18 @@ export const mainNavigationDefinitions: MainNavigationItemDefinition[] = [
 ] as const;
 
 export const filterGroupDefinitions: Omit<FilterGroup, "options">[] = [
-  { key: "category", label: "Category" },
-  { key: "stone", label: "Stone Type" },
-  { key: "color", label: "Color" },
-  { key: "style", label: "Style" },
-  { key: "occasion", label: "Occasion" },
-  { key: "availability", label: "Availability" },
+  { key: "category", label: "Kategória" },
+  { key: "stone", label: "Kőtípus" },
+  { key: "color", label: "Szín" },
+  { key: "style", label: "Stílus" },
+  { key: "occasion", label: "Alkalom" },
+  { key: "availability", label: "Elérhetőség" },
 ];
 
 export const homepagePlacementLabels: Record<HomepagePlacement, string> = {
-  none: "Neither",
-  spotlight: "In Spotlight",
-  new_arrivals: "New Arrivals",
+  none: "Nincs kiemelés",
+  spotlight: "Fókusz szekció",
+  new_arrivals: "Újdonságok szekció",
 };
 
 export const tonePalettes: Record<string, [string, string, string]> = {

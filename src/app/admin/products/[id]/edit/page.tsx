@@ -30,14 +30,14 @@ export default async function EditAdminProductPage({
 
   return (
     <AdminShell
-      title="Edit Product"
-      description="Update the product record, homepage placement, and storefront filter metadata without touching the public homepage layout."
+      title="Termék szerkesztése"
+      description="A termék adatainak, kezdőlapi kihelyezésének és szűrési mezőinek frissítése a publikus felület átírása nélkül."
     >
       <AdminProductForm
         action={updateProductAction}
         options={options}
         optionGroups={optionGroups}
-        submitLabel="Save Changes"
+        submitLabel="Módosítások mentése"
         values={toAdminProductFormValues(product, options)}
       />
     </AdminShell>

@@ -105,37 +105,37 @@ type SubmissionInspection = {
 const stepDefinitions: StepDefinition[] = [
   {
     id: "basics",
-    eyebrow: "1. lepes",
+    eyebrow: "1. lépés",
     title: "Alapadatok",
-    description: "A termek alap nevei es bolti cimkei.",
+    description: "A termék alapnevei és bolti címkéi.",
     fields: ["name", "slug", "badge", "collectionLabel"],
   },
   {
     id: "images",
-    eyebrow: "2. lepes",
-    title: "Kepek",
-    description: "Tobb kep feltoltese es a boritokep kijelolese.",
+    eyebrow: "2. lépés",
+    title: "Képek",
+    description: "Több kép feltöltése és a borítókép kijelölése.",
     fields: [],
   },
   {
     id: "pricing",
-    eyebrow: "3. lepes",
-    title: "Arazas es statusz",
-    description: "Ar, eredeti ar es kiemelt allapotok.",
+    eyebrow: "3. lépés",
+    title: "Árazás és státusz",
+    description: "Ár, eredeti ár és kiemelt állapotok.",
     fields: ["price", "compareAtPrice", "isNew", "isGiftable", "isOnSale"],
   },
   {
     id: "content",
-    eyebrow: "4. lepes",
-    title: "Szovegek",
-    description: "Rovid termekleiras es teljes leiras.",
+    eyebrow: "4. lépés",
+    title: "Szövegek",
+    description: "Rövid termékleírás és teljes leírás.",
     fields: ["shortDescription", "description"],
   },
   {
     id: "classification",
-    eyebrow: "5. lepes",
-    title: "Besorolas",
-    description: "Kategoria, szureshez szukseges mezok es homepage kihelyezes.",
+    eyebrow: "5. lépés",
+    title: "Besorolás",
+    description: "Kategória, szűréshez szükséges mezők és kezdőlapi kihelyezés.",
     fields: [
       "category",
       "stoneType",
@@ -150,21 +150,21 @@ const stepDefinitions: StepDefinition[] = [
 ];
 
 const requiredFieldMessages: Partial<Record<FormFieldName, string>> = {
-  name: "A termek neve kotelezo.",
-  slug: "A slug kotelezo.",
-  badge: "A badge cimke kotelezo.",
-  collectionLabel: "A kollekcio cimke kotelezo.",
-  price: "Az ar kotelezo.",
-  shortDescription: "A rovid leiras kotelezo.",
-  description: "A teljes leiras kotelezo.",
-  category: "A kategoria kotelezo.",
-  stoneType: "A kotipus kotelezo.",
-  color: "A szin kotelezo.",
-  style: "A stilus kotelezo.",
-  occasion: "Az alkalom kotelezo.",
-  availability: "Az elerhetoseg kotelezo.",
-  tone: "A vizualis tonus kotelezo.",
-  homepagePlacement: "A homepage kihelyezes kotelezo.",
+  name: "A termék neve kötelező.",
+  slug: "A slug kötelező.",
+  badge: "A címke kötelező.",
+  collectionLabel: "A kollekciócímke kötelező.",
+  price: "Az ár kötelező.",
+  shortDescription: "A rövid leírás kötelező.",
+  description: "A teljes leírás kötelező.",
+  category: "A kategória kötelező.",
+  stoneType: "A kőtípus kötelező.",
+  color: "A szín kötelező.",
+  style: "A stílus kötelező.",
+  occasion: "Az alkalom kötelező.",
+  availability: "Az elérhetőség kötelező.",
+  tone: "A vizuális tónus kötelező.",
+  homepagePlacement: "A kezdőlapi kihelyezés kötelező.",
 };
 
 const optionListKeyByField: Record<
@@ -343,7 +343,7 @@ function InlineOptionCreate({
         setIsOpen(false);
       } catch (actionError) {
         setError(
-          actionError instanceof Error ? actionError.message : "Nem sikerult letrehozni az opciot.",
+          actionError instanceof Error ? actionError.message : "Nem sikerült létrehozni az opciót.",
         );
       }
     });
@@ -358,14 +358,14 @@ function InlineOptionCreate({
           className="inline-flex h-10 items-center gap-2 rounded-full border border-[#ecd3e3] bg-white/92 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#f0b3d1] hover:bg-white"
         >
           <Plus className="h-4 w-4" />
-          Uj hozzaadasa
+          Új hozzáadása
         </button>
       ) : (
         <div className="rounded-[1.3rem] border border-[#f0d8e5] bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(255,246,250,0.94))] p-4 shadow-[0_8px_18px_rgba(191,117,162,0.06)]">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-[#4d2741]">Uj opcio hozzaadasa</p>
-              <p className="mt-1 text-sm text-[#7a6070]">Uj ertek letrehozasa ehhez: {label.toLowerCase()}</p>
+              <p className="text-sm font-medium text-[#4d2741]">Új opció hozzáadása</p>
+              <p className="mt-1 text-sm text-[#7a6070]">Új érték létrehozása ehhez: {label.toLowerCase()}</p>
             </div>
 
             <button
@@ -387,13 +387,13 @@ function InlineOptionCreate({
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Megnevezes"
+                placeholder="Megnevezés"
                 className="h-11 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
               />
               <input
                 value={slug}
                 onChange={(event) => setSlug(event.target.value)}
-                placeholder="Slug (opcionalis)"
+                placeholder="Slug (opcionális)"
                 className="h-11 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
               />
             </div>
@@ -407,7 +407,7 @@ function InlineOptionCreate({
                 onClick={handleCreate}
                 className="inline-flex h-10 items-center justify-center rounded-full bg-[#f183bc] px-4 text-sm font-medium text-white transition hover:bg-[#ea6fb0] disabled:opacity-70"
               >
-                {isPending ? "Mentes..." : "Letrehozas"}
+                {isPending ? "Mentés..." : "Létrehozás"}
               </button>
 
               <button
@@ -420,7 +420,7 @@ function InlineOptionCreate({
                 }}
                 className="inline-flex h-10 items-center justify-center rounded-full border border-[#ecd3e3] bg-white px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#f0b3d1] hover:bg-white"
               >
-                Megse
+                Mégse
               </button>
             </div>
           </div>
@@ -471,7 +471,7 @@ function SelectField({
 
   function handleDelete(option: ProductOptionValue) {
     if (option.id === selectedValue) {
-      setDeleteError("A kivalasztott ertek nem torolheto.");
+      setDeleteError("A kiválasztott érték nem törölhető.");
       return;
     }
 
@@ -488,7 +488,7 @@ function SelectField({
       } catch (actionError) {
         onOptionRestored(fieldName, option);
         setDeleteError(
-          actionError instanceof Error ? actionError.message : "Nem sikerult torolni az opciot.",
+          actionError instanceof Error ? actionError.message : "Nem sikerült törölni az opciót.",
         );
       } finally {
         setPendingDeleteId(null);
@@ -507,7 +507,7 @@ function SelectField({
               onChange={(event) => onChange(event.target.value)}
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
             >
-              <option value="">Valassz...</option>
+              <option value="">Válassz...</option>
               {options.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.name}
@@ -523,7 +523,7 @@ function SelectField({
           className="inline-flex h-12 shrink-0 items-center gap-2 rounded-2xl border border-[#ecd3e3] bg-white/92 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#f0b3d1] hover:bg-white"
         >
           <Plus className="h-4 w-4" />
-          Kezeles
+          Kezelés
         </button>
       </div>
 
@@ -538,10 +538,10 @@ function SelectField({
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.28em] text-[#af7795]">Opciokezeles</p>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-[#af7795]">Opciókezelés</p>
                 <h3 className="mt-1 text-lg font-semibold text-[#4d2741]">{label}</h3>
                 <p className="mt-1 text-sm text-[#7a6070]">
-                  Itt adhatsz hozza uj erteket, vagy torolheted a meglevoket.
+                  Itt adhatsz hozzá új értéket, vagy törölheted a meglévőket.
                 </p>
               </div>
 
@@ -549,7 +549,7 @@ function SelectField({
                 type="button"
                 onClick={() => setIsManagerOpen(false)}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#7b576a] transition hover:bg-[#fff8fb]"
-                aria-label="Opciokezelo bezarasa"
+                aria-label="Opciókezelő bezárása"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -568,7 +568,7 @@ function SelectField({
                     >
                       <span className="truncate">
                         {option.name}
-                        {isSelected ? " (kivalasztva)" : ""}
+                        {isSelected ? " (kiválasztva)" : ""}
                       </span>
 
                       <button
@@ -576,8 +576,8 @@ function SelectField({
                         disabled={isSelected || isPendingDelete}
                         onClick={() => handleDelete(option)}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8a6178] transition hover:border-[#f0b3d1] hover:bg-[#fff8fb] disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={`${option.name} torlese`}
-                        title={isSelected ? "A kivalasztott ertek nem torolheto" : "Opcio torlese"}
+                        aria-label={`${option.name} törlése`}
+                        title={isSelected ? "A kiválasztott érték nem törölhető" : "Opció törlése"}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -642,18 +642,18 @@ function validateFormState(
 
   const price = Number(formValues.price);
   if (!Number.isFinite(price) || price < 0) {
-    errors.price = "Az arnak ervenyes, nem negativ szamnak kell lennie.";
+    errors.price = "Az árnak érvényes, nem negatív számnak kell lennie.";
   }
 
   if (formValues.compareAtPrice.trim().length > 0) {
     const compareAtPrice = Number(formValues.compareAtPrice);
     if (!Number.isFinite(compareAtPrice) || compareAtPrice < 0) {
-      errors.compareAtPrice = "Az eredeti ar ures vagy nem negativ szam lehet.";
+      errors.compareAtPrice = "Az eredeti ár legyen üres vagy nem negatív szám.";
     }
   }
 
   if (!availableOptions.homepagePlacements.includes(formValues.homepagePlacement)) {
-    errors.homepagePlacement = "Ervenytelen homepage kihelyezes.";
+    errors.homepagePlacement = "Érvénytelen kezdőlapi kihelyezés.";
   }
 
   const optionFields = Object.entries(optionListKeyByField) as Array<
@@ -663,7 +663,7 @@ function validateFormState(
     const selectedOptionId = formValues[fieldName];
     const hasMatch = availableOptions[optionsKey].some((option) => option.id === selectedOptionId);
     if (!hasMatch) {
-      errors[fieldName] = requiredFieldMessages[fieldName] ?? "Ervenytelen valasztas.";
+      errors[fieldName] = requiredFieldMessages[fieldName] ?? "Érvénytelen választás.";
     }
   }
 
@@ -872,7 +872,7 @@ export function AdminProductForm({
                     ...currentImage,
                     status: "error",
                     errorMessage:
-                      error instanceof Error ? error.message : "A kep feltoltese nem sikerult.",
+                      error instanceof Error ? error.message : "A kép feltöltése nem sikerült.",
                   }
                 : currentImage,
             ),
@@ -1024,7 +1024,7 @@ export function AdminProductForm({
 
     if (inspection.hasBinaryEntry || inspection.hasInlineDataImage || inspection.hasBase64DataUri) {
       setSubmitError(
-        "A bekuldes meg mindig inline kepadatot vagy binaris payloadot tartalmaz. Ellenorizd a konzol logokat.",
+        "A beküldés még mindig inline képadatot vagy bináris payloadot tartalmaz. Ellenőrizd a konzollogokat.",
       );
       return;
     }
@@ -1034,7 +1034,7 @@ export function AdminProductForm({
         await action(formData);
       } catch (error) {
         setSubmitError(
-          error instanceof Error ? error.message : "A termek mentese nem sikerult.",
+          error instanceof Error ? error.message : "A termék mentése nem sikerült.",
         );
       }
     });
@@ -1077,12 +1077,12 @@ export function AdminProductForm({
         description={stepDefinitions[0].description}
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <InputShell label="Termek neve" error={errors.name}>
+          <InputShell label="Termék neve" error={errors.name}>
             <input
               name="name"
               value={formValues.name}
               onChange={(event) => handleFieldChange("name", event.target.value)}
-              placeholder="Pl. Aurora Ribbon Necklace"
+              placeholder="Pl. Aurora Ribbon nyaklánc"
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             />
           </InputShell>
@@ -1097,17 +1097,17 @@ export function AdminProductForm({
             />
           </InputShell>
 
-          <InputShell label="Badge cimke" error={errors.badge}>
+          <InputShell label="Címke" error={errors.badge}>
             <input
               name="badge"
               value={formValues.badge}
               onChange={(event) => handleFieldChange("badge", event.target.value)}
-              placeholder="Pl. Ujdonsag"
+              placeholder="Pl. Újdonság"
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             />
           </InputShell>
 
-          <InputShell label="Kollekcio cimke" error={errors.collectionLabel}>
+          <InputShell label="Kollekciócímke" error={errors.collectionLabel}>
             <input
               name="collectionLabel"
               value={formValues.collectionLabel}
@@ -1135,16 +1135,16 @@ export function AdminProductForm({
               onChange={handleImageSelection}
             />
             <div className="space-y-2">
-              <p className="text-sm font-medium text-[#5a374e]">Termekkeppek kivalasztasa</p>
+              <p className="text-sm font-medium text-[#5a374e]">Termékképek kiválasztása</p>
               <p className="text-sm text-[#7a6070]">
-                PNG, JPG vagy WEBP. A kep kozvetlenul a Vercel Blob tarhelyre toltodik fel.
+                PNG, JPG vagy WEBP. A kép közvetlenül a Vercel Blob tárhelyre töltődik fel.
               </p>
             </div>
           </label>
 
           {hasUploadingImages ? (
             <div className="rounded-[1.3rem] border border-[#f2d7e6] bg-[#fff8fb] px-4 py-3 text-sm text-[#7a6070]">
-              Kepfeltoltes folyamatban...
+              Képfeltöltés folyamatban...
             </div>
           ) : null}
 
@@ -1169,12 +1169,12 @@ export function AdminProductForm({
                     <p className="truncate text-sm text-[#6d5260]">{image.name}</p>
 
                     {image.status === "uploading" ? (
-                      <p className="text-sm text-[#7a6070]">Feltoltes...</p>
+                      <p className="text-sm text-[#7a6070]">Feltöltés...</p>
                     ) : null}
 
                     {image.status === "error" ? (
                       <p className="text-sm text-[#9b476f]">
-                        {image.errorMessage ?? "A kep feltoltese nem sikerult."}
+                        {image.errorMessage ?? "A kép feltöltése nem sikerült."}
                       </p>
                     ) : null}
 
@@ -1186,7 +1186,7 @@ export function AdminProductForm({
                         disabled={image.status !== "ready"}
                         className="h-4 w-4 accent-[#f183bc]"
                       />
-                      Boritokep
+                      Borítókép
                     </label>
 
                     <button
@@ -1194,7 +1194,7 @@ export function AdminProductForm({
                       onClick={() => removeImage(image)}
                       className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
                     >
-                      Eltavolitas
+                      Eltávolítás
                     </button>
                   </div>
                 </div>
@@ -1202,7 +1202,7 @@ export function AdminProductForm({
             </div>
           ) : (
             <div className="rounded-[1.3rem] border border-dashed border-[#e7cedb] bg-white/80 p-5 text-sm text-[#7a6070]">
-              Meg nincs kivalasztott kep.
+              Még nincs kiválasztott kép.
             </div>
           )}
         </div>
@@ -1215,7 +1215,7 @@ export function AdminProductForm({
         description={stepDefinitions[2].description}
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <InputShell label="Ar" error={errors.price}>
+          <InputShell label="Ár" error={errors.price}>
             <input
               name="price"
               type="number"
@@ -1226,7 +1226,7 @@ export function AdminProductForm({
             />
           </InputShell>
 
-          <InputShell label="Eredeti ar" error={errors.compareAtPrice}>
+          <InputShell label="Eredeti ár" error={errors.compareAtPrice}>
             <input
               name="compareAtPrice"
               type="number"
@@ -1239,9 +1239,9 @@ export function AdminProductForm({
 
           <div className="sm:col-span-2 flex flex-wrap gap-3">
             {[
-              { field: "isNew" as const, label: "Uj termek" },
-              { field: "isGiftable" as const, label: "Ajandekozhato" },
-              { field: "isOnSale" as const, label: "Akcios" },
+              { field: "isNew" as const, label: "Új termék" },
+              { field: "isGiftable" as const, label: "Ajándékozható" },
+              { field: "isOnSale" as const, label: "Akciós" },
             ].map((item) => (
               <label
                 key={item.field}
@@ -1268,7 +1268,7 @@ export function AdminProductForm({
         description={stepDefinitions[3].description}
       >
         <div className="grid gap-4">
-          <InputShell label="Rovid leiras" error={errors.shortDescription}>
+          <InputShell label="Rövid leírás" error={errors.shortDescription}>
             <textarea
               name="shortDescription"
               value={formValues.shortDescription}
@@ -1278,7 +1278,7 @@ export function AdminProductForm({
             />
           </InputShell>
 
-          <InputShell label="Leiras" error={errors.description}>
+          <InputShell label="Leírás" error={errors.description}>
             <textarea
               name="description"
               value={formValues.description}
@@ -1299,7 +1299,7 @@ export function AdminProductForm({
         <div className="grid gap-5 md:grid-cols-2">
           <SelectField
             fieldName="category"
-            label="Kategoria"
+            label="Kategória"
             selectedValue={formValues.category}
             options={dynamicOptions.categories}
             optionType="CATEGORY"
@@ -1312,7 +1312,7 @@ export function AdminProductForm({
 
           <SelectField
             fieldName="stoneType"
-            label="Kotipus"
+            label="Kőtípus"
             selectedValue={formValues.stoneType}
             options={dynamicOptions.stoneTypes}
             optionType="STONE_TYPE"
@@ -1325,7 +1325,7 @@ export function AdminProductForm({
 
           <SelectField
             fieldName="color"
-            label="Szin"
+            label="Szín"
             selectedValue={formValues.color}
             options={dynamicOptions.colors}
             optionType="COLOR"
@@ -1338,7 +1338,7 @@ export function AdminProductForm({
 
           <SelectField
             fieldName="style"
-            label="Stilus"
+            label="Stílus"
             selectedValue={formValues.style}
             options={dynamicOptions.styles}
             optionType="STYLE"
@@ -1364,7 +1364,7 @@ export function AdminProductForm({
 
           <SelectField
             fieldName="availability"
-            label="Elerhetoseg"
+            label="Elérhetőség"
             selectedValue={formValues.availability}
             options={dynamicOptions.availability}
             optionType="AVAILABILITY"
@@ -1377,7 +1377,7 @@ export function AdminProductForm({
 
           <SelectField
             fieldName="tone"
-            label="Vizualis tonus"
+            label="Vizuális tónus"
             selectedValue={formValues.tone}
             options={dynamicOptions.tones}
             optionType="VISUAL_TONE"
@@ -1388,7 +1388,7 @@ export function AdminProductForm({
             error={errors.tone}
           />
 
-          <InputShell label="Homepage kihelyezes" error={errors.homepagePlacement}>
+          <InputShell label="Kezdőlapi kihelyezés" error={errors.homepagePlacement}>
             <select
               name="homepagePlacement"
               value={formValues.homepagePlacement}
@@ -1400,7 +1400,7 @@ export function AdminProductForm({
               }
               className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
             >
-              <option value="">Valassz...</option>
+              <option value="">Válassz...</option>
               {dynamicOptions.homepagePlacements.map((option) => (
                 <option key={option} value={option}>
                   {homepagePlacementLabels[option]}
@@ -1435,7 +1435,7 @@ export function AdminProductForm({
                 onClick={handleNextStep}
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white shadow-[0_12px_28px_rgba(241,131,188,0.22)] transition hover:bg-[#ea6fb0]"
               >
-                Tovabb
+                Tovább
               </button>
             ) : (
               <button
@@ -1444,9 +1444,9 @@ export function AdminProductForm({
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_12px_28px_rgba(241,131,188,0.22)] transition hover:bg-[#ea6fb0]"
               >
                 {hasUploadingImages
-                  ? "Kepek feltoltese..."
+                  ? "Képek feltöltése..."
                   : isSubmitting
-                    ? "Mentes..."
+                    ? "Mentés..."
                     : submitLabel}
               </button>
             )}
