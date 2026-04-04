@@ -724,6 +724,7 @@ export function AdminProductForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, startSubmitTransition] = useTransition();
   const uploadedImagesRef = useRef(uploadedImages);
+  const formTopRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     uploadedImagesRef.current = uploadedImages;
@@ -736,6 +737,10 @@ export function AdminProductForm({
       }
     };
   }, []);
+
+  useEffect(() => {
+    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
 
   const allImages = useMemo(() => [...existingImages, ...uploadedImages], [existingImages, uploadedImages]);
   const completedUploadedImages = useMemo(
@@ -1037,6 +1042,7 @@ export function AdminProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div ref={formTopRef} />
       <section className="rounded-[1.8rem] border border-[#efd8e5] bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(255,245,250,0.92))] p-4 shadow-[0_10px_24px_rgba(191,117,162,0.06)] sm:p-5">
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           {stepDefinitions.map((item, index) => {

@@ -89,6 +89,31 @@ const reverseHomepagePlacementMap: Record<HomepagePlacement, DbHomepagePlacement
   new_arrivals: "NEW_ARRIVALS",
 };
 
+const canonicalCategorySlugByAlias: Record<string, string> = {
+  necklaces: "necklaces",
+  nyaklancok: "necklaces",
+  "nyakl-ncok": "necklaces",
+  bracelets: "bracelets",
+  karkotok: "bracelets",
+  "kark-t-k": "bracelets",
+};
+
+function removeDiacritics(input: string) {
+  return input.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+}
+
+export function normalizeCategorySlug(slug: string) {
+  return canonicalCategorySlugByAlias[slug] ?? slug;
+}
+
+function getCategorySlugAliases(categorySlug: string) {
+  const normalizedInput = normalizeCategorySlug(categorySlug);
+
+  return Object.entries(canonicalCategorySlugByAlias)
+    .filter(([, canonicalSlug]) => canonicalSlug === normalizedInput)
+    .map(([alias]) => alias);
+}
+
 function mapOption(option: ProductOption): ProductOptionValue {
   return {
     id: option.id,
@@ -101,11 +126,13 @@ function mapOption(option: ProductOption): ProductOptionValue {
 }
 
 export function slugifyOptionName(input: string) {
-  return input
+  const normalized = removeDiacritics(input)
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+  return canonicalCategorySlugByAlias[normalized] ?? normalized;
 }
 
 function mapImage(image: DbProductImage) {
@@ -146,7 +173,7 @@ function mapProduct(product: DbProductWithRelations): Product {
     id: product.id,
     slug: product.slug,
     name: product.name,
-    category: product.category.slug,
+    category: normalizeCategorySlug(product.category.slug),
     price: product.price,
     compareAtPrice: product.compareAtPrice ?? undefined,
     shortDescription: product.shortDescription,
@@ -178,7 +205,12 @@ function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereIn
     case "sale":
       return { isOnSale: true };
     default:
-      return { category: { slug: categorySlug, type: "CATEGORY" } };
+      return {
+        category: {
+          slug: { in: getCategorySlugAliases(categorySlug) },
+          type: "CATEGORY",
+        },
+      };
   }
 }
 
@@ -305,6 +337,7 @@ export async function getNavigationCategories(): Promise<NavigationCategory[]> {
 }
 
 export async function getCategoryDefinition(slug: string): Promise<CategoryDefinition | null> {
+  const canonicalSlug = normalizeCategorySlug(slug);
   const editorial = editorialCategoryDefinitions.find((category) => category.slug === slug);
   if (editorial) {
     if (slug === "special-edition") {
@@ -319,7 +352,7 @@ export async function getCategoryDefinition(slug: string): Promise<CategoryDefin
   }
 
   const category = await db.productOption.findFirst({
-    where: { type: "CATEGORY", slug, isActive: true },
+    where: { type: "CATEGORY", slug: { in: getCategorySlugAliases(canonicalSlug) }, isActive: true },
   });
 
   if (!category) {
@@ -327,7 +360,7 @@ export async function getCategoryDefinition(slug: string): Promise<CategoryDefin
   }
 
   return {
-    slug: category.slug,
+    slug: canonicalSlug,
     label: category.name,
     title: category.name,
     seoDescription: `Fedezd fel a Chicks Jewelry ${category.name.toLocaleLowerCase("hu-HU")} kollekcióját: kifinomult darabok szerkesztett válogatásban.`,
@@ -346,7 +379,7 @@ export async function getCategorySlugs() {
     (slug) => slug !== "special-edition" || specialEditionCampaign?.isActive,
   );
 
-  return [...editorialSlugs, ...dynamicSlugs.map((item) => item.slug)];
+  return [...editorialSlugs, ...new Set(dynamicSlugs.map((item) => normalizeCategorySlug(item.slug)))];
 }
 
 export async function getFilterGroupsForAvailableFilters(
