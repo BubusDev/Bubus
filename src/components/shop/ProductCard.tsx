@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 
-import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
+import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import {
   formatPrice,
@@ -79,29 +79,19 @@ export function ProductCard({
         ) : null}
 
         <div className="relative z-10 mt-auto flex items-center justify-between pt-2">
-          <AddToCartForm
+          <AddToCartIconButton
             productId={product.id}
             quantity={1}
             redirectTo={redirectTo}
             disabled={isOutOfStock}
-          >
-            {({ isPending, justAdded }) => (
-              <button
-                type="submit"
-                aria-label={isOutOfStock ? `${product.name} elfogyott` : `Kosárba: ${product.name}`}
-                disabled={isOutOfStock}
-                className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 ${
-                  isOutOfStock
-                    ? "cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
-                    : justAdded
-                      ? "bg-[#f3e3eb] text-[#7d4a69]"
-                      : "text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
-                } ${isPending ? "scale-[0.96]" : ""}`}
-              >
-                <AddToCartIcon justAdded={justAdded} className="h-5 w-5" />
-              </button>
-            )}
-          </AddToCartForm>
+            ariaLabel={`Kosárba: ${product.name}`}
+            soldOutAriaLabel={`${product.name} elfogyott`}
+            iconClassName="h-4 w-4 translate-y-[1px]"
+            baseClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+            disabledClassName="cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
+            addedClassName="bg-[#f3e3eb] text-[#7d4a69]"
+            idleClassName="text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+          />
 
           <form
             action={() => {

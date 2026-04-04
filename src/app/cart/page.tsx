@@ -6,10 +6,12 @@ import {
   removeCartItemAction,
   updateCartItemQuantityAction,
 } from "@/app/account/actions";
+import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getCartForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
-import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
+import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
+import { getCuratedProductRecommendations } from "@/lib/products";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -242,10 +244,110 @@ function CartSummary({
   );
 }
 
+function CartRecommendationCard({ product }: { product: Product }) {
+  const isOutOfStock = isProductOutOfStock(product);
+  const productHref = `/product/${product.slug}?redirectTo=/cart`;
+  const [from, via, to] = product.imagePalette;
+
+  return (
+    <article className="group flex h-full flex-col rounded-[1.5rem] border border-[#f1dfe8] bg-white p-3 sm:p-4">
+      <Link href={productHref} className="block overflow-hidden rounded-[1.1rem]">
+        <ProductImageFrame
+          alt={product.name}
+          imageUrl={product.imageUrl}
+          soldOut={isOutOfStock}
+          palette={[from, via, to]}
+          className="relative aspect-[4/5] overflow-hidden bg-[#f9f3f6]"
+          imageClassName={`h-full w-full object-cover transition duration-500 ${
+            isOutOfStock ? "" : "group-hover:scale-[1.02]"
+          }`}
+        />
+      </Link>
+
+      <div className="flex flex-1 flex-col gap-2 px-1 pt-3">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#b484a6]">
+            {product.collectionLabel}
+          </p>
+          <Link
+            href={productHref}
+            className="line-clamp-2 text-[1rem] leading-[1.2] tracking-[-0.02em] text-[#2f2230] transition hover:text-[#7d4a69]"
+          >
+            {product.name}
+          </Link>
+        </div>
+
+        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+          <div>
+            <p className="text-[0.95rem] font-medium leading-none text-[#2f2230]">
+              {formatPrice(product.price)}
+            </p>
+            {product.compareAtPrice ? (
+              <p className="mt-1 text-[11px] text-[#bb95ac] line-through">
+                {formatPrice(product.compareAtPrice)}
+              </p>
+            ) : null}
+          </div>
+
+          <AddToCartIconButton
+            productId={product.id}
+            quantity={1}
+            redirectTo="/cart"
+            disabled={isOutOfStock}
+            ariaLabel={`Kosárba: ${product.name}`}
+            soldOutAriaLabel={`${product.name} elfogyott`}
+            iconClassName="h-4 w-4 translate-y-[1px]"
+            baseClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+            disabledClassName="cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
+            addedClassName="bg-[#f3e3eb] text-[#7d4a69]"
+            idleClassName="text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+          />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CartRecommendations({ products }: { products: Product[] }) {
+  return (
+    <section className="mt-12 border-t border-[#f1dfe8] pt-8 sm:mt-14 sm:pt-10">
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
+            Kurált ajánlás
+          </p>
+          <h2 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none text-[#4d2741]">
+            Ezek is tetszhetnek
+          </h2>
+        </div>
+        <p className="max-w-[28ch] text-right text-[12px] leading-5 text-[#8b7080]">
+          Először az akciós darabokat, majd a limitált és új érkezéseket mutatjuk.
+        </p>
+      </div>
+
+      {products.length > 0 ? (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {products.map((product) => (
+            <CartRecommendationCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-[1.4rem] border border-[#f0e4ea] bg-[#fcfafb] px-4 py-4 text-sm text-[#8b7080]">
+          Jelenleg nincs a kosárhoz illő további akciós, limitált vagy új darab.
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default async function CartPage() {
   const user = await requireUser("/cart");
   const cart = await getCartForUser(user.id);
   const hasUnavailableItems = cart.items.some((item) => !item.isAvailable || item.exceedsStock);
+  const recommendations = await getCuratedProductRecommendations(
+    cart.items.map((item) => item.productId),
+    4,
+  );
 
   return (
     <main className="min-h-screen">
@@ -253,31 +355,35 @@ export default async function CartPage() {
         {cart.items.length === 0 ? (
           <CartEmptyState />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
-            <section>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
-                    Saját táskám
-                  </p>
-                  <h1 className="mt-3 font-sans text-[2.4rem] font-semibold leading-[0.95] tracking-[-0.05em] text-[#4f2348] sm:text-[2.9rem]">
-                    Kosár
-                  </h1>
+          <>
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
+              <section>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
+                      Saját táskám
+                    </p>
+                    <h1 className="mt-3 font-sans text-[2.4rem] font-semibold leading-[0.95] tracking-[-0.05em] text-[#4f2348] sm:text-[2.9rem]">
+                      Kosár
+                    </h1>
+                  </div>
+                  <div className="border-t border-[#f1dfe8] pt-6 sm:pt-8">
+                    {cart.items.map((item: CartItemSummary) => (
+                      <CartItemRow key={item.id} item={item} />
+                    ))}
+                  </div>
                 </div>
-                <div className="border-t border-[#f1dfe8] pt-6 sm:pt-8">
-                  {cart.items.map((item: CartItemSummary) => (
-                    <CartItemRow key={item.id} item={item} />
-                  ))}
-                </div>
-              </div>
-            </section>
+              </section>
 
-            <CartSummary
-              subtotal={cart.subtotal}
-              total={cart.total}
-              hasUnavailableItems={hasUnavailableItems}
-            />
-          </div>
+              <CartSummary
+                subtotal={cart.subtotal}
+                total={cart.total}
+                hasUnavailableItems={hasUnavailableItems}
+              />
+            </div>
+
+            <CartRecommendations products={recommendations} />
+          </>
         )}
       </section>
     </main>

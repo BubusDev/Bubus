@@ -146,6 +146,26 @@ function mapImage(image: DbProductImage) {
   };
 }
 
+function getSafeString(value: string | null | undefined, fallback: string) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return normalized || fallback;
+}
+
+function getSafeSlug(value: string | null | undefined, fallback: string) {
+  return getSafeString(value, fallback).toLowerCase();
+}
+
+function getSafeRelation(
+  option: ProductOption | null | undefined,
+  fallbackName: string,
+  fallbackSlug: string,
+) {
+  return {
+    name: getSafeString(option?.name, fallbackName),
+    slug: getSafeSlug(option?.slug, fallbackSlug),
+  };
+}
+
 function getOptionLabel(name?: string | null, slug?: string | null) {
   const normalizedName = typeof name === "string" ? name.trim() : "";
 
@@ -184,46 +204,78 @@ function getMappedImages(product: Pick<DbProductWithRelations, "images" | "image
 }
 
 function mapProduct(product: DbProductWithRelations): Product {
+  const category = getSafeRelation(product.category, "Egyéb", "other");
+  const stoneType = getSafeRelation(product.stoneType, "Nincs megadva", "unspecified");
+  const color = getSafeRelation(product.color, "Nincs megadva", "unspecified");
+  const style = getSafeRelation(product.style, "Nincs megadva", "unspecified");
+  const occasion = getSafeRelation(product.occasion, "Nincs megadva", "unspecified");
+  const availability = getSafeRelation(
+    product.availability,
+    product.stockQuantity > product.reservedQuantity ? "Elérhető" : "Elfogyott",
+    product.stockQuantity > product.reservedQuantity ? "in-stock" : "out-of-stock",
+  );
+  const tone = getSafeRelation(product.tone, "Alap", "default");
+  const hasIncompleteOptionData = [
+    product.category,
+    product.stoneType,
+    product.color,
+    product.style,
+    product.occasion,
+    product.availability,
+    product.tone,
+  ].some((option) => !option?.name?.trim() || !option?.slug?.trim());
+
+  if (hasIncompleteOptionData) {
+    console.warn("[products] Incomplete product option data detected.", {
+      productId: product.id,
+      slug: product.slug,
+    });
+  }
+
   const images = getMappedImages(product);
   const coverImage = images.find((image) => image.isCover) ?? images[0];
+  const shortDescription = getSafeString(
+    product.shortDescription,
+    "A termék leírása hamarosan érkezik.",
+  );
 
   return {
     id: product.id,
     slug: product.slug,
-    name: product.name,
-    category: normalizeCategorySlug(product.category.slug),
+    name: getSafeString(product.name, "Névtelen termék"),
+    category: normalizeCategorySlug(category.slug),
     price: product.price,
     compareAtPrice: product.compareAtPrice ?? undefined,
-    shortDescription: product.shortDescription,
-    description: product.description,
-    badge: product.badge,
-    collectionLabel: product.collectionLabel,
+    shortDescription,
+    description: getSafeString(product.description, shortDescription),
+    badge: getSafeString(product.badge, product.isOnSale ? "Akció" : product.isNew ? "Újdonság" : "Kiemelt"),
+    collectionLabel: getSafeString(product.collectionLabel, "Kollekció"),
     stockQuantity: product.stockQuantity,
     reservedQuantity: product.reservedQuantity,
     soldOutAt: product.soldOutAt,
     inStock: isInStock(product),
     availableToSell: getAvailableToSell(product),
-    stoneType: product.stoneType.slug,
-    color: product.color.slug,
-    style: product.style.slug,
-    occasion: product.occasion.slug,
-    availability: product.availability.slug,
+    stoneType: stoneType.slug,
+    color: color.slug,
+    style: style.slug,
+    occasion: occasion.slug,
+    availability: availability.slug,
     isNew: product.isNew,
     isGiftable: product.isGiftable,
     isOnSale: product.isOnSale,
-    tone: product.tone.slug,
+    tone: tone.slug,
     imageUrl: coverImage?.url ?? product.imageUrl,
     images,
-    imagePalette: getTonePalette(product.tone.slug),
+    imagePalette: getTonePalette(tone.slug),
     homepagePlacement: homepagePlacementMap[product.homepagePlacement],
     labels: {
-      category: getOptionLabel(product.category.name, product.category.slug),
-      stoneType: getOptionLabel(product.stoneType.name, product.stoneType.slug),
-      color: getOptionLabel(product.color.name, product.color.slug),
-      style: getOptionLabel(product.style.name, product.style.slug),
-      occasion: getOptionLabel(product.occasion.name, product.occasion.slug),
-      availability: getOptionLabel(product.availability.name, product.availability.slug),
-      tone: getOptionLabel(product.tone.name, product.tone.slug),
+      category: getOptionLabel(category.name, category.slug),
+      stoneType: getOptionLabel(stoneType.name, stoneType.slug),
+      color: getOptionLabel(color.name, color.slug),
+      style: getOptionLabel(style.name, style.slug),
+      occasion: getOptionLabel(occasion.name, occasion.slug),
+      availability: getOptionLabel(availability.name, availability.slug),
+      tone: getOptionLabel(tone.name, tone.slug),
     },
   };
 }
@@ -322,6 +374,60 @@ export async function getRelatedProducts(product: Product, limit = 4) {
   });
 
   return products.map(mapProduct);
+}
+
+export async function getCuratedProductRecommendations(
+  excludedProductIds: string[],
+  limit = 4,
+) {
+  if (limit <= 0) {
+    return [];
+  }
+
+  const selectedIds = new Set(excludedProductIds);
+  const picks: Product[] = [];
+  const bucketFilters: Prisma.ProductWhereInput[] = [
+    { isOnSale: true },
+    { isGiftable: true },
+    { isNew: true },
+  ];
+
+  for (const bucketWhere of bucketFilters) {
+    if (picks.length >= limit) {
+      break;
+    }
+
+    const bucket = await db.product.findMany({
+      where: {
+        ...bucketWhere,
+        id: { notIn: Array.from(selectedIds) },
+      },
+      include: productWithImagesAndOptions,
+      orderBy: [
+        { homepagePlacement: "desc" },
+        { isOnSale: "desc" },
+        { isGiftable: "desc" },
+        { isNew: "desc" },
+        { updatedAt: "desc" },
+      ],
+      take: Math.max(limit * 2, 6),
+    });
+
+    for (const candidate of bucket.map(mapProduct)) {
+      if (selectedIds.has(candidate.id) || !candidate.inStock) {
+        continue;
+      }
+
+      selectedIds.add(candidate.id);
+      picks.push(candidate);
+
+      if (picks.length >= limit) {
+        break;
+      }
+    }
+  }
+
+  return picks;
 }
 
 export async function getAdminProducts() {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
+import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import {
@@ -113,29 +113,20 @@ function ProductEditorialCard({
         </p>
       ) : null}
 
-      <AddToCartForm
+      <AddToCartTextButton
         productId={product.id}
         quantity={1}
         redirectTo={redirectTo}
         disabled={isOutOfStock}
-      >
-        {({ isPending, justAdded }) => (
-          <button
-            type="submit"
-            disabled={isOutOfStock}
-            className={`mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 px-6 text-[11px] font-medium uppercase tracking-[0.16em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2 ${
-              isOutOfStock
-                ? "cursor-not-allowed bg-[#e8e2e5] text-[#7d7177]"
-                : justAdded
-                  ? "bg-[#5E0034] text-white"
-                  : "bg-[#121313] text-white hover:opacity-90"
-            } ${isPending ? "scale-[0.99]" : ""}`}
-          >
-            <AddToCartIcon justAdded={justAdded} className="h-4 w-4" />
-            {isOutOfStock ? "Elfogyott" : justAdded ? "Kosárban" : "Vásárlás"}
-          </button>
-        )}
-      </AddToCartForm>
+        idleLabel="Vásárlás"
+        addedLabel="Kosárban"
+        soldOutLabel="Elfogyott"
+        iconClassName="h-4 w-4"
+        baseClassName="mt-7 inline-flex h-11 w-full max-w-[320px] items-center justify-center gap-2 px-6 text-[11px] font-medium uppercase tracking-[0.16em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E0034] focus-visible:ring-offset-2"
+        disabledClassName="cursor-not-allowed bg-[#e8e2e5] text-[#7d7177]"
+        addedClassName="bg-[#5E0034] text-white"
+        idleClassName="bg-[#121313] text-white hover:opacity-90"
+      />
 
       <Link
         href={productHref}

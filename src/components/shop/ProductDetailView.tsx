@@ -1,7 +1,7 @@
 import { Heart, ShieldCheck, Truck } from "lucide-react";
 
 import { addFavouriteAction } from "@/app/account/actions";
-import { AddToCartForm, AddToCartIcon } from "@/components/shop/AddToCartForm";
+import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
 import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
@@ -202,28 +202,19 @@ export function ProductDetailView({
             </div>
 
             <div className="flex flex-col gap-2.5 pt-1">
-              <AddToCartForm
+              <AddToCartTextButton
                 productId={product.id}
                 redirectTo={`/product/${product.slug}`}
                 disabled={isOutOfStock}
-              >
-                {({ isPending, justAdded }) => (
-                  <button
-                    type="submit"
-                    disabled={isOutOfStock}
-                    className={`inline-flex h-11 w-full items-center justify-center gap-2 px-5 text-[13px] font-medium transition ${
-                      isOutOfStock
-                        ? "cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
-                        : justAdded
-                          ? "bg-[#4d2741] text-white"
-                          : "bg-[#2f2230] text-white hover:opacity-90"
-                    } ${isPending ? "scale-[0.99]" : ""}`}
-                  >
-                    <AddToCartIcon justAdded={justAdded} className="h-4 w-4 translate-y-[1px]" />
-                    {isOutOfStock ? "Elfogyott" : justAdded ? "Kosárban" : "Kosárba rakom"}
-                  </button>
-                )}
-              </AddToCartForm>
+                idleLabel="Kosárba rakom"
+                addedLabel="Kosárban"
+                soldOutLabel="Elfogyott"
+                iconClassName="h-4 w-4 translate-y-[1px]"
+                baseClassName="inline-flex h-11 w-full items-center justify-center gap-2 px-5 text-[13px] font-medium transition"
+                disabledClassName="cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
+                addedClassName="bg-[#4d2741] text-white"
+                idleClassName="bg-[#2f2230] text-white hover:opacity-90"
+              />
 
               <form action={addFavouriteAction}>
                 <input type="hidden" name="productId" value={product.id} />
