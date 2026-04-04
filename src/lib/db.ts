@@ -5,15 +5,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function getValidatedDatabaseUrl() {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.Bubus_DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not set.");
+    throw new Error("Bubus_DATABASE_URL is not set.");
   }
 
   if (databaseUrl.includes("YOUR-NEON-HOST.neon.tech")) {
     throw new Error(
-      "DATABASE_URL still contains the placeholder host `YOUR-NEON-HOST.neon.tech`. Set it to your actual Neon connection string.",
+      "Bubus_DATABASE_URL still contains the placeholder host `YOUR-NEON-HOST.neon.tech`. Set it to your actual Neon connection string.",
     );
   }
 
