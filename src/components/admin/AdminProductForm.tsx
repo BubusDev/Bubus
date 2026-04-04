@@ -613,6 +613,8 @@ export function AdminProductForm({
   const [existingImages, setExistingImages] = useState<PendingImage[]>(initialExistingImages);
   const [uploadedImages, setUploadedImages] = useState<PendingImage[]>([]);
   const [coverImageKey, setCoverImageKey] = useState<string>(initialCoverImageKey);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, startSubmitTransition] = useTransition();
   const uploadedImagesRef = useRef(uploadedImages);
 
   useEffect(() => {
@@ -796,39 +798,88 @@ export function AdminProductForm({
     setStep((current) => Math.min(current + 1, stepDefinitions.length - 1));
   }
 
+  function buildSubmissionFormData() {
+    const formData = new FormData();
+
+    if (values.id) {
+      formData.append("productId", values.id);
+    }
+
+    formData.append("name", formValues.name);
+    formData.append("slug", formValues.slug);
+    formData.append("badge", formValues.badge);
+    formData.append("collectionLabel", formValues.collectionLabel);
+    formData.append("price", formValues.price);
+    formData.append("compareAtPrice", formValues.compareAtPrice);
+    formData.append("shortDescription", formValues.shortDescription);
+    formData.append("description", formValues.description);
+    formData.append("category", formValues.category);
+    formData.append("stoneType", formValues.stoneType);
+    formData.append("color", formValues.color);
+    formData.append("style", formValues.style);
+    formData.append("occasion", formValues.occasion);
+    formData.append("availability", formValues.availability);
+    formData.append("tone", formValues.tone);
+    formData.append("homepagePlacement", formValues.homepagePlacement);
+
+    if (formValues.isNew) {
+      formData.append("isNew", "on");
+    }
+
+    if (formValues.isGiftable) {
+      formData.append("isGiftable", "on");
+    }
+
+    if (formValues.isOnSale) {
+      formData.append("isOnSale", "on");
+    }
+
+    for (const image of existingImages) {
+      formData.append("retainedImageIds", image.id);
+    }
+
+    for (const image of completedUploadedImages) {
+      formData.append("imageUrls", image.uploadedUrl);
+      formData.append("imageKeys", image.id);
+    }
+
+    formData.append("coverImageKey", effectiveCoverImageKey);
+
+    return formData;
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     const nextErrors = validateAndSetErrors();
     const firstInvalidStep = getFirstInvalidStep(nextErrors);
 
     if (firstInvalidStep !== -1) {
-      event.preventDefault();
       setStep(firstInvalidStep);
       return;
     }
 
     if (hasUploadingImages) {
-      event.preventDefault();
+      return;
     }
+
+    setSubmitError(null);
+
+    const formData = buildSubmissionFormData();
+
+    startSubmitTransition(async () => {
+      try {
+        await action(formData);
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error ? error.message : "A termek mentese nem sikerult.",
+        );
+      }
+    });
   }
 
   return (
-    <form action={action} onSubmit={handleSubmit} className="space-y-6">
-      {values.id ? <input type="hidden" name="productId" value={values.id} /> : null}
-
-      {existingImages.map((image) => (
-        <input key={image.id} type="hidden" name="retainedImageIds" value={image.id} />
-      ))}
-
-      {completedUploadedImages.map((image) => (
-        <input key={image.id} type="hidden" name="imageUrls" value={image.uploadedUrl} />
-      ))}
-
-      {completedUploadedImages.map((image) => (
-        <input key={`${image.id}-key`} type="hidden" name="imageKeys" value={image.id} />
-      ))}
-
-      <input type="hidden" name="coverImageKey" value={effectiveCoverImageKey} />
-
+    <form onSubmit={handleSubmit} className="space-y-6">
       <section className="rounded-[1.8rem] border border-[#efd8e5] bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(255,245,250,0.92))] p-4 shadow-[0_10px_24px_rgba(191,117,162,0.06)] sm:p-5">
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           {stepDefinitions.map((item, index) => {
@@ -1199,7 +1250,10 @@ export function AdminProductForm({
 
       <section className="sticky bottom-4 rounded-[1.6rem] border border-[#efd8e5] bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(255,245,250,0.94))] p-4 shadow-[0_12px_30px_rgba(191,117,162,0.10)] backdrop-blur-xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#7a6070]">{stepDefinitions[step].title}</p>
+          <div className="space-y-1">
+            <p className="text-sm text-[#7a6070]">{stepDefinitions[step].title}</p>
+            {submitError ? <p className="text-sm text-[#9b476f]">{submitError}</p> : null}
+          </div>
 
           <div className="flex items-center gap-3">
             {!isFirstStep ? (
@@ -1223,10 +1277,14 @@ export function AdminProductForm({
             ) : (
               <button
                 type="submit"
-                disabled={hasUploadingImages}
+                disabled={hasUploadingImages || isSubmitting}
                 className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_12px_28px_rgba(241,131,188,0.22)] transition hover:bg-[#ea6fb0]"
               >
-                {hasUploadingImages ? "Kepek feltoltese..." : submitLabel}
+                {hasUploadingImages
+                  ? "Kepek feltoltese..."
+                  : isSubmitting
+                    ? "Mentes..."
+                    : submitLabel}
               </button>
             )}
           </div>
