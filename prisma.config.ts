@@ -10,5 +10,6 @@ export default defineConfig({
   engine: "classic",
   datasource: {
     url: env("Bubus_DATABASE_URL"),
+    directUrl: env("Bubus_DATABASE_URL_UNPOOLED"),
   },
 });
