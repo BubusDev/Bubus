@@ -112,12 +112,26 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
 
   if (existingUser) {
     if (!existingUser.emailVerifiedAt) {
+      const passwordHash = await hashPassword(input.password);
       const token = createRawToken();
       const verificationToken = await db.$transaction(async (tx) => {
+        await tx.passwordResetToken.deleteMany({
+          where: { userId: existingUser.id },
+        });
+
+        await tx.emailChangeToken.deleteMany({
+          where: { userId: existingUser.id },
+        });
+
         await tx.emailVerificationToken.deleteMany({
-          where: {
-            userId: existingUser.id,
-            usedAt: null,
+          where: { userId: existingUser.id },
+        });
+
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            passwordHash,
+            name: email.split("@")[0] || "Customer",
           },
         });
 

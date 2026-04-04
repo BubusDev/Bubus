@@ -82,6 +82,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </p>
         ) : null}
 
+        {resolvedSearchParams.error === "service" ? (
+          <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
+            Sign-in is temporarily unavailable. Check the auth configuration and server logs.
+          </p>
+        ) : null}
+
         <label className="block space-y-2">
           <span className="text-sm text-[#201a17]">Email</span>
           <input

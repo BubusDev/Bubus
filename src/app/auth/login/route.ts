@@ -20,25 +20,39 @@ export async function POST(request: Request) {
     typeof formData.get("password") === "string" ? String(formData.get("password")) : "";
   const nextPath =
     typeof formData.get("next") === "string" ? String(formData.get("next")) : "/account";
+  const normalizedNextPath = normalizeNextPath(nextPath);
 
   try {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: normalizeNextPath(nextPath),
+      redirect: false,
+      redirectTo: normalizedNextPath,
     });
   } catch (error) {
     if (error instanceof AuthError) {
+      const errorParam = error.type === "CredentialsSignin" ? "invalid" : "service";
+
+      if (errorParam === "service") {
+        console.error("[auth/login] Auth.js sign-in failed", {
+          email,
+          nextPath: normalizedNextPath,
+          type: error.type,
+          cause: error.cause,
+        });
+      }
+
       return NextResponse.redirect(
         new URL(
-          `/sign-in?error=invalid&next=${encodeURIComponent(normalizeNextPath(nextPath))}`,
+          `/sign-in?error=${encodeURIComponent(errorParam)}&next=${encodeURIComponent(normalizedNextPath)}`,
           request.url,
         ),
+        { status: 303 },
       );
     }
 
     throw error;
   }
 
-  return NextResponse.redirect(new URL(normalizeNextPath(nextPath), request.url));
+  return NextResponse.redirect(new URL(normalizedNextPath, request.url), { status: 303 });
 }

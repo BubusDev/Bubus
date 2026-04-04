@@ -36,5 +36,15 @@ export function getTrustHost() {
     return rawValue === "true";
   }
 
+  if (
+    process.env.AUTH_URL ??
+    process.env.NEXTAUTH_URL ??
+    process.env.APP_URL ??
+    process.env.VERCEL ??
+    process.env.VERCEL_URL
+  ) {
+    return true;
+  }
+
   return process.env.NODE_ENV !== "production";
 }

@@ -43,6 +43,19 @@ export async function verifyEmailToken(token: string): Promise<VerifyEmailResult
     return "expired";
   }
 
+  const user = await db.user.findUnique({
+    where: { id: verificationToken.userId },
+    select: { id: true },
+  });
+
+  if (!user) {
+    await db.emailVerificationToken.deleteMany({
+      where: { userId: verificationToken.userId },
+    });
+
+    return "invalid";
+  }
+
   await db.$transaction([
     db.user.update({
       where: { id: verificationToken.userId },
