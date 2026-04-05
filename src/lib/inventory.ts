@@ -20,11 +20,11 @@ export function getReservedQuantity(product: Pick<InventoryLike, "reservedQuanti
 }
 
 export function getAvailableToSell(product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity">) {
-  return Math.max(0, product.stockQuantity - getReservedQuantity(product));
+  return Math.max(0, product.stockQuantity);
 }
 
 export function isInStock(product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity">) {
-  return getAvailableToSell(product) > 0;
+  return product.stockQuantity > 0;
 }
 
 export function getSoldOutTimestamp(

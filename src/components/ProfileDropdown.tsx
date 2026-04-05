@@ -56,9 +56,9 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         <div
           role="menu"
           aria-label="Profil menü"
-          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-white/70 bg-[rgba(255,244,249,0.92)] p-2 shadow-[0_24px_60px_rgba(140,89,120,0.18)] backdrop-blur-2xl"
+          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-[#efd6e3] bg-[linear-gradient(180deg,#fffafc_0%,#fff4f8_100%)] p-2 shadow-[0_24px_60px_rgba(108,60,86,0.18)]"
         >
-          <div className="rounded-[1.1rem] border border-white/70 bg-white/72 px-4 py-3.5">
+          <div className="rounded-[1.1rem] border border-[#f1dbe6] bg-[#fffdfd] px-4 py-3.5">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#fff5fa] text-[#e16aa8] shadow-sm">
                 <User className="h-5 w-5" />
@@ -70,7 +70,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
                 </p>
                 <p className="truncate text-xs text-[#907585]">{user.email}</p>
 
-                <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-[#efd4e2] bg-white/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.22em] text-[#8e5f79]">
+                <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-[#efd4e2] bg-[#fff7fb] px-2.5 py-1 text-[11px] uppercase tracking-[0.22em] text-[#8e5f79]">
                   <Sparkles className="h-3 w-3 text-[#e16aa8]" />
                   {user.role}
                 </div>
@@ -86,10 +86,10 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
                 key={label}
                 href={href}
                 role="menuitem"
-                className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none"
+                className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
                 onClick={() => setIsOpen(false)}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-white/80 text-[#8e5f79]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-[#fffdfd] text-[#8e5f79]">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="font-medium text-[#4d2741]">{label}</span>
@@ -101,12 +101,12 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
 
           <button
             type="button"
-            className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-white/80 focus-visible:bg-white/80 focus-visible:outline-none"
+            className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
             onClick={() => {
               window.location.href = "/auth/logout";
             }}
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-white/80 text-[#8e5f79]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-[#fffdfd] text-[#8e5f79]">
               <LogOut className="h-4 w-4" />
             </span>
             <span className="font-medium text-[#4d2741]">Kijelentkezés</span>

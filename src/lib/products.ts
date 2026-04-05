@@ -211,8 +211,8 @@ function mapProduct(product: DbProductWithRelations): Product {
   const occasion = getSafeRelation(product.occasion, "Nincs megadva", "unspecified");
   const availability = getSafeRelation(
     product.availability,
-    product.stockQuantity > product.reservedQuantity ? "Elérhető" : "Elfogyott",
-    product.stockQuantity > product.reservedQuantity ? "in-stock" : "out-of-stock",
+    product.stockQuantity > 0 ? "Elérhető" : "Elfogyott",
+    product.stockQuantity > 0 ? "in-stock" : "out-of-stock",
   );
   const tone = getSafeRelation(product.tone, "Alap", "default");
   const hasIncompleteOptionData = [

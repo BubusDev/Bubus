@@ -32,7 +32,7 @@ export function CollectionSort({ currentSort }: CollectionSortProps) {
           params.set("sort", event.target.value);
           router.push(`${pathname}?${params.toString()}`);
         }}
-        className="bg-transparent text-sm font-medium text-[#4d2741] outline-none"
+        className="rounded-full border border-[#ead6e1] bg-[#fffafc] px-3 py-1.5 text-sm font-medium text-[#4d2741] shadow-[0_10px_24px_rgba(176,113,145,0.08)] outline-none transition focus:border-[#dca9c3]"
       >
         {sortOptions.map((option) => (
           <option key={option.value} value={option.value}>
