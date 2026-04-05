@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminActionLink } from "@/components/admin/AdminActionButton";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getAdminAnnouncementBar } from "@/lib/announcement-bar";
 import { db } from "@/lib/db";
@@ -30,30 +31,6 @@ function StatCard({ label, value, note }: StatItem) {
         {note}
       </p>
     </div>
-  );
-}
-
-function ActionLink({
-  href,
-  children,
-  variant = "secondary",
-}: {
-  href: string;
-  children: React.ReactNode;
-  variant?: "primary" | "secondary";
-}) {
-  const baseClassName =
-    "inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-medium transition duration-200";
-
-  const variantClassName =
-    variant === "primary"
-      ? "bg-[#4b2339] text-white shadow-[0_18px_40px_rgba(75,35,57,0.18)] hover:bg-[#5b2c46]"
-      : "border border-[#e8d9e1] bg-white text-[#5f3d50] hover:border-[#d9b7c8] hover:bg-[#fff7fa]";
-
-  return (
-    <Link href={href} className={`${baseClassName} ${variantClassName}`}>
-      {children}
-    </Link>
   );
 }
 
@@ -165,15 +142,15 @@ export default async function AdminPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <ActionLink href="/admin/products" variant="primary">
+            <AdminActionLink href="/admin/products" variant="primary">
               Termékkezelés
-            </ActionLink>
-            <ActionLink href="/admin/special-edition">
+            </AdminActionLink>
+            <AdminActionLink href="/admin/special-edition">
               Special Edition
-            </ActionLink>
-            <ActionLink href="/admin/announcement">
+            </AdminActionLink>
+            <AdminActionLink href="/admin/announcement">
               Üzenetsáv szerkesztése
-            </ActionLink>
+            </AdminActionLink>
           </div>
         </div>
       </section>

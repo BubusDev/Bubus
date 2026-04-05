@@ -1,6 +1,8 @@
-import Link from "next/link";
-
 import { deleteProductAction } from "@/app/admin/products/actions";
+import {
+  AdminActionButton,
+  AdminActionLink,
+} from "@/components/admin/AdminActionButton";
 import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
@@ -18,12 +20,9 @@ export default async function AdminProductsPage() {
       description="Termékek létrehozása, szerkesztése és törlése egységes szűrési és kezdőlapi kihelyezési adatokkal."
     >
       <div className="mb-5 flex justify-end">
-        <Link
-          href="/admin/products/new"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
-        >
+        <AdminActionLink href="/admin/products/new" variant="primary">
           Új termék
-        </Link>
+        </AdminActionLink>
       </div>
 
       <div className="overflow-hidden rounded-[2.2rem] border border-white/70 bg-white/76 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl">
@@ -80,20 +79,17 @@ export default async function AdminProductsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-2">
-                      <Link
+                      <AdminActionLink
                         href={`/admin/products/${product.id}/edit`}
-                        className="inline-flex h-10 items-center justify-center rounded-full border border-[#ecd3e3] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0] hover:bg-white"
+                        size="sm"
                       >
                         Szerkesztés
-                      </Link>
+                      </AdminActionLink>
                       <form action={deleteProductAction}>
                         <input type="hidden" name="productId" value={product.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
-                        >
+                        <AdminActionButton type="submit" variant="danger" size="sm">
                           Törlés
-                        </button>
+                        </AdminActionButton>
                       </form>
                     </div>
                   </td>
