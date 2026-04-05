@@ -86,11 +86,11 @@ export function ProductCard({
             disabled={isOutOfStock}
             ariaLabel={`Kosárba: ${product.name}`}
             soldOutAriaLabel={`${product.name} elfogyott`}
-            iconClassName="h-4 w-4 translate-y-[1px]"
-            baseClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
-            disabledClassName="cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
-            addedClassName="bg-[#f3e3eb] text-[#7d4a69]"
-            idleClassName="text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+            iconClassName="h-[1.1rem] w-[1.1rem]"
+            baseClassName="inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+            disabledClassName="cursor-not-allowed border-[#f0e6eb] bg-[#fbf7f9] text-[#b197a7]"
+            addedClassName="border-[#ead9e1] bg-[#fff8fb] text-[#7d4a69]"
+            idleClassName="text-[#2f2230] hover:border-[#ead9e1] hover:bg-[#fff8fb] hover:text-[#d45c9c]"
           />
 
           <form
@@ -109,10 +109,10 @@ export function ProductCard({
               }
               aria-pressed={isFavourite}
               disabled={isHeartPending}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 ${
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 ${
                 isFavourite
-                  ? "bg-[#f9eff4] text-[#d45c9c]"
-                  : "text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+                  ? "border-[#ead9e1] bg-[#fff8fb] text-[#d45c9c]"
+                  : "text-[#2f2230] hover:border-[#ead9e1] hover:bg-[#fff8fb] hover:text-[#d45c9c]"
               } ${isHeartPending ? "opacity-75" : ""}`}
             >
               <Heart

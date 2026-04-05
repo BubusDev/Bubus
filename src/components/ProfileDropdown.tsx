@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, Sparkles } from "lucide-react";
+import { LogOut, Sparkles, User } from "lucide-react";
 
 import { type HeaderUser, profileMenuByRole } from "@/lib/header-data";
 
@@ -37,13 +37,6 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
   }, []);
 
   const menuItems = profileMenuByRole[user.role];
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <div className="relative" ref={containerRef}>
       <button
@@ -52,26 +45,11 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         aria-expanded={isOpen}
         aria-label="Profil menü megnyitása"
         onClick={() => setIsOpen((open) => !open)}
-        className="group flex h-11 items-center gap-2 rounded-full border border-white/70 bg-white/80 px-2.5 text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+        className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent text-[#5a4651] transition duration-300 hover:border-[#e8d6dd] hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
+          isOpen ? "border-[#e8d6dd] bg-[#fff8fb]/92 text-[#2f2230]" : ""
+        }`}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff5fa] text-xs font-semibold tracking-[0.18em] text-[#e16aa8] shadow-sm">
-          {initials}
-        </span>
-
-        <span className="hidden text-left sm:block">
-          <span className="block text-xs uppercase tracking-[0.24em] text-[#b18aa1]">
-            Fiók
-          </span>
-          <span className="block text-sm font-medium leading-none text-[#4d2741]">
-            {user.role === "admin" ? "Admin" : "Profil"}
-          </span>
-        </span>
-
-        <ChevronDown
-          className={`h-4 w-4 text-[#b18aa1] transition duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
+        <User className="h-[1.1rem] w-[1.1rem]" />
       </button>
 
       {isOpen ? (
@@ -82,8 +60,8 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         >
           <div className="rounded-[1.1rem] border border-white/70 bg-white/72 px-4 py-3.5">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#fff5fa] text-sm font-semibold tracking-[0.16em] text-[#e16aa8] shadow-sm">
-                {initials}
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#fff5fa] text-[#e16aa8] shadow-sm">
+                <User className="h-5 w-5" />
               </span>
 
               <div className="min-w-0">

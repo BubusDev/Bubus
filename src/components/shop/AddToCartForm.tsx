@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
-import { Check } from "lucide-react";
+import { Check, ShoppingBag } from "lucide-react";
 
 import { addToCartAction } from "@/app/account/actions";
 
@@ -44,19 +44,10 @@ export function AddToCartIcon({
 
 function ShoppingBagIcon({ className }: { className: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <ShoppingBag
       className={className}
       aria-hidden="true"
-    >
-      <path d="M6.5 8.5h11l-.9 10.2a2 2 0 0 1-2 1.8H9.4a2 2 0 0 1-2-1.8z" />
-      <path d="M9 9V7a3 3 0 0 1 6 0v2" />
-    </svg>
+    />
   );
 }
 

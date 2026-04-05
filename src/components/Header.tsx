@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { ProfileDropdown } from "@/components/ProfileDropdown";
@@ -34,14 +34,14 @@ function HeaderActionButton({
       href={href}
       aria-label={label}
       data-cart-icon-target={isCartButton ? "cart" : undefined}
-      className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/80 text-[#6d5260] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+      className="group relative inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent text-[#5a4651] transition duration-300 hover:border-[#e8d6dd] hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
     >
       <span className="transition duration-300 group-hover:scale-105">
         {children}
       </span>
 
       {hasBadge ? (
-        <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#f183bc] px-1 text-[10px] font-semibold text-white shadow-sm">
+        <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[rgba(255,248,251,0.95)] bg-[#6e3d58] px-1 text-[9px] font-semibold tracking-[0.08em] text-white shadow-[0_6px_18px_rgba(110,61,88,0.16)]">
           {badgeCount! > 9 ? "9+" : badgeCount}
         </span>
       ) : null}
@@ -88,32 +88,37 @@ export function Header({
         
 
         <nav aria-label="Hasznos navigáció" className="hidden items-center gap-2 md:flex">
-          <HeaderActionButton
-            href="/favourites"
-            label="Kedvencek"
-            badgeCount={favouritesCount}
-          >
-            <Heart className="h-5 w-5" />
-          </HeaderActionButton>
-
-          <HeaderActionButton
-            href="/cart"
-            label="Kosár"
-            badgeCount={cartCount}
-          >
-            <ShoppingBag className="h-5 w-5" />
-          </HeaderActionButton>
-
-          {user ? (
-            <ProfileDropdown user={user} />
-          ) : (
-            <Link
-              href="/sign-in"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 text-sm font-medium text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+          <div className="flex items-center gap-0.5 rounded-full border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] px-1.5 py-1 shadow-[0_12px_30px_rgba(138,95,120,0.08)] backdrop-blur-xl">
+            <HeaderActionButton
+              href="/favourites"
+              label="Kedvencek"
+              badgeCount={favouritesCount}
             >
-              Belépés
-            </Link>
-          )}
+              <Heart className="h-[1.1rem] w-[1.1rem]" />
+            </HeaderActionButton>
+
+            <HeaderActionButton
+              href="/cart"
+              label="Kosár"
+              badgeCount={cartCount}
+            >
+              <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
+            </HeaderActionButton>
+
+            <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
+
+            {user ? (
+              <ProfileDropdown user={user} />
+            ) : (
+              <Link
+                href="/sign-in"
+                aria-label="Belépés"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent text-[#5a4651] transition duration-300 hover:border-[#e8d6dd] hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+              >
+                <User className="h-[1.1rem] w-[1.1rem]" />
+              </Link>
+            )}
+          </div>
         </nav>
 
         <button
@@ -122,7 +127,7 @@ export function Header({
           aria-controls="mobile-header-menu"
           aria-label={isMobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
           onClick={() => setIsMobileMenuOpen((open) => !open)}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/80 text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] md:hidden"
         >
           {isMobileMenuOpen ? (
             <X className="h-5 w-5" />
@@ -174,9 +179,10 @@ export function Header({
             ) : (
               <Link
                 href="/sign-in"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 text-sm font-medium text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                aria-label="Belépés"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/80 text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
               >
-                Belépés
+                <User className="h-5 w-5" />
               </Link>
             )}
           </div>
