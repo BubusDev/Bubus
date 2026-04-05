@@ -142,9 +142,18 @@ export default async function AdminPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <AdminActionLink href="/admin/products" variant="primary">
-              Termékkezelés
-            </AdminActionLink>
+            <Link
+                href="/admin/products"
+                className="group relative inline-flex h-11 items-center justify-center overflow-hidden rounded-full border border-[#d7b3c4] bg-gradient-to-b from-[#e3b6c9] via-[#d08aaa] to-[#b96a8e] px-5 text-sm font-medium tracking-[-0.01em] text-white shadow-[0_10px_22px_rgba(185,106,142,0.18)] transition-all duration-300 hover:-translate-y-[1px] hover:shadow-[0_14px_30px_rgba(185,106,142,0.22)]"
+              >
+                {/* finom felső highlight */}
+                <span className="pointer-events-none absolute inset-x-[10%] top-[2px] h-[40%] rounded-full bg-white/25 blur-[6px]" />
+
+                {/* nagyon finom keret */}
+                <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+
+                <span className="relative z-10">Termékkezelés</span>
+              </Link>
             <AdminActionLink href="/admin/special-edition">
               Special Edition
             </AdminActionLink>
