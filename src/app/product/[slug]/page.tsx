@@ -122,7 +122,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       "@type": "Offer",
       url: productUrl,
       price: product.price,
-      priceCurrency: "EUR",
+      priceCurrency: "HUF",
       availability: getSchemaAvailability(product.inStock),
     },
   };

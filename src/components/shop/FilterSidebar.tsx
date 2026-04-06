@@ -77,9 +77,9 @@ function PriceLinks({
   const searchParams = useSearchParams();
 
   const presets = [
-    { label: "60 EUR alatt", min: undefined, max: 60 },
-    { label: "60-80 EUR", min: 60, max: 80 },
-    { label: "80 EUR felett", min: 80, max: undefined },
+    { label: `${formatPrice(60)} alatt`, min: undefined, max: 60 },
+    { label: `${formatPrice(60)} - ${formatPrice(80)}`, min: 60, max: 80 },
+    { label: `${formatPrice(80)} felett`, min: 80, max: undefined },
   ];
 
   return (

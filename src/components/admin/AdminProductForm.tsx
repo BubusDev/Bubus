@@ -643,8 +643,8 @@ function validateFormState(
   }
 
   const price = Number(formValues.price);
-  if (!Number.isFinite(price) || price < 0) {
-    errors.price = "Az árnak érvényes, nem negatív számnak kell lennie.";
+  if (!Number.isInteger(price) || price < 0) {
+    errors.price = "Az árnak érvényes, nem negatív egész Ft összegnek kell lennie.";
   }
 
   const stockQuantity = Number(formValues.stockQuantity);
@@ -654,8 +654,8 @@ function validateFormState(
 
   if (formValues.compareAtPrice.trim().length > 0) {
     const compareAtPrice = Number(formValues.compareAtPrice);
-    if (!Number.isFinite(compareAtPrice) || compareAtPrice < 0) {
-      errors.compareAtPrice = "Az eredeti ár legyen üres vagy nem negatív szám.";
+    if (!Number.isInteger(compareAtPrice) || compareAtPrice < 0) {
+      errors.compareAtPrice = "Az eredeti ár legyen üres vagy nem negatív egész Ft összeg.";
     }
   }
 

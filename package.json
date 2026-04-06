@@ -14,6 +14,7 @@
     "db:push": "prisma db push",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:seed:local-auth": "node --import tsx prisma/seed-local-auth.ts",
     "db:fix-category-option-names": "node prisma/fix-category-option-names.cjs",
     "vercel-build": "npm run db:migrate:deploy && npm run build"
   },
@@ -21,6 +22,8 @@
     "@neondatabase/serverless": "^1.0.2",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/client": "^6.19.2",
+    "@stripe/react-stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^9.0.1",
     "@vercel/blob": "^2.3.3",
     "dotenv": "^16.6.1",
     "lucide-react": "^1.0.1",
@@ -28,7 +31,8 @@
     "next-auth": "^5.0.0-beta.30",
     "prisma": "^6.19.2",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "stripe": "^22.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.0",

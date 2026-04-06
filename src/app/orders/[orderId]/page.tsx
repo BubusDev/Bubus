@@ -21,6 +21,17 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     notFound();
   }
 
+  const paymentStatusNote =
+    order.paymentStatus === "PAID"
+      ? "A Stripe sikeresen visszaigazolta a fizetést."
+      : order.paymentStatus === "PROCESSING" || order.paymentStatus === "FINALIZING"
+        ? "A Stripe még feldolgozza a tranzakciót."
+        : order.paymentStatus === "STOCK_UNAVAILABLE"
+          ? "A fizetés után készleteltérés történt, ezért manuális ellenőrzés szükséges."
+          : order.paymentStatus === "FAILED" || order.paymentStatus === "CANCELED"
+            ? "A fizetés nem zárult le sikeresen."
+            : "A fizetés visszaigazolására várunk.";
+
   return (
     <AccountShell
       title="Rendelés részletei"
@@ -68,7 +79,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff9fc] p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Fizetés</p>
             <p className="mt-3 text-sm font-medium text-[#4d2741]">{order.paymentMethod}</p>
-            <p className="mt-2 text-sm text-[#7a6070]">Biztonságosan rögzítve</p>
+            <p className="mt-2 text-sm text-[#7a6070]">{paymentStatusNote}</p>
           </div>
           <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff9fc] p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Összesen</p>

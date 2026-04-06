@@ -61,8 +61,10 @@ export type OrderSummary = {
   id: string;
   orderNumber: string;
   status: string;
+  paymentStatus: string;
   total: number;
   createdAt: Date;
+  paidAt?: Date | null;
   items: OrderPreviewItem[];
 };
 
@@ -220,8 +222,10 @@ export async function getOrdersForUser(userId: string) {
     id: order.id,
     orderNumber: order.orderNumber,
     status: order.status,
+    paymentStatus: order.paymentStatus,
     total: order.total,
     createdAt: order.createdAt,
+    paidAt: order.paidAt,
     items: order.items,
   }));
 }

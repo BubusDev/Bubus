@@ -44,6 +44,16 @@ enum InventoryEventType {
   ORDER_COMPLETED
 }
 
+enum OrderPaymentStatus {
+  PENDING
+  PROCESSING
+  FINALIZING
+  PAID
+  FAILED
+  CANCELED
+  STOCK_UNAVAILABLE
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -276,18 +286,23 @@ model Order {
   userId          String
   orderNumber     String      @unique
   status          String
+  paymentStatus   OrderPaymentStatus @default(PENDING)
   subtotal        Int
   total           Int
+  currency        String      @default("HUF")
   shippingName    String
   shippingPhone   String
   shippingAddress String
   paymentMethod   String
+  stripePaymentIntentId String? @unique
+  paidAt          DateTime?
   items           OrderItem[]
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([userId, createdAt])
+  @@index([paymentStatus, createdAt])
 }
 
 model OrderItem {

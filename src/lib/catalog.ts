@@ -1,4 +1,16 @@
 export const editorialCategoryOrder = ["new-in", "special-edition", "sale"] as const;
+export const SHOP_CURRENCY = "HUF" as const;
+export const STRIPE_CURRENCY = "huf" as const;
+export const STORED_PRICE_UNIT = "major" as const;
+export const STORED_PRICE_DESCRIPTION = "whole Hungarian Forint (Ft) values" as const;
+
+const ZERO_DECIMAL_STRIPE_CURRENCIES = new Set<string>();
+const STRIPE_CHARGE_MULTIPLIER_OVERRIDES: Partial<Record<string, number>> = {
+  huf: 100,
+};
+const STRIPE_MINIMUM_AMOUNTS: Partial<Record<string, number>> = {
+  huf: 17_500,
+};
 
 export const homepagePlacements = ["none", "spotlight", "new_arrivals"] as const;
 
@@ -211,11 +223,63 @@ export function getTonePalette(slug: string): [string, string, string] {
 }
 
 export function formatPrice(price: number) {
-  return new Intl.NumberFormat("hu-HU", {
-    style: "currency",
-    currency: "EUR",
+  const formatted = new Intl.NumberFormat("hu-HU", {
     maximumFractionDigits: 0,
-  }).format(price);
+  }).format(normalizeStoredPrice(price));
+
+  return `${formatted.replace(/\s/g, " ")} Ft`;
+}
+
+export function normalizeStoredPrice(amount: number) {
+  if (!Number.isFinite(amount)) {
+    throw new Error("Price amount must be a finite number.");
+  }
+
+  return Math.round(amount);
+}
+
+export function isZeroDecimalStripeCurrency(currency: string) {
+  return ZERO_DECIMAL_STRIPE_CURRENCIES.has(currency.toLowerCase());
+}
+
+export function getStripeChargeMultiplier(currency: string) {
+  const normalizedCurrency = currency.toLowerCase();
+  return STRIPE_CHARGE_MULTIPLIER_OVERRIDES[normalizedCurrency] ??
+    (isZeroDecimalStripeCurrency(normalizedCurrency) ? 1 : 100);
+}
+
+export function getStripeMinimumAmount(currency: string) {
+  return STRIPE_MINIMUM_AMOUNTS[currency.toLowerCase()] ?? null;
+}
+
+export function toStripeAmount(amountInStoredCurrency: number, currency = STRIPE_CURRENCY) {
+  const normalizedAmount = normalizeStoredPrice(amountInStoredCurrency);
+  return normalizedAmount * getStripeChargeMultiplier(currency);
+}
+
+export function fromStripeAmount(stripeAmount: number, currency = STRIPE_CURRENCY) {
+  const normalizedAmount = normalizeStoredPrice(stripeAmount);
+  const multiplier = getStripeChargeMultiplier(currency);
+
+  if (multiplier === 1) {
+    return normalizedAmount;
+  }
+
+  if (normalizedAmount % multiplier !== 0) {
+    throw new Error(`Stripe amount ${normalizedAmount} is not valid for currency ${currency}.`);
+  }
+
+  return normalizedAmount / multiplier;
+}
+
+export function isStripeAmountBelowMinimum(stripeAmount: number, currency = STRIPE_CURRENCY) {
+  const minimumAmount = getStripeMinimumAmount(currency);
+
+  if (minimumAmount == null) {
+    return false;
+  }
+
+  return normalizeStoredPrice(stripeAmount) < minimumAmount;
 }
 
 export type ParsedCollectionState = {

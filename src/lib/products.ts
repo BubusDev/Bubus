@@ -779,8 +779,8 @@ export async function parseProductFormData(
     "A kezdőlapi kihelyezés kötelező.",
   );
 
-  if (!Number.isFinite(price) || price < 0) {
-    throw new Error("Az árnak érvényes, nem negatív számnak kell lennie.");
+  if (!Number.isInteger(price) || price < 0) {
+    throw new Error("Az árnak érvényes, nem negatív egész Ft összegnek kell lennie.");
   }
 
   if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
@@ -796,9 +796,9 @@ export async function parseProductFormData(
 
   if (
     typeof compareAtPriceNumber === "number" &&
-    (!Number.isFinite(compareAtPriceNumber) || compareAtPriceNumber < 0)
+    (!Number.isInteger(compareAtPriceNumber) || compareAtPriceNumber < 0)
   ) {
-    throw new Error("Az eredeti ár mező legyen üres vagy érvényes, nem negatív szám.");
+    throw new Error("Az eredeti ár mező legyen üres vagy érvényes, nem negatív egész Ft összeg.");
   }
 
   const [

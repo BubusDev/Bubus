@@ -144,7 +144,7 @@ export default async function AdminPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/admin/products"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#cab6c0] bg-white px-5 text-sm font-medium tracking-[-0.01em] text-[#4a2738] shadow-[0_8px_20px_rgba(76,39,56,0.05)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[#bfa7b3] hover:bg-[#fcf7f9] hover:shadow-[0_12px_28px_rgba(76,39,56,0.08)]"
+              className="inline-flex h-11 items-center justify-center rounded-full border border-[rgba(212,188,199,0.9)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,247,250,0.96))] px-5 text-sm font-medium tracking-[-0.01em] text-[#4a2738] shadow-[0_12px_28px_rgba(109,73,92,0.07),inset_0_1px_0_rgba(255,255,255,0.92)] transition-all duration-200 hover:-translate-y-[1px] hover:border-[rgba(203,173,187,0.95)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(255,249,251,0.98))] hover:shadow-[0_16px_34px_rgba(109,73,92,0.09),inset_0_1px_0_rgba(255,255,255,0.95)]"
             >
               Termékkezelés
             </Link>

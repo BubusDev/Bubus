@@ -3,17 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { addProductToCart, getCartForUser, getOrderForUser, getOrCreateCart } from "@/lib/account";
+import { addProductToCart, getOrderForUser, getOrCreateCart } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
 import { db } from "@/lib/db";
-import {
-  applyCompletedOrderInventory,
-  getAvailableToSell,
-  InsufficientStockError,
-} from "@/lib/inventory";
+import { getAvailableToSell } from "@/lib/inventory";
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -28,8 +24,6 @@ function readPositiveInt(formData: FormData, key: string, fallback = 1) {
 
   return Math.max(1, Math.floor(raw));
 }
-
-type CartItemValue = Awaited<ReturnType<typeof getCartForUser>>["items"][number];
 
 export async function addToCartAction(formData: FormData) {
   const redirectTo = readString(formData, "redirectTo") || "/";
@@ -266,100 +260,6 @@ export async function deleteAccountAction(formData: FormData) {
   });
 
   redirect("/auth/logout");
-}
-
-export async function placeOrderAction(formData: FormData) {
-  const user = await requireUser("/checkout");
-  const cart = await getCartForUser(user.id);
-
-  if (cart.items.length === 0) {
-    redirect("/cart");
-  }
-
-  const shippingName = readString(formData, "shippingName");
-  const shippingPhone = readString(formData, "shippingPhone");
-  const shippingAddress = readString(formData, "shippingAddress");
-  const paymentMethod = readString(formData, "paymentMethod") || "Bankk\u00e1rtya";
-
-  if (!shippingName || !shippingPhone || !shippingAddress) {
-    redirect("/checkout?status=error");
-  }
-
-  const orderNumber = `CJ-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Math.floor(
-    1000 + Math.random() * 9000,
-  )}`;
-
-  let order;
-
-  try {
-    order = await db.$transaction(async (tx) => {
-      const createdOrder = await tx.order.create({
-        data: {
-          userId: user.id,
-          orderNumber,
-          status: "Visszaigazolva",
-          subtotal: cart.subtotal,
-          total: cart.total,
-          shippingName,
-          shippingPhone,
-          shippingAddress,
-          paymentMethod,
-          items: {
-            create: cart.items.map((item: CartItemValue) => ({
-              productId: item.productId,
-              productName: item.name,
-              productSlug: item.slug,
-              imageUrl: item.imageUrl,
-              unitPrice: item.price,
-              quantity: item.quantity,
-            })),
-          },
-        },
-      });
-
-      await applyCompletedOrderInventory(tx, {
-        orderId: createdOrder.id,
-        items: cart.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-      });
-
-      await tx.cartItem.deleteMany({
-        where: { cartId: cart.id },
-      });
-
-      return createdOrder;
-    });
-  } catch (error) {
-    if (error instanceof InsufficientStockError) {
-      redirect("/checkout?status=stock");
-    }
-
-    throw error;
-  }
-
-  await db.user.update({
-    where: { id: user.id },
-    data: {
-      name: shippingName,
-      phone: shippingPhone,
-      defaultShippingAddress: shippingAddress,
-    },
-  });
-
-  revalidatePath("/");
-  revalidatePath("/cart");
-  revalidatePath("/checkout");
-  revalidatePath("/orders");
-  revalidatePath("/new-in");
-  revalidatePath("/sale");
-  revalidatePath("/special-edition");
-  for (const item of cart.items) {
-    revalidatePath(`/product/${item.slug}`);
-    revalidatePath(`/${item.category}`);
-  }
-  redirect(`/checkout/confirmation/${order.id}`);
 }
 
 export async function reorderAction(formData: FormData) {
