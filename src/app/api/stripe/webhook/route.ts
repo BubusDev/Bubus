@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { OrderPaymentStatus } from "@prisma/client";
 
 import {
@@ -9,27 +9,36 @@ import {
 } from "@/lib/checkout";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 
+export const runtime = "nodejs";
+
 export async function POST(request: Request) {
   console.log("[stripe-webhook] request received", {
     method: request.method,
     url: request.url,
   });
 
-  const signature = (await headers()).get("stripe-signature");
+  const signature = request.headers.get("stripe-signature");
   const webhookSecret = getStripeWebhookSecret();
 
   if (!signature || !webhookSecret) {
+    console.error("[stripe-webhook] configuration error", {
+      hasSignature: Boolean(signature),
+      hasWebhookSecret: Boolean(webhookSecret),
+    });
     return NextResponse.json({ error: "Webhook is not configured." }, { status: 400 });
   }
 
   const payload = await request.text();
   const stripe = getStripe();
 
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (error) {
+    console.error("[stripe-webhook] signature verification failed", {
+      message: error instanceof Error ? error.message : "Invalid webhook signature.",
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Invalid webhook signature." },
       { status: 400 },

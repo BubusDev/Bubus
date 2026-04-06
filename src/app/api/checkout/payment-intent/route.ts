@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "AMOUNT_BELOW_MINIMUM",
-          minimumAmount: fromStripeAmount(error.minimumStripeAmount, error.currency),
+          minimumAmount: fromStripeAmount(error.minimumStripeAmount, "huf"),
           currency: error.currency.toUpperCase(),
         },
         { status: 400 },

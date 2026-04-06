@@ -27,28 +27,23 @@ The script is non-destructive. It only upserts these verified users for developm
 - `local-admin@bubus.test` / `LocalAdmin123!`
 - `local-user@bubus.test` / `LocalUser123!`
 
-## Stripe Local Setup
-
-1. Start the app with `npm run dev`.
-2. Log in to Stripe CLI with `stripe login`.
-3. Forward events to the local webhook route:
-
-```bash
-stripe listen --forward-to http://127.0.0.1:3000/api/stripe/webhook
-```
-
-4. Copy the printed signing secret into `STRIPE_WEBHOOK_SECRET`.
-5. In Stripe Dashboard, use your test publishable key for `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and your test secret key for `STRIPE_SECRET_KEY`.
-
 ## Stripe Dashboard / Webhook
 
-Register this webhook endpoint for your deployed environment:
+Register a real public webhook endpoint in the Stripe Dashboard for your deployed environment:
 
 ```text
-/api/stripe/webhook
+https://your-domain.example/api/stripe/webhook
 ```
 
-The checkout flow relies on webhook-driven order finalization. `payment_intent.succeeded` marks the local order as paid, decrements stock atomically, and clears the cart only after verified success.
+Use these environment variables in the deployed app:
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+The webhook route is `POST /api/stripe/webhook`. It verifies the `stripe-signature` header with `STRIPE_WEBHOOK_SECRET`, parses the raw request body via `await request.text()`, and finalizes orders only after `stripe.webhooks.constructEvent(...)` succeeds.
+
+The checkout flow relies on webhook-driven order finalization. `payment_intent.succeeded` marks the order as paid, decrements stock atomically, and clears the cart only after verified success.
 
 ## HUF Handling
 
