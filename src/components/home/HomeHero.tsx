@@ -1,15 +1,6 @@
 import Link from "next/link";
 import { Sparkles, ArrowDown } from "lucide-react";
 
-const navLinks = [
-  { href: "/contact", label: "Lépj velünk kapcsolatba" },
-  { href: "/privacy", label: "Adatkezelési tájékoztató" },
-  { href: "/cookies", label: "Cookie Irányelv" },
-  { href: "/terms", label: "ÁSZF" },
-  { href: "/faq", label: "GYIK" },
-  { href: "/about", label: "Rólunk" },
-];
-
 export function HomeHero() {
   return (
     <section className="relative flex min-h-screen flex-col overflow-hidden">
@@ -85,24 +76,6 @@ export function HomeHero() {
         />
       </div>
 
-      {/* Bottom nav strip */}
-      <div className="border-t border-rose-100/50 bg-white/30 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-1 gap-y-1 px-4 py-3 sm:px-6 lg:px-8">
-          {navLinks.map(({ href, label }, i) => (
-            <span key={href} className="flex items-center">
-              <Link
-                href={href}
-                className="rounded-full px-3 py-1.5 text-xs text-[#9b7a8b] transition hover:bg-white/60 hover:text-[#4d2741]"
-              >
-                {label}
-              </Link>
-              {i < navLinks.length - 1 && (
-                <span className="text-[#e4c8d6] text-xs">·</span>
-              )}
-            </span>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }

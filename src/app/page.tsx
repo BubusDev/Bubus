@@ -1,4 +1,6 @@
 
+import { Gem, Heart, Leaf, Shield, Sparkles, Star } from "lucide-react";
+
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeProductSection } from "@/components/home/HomeProductSection";
 import { getHomepageProducts } from "@/lib/products";
@@ -16,50 +18,29 @@ function toQueryString(searchParams: Record<string, string | undefined>) {
   return query ? `/?${query}` : "/";
 }
 
-function EditorialBrandBlock() {
+const VALUES = [
+  { Icon: Sparkles, label: "KÉZZEL ALKOTVA" },
+  { Icon: Heart, label: "SZERETETTEL KÉSZÍTVE" },
+  { Icon: Gem, label: "FÉLDRÁGAKÖVEK" },
+  { Icon: Leaf, label: "ETIKUS BESZERZÉS" },
+  { Icon: Star, label: "LIMITÁLT DARABOK" },
+  { Icon: Shield, label: "MINŐSÉG GARANTÁLT" },
+];
+
+function ValuesStrip() {
   return (
-    <aside className="px-2 py-2 lg:sticky lg:top-28">
-      <div className="max-w-[420px] space-y-8">
-        <div className="space-y-4">
-          <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
-            Butik ékszer webáruház
-          </p>
-
-          <div className="space-y-2">
-            <h1 className="max-w-[10ch] font-sans text-[2.9rem] font-semibold leading-[0.9] tracking-[-0.06em] text-[#4f2348] sm:text-[3.5rem]">
-              Ékszerek,
-              <br />
-              amik a te
-              <br />
-              történetedhez
-              <br />
-              készülnek.
-            </h1>
-
-            <p className="max-w-[14ch] font-serif text-[2rem] leading-[0.95] tracking-[-0.03em] text-[#4f2348] sm:text-[2.4rem]">
-              <span className="relative inline-block text-[#f77ff0]">
-                egyedi design
-                <span className="absolute inset-x-0 bottom-[0.08em] -z-10 h-[0.28em] rounded-full bg-[#f7ff7a]/70 blur-[1px]" />
-              </span>
-              <span className="text-[#4f2348]"> minden személyiséghez.</span>
-            </p>
+    <div className="w-full bg-[#2b1220] py-4 px-6">
+      <div className="flex overflow-x-auto lg:justify-center gap-8 lg:gap-16 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {VALUES.map(({ Icon, label }) => (
+          <div key={label} className="flex flex-col items-center gap-2 flex-shrink-0">
+            <Icon className="w-5 h-5 text-rose-300" />
+            <span className="text-[10px] font-semibold tracking-[0.28em] text-white/80 whitespace-nowrap">
+              {label}
+            </span>
           </div>
-        </div>
-
-        <div className="h-px w-16 bg-gradient-to-r from-[#f77ff0] to-transparent" />
-
-        <div className="space-y-4">
-          <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
-            From the heart by Borbolya
-          </p>
-
-          <p className="max-w-[24ch] text-sm leading-7 text-[#7d5b75] sm:text-[15px]">
-            Megbízható, eredeti féldrágakövekből készített kollekciók,
-            finoman nőies, modern megjelenéssel.
-          </p>
-        </div>
+        ))}
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -96,35 +77,33 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <main className="min-h-screen">
       <HomeHero />
 
+      <ValuesStrip />
+
       <section className="mx-auto max-w-[1600px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)] xl:gap-8">
-          <EditorialBrandBlock />
+        <div className="space-y-6 sm:space-y-8">
+          <HomeProductSection
+            eyebrow="Válogatott kedvencek"
+            title="FÓKUSZBAN"
+            href="/new-in"
+            products={spotlightData.products}
+            redirectTo={homeRedirectTo}
+            page={spotlightData.page}
+            totalPages={spotlightData.totalPages}
+            pageParam="spotlightPage"
+            searchParams={normalizedSearchParams}
+          />
 
-          <div className="space-y-6 sm:space-y-8">
-            <HomeProductSection
-              eyebrow="Válogatott kedvencek"
-              title="FÓKUSZBAN"
-              href="/new-in"
-              products={spotlightData.products}
-              redirectTo={homeRedirectTo}
-              page={spotlightData.page}
-              totalPages={spotlightData.totalPages}
-              pageParam="spotlightPage"
-              searchParams={normalizedSearchParams}
-            />
-
-            <HomeProductSection
-              eyebrow="Friss kincsek"
-              title="ÚJDONSÁGOK"
-              href="/new-in"
-              products={newArrivalData.products}
-              redirectTo={homeRedirectTo}
-              page={newArrivalData.page}
-              totalPages={newArrivalData.totalPages}
-              pageParam="newArrivalsPage"
-              searchParams={normalizedSearchParams}
-            />
-          </div>
+          <HomeProductSection
+            eyebrow="Friss kincsek"
+            title="ÚJDONSÁGOK"
+            href="/new-in"
+            products={newArrivalData.products}
+            redirectTo={homeRedirectTo}
+            page={newArrivalData.page}
+            totalPages={newArrivalData.totalPages}
+            pageParam="newArrivalsPage"
+            searchParams={normalizedSearchParams}
+          />
         </div>
       </section>
     </main>
