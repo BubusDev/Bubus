@@ -43,12 +43,7 @@ export function AddToCartIcon({
 }
 
 function ShoppingBagIcon({ className }: { className: string }) {
-  return (
-    <ShoppingBag
-      className={className}
-      aria-hidden="true"
-    />
-  );
+  return <ShoppingBag className={className} aria-hidden="true" />;
 }
 
 export function AddToCartForm({

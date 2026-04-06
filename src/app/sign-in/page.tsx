@@ -6,24 +6,15 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: { index: false, follow: false },
 };
 
 type SignInPageProps = {
-  searchParams: Promise<{
-    error?: string;
-    next?: string;
-  }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 function normalizeNextPath(nextPath: string | null | undefined) {
-  if (!nextPath || !nextPath.startsWith("/")) {
-    return "/account";
-  }
-
+  if (!nextPath || !nextPath.startsWith("/")) return "/account";
   return nextPath;
 }
 
@@ -32,87 +23,68 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
 
-  if (user?.emailVerifiedAt) {
-    redirect(nextPath);
-  }
+  if (user?.emailVerifiedAt) redirect(nextPath);
 
   return (
     <AuthLayout
-      eyebrow="Account"
-      title="Sign in with your email."
-      description="A quiet, direct sign-in flow for saved items, orders, and your account details."
+      eyebrow="Fiók"
+      title="Üdvözlünk vissza."
+      description="Jelentkezz be mentett tételeid, rendeléseid és fiókod adatainak eléréséhez."
       aside={
-        <div className="border-t border-[#e7dfd7] pt-6">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-            New here
-          </p>
-          <p className="mt-3 text-sm leading-7 text-[#655b54]">
-            Create an account, then verify your email before normal account access is enabled.
-          </p>
-          <a
-            href={`/sign-up?next=${encodeURIComponent(nextPath)}`}
-            className="mt-6 inline-flex h-11 items-center border border-[#201a17] px-5 text-sm text-[#201a17] transition hover:bg-[#201a17] hover:text-[#fffdf9]"
-          >
-            Create account
-          </a>
-          <Link
-            href="/verify-email"
-            className="mt-3 inline-flex h-11 items-center border border-[#d9d0c8] px-5 text-sm text-[#655b54] transition hover:border-[#201a17] hover:text-[#201a17]"
-          >
-            Resend verification
-          </Link>
+        <div className="space-y-5 border-t border-rose-100/60 pt-6">
+          <div>
+            <p className="auth-eyebrow">Még nincs fiókod?</p>
+            <p className="mt-2 text-sm leading-7 text-[#7d5b75]">
+              Hozz létre egyet, majd erősítsd meg az e-mail-címedet a teljes hozzáféréshez.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <a
+              href={`/sign-up?next=${encodeURIComponent(nextPath)}`}
+              className="auth-btn-primary"
+            >
+              Regisztráció
+            </a>
+            <Link href="/verify-email" className="auth-btn-ghost">
+              Visszaigazoló e-mail újraküldése
+            </Link>
+          </div>
         </div>
       }
     >
-      <form action="/auth/login" method="post" className="space-y-6">
+      <form action="/auth/login" method="post" className="space-y-5">
         <input type="hidden" name="next" value={nextPath} />
 
-        <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-            Sign in
-          </p>
-          <p className="text-sm leading-7 text-[#655b54]">
-            Use the email and password connected to your account.
+        <div className="mb-6">
+          <p className="auth-eyebrow">Bejelentkezés</p>
+          <p className="mt-1.5 text-sm leading-7 text-[#7d5b75]">
+            Add meg a fiókodhoz tartozó e-mail-címedet és jelszavadat.
           </p>
         </div>
 
-        {resolvedSearchParams.error === "invalid" ? (
-          <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
-            Invalid email or password.
-          </p>
-        ) : null}
+        {resolvedSearchParams.error === "invalid" && (
+          <div className="auth-error-box">
+            Érvénytelen e-mail-cím vagy jelszó.
+          </div>
+        )}
+        {resolvedSearchParams.error === "service" && (
+          <div className="auth-error-box">
+            A bejelentkezés átmenetileg nem elérhető. Ellenőrizd a konfigurációt és a szerverlógokat.
+          </div>
+        )}
 
-        {resolvedSearchParams.error === "service" ? (
-          <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
-            Sign-in is temporarily unavailable. Check the auth configuration and server logs.
-          </p>
-        ) : null}
-
-        <label className="block space-y-2">
-          <span className="text-sm text-[#201a17]">Email</span>
-          <input
-            type="email"
-            name="email"
-            required
-            className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
-          />
+        <label className="auth-field">
+          <span className="auth-field-label">E-mail-cím</span>
+          <input type="email" name="email" required className="auth-input" placeholder="anna@pelda.hu" />
         </label>
 
-        <label className="block space-y-2">
-          <span className="text-sm text-[#201a17]">Password</span>
-          <input
-            type="password"
-            name="password"
-            required
-            className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
-          />
+        <label className="auth-field">
+          <span className="auth-field-label">Jelszó</span>
+          <input type="password" name="password" required className="auth-input" placeholder="••••••••" />
         </label>
 
-        <button
-          type="submit"
-          className="inline-flex h-12 w-full items-center justify-center bg-[#201a17] px-6 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
-        >
-          Sign in
+        <button type="submit" className="auth-submit-btn">
+          Bejelentkezés
         </button>
       </form>
     </AuthLayout>

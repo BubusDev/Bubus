@@ -5,10 +5,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: { index: false, follow: false },
 };
 
 type SignUpPageProps = {
@@ -21,29 +18,19 @@ type SignUpPageProps = {
 };
 
 function normalizeNextPath(nextPath: string | null | undefined) {
-  if (!nextPath || !nextPath.startsWith("/")) {
-    return "/account";
-  }
-
+  if (!nextPath || !nextPath.startsWith("/")) return "/account";
   return nextPath;
 }
 
 function getErrorMessage(error?: string, message?: string) {
   switch (error) {
-    case "email":
-      return "Enter a valid email address.";
-    case "password":
-      return "Password must be at least 8 characters.";
-    case "passwordConfirm":
-      return "Passwords do not match.";
-    case "termsAccepted":
-      return "You must accept the terms to continue.";
-    case "emailDelivery":
-      return message ?? "We created your account, but the verification email could not be sent. Please try again.";
-    case "service":
-      return "Registration is temporarily unavailable. Please try again shortly.";
-    default:
-      return null;
+    case "email":           return "Adj meg érvényes e-mail-címet.";
+    case "password":        return "A jelszónak legalább 8 karakteresnek kell lennie.";
+    case "passwordConfirm": return "A két jelszó nem egyezik.";
+    case "termsAccepted":   return "A folytatáshoz el kell fogadnod a feltételeket.";
+    case "emailDelivery":   return message ?? "A fiók létrejött, de a visszaigazoló e-mail elküldése nem sikerült. Kérjük, próbáld újra.";
+    case "service":         return "A regisztráció átmenetileg nem elérhető. Próbáld újra hamarosan.";
+    default:                return null;
   }
 }
 
@@ -51,111 +38,84 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
-  const errorMessage = getErrorMessage(
-    resolvedSearchParams.error,
-    resolvedSearchParams.message,
-  );
+  const errorMessage = getErrorMessage(resolvedSearchParams.error, resolvedSearchParams.message);
 
-  if (user?.emailVerifiedAt) {
-    redirect(nextPath);
-  }
+  if (user?.emailVerifiedAt) redirect(nextPath);
 
   return (
     <AuthLayout
-      eyebrow="Registration"
-      title="Create your account."
-      description="Registration stays in the app domain so verification and password reset can evolve without coupling them to the session layer."
+      eyebrow="Regisztráció"
+      title="Hozd létre fiókodat."
+      description="A teljes hozzáférés az e-mail-cím visszaigazolása után aktiválódik."
       aside={
-        <div className="space-y-6 border-t border-[#e7dfd7] pt-6">
+        <div className="space-y-5 border-t border-rose-100/60 pt-6">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-              Already registered
-            </p>
-            <p className="mt-3 text-sm leading-7 text-[#655b54]">
-              Sign in once your email has been verified.
+            <p className="auth-eyebrow">Már van fiókod?</p>
+            <p className="mt-2 text-sm leading-7 text-[#7d5b75]">
+              Jelentkezz be, miután megerősítetted az e-mail-címedet.
             </p>
           </div>
-
           <a
             href={`/sign-in?next=${encodeURIComponent(nextPath)}`}
-            className="inline-flex h-11 items-center border border-[#201a17] px-5 text-sm text-[#201a17] transition hover:bg-[#201a17] hover:text-[#fffdf9]"
+            className="auth-btn-primary inline-flex"
           >
-            Go to sign in
+            Bejelentkezés
           </a>
         </div>
       }
     >
-      <form action="/auth/register" method="post" className="space-y-6">
+      <form action="/auth/register" method="post" className="space-y-5">
         <input type="hidden" name="next" value={nextPath} />
 
-        <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-            Sign up
-          </p>
-          <p className="text-sm leading-7 text-[#655b54]">
-            We will only enable full account access after email verification.
+        <div className="mb-6">
+          <p className="auth-eyebrow">Új fiók</p>
+          <p className="mt-1.5 text-sm leading-7 text-[#7d5b75]">
+            A teljes fiók-hozzáférés az e-mail-visszaigazolás után lép életbe.
           </p>
         </div>
 
-        {errorMessage ? (
-          <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
-            {errorMessage}
-          </p>
-        ) : null}
+        {errorMessage && (
+          <div className="auth-error-box">{errorMessage}</div>
+        )}
 
-        {resolvedSearchParams.status === "submitted" ? (
-          <div className="space-y-3 border border-[#e7dfd7] bg-[#faf8f4] px-4 py-4 text-sm text-[#514740]">
-            <p>
-              If the details are valid, we will prepare your account and email a verification link.
-            </p>
+        {resolvedSearchParams.status === "submitted" && (
+          <div className="auth-success-box">
+            Ha az adatok érvényesek, előkészítjük a fiókodat és elküldjük a visszaigazoló linket.
           </div>
-        ) : null}
+        )}
 
-        <label className="block space-y-2">
-          <span className="text-sm text-[#201a17]">Email</span>
-          <input
-            type="email"
-            name="email"
-            required
-            className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
-          />
+        <label className="auth-field">
+          <span className="auth-field-label">E-mail-cím</span>
+          <input type="email" name="email" required className="auth-input" placeholder="anna@pelda.hu" />
         </label>
 
-        <label className="block space-y-2">
-          <span className="text-sm text-[#201a17]">Password</span>
-          <input
-            type="password"
-            name="password"
-            required
-            className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
-          />
+        <label className="auth-field">
+          <span className="auth-field-label">Jelszó</span>
+          <input type="password" name="password" required className="auth-input" placeholder="Legalább 8 karakter" />
         </label>
 
-        <label className="block space-y-2">
-          <span className="text-sm text-[#201a17]">Confirm password</span>
-          <input
-            type="password"
-            name="passwordConfirm"
-            required
-            className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
-          />
+        <label className="auth-field">
+          <span className="auth-field-label">Jelszó megerősítése</span>
+          <input type="password" name="passwordConfirm" required className="auth-input" placeholder="••••••••" />
         </label>
 
-        <label className="flex items-start gap-3 text-sm leading-7 text-[#655b54]">
-          <input
-            type="checkbox"
-            name="termsAccepted"
-            value="true"
-            className="mt-1 h-4 w-4 border border-[#d9d0c8]"
-          />
-          <span>I accept the store terms and the account privacy policy.</span>
+        <label className="flex items-start gap-3 pt-1">
+          <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
+            <input
+              type="checkbox"
+              name="termsAccepted"
+              value="true"
+              className="auth-checkbox peer"
+            />
+            <div className="auth-checkbox-custom pointer-events-none" />
+          </div>
+          <span className="text-sm leading-[1.75] text-[#7d5b75]">
+            Elfogadom az áruház feltételeit és a fiók adatvédelmi irányelveit.
+          </span>
         </label>
 
-        <button
-          type="submit"
-          className="inline-flex h-12 w-full items-center justify-center bg-[#201a17] px-6 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
-        >
-          Create account
+        <button type="submit" className="auth-submit-btn">
+          Fiók létrehozása
         </button>
       </form>
     </AuthLayout>
