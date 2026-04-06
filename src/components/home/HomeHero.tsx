@@ -1,129 +1,193 @@
 import Link from "next/link";
-import { Sparkles, ArrowDown } from "lucide-react";
+import { Gem, Heart, Leaf, ShoppingBag, Shield, Sparkles, Star } from "lucide-react";
+
+const NAV_LINKS = [
+  { href: "/", label: "Főoldal", active: true },
+  { href: "/about", label: "Rólunk" },
+  { href: "/contact", label: "Kapcsolat" },
+  { href: "/gyik", label: "GYIK" },
+];
+
+const BOTTOM_VALUES = [
+  { Icon: Sparkles, label: "KÉZZEL ALKOTVA" },
+  { Icon: Gem, label: "FÉLDRÁGAKÖVEK" },
+  { Icon: Leaf, label: "ETIKUS BESZERZÉS" },
+  { Icon: Star, label: "LIMITÁLT DARABOK" },
+  { Icon: Shield, label: "MINŐSÉG GARANTÁLT" },
+];
 
 export function HomeHero() {
   return (
-    <section className="relative flex min-h-screen flex-col overflow-hidden">
-      {/* Main hero content */}
-      <div className="flex flex-1 items-center justify-center px-4 py-24 sm:px-6 lg:px-8">
-        <div className="grid w-full max-w-6xl gap-12 lg:grid-cols-[1fr_auto] lg:items-center">
-          {/* Left: text content */}
-          <div className="space-y-8">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-[#b06b8e] backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5" />
-              Kézzel alkotva · Féldrágakövekből
-            </div>
-
-            {/* Heading */}
-            <h1
-              className="font-[family:var(--font-display)] leading-[0.9] tracking-[-0.04em] text-[#4d2741]"
-              style={{ fontSize: "clamp(3rem, 6vw, 5.5rem)" }}
-            >
-              Ékszerek,
-              <br />
-              amelyek{" "}
-              <span
-                style={{
-                  background: "linear-gradient(135deg, #c45a85 0%, #e07a70 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                mesélnek.
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p
-              className="text-[#7a5a6c]"
-              style={{ maxWidth: "44ch", lineHeight: "1.9" }}
-            >
-              Minden kő más. Minden darab egyedi. Minden Bubus ékszer egy apró történet, amelyet te
-              viselsz.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/new-in"
-                className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#c45a85,#e07a70)] px-7 py-3.5 text-sm font-medium text-white shadow-[0_18px_38px_rgba(196,90,133,0.3)] transition hover:-translate-y-[1px] hover:shadow-[0_22px_44px_rgba(196,90,133,0.36)]"
-              >
-                Kollekció böngészése
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center rounded-full border border-[#edd1e1] bg-white/80 px-7 py-3.5 text-sm font-medium text-[#6b425a] backdrop-blur-sm transition hover:border-[#e9b6d0] hover:bg-white"
-              >
-                Rólunk
-              </Link>
-            </div>
-          </div>
-
-          {/* Right: floating cards (desktop) */}
-          <div className="hidden lg:block">
-            <FloatingCards />
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="flex justify-center pb-8">
-        <ArrowDown
-          className="h-5 w-5 animate-bounce text-[#c45a85]/60"
-          strokeWidth={1.5}
+    <section className="relative w-full overflow-hidden bg-[#2b1220]">
+      {/* Dark blobs */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute -top-32 -left-40 h-[700px] w-[700px] rounded-full"
+          style={{ background: "#c45a85", filter: "blur(80px)", opacity: 0.18 }}
+        />
+        <div
+          className="absolute top-1/4 -right-48 h-[600px] w-[600px] rounded-full"
+          style={{ background: "#e07a70", filter: "blur(80px)", opacity: 0.18 }}
         />
       </div>
 
+      {/* Inner nav bar */}
+      <nav className="relative z-10 flex items-center justify-between py-3 px-8 bg-[#2b1220]/80">
+        {/* Logo */}
+        <span
+          className="font-[family:var(--font-display)] text-[1.3rem] font-semibold"
+          style={{
+            background: "linear-gradient(135deg, #c45a85, #e07a70)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          Bubus
+        </span>
+
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map(({ href, label, active }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`text-sm text-white px-4 py-1 rounded-full transition-colors ${
+                active ? "bg-white/15" : "hover:bg-white/10"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Icons */}
+        <div className="flex items-center gap-4">
+          <ShoppingBag className="w-5 h-5 text-white" strokeWidth={1.5} />
+          <Heart className="w-5 h-5 text-white" strokeWidth={1.5} />
+        </div>
+      </nav>
+
+      {/* Main body */}
+      <div
+        className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-12 items-center px-8 lg:px-16 py-16 lg:py-20"
+        style={{ minHeight: "70vh" }}
+      >
+        {/* Left: text */}
+        <div className="space-y-6">
+          <p className="text-rose-400 text-[10px] tracking-widest font-semibold uppercase">
+            ✦ KÉZZEL ALKOTVA · FÉLDRÁGAKÖVEKBŐL
+          </p>
+
+          <h1
+            className="font-[family:var(--font-display)] text-white leading-[0.95] tracking-[-0.03em]"
+            style={{ fontSize: "clamp(2.8rem, 5vw, 4.5rem)" }}
+          >
+            Ékszerek,
+            <br />
+            amelyek
+            <br />
+            <span style={{ color: "#e07a70" }}>mesélnek.</span>
+          </h1>
+
+          <p
+            className="text-white/65 text-sm leading-[1.9]"
+            style={{ maxWidth: "38ch" }}
+          >
+            Minden kő más. Minden darab egyedi. Minden Bubus ékszer egy apró történet, amelyet te viselsz.
+          </p>
+
+          <div className="flex flex-wrap gap-3 mt-8">
+            <Link
+              href="/new-in"
+              className="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium text-white transition hover:-translate-y-[1px]"
+              style={{ background: "linear-gradient(135deg, #c45a85, #e07a70)" }}
+            >
+              Kollekciók böngészése
+            </Link>
+            <Link
+              href="/about"
+              className="inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
+            >
+              Rólunk
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: floating cards */}
+        <div className="hidden lg:flex items-center justify-center">
+          <DarkFloatingCards />
+        </div>
+      </div>
+
+      {/* Bottom value strip */}
+      <div className="relative z-10 border-t border-white/10 py-6 px-8">
+        <div className="flex flex-wrap justify-center gap-6 lg:gap-10">
+          {BOTTOM_VALUES.map(({ Icon, label }) => (
+            <div key={label} className="flex items-center gap-2 text-white/70">
+              <Icon className="w-4 h-4 text-white/80" strokeWidth={1.5} />
+              <span className="text-[10px] font-semibold tracking-[0.28em] whitespace-nowrap">
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
-function FloatingCards() {
+function DarkFloatingCards() {
   const cards = [
     {
       label: "Rózsakvarc karkötő",
       stone: "Rose Quartz",
-      rotate: "-6deg",
-      translateY: "0px",
-      bg: "linear-gradient(145deg, #fff0f7, #fcdeed)",
+      wrapperStyle: {
+        transform: "rotate(-4deg) translateY(-10px)",
+        background: "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(255,255,255,0.15)",
+        zIndex: 1,
+        left: "0px",
+        top: "0px",
+      },
     },
     {
       label: "Holdkő nyaklánc",
       stone: "Moonstone",
-      rotate: "4deg",
-      translateY: "-24px",
-      bg: "linear-gradient(145deg, #f8f4ff, #eadff5)",
-    },
-    {
-      label: "Ametiszt gyűrű",
-      stone: "Amethyst",
-      rotate: "-3deg",
-      translateY: "16px",
-      bg: "linear-gradient(145deg, #fff7f0, #fde8d6)",
+      wrapperStyle: {
+        transform: "rotate(2deg) translateY(10px)",
+        background: "rgba(255,255,255,0.12)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(255,255,255,0.15)",
+        zIndex: 2,
+        left: "50px",
+        top: "30px",
+      },
     },
   ];
 
   return (
-    <div className="relative h-[340px] w-[280px]">
-      {cards.map((card, i) => (
+    <div className="relative h-[380px] w-[320px]">
+      {cards.map((card) => (
         <div
           key={card.label}
-          className="absolute overflow-hidden rounded-[1.6rem] border border-white/75 shadow-[0_20px_48px_rgba(198,129,167,0.16)] backdrop-blur-xl"
+          className="absolute rounded-[1.5rem] overflow-hidden"
           style={{
-            background: card.bg,
-            transform: `rotate(${card.rotate}) translateY(${card.translateY})`,
-            left: `${i * 20}px`,
-            top: `${i * 30}px`,
-            width: "180px",
-            zIndex: cards.length - i,
+            ...card.wrapperStyle,
+            width: "200px",
+            padding: "16px",
           }}
         >
-          <div className="h-28 w-full bg-gradient-to-br from-[#f8e8f2] to-[#e8d0e8]" />
-          <div className="p-3">
-            <p className="text-xs font-medium text-[#4d2741]">{card.label}</p>
-            <p className="mt-0.5 text-[10px] text-[#b08898]">{card.stone}</p>
+          <div
+            className="w-full rounded-xl"
+            style={{ aspectRatio: "3/4", background: "rgba(196,90,133,0.3)" }}
+          />
+          <div className="mt-3">
+            <p className="text-sm font-medium text-white">{card.label}</p>
+            <p className="mt-0.5 text-xs text-white/60">{card.stone}</p>
           </div>
         </div>
       ))}
