@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { ProfileDropdown } from "@/components/ProfileDropdown";
-import { type HeaderUser } from "@/lib/header-data";
+import {
+  headerPrimaryNavItems,
+  headerSecondaryNavItems,
+  type HeaderUser,
+} from "@/lib/header-data";
 
 type HeaderProps = {
   user?: HeaderUser;
@@ -66,6 +71,14 @@ export function Header({
   cartCount = 0,
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const getNavLinkClassName = (href: string) =>
+    `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
+      pathname === href
+        ? "bg-white/90 text-[#4d2741] shadow-[0_10px_28px_rgba(138,95,120,0.12)]"
+        : "text-[#6b425a] hover:bg-white/65 hover:text-[#4d2741]"
+    }`;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-[rgba(255,241,247,0.72)] backdrop-blur-2xl">
@@ -85,7 +98,22 @@ export function Header({
           </div>
         </Link>
 
-        
+        <nav
+          aria-label="Fő navigáció"
+          className="hidden flex-1 items-center justify-center md:flex"
+        >
+          <div className="flex flex-wrap items-center justify-center gap-1 rounded-full border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] px-2 py-1.5 shadow-[0_12px_30px_rgba(138,95,120,0.08)] backdrop-blur-xl">
+            {headerPrimaryNavItems.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={getNavLinkClassName(href)}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
 
         <nav aria-label="Hasznos navigáció" className="hidden items-center gap-2 md:flex">
           <div className="flex items-center gap-0.5 rounded-full border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] px-1.5 py-1 shadow-[0_12px_30px_rgba(138,95,120,0.08)] backdrop-blur-xl">
@@ -155,6 +183,17 @@ export function Header({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
+              {headerPrimaryNavItems.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${getNavLinkClassName(href)} inline-flex items-center justify-center`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+
               <HeaderActionButton
                 href="/favourites"
                 label="Kedvencek"
@@ -185,6 +224,19 @@ export function Header({
                 <User className="h-5 w-5" />
               </Link>
             )}
+
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/70 bg-white/72 p-3 text-xs text-[#8d7382] backdrop-blur-md">
+              {headerSecondaryNavItems.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="rounded-full px-3 py-1.5 transition hover:bg-white hover:text-[#4d2741]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}

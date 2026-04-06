@@ -23,6 +23,24 @@ export type ProfileMenuItem = {
   icon: LucideIcon;
 };
 
+export type HeaderNavItem = {
+  label: string;
+  href: string;
+};
+
+export const headerPrimaryNavItems: HeaderNavItem[] = [
+  { label: "Főoldal", href: "/" },
+  { label: "Rólunk", href: "/about" },
+  { label: "Kapcsolat", href: "/contact" },
+  { label: "GYIK", href: "/faq" },
+];
+
+export const headerSecondaryNavItems: HeaderNavItem[] = [
+  { label: "Adatkezelés", href: "/privacy" },
+  { label: "Cookiek", href: "/cookies" },
+  { label: "ÁSZF", href: "/terms" },
+];
+
 export const guestMenuItems: ProfileMenuItem[] = [
   { label: "Belépés", href: "/sign-in", icon: LogIn },
 ];
