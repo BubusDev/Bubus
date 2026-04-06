@@ -105,7 +105,7 @@ function FilterPanel({
 }: FilterSidebarProps & { onClose?: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [activeGroup, setActiveGroup] = useState<AccordionGroupKey | null>("category");
+  const [activeGroup, setActiveGroup] = useState<AccordionGroupKey | null>(null);
   const [search, setSearch] = useState("");
 
   const visibleGroups = filterGroups.filter((g) => g.options.length > 0);
