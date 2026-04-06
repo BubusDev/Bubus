@@ -78,7 +78,7 @@ export default function PrivacyPage() {
       <ul>
         <li>Tájékoztatást kérni az általunk kezelt adatairól</li>
         <li>Az adatok helyesbítését kérni</li>
-        <li>Az adatok törlését kérni („az elfeledtetéshez való jog")</li>
+        <li>Az adatok törlését kérni („az elfeledtetéshez való jog”)</li>
         <li>Az adatkezelés korlátozását kérni</li>
         <li>Adathordozhatósághoz való jogát gyakorolni</li>
         <li>Tiltakozni az adatkezelés ellen</li>

@@ -18,9 +18,9 @@ const contactCards = [
   },
   {
     Icon: AtSign,
-    label: "Instagram",
+    label: "Azonosító",
     value: "@bubus.ekszer",
-    href: "https://instagram.com/bubus.ekszer",
+    href: null,
   },
   {
     Icon: Clock,
@@ -93,7 +93,7 @@ export default function ContactPage() {
             </div>
 
             <p className="text-xs leading-7 text-[#b08898]">
-              Közösségi médián is megtalálsz minket — Instagram DM-ben is szívesen válaszolunk.
+              Ha azonosító alapján keresnél minket, itt is megtalálod a Bubus fiókot.
             </p>
           </div>
 

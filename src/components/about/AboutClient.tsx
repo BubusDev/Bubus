@@ -171,7 +171,7 @@ function FounderSection() {
             className="scroll-reveal border-l-[3px] border-[#c45a85] pl-5 italic text-[#7a5a6c]"
             style={{ ...revealStyle(240), fontSize: "15px", lineHeight: "1.9" }}
           >
-            „Az ékszer nem csupán díszítés. Emlékeztet. Összeköt. Mesél."
+            „Az ékszer nem csupán díszítés. Emlékeztet. Összeköt. Mesél.”
           </blockquote>
         </div>
       </div>

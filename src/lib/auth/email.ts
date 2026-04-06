@@ -158,3 +158,84 @@ export async function sendEmailChangeConfirmationPreview(
 
   return {};
 }
+
+export async function sendContactEmail({
+  name,
+  email,
+  subject,
+  message,
+}: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<EmailPreviewResult> {
+  const recipient = process.env.CONTACT_EMAIL_TO ?? getEmailFromAddress();
+  const normalizedSubject = subject.trim() || "Egyéb";
+  const trimmedMessage = message.trim();
+
+  if (!recipient) {
+    if (isDevelopment()) {
+      console.info("[contact] Missing contact email recipient, skipping send.", {
+        name,
+        email,
+        subject: normalizedSubject,
+        message: trimmedMessage,
+      });
+      return {};
+    }
+
+    throw new EmailDeliveryError(
+      "Contact email delivery is not configured. Set CONTACT_EMAIL_TO and AUTH_EMAIL_FROM (or EMAIL_FROM).",
+      "email_not_configured",
+    );
+  }
+
+  if (isDevelopment()) {
+    console.info("[contact] Contact message prepared", {
+      to: recipient,
+      from: email,
+      name,
+      subject: normalizedSubject,
+      message: trimmedMessage,
+    });
+    return {};
+  }
+
+  const escapedName = escapeHtml(name);
+  const escapedEmail = escapeHtml(email);
+  const escapedSubject = escapeHtml(normalizedSubject);
+  const escapedMessage = escapeHtml(trimmedMessage).replace(/\n/g, "<br />");
+
+  await sendEmail({
+    to: recipient,
+    subject: `Kapcsolatfelvétel: ${normalizedSubject}`,
+    text: [
+      "Új kapcsolatfelvételi üzenet érkezett.",
+      "",
+      `Név: ${name}`,
+      `E-mail: ${email}`,
+      `Tárgy: ${normalizedSubject}`,
+      "",
+      trimmedMessage,
+    ].join("\n"),
+    html: [
+      "<p>Új kapcsolatfelvételi üzenet érkezett.</p>",
+      `<p><strong>Név:</strong> ${escapedName}<br />`,
+      `<strong>E-mail:</strong> ${escapedEmail}<br />`,
+      `<strong>Tárgy:</strong> ${escapedSubject}</p>`,
+      `<p>${escapedMessage}</p>`,
+    ].join(""),
+  });
+
+  return {};
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}

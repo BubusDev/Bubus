@@ -1,28 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Send, CheckCircle } from "lucide-react";
+
+import { initialContactFormState, submitContactAction } from "@/app/contact/actions";
 
 const subjects = ["Rendelés", "Egyedi darab", "Egyéb"] as const;
 
 export function ContactForm() {
   const [active, setActive] = useState<string>("Egyéb");
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [successDismissed, setSuccessDismissed] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    submitContactAction,
+    initialContactFormState,
+  );
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate send — replace with actual API call
-    await new Promise((r) => setTimeout(r, 900));
-    setLoading(false);
-    setSent(true);
-  }
+  const showSuccess = state.status === "success" && !successDismissed;
 
   return (
     <div className="relative overflow-hidden rounded-[2.5rem] border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(255,241,247,0.84))] p-7 shadow-[0_24px_60px_rgba(108,60,86,0.12)] backdrop-blur-xl sm:p-9">
       {/* Success overlay */}
-      {sent && (
+      {showSuccess && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-[2.5rem] bg-white/90 backdrop-blur-sm">
           <CheckCircle className="h-12 w-12 text-[#3f6f4f]" strokeWidth={1.4} />
           <h3 className="font-[family:var(--font-display)] text-[1.5rem] text-[#4d2741]">
@@ -32,7 +30,7 @@ export function ContactForm() {
             Hamarosan válaszolunk, általában 1-2 munkanapon belül.
           </p>
           <button
-            onClick={() => setSent(false)}
+            onClick={() => setSuccessDismissed(true)}
             className="mt-1 rounded-full border border-[#edd8e6] bg-white px-5 py-2 text-sm text-[#7a5a6c] transition hover:bg-[#fff0f7]"
           >
             Új üzenet
@@ -42,7 +40,11 @@ export function ContactForm() {
 
       <p className="text-[10px] uppercase tracking-[0.32em] text-[#af7795]">Üzenet küldése</p>
 
-      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+      <form
+        action={formAction}
+        onChangeCapture={() => setSuccessDismissed(false)}
+        className="mt-5 space-y-4"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Név" name="name" required placeholder="Kovács Anna" />
           <Field label="E-mail" name="email" type="email" required placeholder="anna@example.com" />
@@ -70,6 +72,12 @@ export function ContactForm() {
           <input type="hidden" name="subject" value={active} />
         </div>
 
+        {state.status === "error" && state.message ? (
+          <p className="rounded-[1rem] border border-[#f3d3db] bg-[#fff5f7] px-4 py-3 text-sm text-[#9f4564]">
+            {state.message}
+          </p>
+        ) : null}
+
         <div>
           <label className="mb-1.5 block text-sm text-[#5b344c]">Üzenet</label>
           <textarea
@@ -83,15 +91,15 @@ export function ContactForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={pending}
           className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#c45a85,#e07a70)] py-3.5 text-sm font-medium text-white shadow-[0_12px_30px_rgba(196,90,133,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_16px_36px_rgba(196,90,133,0.34)] disabled:opacity-70"
         >
-          {loading ? (
+          {pending ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
           ) : (
             <Send className="h-4 w-4" />
           )}
-          {loading ? "Küldés..." : "Üzenet küldése"}
+          {pending ? "Küldés..." : "Üzenet küldése"}
         </button>
       </form>
     </div>

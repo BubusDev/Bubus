@@ -87,28 +87,32 @@ export function AdminSettingsClient({ user }: { user: AdminUser }) {
       </aside>
 
       {/* Right content */}
-      <form action={handleSave} className="min-w-0 space-y-5">
-        {activeTab === "profile" && <ProfilePanel user={user} />}
+      <div className="min-w-0 space-y-5">
+        {activeTab === "profile" && (
+          <form action={handleSave} className="space-y-5">
+            <ProfilePanel user={user} />
+
+            <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 rounded-[1.5rem] border border-rose-100 bg-white/70 px-5 py-3 backdrop-blur-xl shadow-[0_-4px_20px_rgba(196,90,133,0.06)]">
+              {saveMessage ? (
+                <span className="text-sm text-[#3f6f4f]">{saveMessage}</span>
+              ) : (
+                <span className="text-sm text-[#9b7a8b]">Nem mentett változtatások</span>
+              )}
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#ec7cb2,#d95f92)] px-6 py-2.5 text-sm font-medium text-white shadow-[0_8px_22px_rgba(217,95,146,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_12px_28px_rgba(217,95,146,0.34)]"
+              >
+                Mentés
+              </button>
+            </div>
+          </form>
+        )}
+
         {activeTab === "security" && <SecurityPanel />}
         {activeTab === "general" && <GeneralPanel />}
         {activeTab === "notifications" && <NotificationsPanel />}
         {activeTab === "integrations" && <IntegrationsPanel />}
-
-        {/* Sticky save footer */}
-        <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 rounded-[1.5rem] border border-rose-100 bg-white/70 px-5 py-3 backdrop-blur-xl shadow-[0_-4px_20px_rgba(196,90,133,0.06)]">
-          {saveMessage ? (
-            <span className="text-sm text-[#3f6f4f]">{saveMessage}</span>
-          ) : (
-            <span className="text-sm text-[#9b7a8b]">Nem mentett változtatások</span>
-          )}
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#ec7cb2,#d95f92)] px-6 py-2.5 text-sm font-medium text-white shadow-[0_8px_22px_rgba(217,95,146,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_12px_28px_rgba(217,95,146,0.34)]"
-          >
-            Mentés
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
