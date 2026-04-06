@@ -1,4 +1,5 @@
 
+import { HomeHero } from "@/components/home/HomeHero";
 import { HomeProductSection } from "@/components/home/HomeProductSection";
 import { getHomepageProducts } from "@/lib/products";
 
@@ -93,7 +94,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main className="min-h-screen">
-      
+      <HomeHero />
 
       <section className="mx-auto max-w-[1600px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)] xl:gap-8">

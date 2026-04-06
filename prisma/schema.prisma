@@ -152,6 +152,8 @@ model Product {
   inventoryEvents   InventoryEvent[]
   specialEditionEntries SpecialEditionEntry[]
   homepagePlacement HomepagePlacement  @default(NONE)
+  archivedAt        DateTime?
+  archiveReason     String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 

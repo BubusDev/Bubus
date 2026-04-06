@@ -11,8 +11,10 @@ const navItems = [
   { href: "/admin", label: "Áttekintés" },
   { href: "/admin/products", label: "Termékek" },
   { href: "/admin/products/new", label: "Új termék" },
+  { href: "/admin/products/archive", label: "Archívum" },
   { href: "/admin/announcement", label: "Üzenetsáv" },
   { href: "/admin/special-edition", label: "Special Edition" },
+  { href: "/admin/settings", label: "Beállítások" },
 ];
 
 export function AdminShell({ title, description, children }: AdminShellProps) {
