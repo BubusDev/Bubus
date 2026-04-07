@@ -88,13 +88,21 @@ export function Header({
           className="flex min-w-0 items-center gap-3 transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
         >
           <ChickMark />
-          <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#b06b8e]">
-              Boutique ékszer webáruház
-            </p>
-            <p className="truncate font-[family:var(--font-display)] text-xl tracking-[0.04em] text-[#4d2741] sm:text-2xl">
+          <div className="flex flex-col leading-none">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
+              Boutique ékszer
+            </span>
+            <span
+              className="font-[family:var(--font-display)] text-[1.45rem] font-semibold tracking-[-0.02em]"
+              style={{
+                background: "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               Chicks Jewelry
-            </p>
+            </span>
           </div>
         </Link>
 
@@ -102,7 +110,7 @@ export function Header({
           aria-label="Fő navigáció"
           className="hidden flex-1 items-center justify-center md:flex"
         >
-          <div className="flex flex-wrap items-center justify-center gap-1 rounded-full border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] px-2 py-1.5 shadow-[0_12px_30px_rgba(138,95,120,0.08)] backdrop-blur-xl">
+          <div className="flex flex-wrap items-center justify-center gap-1">
             {headerPrimaryNavItems.map(({ href, label }) => (
               <Link
                 key={href}

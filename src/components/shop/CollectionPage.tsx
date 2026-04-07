@@ -61,8 +61,8 @@ export function CollectionPage({
             <h1 className="collection-heading">{category.title}</h1>
           </div>
 
-          {/* product count badge */}
-          <div className="self-start rounded-2xl border border-rose-100 bg-white/70 px-5 py-2.5 backdrop-blur-md sm:self-auto">
+          {/* product count */}
+          <div className="self-start sm:self-auto">
             <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#c0517a]">
               Találat
             </p>

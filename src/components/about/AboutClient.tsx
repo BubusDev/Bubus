@@ -67,8 +67,7 @@ const sectionLinks = [
 function HeroSection() {
   return (
     <section
-      className="relative flex min-h-screen w-full overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #1e0d18 0%, #2e1328 45%, #3d1a35 100%)" }}
+      className="relative flex min-h-screen w-full overflow-hidden bg-[#fffbfd]"
     >
       {/* ── Background decoration ── */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
