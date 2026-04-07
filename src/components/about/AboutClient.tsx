@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 
 /* ─── Scroll reveal hook ─────────────────────────────────────── */
@@ -26,178 +26,333 @@ function useScrollReveal() {
   }, []);
 }
 
+/* ─── Stagger helper ─────────────────────────────────────────── */
 function revealStyle(delay = 0): React.CSSProperties {
   return {
     opacity: 0,
-    transform: "translateY(22px)",
-    transition: `opacity 700ms ease-out ${delay}ms, transform 700ms ease-out ${delay}ms`,
+    transform: "translateY(24px)",
+    transition: `opacity 600ms ease-out ${delay}ms, transform 600ms ease-out ${delay}ms`,
   };
 }
 
+/* ─── Main component ─────────────────────────────────────────── */
 export function AboutClient() {
   useScrollReveal();
 
   return (
-    <main className="bg-[#fcf7f9] text-[#4f2740]">
+    <main>
       <HeroSection />
       <FounderSection />
       <ProcessSection />
+      <GallerySection />
       <ValuesSection />
       <CtaSection />
     </main>
   );
 }
 
+/* ─── Section nav links ──────────────────────────────────────── */
+const sectionLinks = [
+  { href: "#alapitank", label: "Az alapítónk" },
+  { href: "#folyamatunk", label: "Hogyan alkotunk" },
+  { href: "#ekszereink", label: "Ékszereink" },
+  { href: "#ertekeink", label: "Értékeink" },
+];
+
 /* ─── 1. Hero ────────────────────────────────────────────────── */
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(241,202,220,0.35),transparent_28%),radial-gradient(circle_at_85%_18%,rgba(252,220,233,0.5),transparent_20%),linear-gradient(to_bottom,#fcf7f9_0%,#f8eff4_60%,#f7edf1_100%)]" />
-        <div className="absolute left-[-7rem] top-[5rem] h-[18rem] w-[18rem] rounded-full bg-[#f4dbe5]/45 blur-3xl" />
-        <div className="absolute right-[-8rem] top-[2rem] h-[20rem] w-[20rem] rounded-full bg-[#f5d7e7]/40 blur-3xl" />
+    <section
+      className="relative flex min-h-screen w-full overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #1e0d18 0%, #2e1328 45%, #3d1a35 100%)" }}
+    >
+      {/* ── Background decoration ── */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {/* large soft glow, left */}
+        <div
+          className="absolute -left-32 top-1/4 h-[600px] w-[600px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(196,90,133,0.18) 0%, transparent 65%)" }}
+        />
+        {/* smaller glow, right */}
+        <div
+          className="absolute -right-16 bottom-1/4 h-[400px] w-[400px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(224,122,112,0.12) 0%, transparent 65%)" }}
+        />
+        {/* subtle grid lines */}
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
+        {/* sparkles */}
+        <span className="absolute top-[12%] left-[38%] select-none text-2xl text-rose-300/20">✦</span>
+        <span className="absolute top-[55%] right-[12%] select-none text-4xl text-white/8">✦</span>
+        <span className="absolute bottom-[18%] left-[55%] select-none text-lg text-rose-400/15">✦</span>
+        {/* outline circle */}
+        <div className="absolute top-[8%] right-[10%] h-[220px] w-[220px] rounded-full border border-white/8" />
+        <div className="absolute bottom-[10%] left-[42%] h-[120px] w-[120px] rounded-full border border-white/6" />
       </div>
 
-      <div className="relative mx-auto grid min-h-[84vh] max-w-[1320px] items-center gap-14 px-6 py-16 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:py-24">
-        <div className="max-w-[560px]">
+      {/* ── Main grid ── */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col px-6 py-24 lg:flex-row lg:items-center lg:gap-20 lg:px-12">
+
+        {/* ── LEFT: hero content + section nav ── */}
+        <div className="flex flex-1 flex-col">
+          {/* Eyebrow */}
           <div
-            className="scroll-reveal inline-flex items-center rounded-full border border-[#ead4de] bg-white/75 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-[#b57695] backdrop-blur"
+            className="scroll-reveal mb-8 inline-flex w-fit items-center gap-2.5 rounded-full border border-rose-400/30 bg-white/8 px-5 py-2.5 backdrop-blur-md"
             style={revealStyle(0)}
           >
-            Chicks Jewelry
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+            <span className="text-[10px] uppercase tracking-[0.36em] text-rose-300/90">
+              Kézzel alkotva · Féldrágakövekből
+            </span>
           </div>
 
-          <p
-            className="scroll-reveal mt-8 text-[11px] uppercase tracking-[0.34em] text-[#b8879f]"
-            style={revealStyle(80)}
-          >
-            A márkáról
-          </p>
-
+          {/* Headline */}
           <h1
-            className="scroll-reveal mt-4 font-[family:var(--font-display)] leading-[0.92] tracking-[-0.05em] text-[#4f2740]"
-            style={{ ...revealStyle(140), fontSize: "clamp(3rem, 6.5vw, 6.2rem)" }}
+            className="scroll-reveal font-[family:var(--font-display)] leading-[0.9] tracking-[-0.04em] text-white"
+            style={{ ...revealStyle(80), fontSize: "clamp(3.2rem, 7.5vw, 6.5rem)" }}
           >
-            Finom,
+            Mi vagyunk
             <br />
-            nőies ékszerek
-            <br />
-            valódi karakterrel.
+            <span
+              style={{
+                background: "linear-gradient(135deg, #f4a0c0 0%, #e07a70 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              a Bubus.
+            </span>
           </h1>
 
+          {/* Divider line */}
+          <div
+            className="scroll-reveal my-8 h-px w-16"
+            style={{ ...revealStyle(140), background: "linear-gradient(90deg, rgba(244,160,192,0.7), transparent)" }}
+          />
+
+          {/* Subtext */}
           <p
-            className="scroll-reveal mt-7 max-w-[34rem] text-[15px] leading-[1.95] text-[#765d6a] sm:text-[16px]"
-            style={revealStyle(220)}
+            className="scroll-reveal text-white/55"
+            style={{ ...revealStyle(180), maxWidth: "40ch", lineHeight: "1.95", fontSize: "15px" }}
           >
-            A Chicks Jewelry darabjai azoknak készülnek, akik a látványos helyett
-            inkább a kifinomultat választják. Válogatott kövek, puha tónusok,
-            letisztult formák — könnyed, modern ékszerek a hétköznapokra és a
-            különleges pillanatokra.
+            Minden kő más. Minden darab egyedi.
+            Minden Bubus ékszer egy apró történet,
+            amelyet te viselsz.
           </p>
+
+          {/* ── Section navigation ── */}
+          <nav
+            className="scroll-reveal mt-12 flex flex-col gap-1"
+            aria-label="Oldal szekciói"
+            style={revealStyle(240)}
+          >
+            <p className="mb-3 text-[9px] uppercase tracking-[0.42em] text-white/30">
+              Fedezd fel
+            </p>
+            {sectionLinks.map((link, i) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="group flex items-center gap-4 rounded-xl px-0 py-2 transition-all duration-200 hover:pl-2"
+              >
+                <span
+                  className="h-px flex-none transition-all duration-300 group-hover:w-8"
+                  style={{
+                    width: "20px",
+                    background: "linear-gradient(90deg, rgba(244,160,192,0.7), rgba(224,122,112,0.5))",
+                  }}
+                />
+                <span className="text-[13px] text-white/45 transition-colors duration-200 group-hover:text-white/90">
+                  {String(i + 1).padStart(2, "0")} {link.label}
+                </span>
+              </a>
+            ))}
+          </nav>
         </div>
 
+        {/* ── RIGHT: decorative jewel card stack ── */}
         <div
-          className="scroll-reveal relative mx-auto w-full max-w-[600px]"
-          style={revealStyle(160)}
+          className="scroll-reveal relative mt-16 flex-1 lg:mt-0"
+          style={revealStyle(100)}
         >
-          <div className="overflow-hidden rounded-[2.25rem] bg-white p-3 shadow-[0_28px_80px_rgba(96,49,74,0.12)]">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem]">
-              <img
-                src="/images/about-hero.jpg"
-                alt="Chicks Jewelry"
-                className="h-full w-full object-cover"
+          {/* Main card */}
+          <div
+            className="relative overflow-hidden rounded-[2.5rem]"
+            style={{
+              background: "linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(20px)",
+              boxShadow: "0 40px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)",
+            }}
+          >
+            <div
+              className="aspect-[4/5] w-full flex items-center justify-center"
+              style={{ background: "linear-gradient(145deg, rgba(196,90,133,0.15) 0%, rgba(224,122,112,0.08) 100%)" }}
+            >
+              {/* Inner glow orb */}
+              <div
+                className="h-48 w-48 rounded-full"
+                style={{
+                  background: "radial-gradient(circle, rgba(196,90,133,0.35) 0%, rgba(224,122,112,0.1) 50%, transparent 70%)",
+                  filter: "blur(2px)",
+                }}
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#3a1f2f]/45 via-[#3a1f2f]/8 to-transparent p-6">
-                <div className="max-w-[18rem] rounded-[1.25rem] bg-white/80 p-4 backdrop-blur-md">
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-[#b37d96]">
-                    Modern butik világ
-                  </p>
-                  <p className="mt-2 font-[family:var(--font-display)] text-[1.6rem] leading-none text-[#4f2740]">
-                    Chicks Jewelry
-                  </p>
-                  <p className="mt-2 text-[13px] leading-[1.7] text-[#775f6c]">
-                    Letisztult szépség, puha ragyogással.
-                  </p>
-                </div>
+              <span
+                className="absolute font-[family:var(--font-display)] text-white/10"
+                style={{ fontSize: "clamp(5rem, 10vw, 9rem)" }}
+              >
+                ✦
+              </span>
+            </div>
+
+            {/* Overlay label */}
+            <div className="absolute bottom-6 left-6 right-6">
+              <div
+                className="rounded-2xl px-5 py-4"
+                style={{
+                  background: "rgba(30,13,24,0.65)",
+                  backdropFilter: "blur(16px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                <p className="text-[10px] uppercase tracking-[0.3em] text-rose-300/70">Kézműves ékszer</p>
+                <p className="mt-1 font-[family:var(--font-display)] text-lg text-white/90">
+                  Féldrágakövekből alkotva
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="absolute -left-6 bottom-8 hidden rounded-[1.4rem] border border-[#ead4de] bg-white/88 px-5 py-4 shadow-[0_14px_34px_rgba(96,49,74,0.08)] md:block">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-[#b37d96]">
-              Kézzel alkotva
-            </p>
-            <p className="mt-1 text-sm text-[#5e3a4d]">Kis szériás, igényes darabok</p>
+          {/* Floating accent card — top-right */}
+          <div
+            className="absolute -right-4 -top-4 rounded-[1.5rem] px-5 py-4 lg:-right-8 lg:-top-6"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <p className="text-[9px] uppercase tracking-[0.3em] text-white/40">Anyag</p>
+            <p className="mt-0.5 text-sm font-medium text-white/80">Rózsakvarc</p>
+          </div>
+
+          {/* Floating accent card — bottom-left */}
+          <div
+            className="absolute -bottom-4 -left-4 flex items-center gap-3 rounded-[1.5rem] px-5 py-4 lg:-bottom-6 lg:-left-8"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <div
+              className="h-2 w-2 rounded-full"
+              style={{ background: "linear-gradient(135deg, #c45a85, #e07a70)" }}
+            />
+            <p className="text-sm text-white/70">Kézzel alkotva</p>
           </div>
         </div>
       </div>
+
+      {/* ── Bottom fade into next section ── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent, rgba(253,242,245,0.08))" }}
+      />
     </section>
   );
 }
 
-/* ─── 2. Founder / brand story ───────────────────────────────── */
+/* ─── 2. Founder story ───────────────────────────────────────── */
 function FounderSection() {
   return (
-    <section className="mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-12">
-      <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+    <section id="alapitank" className="mx-auto max-w-[1160px] px-4 py-24 sm:px-6 lg:px-8">
+      <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+        {/* Image placeholder */}
         <div
-          className="scroll-reveal overflow-hidden rounded-[2rem] bg-white p-3 shadow-[0_22px_60px_rgba(96,49,74,0.08)]"
+          className="scroll-reveal overflow-hidden rounded-[2.5rem]"
           style={revealStyle(0)}
         >
-          <div className="aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-[linear-gradient(145deg,#f7eaf0_0%,#efd6e2_100%)]">
-            <img
-              src="/images/founder-story.jpg"
-              alt="Chicks Jewelry részlet"
-              className="h-full w-full object-cover"
-            />
+          <div
+            className="aspect-[4/5] w-full"
+            style={{
+              background:
+                "linear-gradient(145deg, #f5dcea 0%, #e8c4d8 40%, #d4a8c4 100%)",
+            }}
+          >
+            <div className="flex h-full items-center justify-center">
+              <span
+                className="font-[family:var(--font-display)] text-[#c45a85]/30"
+                style={{ fontSize: "clamp(4rem, 8vw, 7rem)" }}
+              >
+                ✦
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="max-w-[650px]">
-          <p
-            className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#b8879f]"
-            style={revealStyle(80)}
+        {/* Text */}
+        <div className="space-y-6">
+          <div
+            className="scroll-reveal inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-[#b06b8e] backdrop-blur-md"
+            style={revealStyle(0)}
           >
-            A márka szemlélete
-          </p>
+            ✦ Az alapítói történet
+          </div>
 
           <h2
-            className="scroll-reveal mt-4 font-[family:var(--font-display)] leading-[1.02] tracking-[-0.04em] text-[#4f2740]"
-            style={{ ...revealStyle(140), fontSize: "clamp(2rem, 4vw, 3.4rem)" }}
+            className="scroll-reveal font-[family:var(--font-display)] leading-[1.05] tracking-[-0.04em] text-[#4d2741]"
+            style={{ ...revealStyle(80), fontSize: "clamp(2rem, 4vw, 3rem)" }}
           >
-            Nem harsány ékszerek.
-            <br />
-            Hanem szépen
-            <span className="text-[#d976a8]"> megtervezett darabok.</span>
+            Egy rózsakvarc karkötő,{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #c45a85 0%, #e07a70 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              amely mindent megváltoztatott.
+            </span>
           </h2>
 
           <div
-            className="scroll-reveal mt-8 space-y-5 text-[15px] leading-[1.95] text-[#6e5563]"
-            style={revealStyle(220)}
+            className="scroll-reveal space-y-4 text-[#5a3a4a]"
+            style={{ ...revealStyle(160), fontSize: "15px", lineHeight: "1.9" }}
           >
             <p>
-              A Chicks Jewelry mögött az az elképzelés áll, hogy a nőies ékszer
-              nem kell, hogy túlzó vagy nehéz legyen. Sokkal erősebb tud lenni
-              egy finoman kidolgozott forma, egy szép tónus vagy egy gondosan
-              kiválasztott kő.
+              A Bubus egy reggelen született, amikor Sára — az alapító —
+              megtalálta a nagyanyja régi rózsakvarc karkötőjét egy dobozban.
+              Abban a pillanatban értette meg: az ékszer nem csupán díszítés.
+              Emlékeztet. Összeköt. Mesél.
             </p>
             <p>
-              Ezért olyan darabokat készítünk és válogatunk, amelyek könnyen
-              viselhetők, modernek, puhák és elegánsak. Olyan ékszereket, amelyek
-              nem elnyomják a megjelenést, hanem finoman kiemelik.
+              Azóta minden egyes darabot kézzel alkotunk, válogatott
+              féldrágakövekből, amelyek nemcsak szépek — hanem érzéseket
+              hordoznak. Minden kő más energiát hordoz, minden darab más
+              történetet mesél el.
             </p>
             <p>
-              A cél nem a tömegtermék-hatás, hanem az igényes részletesség:
-              kiegyensúlyozott arányok, szebb anyagérzet, letisztult összhatás.
+              A kézműves alkotás folyamata lassú és tudatos. Nem gyártunk
+              tömegesen. Nem sietünk. Minden Bubus ékszer annyi figyelmet kap,
+              amennyit egy valódi kincs megérdemel.
             </p>
           </div>
 
+          {/* Pull quote */}
           <blockquote
-            className="scroll-reveal mt-8 border-l-[3px] border-[#d87ca8] pl-5 text-[15px] italic leading-[1.9] text-[#836472]"
-            style={revealStyle(300)}
+            className="scroll-reveal border-l-[3px] border-[#c45a85] pl-5 italic text-[#7a5a6c]"
+            style={{ ...revealStyle(240), fontSize: "15px", lineHeight: "1.9" }}
           >
-            „A nőies nem egyenlő a túl sokkal. A legszebb darabok sokszor a
-            legfinomabbak.”
+            „Az ékszer nem csupán díszítés. Emlékeztet. Összeköt. Mesél.”
           </blockquote>
         </div>
       </div>
@@ -209,64 +364,60 @@ function FounderSection() {
 const processSteps = [
   {
     num: "01",
-    title: "Válogatás",
-    desc: "Minden kollekció alapja a színvilág, az arány és az összhatás. Nem véletlenszerűen kerülnek egymás mellé a kövek és formák.",
+    title: "Alapanyag-válogatás",
+    desc: "Csak olyan köveket használunk, amelyek eredetét ismerjük. Szezonálisan változó, gondosan válogatott féldrágakövek.",
   },
   {
     num: "02",
-    title: "Tervezés",
-    desc: "A cél mindig a puha, modern, nőies karakter. Letisztult vonalak, hordható formák, kifinomult részletek.",
+    title: "Kézzel alkotás",
+    desc: "Minden egyes darabot kézzel készítünk. Nincs tömeggyártás, nincs sablonos forma — csak figyelmes, tudatos munka.",
   },
   {
     num: "03",
-    title: "Kivitelezés",
-    desc: "A darabok kis szériában készülnek, gondos összeállítással és részletfigyelemmel.",
+    title: "Minőségellenőrzés",
+    desc: "Minden ékszer alapos ellenőrzésen esik át: kötések, zárók, kövek stabilitása — semmi nem kerül ki kezünkből tökéletlenül.",
   },
   {
     num: "04",
-    title: "Végső összehangolás",
-    desc: "Minden ékszert az összkép alapján nézünk: kényelmes legyen, szép legyen, és valóban prémium érzetet adjon.",
+    title: "Csomagolás",
+    desc: "Minden darab egyedi Bubus dobozban érkezik — ajándékba is tökéletes, ahogy van.",
   },
 ];
 
 function ProcessSection() {
   return (
-    <section className="bg-[#f7eef2] px-6 py-24 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1240px]">
-        <div className="mb-14 max-w-[640px]">
+    <section id="folyamatunk" className="bg-[#fdf2f5]/60 px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1160px]">
+        <div className="mb-14 text-center">
           <p
-            className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#b8879f]"
+            className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#af7795]"
             style={revealStyle(0)}
           >
-            Így épül fel egy kollekció
+            Így dolgozunk
           </p>
           <h2
-            className="scroll-reveal mt-4 font-[family:var(--font-display)] leading-[1.02] tracking-[-0.04em] text-[#4f2740]"
-            style={{ ...revealStyle(80), fontSize: "clamp(2rem, 4vw, 3rem)" }}
+            className="scroll-reveal mt-3 font-[family:var(--font-display)] leading-tight tracking-[-0.04em] text-[#4d2741]"
+            style={{ ...revealStyle(80), fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
           >
-            Tudatosabb, letisztultabb folyamat.
+            Ahogyan alkotunk
           </h2>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {processSteps.map((step, i) => (
             <div
               key={step.num}
-              className="scroll-reveal rounded-[1.8rem] border border-white/70 bg-white/78 p-7 shadow-[0_16px_40px_rgba(96,49,74,0.06)] backdrop-blur"
-              style={revealStyle(i * 90)}
+              className="scroll-reveal overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-[0_12px_32px_rgba(198,129,167,0.1)] backdrop-blur-xl"
+              style={revealStyle(i * 80)}
             >
               <p
-                className="font-[family:var(--font-display)] text-[#ebd3de]"
-                style={{ fontSize: "3.6rem", lineHeight: 1 }}
+                className="font-[family:var(--font-display)] leading-none tracking-[-0.04em] text-[#e8c4d8]"
+                style={{ fontSize: "4rem" }}
               >
                 {step.num}
               </p>
-              <h3 className="mt-4 text-[1rem] font-semibold text-[#4f2740]">
-                {step.title}
-              </h3>
-              <p className="mt-3 text-[14px] leading-[1.9] text-[#755d69]">
-                {step.desc}
-              </p>
+              <h3 className="mt-3 font-semibold text-[#4d2741]">{step.title}</h3>
+              <p className="mt-2 text-[13px] leading-[1.85] text-[#7a5a6c]">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -275,59 +426,52 @@ function ProcessSection() {
   );
 }
 
-/* ─── 4. Values ──────────────────────────────────────────────── */
-const values = [
-  {
-    icon: "✦",
-    title: "Kifinomult nőiesség",
-    desc: "A darabok nem túlzsúfoltak, hanem szépen arányoltak és könnyen viselhetők.",
-  },
-  {
-    icon: "♡",
-    title: "Minőségérzet",
-    desc: "Fontos az anyaghatás, az összkép és az, hogy a darab viselés közben is szép maradjon.",
-  },
-  {
-    icon: "◌",
-    title: "Kis szériás hangulat",
-    desc: "Nem futószalagos világot építünk, hanem válogatott, karakteres kollekciókat.",
-  },
+/* ─── 4. Gallery ─────────────────────────────────────────────── */
+const galleryItems = [
+  { label: "Rózsakvarc karkötő", stone: "Rose Quartz", bg: "linear-gradient(145deg, #fff0f7, #fcdeed)", aspect: "aspect-[3/4]" },
+  { label: "Holdkő nyaklánc", stone: "Moonstone", bg: "linear-gradient(145deg, #f8f4ff, #eadff5)", aspect: "aspect-square" },
+  { label: "Ametiszt gyűrű", stone: "Amethyst", bg: "linear-gradient(145deg, #f4f0ff, #ddd4f5)", aspect: "aspect-[3/4]" },
+  { label: "Labradorit karkötő", stone: "Labradorite", bg: "linear-gradient(145deg, #f0f5ff, #d8e4f5)", aspect: "aspect-square" },
+  { label: "Citrin nyaklánc", stone: "Citrine", bg: "linear-gradient(145deg, #fffbf0, #fdefd4)", aspect: "aspect-[4/3]" },
+  { label: "Türkiz karkötő", stone: "Turquoise", bg: "linear-gradient(145deg, #f0fff8, #d4f0e8)", aspect: "aspect-[3/4]" },
 ];
 
-function ValuesSection() {
+function GallerySection() {
   return (
-    <section className="mx-auto max-w-[1240px] px-6 py-24 sm:px-8 lg:px-12">
-      <div className="mb-14 max-w-[620px]">
+    <section id="ekszereink" className="mx-auto max-w-[1160px] px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mb-14 text-center">
         <p
-          className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#b8879f]"
+          className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#af7795]"
           style={revealStyle(0)}
         >
-          Amit képviselünk
+          A kollekciókból
         </p>
         <h2
-          className="scroll-reveal mt-4 font-[family:var(--font-display)] leading-[1.02] tracking-[-0.04em] text-[#4f2740]"
-          style={{ ...revealStyle(80), fontSize: "clamp(2rem, 4vw, 3rem)" }}
+          className="scroll-reveal mt-3 font-[family:var(--font-display)] leading-tight tracking-[-0.04em] text-[#4d2741]"
+          style={{ ...revealStyle(80), fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
         >
-          Finomabb irány. Erősebb összhatás.
+          Ékszereink közelről
         </h2>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {values.map((v, i) => (
+      <div className="columns-2 gap-4 sm:columns-3 lg:gap-5">
+        {galleryItems.map((item, i) => (
           <div
-            key={v.title}
-            className="scroll-reveal rounded-[1.8rem] border border-[#eddde4] bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(250,242,246,0.95))] p-8 shadow-[0_18px_45px_rgba(96,49,74,0.06)]"
-            style={revealStyle(i * 100)}
+            key={item.label}
+            className="scroll-reveal group mb-4 break-inside-avoid overflow-hidden rounded-[1.8rem] lg:mb-5"
+            style={revealStyle(i * 60)}
           >
-            <p className="font-[family:var(--font-display)] text-[2.4rem] text-[#d779a9]">
-              {v.icon}
-            </p>
-            <h3 className="mt-4 font-[family:var(--font-display)] text-[1.35rem] text-[#4f2740]">
-              {v.title}
-            </h3>
-            <p className="mt-3 text-[14px] leading-[1.9] text-[#765d6a]">
-              {v.desc}
-            </p>
+            <div className={`relative ${item.aspect} w-full`} style={{ background: item.bg }}>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{ background: "rgba(196,90,133,0.18)" }}
+              >
+                <span className="font-[family:var(--font-display)] text-2xl text-white drop-shadow">✦</span>
+              </div>
+            </div>
+            <div className="border-x border-b border-white/60 bg-white/70 px-4 py-3 backdrop-blur-sm rounded-b-[1.8rem]">
+              <p className="text-sm font-medium text-[#4d2741]">{item.label}</p>
+              <p className="text-[11px] text-[#b08898]">{item.stone}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -335,50 +479,95 @@ function ValuesSection() {
   );
 }
 
-/* ─── 5. CTA ─────────────────────────────────────────────────── */
-function CtaSection() {
+/* ─── 5. Values ──────────────────────────────────────────────── */
+const values = [
+  {
+    icon: "♡",
+    title: "Kézműves minőség",
+    desc: "Nincsenek tömeggyártott darabok. Minden ékszert kézzel alkotunk, egyenként, figyelemmel és szeretettel.",
+  },
+  {
+    icon: "✦",
+    title: "Etikus kövek",
+    desc: "Csak olyan alapanyagokkal dolgozunk, amelyek eredetét ismerjük. A szépségnek felelőssége is van.",
+  },
+  {
+    icon: "◎",
+    title: "Egyedi darabok",
+    desc: "Ha valami olyasmit keresel, ami csak a tiéd — szólj. Az egyedi rendelések a szívünkhöz a legközelebb állók.",
+  },
+];
+
+function ValuesSection() {
   return (
-    <section className="px-6 py-24 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1240px] overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,#f3d9e5_0%,#efc7da_45%,#f6e7ee_100%)] px-8 py-16 text-center shadow-[0_24px_70px_rgba(96,49,74,0.08)] sm:px-12">
-        <p className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#b57695]" style={revealStyle(0)}>
-          Chicks Jewelry
-        </p>
-
-        <h2
-          className="scroll-reveal mt-4 font-[family:var(--font-display)] leading-[1.02] tracking-[-0.04em] text-[#4f2740]"
-          style={{ ...revealStyle(80), fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
-        >
-          Találd meg azt a darabot,
-          <br />
-          ami tényleg illik hozzád.
-        </h2>
-
-        <p
-          className="scroll-reveal mx-auto mt-5 max-w-[36rem] text-[15px] leading-[1.9] text-[#705865]"
-          style={revealStyle(160)}
-        >
-          Modern, finom, nőies kollekciók — könnyen viselhető ékszerekkel,
-          amelyek szépen működnek a saját stílusoddal.
-        </p>
-
-        <div
-          className="scroll-reveal mt-8 flex flex-wrap justify-center gap-3"
-          style={revealStyle(220)}
-        >
-          <Link
-            href="/new-in"
-            className="inline-flex items-center rounded-full bg-[#4f2740] px-7 py-3.5 text-sm font-medium text-white transition hover:translate-y-[-1px] hover:bg-[#432036]"
+    <section id="ertekeink" className="bg-[#fdf2f5]/60 px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1160px]">
+        <div className="mb-14 text-center">
+          <p
+            className="scroll-reveal text-[10px] uppercase tracking-[0.34em] text-[#af7795]"
+            style={revealStyle(0)}
           >
-            Kollekciók böngészése
-          </Link>
-          <Link
-            href="/about"
-            className="inline-flex items-center rounded-full border border-[#dcb7c8] bg-white/80 px-7 py-3.5 text-sm font-medium text-[#6e4658] transition hover:bg-white"
+            Amit képviselünk
+          </p>
+          <h2
+            className="scroll-reveal mt-3 font-[family:var(--font-display)] leading-tight tracking-[-0.04em] text-[#4d2741]"
+            style={{ ...revealStyle(80), fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
           >
-            Tovább a márkához
-          </Link>
+            Értékeink
+          </h2>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          {values.map((v, i) => (
+            <div
+              key={v.title}
+              className="scroll-reveal overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(255,241,247,0.84))] p-8 shadow-[0_16px_40px_rgba(198,129,167,0.1)] backdrop-blur-xl"
+              style={revealStyle(i * 100)}
+            >
+              <p
+                className="font-[family:var(--font-display)] text-[#c45a85]"
+                style={{ fontSize: "2.5rem" }}
+              >
+                {v.icon}
+              </p>
+              <h3 className="mt-4 font-[family:var(--font-display)] text-[1.2rem] text-[#4d2741]">
+                {v.title}
+              </h3>
+              <p className="mt-2 text-[13px] leading-[1.85] text-[#7a5a6c]">{v.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+/* ─── 6. CTA ─────────────────────────────────────────────────── */
+function CtaSection() {
+  return (
+    <section
+      className="px-4 py-28 text-center"
+      style={{ background: "linear-gradient(135deg, #c45a85 0%, #e07a70 100%)" }}
+    >
+      <h2
+        className="scroll-reveal font-[family:var(--font-display)] leading-[1.05] tracking-[-0.04em] text-white"
+        style={{ ...revealStyle(0), fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
+      >
+        Találd meg a saját darabodat.
+      </h2>
+      <p
+        className="scroll-reveal mx-auto mt-4 text-white/80"
+        style={{ ...revealStyle(80), maxWidth: "40ch", lineHeight: "1.9" }}
+      >
+        Minden kő más energiát hordoz. Melyik a tiéd?
+      </p>
+      <Link
+        href="/new-in"
+        className="scroll-reveal mt-8 inline-flex items-center rounded-full border-2 border-white/80 bg-white px-8 py-3.5 text-sm font-semibold text-[#c45a85] shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition hover:-translate-y-[1px] hover:bg-white/95 hover:shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
+        style={revealStyle(160)}
+      >
+        Kollekciók böngészése
+      </Link>
     </section>
   );
 }

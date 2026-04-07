@@ -28,12 +28,7 @@ export type HeaderNavItem = {
   href: string;
 };
 
-export const headerPrimaryNavItems: HeaderNavItem[] = [
-  { label: "Főoldal", href: "/" },
-  { label: "Rólunk", href: "/about" },
-  { label: "Kapcsolat", href: "/contact" },
-  { label: "GYIK", href: "/faq" },
-];
+export const headerPrimaryNavItems: HeaderNavItem[] = [];
 
 export const headerSecondaryNavItems: HeaderNavItem[] = [
   { label: "Adatkezelés", href: "/privacy" },
