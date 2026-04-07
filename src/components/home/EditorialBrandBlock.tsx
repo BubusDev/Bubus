@@ -37,14 +37,17 @@ export function EditorialBrandBlock() {
       <div className="mt-6 h-px w-12 bg-gradient-to-r from-[#e3ccd8] to-transparent" />
 
       {/* Navigation */}
-      <nav className="mt-8 flex flex-col gap-2">
+      <nav className="mt-10 flex flex-col gap-1.5">
+        {/* Elválasztó vonal a tartalom és a nav között */}
+        <div className="mb-4 h-px w-12 bg-gradient-to-r from-[#f77ff0] to-transparent" />
+
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="group flex items-center gap-3 text-sm text-[#7d5b75] transition hover:text-[#4f2348]"
+            className="group flex items-center gap-3 py-1 text-[13px] text-[#7d5b75] transition-all hover:text-[#4f2348]"
           >
-            <span className="h-px w-4 bg-[#e3ccd8] transition-all group-hover:w-6 group-hover:bg-[#c45a85]" />
+            <span className="h-px w-3 bg-[#dfc8d8] transition-all duration-300 group-hover:w-5 group-hover:bg-[#c45a85]" />
             {link.label}
           </Link>
         ))}

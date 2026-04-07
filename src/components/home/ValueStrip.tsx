@@ -10,7 +10,7 @@ const VALUES = [
 
 export function ValueStrip() {
   return (
-    <div className="w-full bg-[#1a0f15] py-5 px-6">
+    <div className="w-full py-5 px-6" style={{ background: "linear-gradient(135deg, #2b1220, #3d1a2e)" }}>
       <div className="flex overflow-x-auto lg:justify-center gap-8 lg:gap-16 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {VALUES.map(({ Icon, label }) => (
           <div key={label} className="flex flex-col items-center gap-2 flex-shrink-0">
