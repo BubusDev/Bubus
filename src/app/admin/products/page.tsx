@@ -1,4 +1,8 @@
-import { deleteProductAction } from "@/app/admin/products/actions";
+import {
+  deleteProductAction,
+  toggleProductArchiveAction,
+  toggleProductFlagAction,
+} from "@/app/admin/products/actions";
 import {
   AdminActionButton,
   AdminActionLink,
@@ -60,21 +64,25 @@ export default async function AdminProductsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-2">
-                      {product.isNew ? (
-                        <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          Új
-                        </span>
-                      ) : null}
-                      {product.isGiftable ? (
-                        <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          Ajándékozható
-                        </span>
-                      ) : null}
-                      {product.isOnSale ? (
-                        <span className="rounded-full border border-[#f2d0e1] bg-[#fff4f9] px-2.5 py-1 text-xs text-[#9b476f]">
-                          Akciós
-                        </span>
-                      ) : null}
+                      <ProductFlagToggle
+                        productId={product.id}
+                        flag="isNew"
+                        active={product.isNew}
+                        label="Új"
+                      />
+                      <ProductFlagToggle
+                        productId={product.id}
+                        flag="isGiftable"
+                        active={product.isGiftable}
+                        label="Ajándékozható"
+                      />
+                      <ProductFlagToggle
+                        productId={product.id}
+                        flag="isOnSale"
+                        active={product.isOnSale}
+                        label="Akciós"
+                      />
+                      <ProductArchiveToggle productId={product.id} />
                     </div>
                   </td>
                   <td className="px-5 py-4">
@@ -104,5 +112,51 @@ export default async function AdminProductsPage() {
         <AdminOptionManager groups={optionGroups} />
       </div>
     </AdminShell>
+  );
+}
+
+function ProductFlagToggle({
+  productId,
+  flag,
+  active,
+  label,
+}: {
+  productId: string;
+  flag: "isNew" | "isGiftable" | "isOnSale";
+  active: boolean;
+  label: string;
+}) {
+  return (
+    <form action={toggleProductFlagAction}>
+      <input type="hidden" name="productId" value={productId} />
+      <input type="hidden" name="flag" value={flag} />
+      <input type="hidden" name="nextValue" value={String(!active)} />
+      <AdminActionButton
+        type="submit"
+        size="sm"
+        variant={active ? "primary" : "secondary"}
+        className="h-8 px-3 text-xs"
+      >
+        {label}
+      </AdminActionButton>
+    </form>
+  );
+}
+
+function ProductArchiveToggle({ productId }: { productId: string }) {
+  return (
+    <form action={toggleProductArchiveAction}>
+      <input type="hidden" name="productId" value={productId} />
+      <input type="hidden" name="nextArchived" value="true" />
+      <input type="hidden" name="archiveReason" value="DISCONTINUED" />
+      <AdminActionButton
+        type="submit"
+        size="sm"
+        variant="danger"
+        className="h-8 px-3 text-xs"
+      >
+        Archiválás
+      </AdminActionButton>
+    </form>
   );
 }

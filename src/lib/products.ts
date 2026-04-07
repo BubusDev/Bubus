@@ -91,6 +91,13 @@ const reverseHomepagePlacementMap: Record<HomepagePlacement, DbHomepagePlacement
   new_arrivals: "NEW_ARRIVALS",
 };
 
+function withActiveProducts(where: Prisma.ProductWhereInput = {}): Prisma.ProductWhereInput {
+  return {
+    archivedAt: null,
+    ...where,
+  };
+}
+
 const canonicalCategorySlugByAlias: Record<string, string> = {
   necklaces: "necklaces",
   nyaklancok: "necklaces",
@@ -300,6 +307,7 @@ function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereIn
 
 export async function getAllProductSlugs() {
   const products = await db.product.findMany({
+    where: withActiveProducts(),
     select: { slug: true },
   });
 
@@ -312,9 +320,9 @@ export async function getHomepageProducts(
   perPage = 4,
 ) {
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-  const where = {
+  const where = withActiveProducts({
     homepagePlacement: reverseHomepagePlacementMap[placement],
-  } satisfies Prisma.ProductWhereInput;
+  });
 
   const [total, products] = await Promise.all([
     db.product.count({ where }),
@@ -337,7 +345,7 @@ export async function getHomepageProducts(
 
 export async function getProductsForCategory(categorySlug: CategorySlug) {
   const products = await db.product.findMany({
-    where: baseWhereForCategory(categorySlug),
+    where: withActiveProducts(baseWhereForCategory(categorySlug)),
     include: productWithImagesAndOptions,
     orderBy: [{ updatedAt: "desc" }],
   });
@@ -351,8 +359,8 @@ export async function getFilterOptionsForCategory(categorySlug: CategorySlug) {
 }
 
 export async function getProductBySlug(slug: string) {
-  const product = await db.product.findUnique({
-    where: { slug },
+  const product = await db.product.findFirst({
+    where: withActiveProducts({ slug }),
     include: productWithImagesAndOptions,
   });
 
@@ -361,13 +369,13 @@ export async function getProductBySlug(slug: string) {
 
 export async function getRelatedProducts(product: Product, limit = 4) {
   const products = await db.product.findMany({
-    where: {
+    where: withActiveProducts({
       slug: { not: product.slug },
       OR: [
         { category: { slug: { in: getCategorySlugAliases(product.category) } } },
         { occasion: { slug: product.occasion } },
       ],
-    },
+    }),
     include: productWithImagesAndOptions,
     orderBy: [{ isNew: "desc" }, { updatedAt: "desc" }],
     take: limit,
@@ -398,10 +406,10 @@ export async function getCuratedProductRecommendations(
     }
 
     const bucket = await db.product.findMany({
-      where: {
+      where: withActiveProducts({
         ...bucketWhere,
         id: { notIn: Array.from(selectedIds) },
-      },
+      }),
       include: productWithImagesAndOptions,
       orderBy: [
         { homepagePlacement: "desc" },
@@ -432,14 +440,15 @@ export async function getCuratedProductRecommendations(
 
 export async function getAdminProducts() {
   return db.product.findMany({
+    where: withActiveProducts(),
     include: productWithImagesAndOptions,
     orderBy: [{ updatedAt: "desc" }],
   });
 }
 
 export async function getAdminProductById(id: string) {
-  return db.product.findUnique({
-    where: { id },
+  return db.product.findFirst({
+    where: withActiveProducts({ id }),
     include: productWithImagesAndOptions,
   });
 }
@@ -970,6 +979,7 @@ export async function getAdminSpecialEditionCampaign(): Promise<AdminSpecialEdit
 
 export async function getAdminSelectableProducts() {
   return db.product.findMany({
+    where: withActiveProducts(),
     select: {
       id: true,
       name: true,

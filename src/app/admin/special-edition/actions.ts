@@ -115,8 +115,8 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
     throw new Error("Product is required.");
   }
 
-  const product = await db.product.findUnique({
-    where: { id: productId },
+  const product = await db.product.findFirst({
+    where: { id: productId, archivedAt: null },
     select: { id: true, name: true },
   });
 
@@ -177,8 +177,8 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
         productImageUrl: true,
       },
     }),
-    db.product.findUnique({
-      where: { id: productId },
+    db.product.findFirst({
+      where: { id: productId, archivedAt: null },
       select: { id: true, name: true },
     }),
     readUploadedImage(formData, "promoImage"),

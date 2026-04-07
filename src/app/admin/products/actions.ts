@@ -15,10 +15,42 @@ function revalidateCatalogPaths() {
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/products");
+  revalidatePath("/admin/products/archive");
   revalidatePath("/new-in");
   revalidatePath("/special-edition");
   revalidatePath("/sale");
   revalidatePath("/", "layout");
+}
+
+function readProductId(formData: FormData) {
+  const productId = formData.get("productId");
+
+  if (typeof productId !== "string" || !productId) {
+    throw new Error("Hiányzik a termék azonosítója.");
+  }
+
+  return productId;
+}
+
+async function getExistingProductForAdminAction(productId: string) {
+  const product = await db.product.findUnique({
+    where: { id: productId },
+    select: {
+      id: true,
+      slug: true,
+      isNew: true,
+      isGiftable: true,
+      isOnSale: true,
+      archivedAt: true,
+      archiveReason: true,
+    },
+  });
+
+  if (!product) {
+    throw new Error("A termék nem található.");
+  }
+
+  return product;
 }
 
 function getUploadedImageUrls(formData: FormData) {
@@ -167,11 +199,7 @@ export async function createProductAction(formData: FormData) {
 export async function updateProductAction(formData: FormData) {
   await requireAdminUser("/admin/products");
 
-  const productId = formData.get("productId");
-
-  if (typeof productId !== "string" || !productId) {
-    throw new Error("Hiányzik a termék azonosítója.");
-  }
+  const productId = readProductId(formData);
 
   const existingProduct = await db.product.findUnique({
     where: { id: productId },
@@ -274,11 +302,7 @@ export async function updateProductAction(formData: FormData) {
 export async function deleteProductAction(formData: FormData) {
   await requireAdminUser("/admin/products");
 
-  const productId = formData.get("productId");
-
-  if (typeof productId !== "string" || !productId) {
-    throw new Error("Hiányzik a termék azonosítója.");
-  }
+  const productId = readProductId(formData);
 
   const existingProduct = await db.product.findUnique({
     where: { id: productId },
@@ -298,6 +322,57 @@ export async function deleteProductAction(formData: FormData) {
   revalidateCatalogPaths();
   revalidatePath(`/product/${existingProduct.slug}`);
   redirect("/admin/products");
+}
+
+export async function toggleProductFlagAction(formData: FormData) {
+  await requireAdminUser("/admin/products");
+
+  const productId = readProductId(formData);
+  const flag = formData.get("flag");
+  const nextValue = formData.get("nextValue") === "true";
+  const product = await getExistingProductForAdminAction(productId);
+
+  if (typeof flag !== "string" || !["isNew", "isGiftable", "isOnSale"].includes(flag)) {
+    throw new Error("Érvénytelen jelölés.");
+  }
+
+  await db.product.update({
+    where: { id: productId },
+    data: { [flag]: nextValue },
+  });
+
+  revalidateCatalogPaths();
+  revalidatePath(`/product/${product.slug}`);
+}
+
+export async function toggleProductArchiveAction(formData: FormData) {
+  await requireAdminUser("/admin/products");
+
+  const productId = readProductId(formData);
+  const nextArchived = formData.get("nextArchived") === "true";
+  const archiveReasonInput = formData.get("archiveReason");
+  const product = await getExistingProductForAdminAction(productId);
+  const archiveReason =
+    typeof archiveReasonInput === "string" && archiveReasonInput.trim().length > 0
+      ? archiveReasonInput.trim()
+      : "DISCONTINUED";
+
+  await db.product.update({
+    where: { id: productId },
+    data: nextArchived
+      ? {
+          archivedAt: new Date(),
+          archiveReason,
+          homepagePlacement: "NONE",
+        }
+      : {
+          archivedAt: null,
+          archiveReason: null,
+        },
+  });
+
+  revalidateCatalogPaths();
+  revalidatePath(`/product/${product.slug}`);
 }
 
 export async function createProductOptionAction(formData: FormData) {
