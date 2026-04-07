@@ -195,24 +195,50 @@ export function StoneBook({ stones }: Props) {
           />
         </div>
 
-        {/* Tartalom overlay */}
-        <div className={`book-content-overlay${isAnimating ? " book-animating" : ""}`}>
+        {/* DEV — kalibrációs overlay */}
+        {process.env.NODE_ENV === "development" && (
+          <div
+            style={{
+              position: "absolute",
+              top: "9%", left: "11%", right: "11%", bottom: "28%",
+              border: "2px solid red",
+              zIndex: 100,
+              pointerEvents: "none",
+              display: "grid",
+              gridTemplateColumns: "1fr 3% 1fr",
+            }}
+          >
+            <div style={{ border: "1px solid blue", background: "rgba(0,0,255,.05)" }} />
+            <div style={{ background: "rgba(255,0,0,.1)" }} />
+            <div style={{ border: "1px solid green", background: "rgba(0,255,0,.05)" }} />
+          </div>
+        )}
+
+        {/* Tartalom grid — fotó lapjaira igazítva */}
+        <div className={`book-grid${isAnimating ? " book-animating" : ""}`}>
           {/* Bal lap */}
-          <div className="book-leaf book-leaf-left">
-            {pair[0] ? (
-              <StonePageLeft stone={pair[0]} pageNum={currentPage * 2 + 1} />
-            ) : (
-              <EmptyPage />
-            )}
+          <div className="book-leaf-wrapper book-leaf-left">
+            <div className="book-leaf-content">
+              {pair[0] ? (
+                <StonePageLeft stone={pair[0]} pageNum={currentPage * 2 + 1} />
+              ) : (
+                <EmptyPage />
+              )}
+            </div>
           </div>
 
+          {/* Gerinc */}
+          <div className="book-spine-gap" />
+
           {/* Jobb lap */}
-          <div className="book-leaf book-leaf-right">
-            {pair[1] ? (
-              <StonePageRight stone={pair[1]} pageNum={currentPage * 2 + 2} />
-            ) : (
-              <EmptyPage />
-            )}
+          <div className="book-leaf-wrapper book-leaf-right">
+            <div className="book-leaf-content">
+              {pair[1] ? (
+                <StonePageRight stone={pair[1]} pageNum={currentPage * 2 + 2} />
+              ) : (
+                <EmptyPage />
+              )}
+            </div>
           </div>
         </div>
 
@@ -313,23 +339,24 @@ export function StoneBook({ stones }: Props) {
           z-index: 0;
         }
 
-        /* ── Tartalom overlay ──
-           Kézfotó elemzés alapján:
-           - Könyv felső éle: ~4% (y)
-           - Könyv alsó éle (kezek előtt): ~72% (y)
-           - Bal lap bal éle: ~7% (x)
-           - Gerinc középvonal: ~50% (x)
-           - Jobb lap jobb éle: ~93% (x)
+        /* ── Tartalom grid ──
+           1024×1024px fotó mérései:
+           - Könyv felső éle:      92px → 9%
+           - Könyv alsó éle:      737px → bottom 28%
+           - Bal lap bal éle:     113px → left 11%
+           - Jobb lap jobb éle:   912px → right 11%
+           - Gerinc: 497–527px   → 3% oszlop
         */
-        .book-content-overlay {
+        .book-grid {
           position: absolute;
-          top: 6%;
-          left: 8%;
-          right: 8%;
-          bottom: 29%;
+          top: 9%;
+          left: 11%;
+          right: 11%;
+          bottom: 28%;
           z-index: 10;
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr 3% 1fr;
+          gap: 0;
           transition: opacity .22s ease, transform .22s ease;
         }
         .book-animating {
@@ -338,16 +365,26 @@ export function StoneBook({ stones }: Props) {
         }
 
         /* ── Lapok ── */
-        .book-leaf {
+        .book-leaf-wrapper {
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
         }
-        .book-leaf-left {
-          padding: 7% 10% 6% 4%;
+        .book-leaf-content {
+          flex: 1;
+          overflow: hidden;
+          padding: 6% 8% 5%;
+        }
+        .book-leaf-left .book-leaf-content {
+          padding-right: 6%;
           box-shadow: inset -6px 0 14px rgba(42,18,30,.05);
         }
-        .book-leaf-right {
-          padding: 7% 4% 6% 10%;
+        .book-leaf-right .book-leaf-content {
+          padding-left: 6%;
           box-shadow: inset 6px 0 14px rgba(42,18,30,.04);
+        }
+        .book-spine-gap {
+          /* üres gerinc terület */
         }
 
         /* ── Lap tartalom stílusok ── */
@@ -547,9 +584,29 @@ export function StoneBook({ stones }: Props) {
         /* ── Reszponzív ── */
         @media (max-width: 640px) {
           .stones-scene { padding: 32px 8px 48px; }
-          .book-scene { max-width: 100%; }
-          .book-leaf-left { padding: 6% 7% 5% 3%; }
-          .book-leaf-right { padding: 6% 3% 5% 7%; }
+          .book-scene {
+            max-width: 100%;
+            aspect-ratio: auto;
+            background: #faf7f2;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(42,18,30,.2);
+          }
+          .book-bg-photo { display: none; }
+          .book-grid {
+            position: relative;
+            top: auto; left: auto; right: auto; bottom: auto;
+            inset: 0;
+            grid-template-columns: 1fr;
+          }
+          .book-spine-gap { display: none; }
+          .book-leaf-left .book-leaf-content {
+            border-bottom: 1px solid #f0d4e0;
+            box-shadow: none;
+          }
+          .book-leaf-right .book-leaf-content {
+            box-shadow: none;
+          }
+          .book-leaf-content { padding: 24px 20px; }
           .stone-name { font-size: 1rem; }
           .stone-long-desc { font-size: 10px; }
         }
