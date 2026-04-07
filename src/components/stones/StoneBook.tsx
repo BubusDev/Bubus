@@ -200,12 +200,12 @@ export function StoneBook({ stones }: Props) {
           <div
             style={{
               position: "absolute",
-              top: "9%", left: "11%", right: "11%", bottom: "28%",
+              top: "17.8%", left: "29.6%", right: "9%", bottom: "26.6%",
               border: "2px solid red",
               zIndex: 100,
               pointerEvents: "none",
               display: "grid",
-              gridTemplateColumns: "1fr 3% 1fr",
+              gridTemplateColumns: "31.8fr 10.7fr 57.5fr",
             }}
           >
             <div style={{ border: "1px solid blue", background: "rgba(0,0,255,.05)" }} />
@@ -340,22 +340,27 @@ export function StoneBook({ stones }: Props) {
         }
 
         /* ── Tartalom grid ──
-           1024×1024px fotó mérései:
-           - Könyv felső éle:      92px → 9%
-           - Könyv alsó éle:      737px → bottom 28%
-           - Bal lap bal éle:     113px → left 11%
-           - Jobb lap jobb éle:   912px → right 11%
-           - Gerinc: 497–527px   → 3% oszlop
+           1024×1024px fotó mérései (pixelpontos):
+           - Bal lap bal éle:     303px → left 29.6%
+           - Bal lap felső éle:   182px → top 17.8%
+           - Gerinc kezdete:             → 49.1% (bal lap jobb éle)
+           - Gerinc vége:                → 55.7% (jobb lap bal éle)
+           - Jobb lap jobb éle:   932px → right 9.0%
+           - Jobb lap felső éle:  ~82px → ~8% (jobb lap magasabban kezdődik)
+           - Alsó (kezek):        754px → bottom 26.6%
+           Grid-en belüli arányok (teljes grid szélesség = 61.4%):
+           - Bal lap: 31.8fr | Gerinc: 10.7fr | Jobb lap: 57.5fr
         */
         .book-grid {
           position: absolute;
-          top: 9%;
-          left: 11%;
-          right: 11%;
-          bottom: 28%;
+          top: 17.8%;
+          left: 29.6%;
+          right: 9.0%;
+          bottom: 26.6%;
           z-index: 10;
           display: grid;
-          grid-template-columns: 1fr 3% 1fr;
+          grid-template-columns: 31.8fr 10.7fr 57.5fr;
+          align-items: start;
           gap: 0;
           transition: opacity .22s ease, transform .22s ease;
         }
@@ -373,18 +378,23 @@ export function StoneBook({ stones }: Props) {
         .book-leaf-content {
           flex: 1;
           overflow: hidden;
-          padding: 6% 8% 5%;
+          box-sizing: border-box;
         }
         .book-leaf-left .book-leaf-content {
-          padding-right: 6%;
+          padding: 4% 6% 5% 5%;
           box-shadow: inset -6px 0 14px rgba(42,18,30,.05);
         }
+        /* Jobb lap ~9.8%-kal magasabban kezdődik a bal lapnál.
+           A grid height = 55.6% of image → margin ≈ -17.6% of grid width (1:1 aspect). */
+        .book-leaf-right {
+          margin-top: -17.6%;
+        }
         .book-leaf-right .book-leaf-content {
-          padding-left: 6%;
+          padding: calc(17.6% + 4%) 5% 5% 6%;
           box-shadow: inset 6px 0 14px rgba(42,18,30,.04);
         }
         .book-spine-gap {
-          /* üres gerinc terület */
+          pointer-events: none;
         }
 
         /* ── Lap tartalom stílusok ── */
@@ -555,8 +565,8 @@ export function StoneBook({ stones }: Props) {
           transform: scale(1.08);
         }
         .book-nav-btn:disabled { opacity: .3; cursor: default; }
-        .book-nav-prev { left: 1%; }
-        .book-nav-next { right: 1%; }
+        .book-nav-prev { left: 27%; }
+        .book-nav-next { right: 7%; }
 
         /* ── Pagination ── */
         .book-pagination {
