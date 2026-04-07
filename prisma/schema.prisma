@@ -338,3 +338,21 @@ model InventoryEvent {
   @@index([orderId])
   @@index([type, createdAt])
 }
+
+model Stone {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  color       String
+  colorHex    String
+  shortDesc   String
+  longDesc    String
+  effects     String[]
+  origin      String?
+  chakra      String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}

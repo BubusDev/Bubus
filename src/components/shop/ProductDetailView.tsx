@@ -1,6 +1,7 @@
 import { Heart, ShieldCheck, Truck } from "lucide-react";
 
 import { addFavouriteAction } from "@/app/account/actions";
+import { StoneInfoButton } from "@/components/product/StoneInfoButton";
 import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
 import { ProductBackLink } from "@/components/shop/ProductBackLink";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
@@ -62,7 +63,6 @@ export function ProductDetailView({
   const availabilityLabel = getProductAvailabilityLabel(product);
   const detailItems = [
     { label: "Kategória", value: categoryTitle || product.labels.category },
-    { label: "Kőtípus", value: product.labels.stoneType },
     { label: "Szín", value: product.labels.color },
     { label: "Stílus", value: product.labels.style },
     { label: "Alkalom", value: product.labels.occasion },
@@ -192,6 +192,17 @@ export function ProductDetailView({
             </div>
 
             <div className="grid gap-1.5">
+              <div className="border-b border-[#efe7eb] py-2">
+                <p className="text-[9px] uppercase tracking-[0.22em] text-[#ad8098]">
+                  Kőtípus
+                </p>
+                <div className="mt-1">
+                  <StoneInfoButton
+                    stoneSlug={product.stoneType}
+                    stoneLabel={getDisplayValue(product.labels.stoneType)}
+                  />
+                </div>
+              </div>
               {detailItems.map((item) => (
                 <DetailMetaItem
                   key={item.label}

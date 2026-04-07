@@ -626,6 +626,8 @@ async function main() {
     },
   });
 
+  await seedStones();
+
   await prisma.order.create({
     data: {
       userId: ariana.id,
@@ -660,6 +662,70 @@ async function main() {
       },
     },
   });
+}
+
+async function seedStones() {
+  const stones = [
+    {
+      name: "Rózsakvarc", slug: "rozsakvarc", color: "rózsaszín", colorHex: "#f9c8dc",
+      shortDesc: "A feltétel nélküli szeretet köve. Megnyitja a szívet és gyengéd energiával tölt el.",
+      longDesc: "A rózsakvarc évezredek óta a szeretet, a gyengédség és az önelfogadás szimbóluma. Halvány rózsaszín árnyalata a Vénusz istennőhöz köti, az ókori görögök és rómaiak egyaránt használták ékszereikben. Energiája a szív csakrát aktiválja, segít elengedni a régi sebeket és megnyílni az új kapcsolatok előtt.",
+      effects: ["Szeretet", "Önelfogadás", "Gyengédség", "Érzelmi gyógyulás"],
+      origin: "Brazília, Madagaszkár", chakra: "Szív csakra", sortOrder: 1,
+    },
+    {
+      name: "Ametiszt", slug: "ametiszt", color: "lila", colorHex: "#c4a0e8",
+      shortDesc: "A nyugalom és az intuíció köve. Segít lecsendesíteni az elmét és mélyíteni az önismeretet.",
+      longDesc: "Az ametiszt a kvarcásványok egyik legkedveltebb tagja, jellegzetes lila-ibolya árnyalatát mangán- és vastartalmának köszönheti. Az ókori görögök szerint megvédte viselőjét a részegségtől — neve is ebből ered ('a-methystos': nem részeg). Ma az intuíció, a spiritualitás és a belső béke köveként tartják számon.",
+      effects: ["Nyugalom", "Intuíció", "Spiritualitás", "Álomvilág"],
+      origin: "Uruguay, Brazília", chakra: "Korona csakra", sortOrder: 2,
+    },
+    {
+      name: "Citrin", slug: "citrin", color: "sárga-arany", colorHex: "#f5c842",
+      shortDesc: "A napfény és az öröm köve. Energizál, magabiztosságot ad és vonzza a pozitivitást.",
+      longDesc: "A citrin a 'napfény köve' — meleg sárga-arany tónusa már önmagában vidámságot sugároz. Ritkán fordul elő természetes formában, legtöbb kereskedelmi citrin hőkezelt ametiszt. Energiája a napfonat csakrát aktiválja, erősíti az önbizalmat, kreativitást és segít megvalósítani az álmokat.",
+      effects: ["Öröm", "Magabiztosság", "Kreativitás", "Pozitivitás"],
+      origin: "Brazília, Spanyolország", chakra: "Napfonat csakra", sortOrder: 3,
+    },
+    {
+      name: "Holdkő", slug: "holdko", color: "fehéres-kék", colorHex: "#d4e8f5",
+      shortDesc: "A női energia és az intuíció köve. Összeköttet a holddal, a ciklusokkal és a belső bölcsességgel.",
+      longDesc: "A holdkő finom kékes-fehér fényjátéka ('adularescencia') teszi különlegessé — belső ragyogása mintha mozogna, ahogy a fény éri. Az ókori Indiában szentnek tartták, a Hold istennőjéhez kötötték. Erősíti a női intuíciót, segít eligazodni az élet változó ciklusaiban és megbékélni az érzelmekkel.",
+      effects: ["Intuíció", "Női energia", "Egyensúly", "Álmodozás"],
+      origin: "Srí Lanka, India", chakra: "Homlok csakra", sortOrder: 4,
+    },
+    {
+      name: "Obszidián", slug: "obszidian", color: "fekete", colorHex: "#2a2a2a",
+      shortDesc: "A védelem és az igazság köve. Erős pajzsot von viselője köré és segít szembenézni önmagunkkal.",
+      longDesc: "Az obszidián vulkanikus üveg — akkor keletkezik, amikor a láva gyorsan lehűl és nincs ideje kristályosodni. Ez az azonnali, nyers keletkezés adja különleges energiáját: gyors, éles, kompromisszummentes. Megvéd a negatív energiáktól, de egyben tükröt is tart — segít szembenézni saját árnyékunkkal.",
+      effects: ["Védelem", "Igazság", "Gyógyulás", "Erő"],
+      origin: "Mexikó, Izland", chakra: "Gyökér csakra", sortOrder: 5,
+    },
+    {
+      name: "Türkiz", slug: "turkiz", color: "türkiz-kék", colorHex: "#4ac8c8",
+      shortDesc: "A bölcsesség és a kommunikáció köve. Erősíti az önkifejezést és védelmet nyújt utazás közben.",
+      longDesc: "A türkiz az egyik legregebben használt ékszerkő — az egyiptomi fáraók, a perzsa királyok és az azték nemesek egyaránt viselték. Kék-zöld árnyalata az ég és a tenger találkozását idézi. A torok csakrához kapcsolódik, így különösen erőteljes hatást fejt ki a kommunikációra, az önkifejezésre és a belső igazság kimondására.",
+      effects: ["Kommunikáció", "Bölcsesség", "Védelem", "Önkifejezés"],
+      origin: "Irán, USA, Kína", chakra: "Torok csakra", sortOrder: 6,
+    },
+    {
+      name: "Labradorit", slug: "labradorit", color: "kék-zöld játék", colorHex: "#6a9ab0",
+      shortDesc: "A mágia és a transzformáció köve. Felébreszti a belső fényt és megnyitja a lehetőségek kapuit.",
+      longDesc: "A labradorit titokzatos és elvarázsló — fényjátéka ('labradorescencia') kéktől zöldig, aranytól lilásig váltakozik, mintha egy másik világ fényei szűrődnének át rajta. Az inuit legendák szerint a sarki fény szorult a kőbe. Erőteljes transzformációs kő: segít átlépni régi határokat, megbízni az intuícióban és befogadni a változást.",
+      effects: ["Mágia", "Transzformáció", "Intuíció", "Védelem"],
+      origin: "Kanada, Finnország", chakra: "Homlok csakra", sortOrder: 7,
+    },
+    {
+      name: "Opál", slug: "opal", color: "szivárvány", colorHex: "#f0e8f8",
+      shortDesc: "A kreativitás és az érzelmek köve. Minden szögből másképp ragyog — akárcsak aki viseli.",
+      longDesc: "Az opál a legegyénibb drágakő — nincs két egyforma, minden darab más színjátékot mutat. Ez a tulajdonsága ('opalescencia') teszi különlegessé és egyszerre misztikussá. Az ókori rómaiak a remény és a tisztaság kövének tartották. Erősíti a kreativitást, fokozza az érzelmi intelligenciát és segít megmutatni valódi önmagunkat.",
+      effects: ["Kreativitás", "Egyéniség", "Érzelmek", "Remény"],
+      origin: "Ausztrália, Etiópia", chakra: "Korona csakra", sortOrder: 8,
+    },
+  ];
+
+  await prisma.stone.deleteMany();
+  await prisma.stone.createMany({ data: stones });
 }
 
 main()

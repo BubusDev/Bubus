@@ -2,9 +2,10 @@ import Link from "next/link";
 
 const navLinks = [
   { num: "01", label: "Főoldal", href: "/" },
-  { num: "02", label: "Rólunk", href: "/about" },
-  { num: "03", label: "Kapcsolat", href: "/contact" },
-  { num: "04", label: "GYIK", href: "/faq" },
+  { num: "02", label: "Kövek", href: "/stones" },
+  { num: "03", label: "Rólunk", href: "/about" },
+  { num: "04", label: "Kapcsolat", href: "/contact" },
+  { num: "05", label: "GYIK", href: "/faq" },
 ];
 
 export function EditorialBrandBlock() {
