@@ -54,7 +54,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <div className="relative overflow-hidden">
         <AmbientBlobs />
         <section className="mx-auto max-w-[1600px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
-          <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-10 xl:gap-16">
+          <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-20 xl:gap-32">
             {/* Left: Editorial brand block */}
             <div className="hidden lg:block">
               <div className="sticky top-8 pt-4">
