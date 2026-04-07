@@ -1,6 +1,7 @@
 "use client";
 
 import type { Stone } from "@prisma/client";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
@@ -15,6 +16,35 @@ export function StoneForm({ stone }: Props) {
   const [effectInput, setEffectInput] = useState("");
   const [colorHex, setColorHex] = useState(stone?.colorHex ?? "#f9c8dc");
   const nameRef = useRef<HTMLInputElement>(null);
+
+  // Image state
+  const [previewUrl, setPreviewUrl] = useState<string | null>(stone?.imageUrl ?? null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      // Revoke any object URLs we created
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+    setRemoveImage(false);
+  }
+
+  function handleRemoveImage() {
+    if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setRemoveImage(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   // Auto-generate slug from name
   function toSlug(name: string) {
@@ -52,9 +82,10 @@ export function StoneForm({ stone }: Props) {
     "w-full rounded-xl border border-[#ecd3e3] bg-white/80 px-4 py-2.5 text-sm text-[#4d2741] outline-none focus:border-[#c45a85] focus:ring-1 focus:ring-[#c45a85]/30 transition";
 
   return (
-    <form action={upsertStoneAction} className="space-y-5">
+    <form action={upsertStoneAction} encType="multipart/form-data" className="space-y-5">
       {stone && <input type="hidden" name="id" value={stone.id} />}
       <input type="hidden" name="effects" value={effects.join(",")} />
+      <input type="hidden" name="removeImage" value={removeImage ? "1" : "0"} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -226,6 +257,39 @@ export function StoneForm({ stone }: Props) {
         </div>
       </div>
 
+      {/* Kő fotója */}
+      <div>
+        <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.2em] text-[#9a6878]">
+          Kő fotója{" "}
+          <span className="normal-case tracking-normal text-[#c0a0b4]">(opcionális)</span>
+        </label>
+
+        {previewUrl && (
+          <div className="mb-3 flex items-center gap-4">
+            <div className="relative h-24 w-24 overflow-hidden rounded-full shadow-md ring-2 ring-[#f0d4e0]">
+              <Image src={previewUrl} alt="Kő fotó előnézet" fill className="object-cover" />
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-[#c45a85] transition hover:bg-rose-100"
+            >
+              <X className="h-3.5 w-3.5" />
+              Eltávolítás
+            </button>
+          </div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          name="stoneImage"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="block w-full text-sm text-[#7a5a6c] file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-rose-50 file:px-4 file:py-2 file:text-xs file:font-medium file:text-[#c0517a] hover:file:bg-rose-100"
+        />
+      </div>
+
       {/* Preview */}
       <div className="flex items-center gap-3 rounded-2xl border border-[#f0dbe6] bg-[#fff5f8] p-4">
         <div
@@ -234,7 +298,7 @@ export function StoneForm({ stone }: Props) {
             background: `radial-gradient(circle at 35% 35%, white 0%, ${colorHex} 100%)`,
           }}
         />
-        <p className="text-[12px] text-[#9a6878]">Előnézet · a kör a megadott hex alapján frissül</p>
+        <p className="text-[12px] text-[#9a6878]">Szín előnézet · a kör a megadott hex alapján frissül</p>
       </div>
 
       <div className="flex gap-3 pt-2">

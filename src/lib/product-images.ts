@@ -10,6 +10,7 @@ const specialEditionUploadsDir = path.join(
   "uploads",
   "special-edition",
 );
+const stonesUploadsDir = path.join(process.cwd(), "public", "uploads", "stones");
 
 function sanitizeFileName(fileName: string) {
   const extension = path.extname(fileName).toLowerCase();
@@ -158,6 +159,41 @@ export async function deleteProductImageFile(url: string) {
     await unlink(filePath);
   } catch {
     // Ignore missing files so product cleanup stays idempotent.
+  }
+}
+
+export async function saveUploadedStoneImage(file: File) {
+  if (requiresRemoteStorage()) {
+    assertBlobConfigured();
+    const fileName = sanitizeFileName(file.name);
+    const blob = await put(`uploads/stones/${fileName}`, file, {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return blob.url;
+  }
+
+  await mkdir(stonesUploadsDir, { recursive: true });
+  const fileName = sanitizeFileName(file.name);
+  const filePath = path.join(stonesUploadsDir, fileName);
+  const arrayBuffer = await file.arrayBuffer();
+  await writeFile(filePath, Buffer.from(arrayBuffer));
+  return `/uploads/stones/${fileName}`;
+}
+
+export async function deleteStoneImageFile(url: string) {
+  if (!url.startsWith("/uploads/stones/")) {
+    if (isBlobConfigured() && isVercelBlobUrl(url)) {
+      await del(url);
+    }
+    return;
+  }
+
+  const filePath = path.join(process.cwd(), "public", url.replace(/^\/+/, ""));
+  try {
+    await unlink(filePath);
+  } catch {
+    // Ignore missing files.
   }
 }
 

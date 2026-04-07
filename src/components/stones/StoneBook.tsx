@@ -1,144 +1,137 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Gem } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type Stone = {
   id: string;
   name: string;
   slug: string;
+  color: string;
   colorHex: string;
   shortDesc: string;
+  longDesc: string;
   effects: string[];
   origin: string | null;
   chakra: string | null;
+  imageUrl: string | null;
 };
 
 type Props = {
   stones: Stone[];
 };
 
-function HandSvg({ side }: { side: "left" | "right" }) {
-  const gradId = `skin-grad-${side}`;
+function StonePageLeft({ stone, pageNum }: { stone: Stone; pageNum: number }) {
   return (
-    <svg viewBox="0 0 120 200" className="hand-svg" aria-hidden>
-      <defs>
-        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f5c5b0" />
-          <stop offset="50%" stopColor="#e8a898" />
-          <stop offset="100%" stopColor="#d4907a" />
-        </linearGradient>
-      </defs>
-      {/* Palm */}
-      <ellipse cx="60" cy="160" rx="48" ry="45" fill={`url(#${gradId})`} />
-      {/* Thumb */}
-      <ellipse
-        cx="18" cy="130" rx="12" ry="28"
-        fill={`url(#${gradId})`}
-        transform="rotate(-20 18 130)"
-      />
-      {/* Fingers */}
-      <rect x="10" y="60" width="16" height="70" rx="8" fill={`url(#${gradId})`} />
-      <rect x="30" y="45" width="16" height="80" rx="8" fill={`url(#${gradId})`} />
-      <rect x="50" y="50" width="16" height="75" rx="8" fill={`url(#${gradId})`} />
-      <rect x="70" y="60" width="14" height="65" rx="7" fill={`url(#${gradId})`} />
-      {/* Nails */}
-      <rect x="13" y="62" width="10" height="14" rx="5" fill="#f5d0e0" opacity=".6" />
-      <rect x="33" y="47" width="10" height="14" rx="5" fill="#f5d0e0" opacity=".6" />
-      <rect x="53" y="52" width="10" height="14" rx="5" fill="#f5d0e0" opacity=".6" />
-      <rect x="73" y="62" width="9"  height="13" rx="4.5" fill="#f5d0e0" opacity=".6" />
-      {/* Shadow */}
-      <ellipse cx="55" cy="195" rx="45" ry="8" fill="rgba(100,30,60,.2)" />
-    </svg>
-  );
-}
-
-function StonePage({
-  stone,
-  pageNumber,
-  side,
-}: {
-  stone: Stone;
-  pageNumber: number;
-  side: "left" | "right";
-}) {
-  const isLeft = side === "left";
-  return (
-    <div
-      id={stone.slug}
-      className={`book-page ${isLeft ? "book-page-left" : "book-page-right"}`}
-    >
-      {/* Geometric background blocks */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-[58%] h-[38%] bg-[#f9e0ea]" />
-        <div className="absolute top-0 right-0 w-[35%] h-[50%] bg-[#3d1525]" />
-        <div className="absolute bottom-0 left-0 w-[45%] h-[28%] bg-[#c45a85]/20" />
-        <div className="absolute top-[22%] left-[8%] right-[8%] bottom-[22%] bg-white shadow-md" />
+    <div className="flex h-full flex-col">
+      {/* Fejléc */}
+      <div className="page-header">
+        <span className="page-label">{stone.chakra ?? "Féldrágakő"}</span>
+        <span className="page-num">{pageNum}</span>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 p-8 flex flex-col h-full">
-        {/* Meta */}
-        <div className="mb-6">
-          {stone.chakra && (
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[#c0517a] mb-1">
-              {stone.chakra}
-            </p>
-          )}
-          <h2 className="font-[family:var(--font-display)] text-2xl text-[#2b1220] mb-1">
-            {stone.name}
-          </h2>
-          {stone.origin && (
-            <p className="text-[11px] text-[#b08898]">{stone.origin}</p>
-          )}
-        </div>
+      {/* Kő neve */}
+      <h2 className="stone-name">{stone.name}</h2>
+      {stone.origin && <p className="stone-origin">{stone.origin}</p>}
 
-        {/* Color circle */}
-        <div className="flex-1 flex items-center justify-center">
+      {/* Vonal */}
+      <div className="stone-divider" />
+
+      {/* Kő fotó / szín kör */}
+      <div className="stone-image-wrap">
+        {stone.imageUrl ? (
+          <div className="stone-photo">
+            <Image src={stone.imageUrl} alt={stone.name} fill style={{ objectFit: "cover" }} />
+          </div>
+        ) : (
           <div
-            className="w-40 h-40 rounded-full"
+            className="stone-circle"
             style={{
-              background: `radial-gradient(circle at 30% 30%, white 0%, ${stone.colorHex}cc 40%, ${stone.colorHex} 100%)`,
-              boxShadow: `0 20px 60px ${stone.colorHex}60, inset 0 -8px 20px rgba(0,0,0,.1)`,
+              background: `radial-gradient(circle at 35% 35%, white 0%, ${stone.colorHex}99 45%, ${stone.colorHex} 100%)`,
+              boxShadow: `0 8px 28px ${stone.colorHex}55, 0 0 0 3px white`,
             }}
           />
-        </div>
+        )}
+      </div>
 
-        {/* Description */}
-        <div className="mt-6">
-          <p className="text-sm leading-[1.85] text-[#5a3a4a]">{stone.shortDesc}</p>
-          {stone.effects.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {stone.effects.map((e) => (
-                <span
-                  key={e}
-                  className="rounded-full bg-[#fdf0f5] border border-rose-200 px-2.5 py-0.5 text-[10px] text-[#9a5a72]"
-                >
-                  {e}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Rövid leírás */}
+      <p className="stone-short-desc">{stone.shortDesc}</p>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center justify-between opacity-40">
-          <span className="font-[family:var(--font-display)] text-xs text-[#2b1220]">
-            Chicks Jewelry
-          </span>
-          <span className="text-xs text-[#9a7080]">{pageNumber}</span>
+      {/* Hatások */}
+      {stone.effects.length > 0 && (
+        <div className="stone-effects">
+          {stone.effects.slice(0, 5).map((e) => (
+            <span key={e} className="stone-effect-pill">{e}</span>
+          ))}
         </div>
+      )}
+
+      <div className="flex-1" />
+
+      {/* Lap alja */}
+      <div className="page-footer">
+        <span className="page-brand">Chicks Jewelry</span>
+        <div className="page-footer-line" />
       </div>
     </div>
   );
 }
 
-function EmptyPage({ side }: { side: "left" | "right" }) {
+function StonePageRight({ stone, pageNum }: { stone: Stone; pageNum: number }) {
   return (
-    <div
-      className={`book-page ${side === "left" ? "book-page-left" : "book-page-right"} flex items-center justify-center`}
-    >
-      <p className="text-sm text-[#c0a0b4] italic">Hamarosan…</p>
+    <div className="flex h-full flex-col">
+      {/* Fejléc */}
+      <div className="page-header">
+        <span className="page-label">Részletes leírás</span>
+        <span className="page-num">{pageNum}</span>
+      </div>
+
+      {/* Hosszú leírás */}
+      <p className="stone-long-desc">{stone.longDesc}</p>
+
+      {/* Vonal */}
+      <div className="stone-section-divider" />
+
+      {/* Adatok */}
+      <div className="stone-details">
+        {[
+          { label: "Csakra", value: stone.chakra, hex: null },
+          { label: "Eredet", value: stone.origin, hex: null },
+          { label: "Szín", value: stone.color, hex: stone.colorHex },
+        ]
+          .filter((r) => r.value)
+          .map((row) => (
+            <div key={row.label} className="stone-detail-row">
+              <span className="stone-detail-label">{row.label}</span>
+              <span className="stone-detail-value">
+                {row.hex && (
+                  <span
+                    className="stone-detail-dot"
+                    style={{ background: row.hex }}
+                  />
+                )}
+                {row.value}
+              </span>
+            </div>
+          ))}
+      </div>
+
+      <div className="flex-1" />
+
+      {/* Lap alja */}
+      <div className="page-footer">
+        <div className="page-footer-line" />
+        <span className="page-brand">{new Date().getFullYear()}</span>
+      </div>
+    </div>
+  );
+}
+
+function EmptyPage() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <p style={{ fontSize: 12, color: "#c0a0b4", fontStyle: "italic" }}>Hamarosan…</p>
     </div>
   );
 }
@@ -152,7 +145,6 @@ export function StoneBook({ stones }: Props) {
 
   const [currentPage, setCurrentPage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animDir, setAnimDir] = useState<"left" | "right">("right");
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -161,325 +153,405 @@ export function StoneBook({ stones }: Props) {
     if (idx >= 0) setCurrentPage(Math.floor(idx / 2));
   }, [stones]);
 
-  const handlePageTurn = (direction: "prev" | "next") => {
+  const handleTurn = (dir: "prev" | "next") => {
     if (isAnimating) return;
-    setAnimDir(direction === "next" ? "right" : "left");
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentPage((p) =>
-        direction === "next"
+        dir === "next"
           ? Math.min(pairs.length - 1, p + 1)
           : Math.max(0, p - 1),
       );
       setIsAnimating(false);
-    }, 200);
+    }, 220);
   };
 
   const pair = pairs[currentPage] ?? [];
-  const left = pair[0];
-  const right = pair[1];
-
-  const showFrom = currentPage * 2 + 1;
-  const showTo = Math.min(currentPage * 2 + 2, stones.length);
 
   return (
-    <div className="stone-scene">
-      {/* Background blobs */}
-      <div className="bg-blob bg-blob-1" />
-      <div className="bg-blob bg-blob-2" />
-      <div className="bg-blob bg-blob-3" />
-
-      {/* Header */}
-      <header className="relative z-10 text-center mb-12 pt-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-5 py-2 backdrop-blur-sm mb-4">
-          <Gem className="h-3.5 w-3.5 text-rose-400" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
-            Természet kincsei
-          </span>
+    <div className="stones-scene">
+      {/* Fejléc */}
+      <header className="stones-header">
+        <div className="stones-pill">
+          <Gem className="h-3.5 w-3.5" />
+          <span>Természet kincsei</span>
         </div>
-        <h1 className="font-[family:var(--font-display)] text-4xl text-[#2b1220]">
-          Kövek, amelyek mesélnek
-        </h1>
-        <p className="mt-3 text-sm text-[#8a6272] max-w-[40ch] mx-auto leading-[1.85]">
-          Lapozd végig a féldrágakövek világát — minden oldal egy új történet,
-          egy új energia, egy új érzés.
-        </p>
-        <p className="mt-2 text-[11px] text-[#b08898]">
-          {showFrom}–{showTo}. kő · összesen {stones.length} db
+        <h1 className="stones-title">Kövek, amelyek mesélnek</h1>
+        <p className="stones-subtitle">
+          Lapozd végig a féldrágakövek világát — minden oldal egy új történet.
         </p>
       </header>
 
-      {/* Book container */}
-      <div className="book-container">
-        {/* Left hand */}
-        <div className="book-hand book-hand-left" aria-hidden>
-          <HandSvg side="left" />
+      {/* Könyv + kézfotó */}
+      <div className="book-scene">
+        {/* Háttérkép */}
+        <div className="book-bg-photo">
+          <Image
+            src="/images/book-hands.png"
+            alt=""
+            fill
+            className="object-contain object-center"
+            priority
+          />
         </div>
 
-        {/* Book */}
-        <div className="book">
-          <div className="book-spine" />
-          {left ? (
-            <StonePage
-              stone={left}
-              pageNumber={currentPage * 2 + 1}
-              side="left"
-            />
-          ) : (
-            <EmptyPage side="left" />
-          )}
-          {right ? (
-            <StonePage
-              stone={right}
-              pageNumber={currentPage * 2 + 2}
-              side="right"
-            />
-          ) : (
-            <EmptyPage side="right" />
-          )}
-          {/* Page flip animation overlay */}
-          {isAnimating && (
-            <div
-              className={`page-flip-overlay ${animDir === "right" ? "page-turning-right" : "page-turning-left"}`}
-            />
-          )}
-        </div>
-
-        {/* Right hand */}
-        <div className="book-hand book-hand-right" aria-hidden>
-          <HandSvg side="right" />
-        </div>
-
-        {/* Table surface */}
-        <div
-          className="table-surface"
-          style={{
-            background: "linear-gradient(to bottom, #c4708a, #a05070)",
-            boxShadow: "inset 0 20px 40px rgba(0,0,0,.15)",
-          }}
-        />
-      </div>
-
-      {/* Navigation */}
-      {pairs.length > 1 && (
-        <div className="relative z-10 mt-16 pb-12 flex items-center justify-center gap-6">
-          <button
-            onClick={() => handlePageTurn("prev")}
-            disabled={currentPage === 0 || isAnimating}
-            className="flex items-center gap-2 rounded-full border border-rose-200 bg-white/80 px-5 py-2.5 text-sm text-[#7a5a6c] backdrop-blur-sm transition hover:border-[#c45a85] hover:text-[#c45a85] disabled:opacity-30"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Előző
-          </button>
-
-          <div className="flex gap-2">
-            {pairs.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === currentPage
-                    ? "w-6 bg-[#c45a85]"
-                    : "w-2 bg-rose-200 hover:bg-rose-300"
-                }`}
-              />
-            ))}
+        {/* Tartalom overlay */}
+        <div className={`book-content-overlay${isAnimating ? " book-animating" : ""}`}>
+          {/* Bal lap */}
+          <div className="book-leaf book-leaf-left">
+            {pair[0] ? (
+              <StonePageLeft stone={pair[0]} pageNum={currentPage * 2 + 1} />
+            ) : (
+              <EmptyPage />
+            )}
           </div>
 
-          <button
-            onClick={() => handlePageTurn("next")}
-            disabled={currentPage === pairs.length - 1 || isAnimating}
-            className="flex items-center gap-2 rounded-full border border-rose-200 bg-white/80 px-5 py-2.5 text-sm text-[#7a5a6c] backdrop-blur-sm transition hover:border-[#c45a85] hover:text-[#c45a85] disabled:opacity-30"
-          >
-            Következő
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          {/* Jobb lap */}
+          <div className="book-leaf book-leaf-right">
+            {pair[1] ? (
+              <StonePageRight stone={pair[1]} pageNum={currentPage * 2 + 2} />
+            ) : (
+              <EmptyPage />
+            )}
+          </div>
+        </div>
+
+        {/* Lapozó gombok */}
+        <button
+          onClick={() => handleTurn("prev")}
+          disabled={currentPage === 0 || isAnimating}
+          className="book-nav-btn book-nav-prev"
+          aria-label="Előző oldal"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => handleTurn("next")}
+          disabled={currentPage === pairs.length - 1 || isAnimating}
+          className="book-nav-btn book-nav-next"
+          aria-label="Következő oldal"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Pontok */}
+      {pairs.length > 1 && (
+        <div className="book-pagination">
+          {pairs.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i)}
+              className={`book-dot${i === currentPage ? " book-dot-active" : ""}`}
+              aria-label={`${i + 1}. oldalpár`}
+            />
+          ))}
         </div>
       )}
 
       <style>{`
         /* ── Scene ── */
-        .stone-scene {
+        .stones-scene {
           position: relative;
-          overflow: hidden;
-          background: linear-gradient(160deg, #f5d5e5 0%, #e8b8d0 40%, #f0d0e8 70%, #dda0c0 100%);
-          margin: -3rem -1rem -5rem;   /* bleed past page padding */
-        }
-
-        /* ── Blobs ── */
-        .bg-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          pointer-events: none;
-        }
-        .bg-blob-1 { background: #d4789a; opacity: .35; width: 600px; height: 600px; top: -100px; left: -100px; }
-        .bg-blob-2 { background: #c45a85; opacity: .2;  width: 400px; height: 400px; bottom: 0;    right: -80px; }
-        .bg-blob-3 { background: #8b3060; opacity: .15; width: 300px; height: 300px; top: 40%;    left: 30%;   }
-
-        /* ── Book container ── */
-        .book-container {
-          position: relative;
+          background: linear-gradient(160deg, #f5d5e5 0%, #e8b4cc 50%, #d4a0b8 100%);
+          margin: -3rem -1rem -5rem;
+          padding: 48px 16px 60px;
           display: flex;
-          justify-content: center;
-          align-items: flex-end;
-          padding: 40px 16px 0;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* ── Fejléc ── */
+        .stones-header {
+          text-align: center;
+          margin-bottom: 28px;
+          position: relative;
           z-index: 1;
         }
+        .stones-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          border: 1px solid rgba(196,90,133,.3);
+          background: rgba(255,255,255,.5);
+          border-radius: 999px;
+          padding: 5px 14px;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: .3em;
+          text-transform: uppercase;
+          color: #c0517a;
+          margin-bottom: 12px;
+          backdrop-filter: blur(8px);
+        }
+        .stones-title {
+          font-family: var(--font-display, 'Playfair Display', serif);
+          font-size: clamp(1.8rem, 3vw, 2.6rem);
+          color: #2b1220;
+          letter-spacing: -.02em;
+          margin-bottom: 8px;
+        }
+        .stones-subtitle {
+          font-size: 13px;
+          color: #8a5070;
+          line-height: 1.8;
+          max-width: 40ch;
+          margin: 0 auto;
+        }
 
-        /* ── Hands ── */
-        .book-hand {
-          position: absolute;
-          bottom: 0;
-          z-index: 5;
-          pointer-events: none;
-          width: 120px;
-        }
-        .book-hand-left {
-          left: calc(50% - 460px);
-          transform: rotate(15deg) translateY(20px);
-          filter: drop-shadow(-4px 8px 12px rgba(100,30,60,.25));
-        }
-        .book-hand-right {
-          right: calc(50% - 460px);
-          transform: rotate(-15deg) translateY(20px) scaleX(-1);
-          filter: drop-shadow(4px 8px 12px rgba(100,30,60,.25));
-        }
-        .hand-svg { width: 100%; height: auto; display: block; }
-
-        /* ── Book ── */
-        .book {
+        /* ── Book scene ── */
+        .book-scene {
           position: relative;
-          z-index: 10;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          max-width: 860px;
           width: 100%;
-          min-height: 560px;
-          border-radius: 3px 12px 12px 3px;
-          overflow: hidden;
-          box-shadow:
-            0 2px 4px rgba(42,18,30,.08),
-            0 8px 16px rgba(42,18,30,.12),
-            0 20px 40px rgba(42,18,30,.2),
-            0 40px 80px rgba(42,18,30,.25),
-            -4px 0 8px rgba(42,18,30,.1);
-          transform: perspective(1200px) rotateX(3deg) rotateY(-1deg);
-          transform-origin: center 110%;
+          max-width: 780px;
+          aspect-ratio: 1 / 1;
         }
 
-        /* Paper texture */
-        .book::before {
-          content: '';
+        .book-bg-photo {
           position: absolute;
           inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-          pointer-events: none;
-          z-index: 100;
-          mix-blend-mode: multiply;
-        }
-
-        /* ── Spine ── */
-        .book-spine {
-          position: absolute;
-          left: 50%;
-          top: 0; bottom: 0;
-          width: 4px;
-          transform: translateX(-50%);
-          z-index: 20;
-          pointer-events: none;
-          background: linear-gradient(to right,
-            rgba(42,18,30,.18),
-            rgba(42,18,30,.06) 40%,
-            rgba(255,255,255,.15) 50%,
-            rgba(42,18,30,.06) 60%,
-            rgba(42,18,30,.12)
-          );
-          box-shadow: 0 0 8px rgba(42,18,30,.1);
-        }
-
-        /* ── Pages ── */
-        .book-page {
-          position: relative;
-          overflow: hidden;
-          min-height: 560px;
-          animation: page-appear 0.3s ease-out;
-        }
-        .book-page-left {
-          background: linear-gradient(to right, #fff5f0 0%, #fffaf8 100%);
-          border-right: 1px solid rgba(42,18,30,.06);
-        }
-        .book-page-right {
-          background: linear-gradient(to left, #fff8f5 0%, #fffaf8 100%);
-        }
-        /* Inner gutter shadows */
-        .book-page-left::after {
-          content: '';
-          position: absolute;
-          top: 0; right: 0; bottom: 0;
-          width: 40px;
-          background: linear-gradient(to right, transparent, rgba(42,18,30,.04));
-          pointer-events: none;
-          z-index: 1;
-        }
-        .book-page-right::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; bottom: 0;
-          width: 40px;
-          background: linear-gradient(to left, transparent, rgba(42,18,30,.04));
-          pointer-events: none;
-          z-index: 1;
-        }
-
-        /* ── Table surface ── */
-        .table-surface {
-          position: absolute;
-          bottom: 0;
-          left: 0; right: 0;
-          height: 96px;
           z-index: 0;
         }
 
-        /* ── Page flip animation overlay ── */
-        .page-flip-overlay {
+        /* ── Tartalom overlay ──
+           Kézfotó elemzés alapján:
+           - Könyv felső éle: ~4% (y)
+           - Könyv alsó éle (kezek előtt): ~72% (y)
+           - Bal lap bal éle: ~7% (x)
+           - Gerinc középvonal: ~50% (x)
+           - Jobb lap jobb éle: ~93% (x)
+        */
+        .book-content-overlay {
           position: absolute;
-          inset: 0;
-          z-index: 50;
-          pointer-events: none;
-          background: rgba(255,245,250,.15);
+          top: 6%;
+          left: 8%;
+          right: 8%;
+          bottom: 29%;
+          z-index: 10;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          transition: opacity .22s ease, transform .22s ease;
+        }
+        .book-animating {
+          opacity: 0;
+          transform: scale(.985);
         }
 
-        /* ── Animations ── */
-        @keyframes page-appear {
-          0%   { opacity: 0; transform: rotateY(-6deg) translateX(-8px); }
-          100% { opacity: 1; transform: rotateY(0deg)  translateX(0); }
+        /* ── Lapok ── */
+        .book-leaf {
+          overflow: hidden;
         }
-        @keyframes page-flip-left {
-          0%   { transform: perspective(800px) rotateY(0deg);   opacity: 1; }
-          50%  { transform: perspective(800px) rotateY(-90deg); opacity: 0; }
-          100% { transform: perspective(800px) rotateY(0deg);   opacity: 1; }
+        .book-leaf-left {
+          padding: 7% 10% 6% 4%;
+          box-shadow: inset -6px 0 14px rgba(42,18,30,.05);
         }
-        @keyframes page-flip-right {
-          0%   { transform: perspective(800px) rotateY(0deg);  opacity: 1; }
-          50%  { transform: perspective(800px) rotateY(90deg); opacity: 0; }
-          100% { transform: perspective(800px) rotateY(0deg);  opacity: 1; }
+        .book-leaf-right {
+          padding: 7% 4% 6% 10%;
+          box-shadow: inset 6px 0 14px rgba(42,18,30,.04);
         }
-        .page-turning-left  { animation: page-flip-left  0.4s ease-in-out; }
-        .page-turning-right { animation: page-flip-right 0.4s ease-in-out; }
 
-        /* ── Responsive ── */
+        /* ── Lap tartalom stílusok ── */
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        .page-label {
+          font-size: 9px;
+          letter-spacing: .32em;
+          text-transform: uppercase;
+          color: #c0517a;
+        }
+        .page-num {
+          font-family: var(--font-display, serif);
+          font-size: 10px;
+          color: #b08898;
+        }
+        .stone-name {
+          font-family: var(--font-display, 'Playfair Display', serif);
+          font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+          color: #2b1220;
+          line-height: 1.1;
+          margin-bottom: 3px;
+        }
+        .stone-origin {
+          font-size: 10px;
+          color: #b08898;
+          margin-bottom: 10px;
+        }
+        .stone-divider {
+          height: 1px;
+          width: 36px;
+          background: linear-gradient(to right, #c45a85, transparent);
+          margin-bottom: 12px;
+          flex-shrink: 0;
+        }
+        .stone-image-wrap {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 12px;
+          flex-shrink: 0;
+        }
+        .stone-photo {
+          position: relative;
+          width: min(100px, 22vw);
+          height: min(100px, 22vw);
+          border-radius: 50%;
+          overflow: hidden;
+          box-shadow: 0 6px 20px rgba(42,18,30,.15);
+          border: 3px solid white;
+          flex-shrink: 0;
+        }
+        .stone-circle {
+          width: min(96px, 21vw);
+          height: min(96px, 21vw);
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .stone-short-desc {
+          font-size: 11.5px;
+          line-height: 1.85;
+          color: #5a3a4a;
+        }
+        .stone-effects {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          margin-top: 8px;
+        }
+        .stone-effect-pill {
+          font-size: 9px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          border: 1px solid #f0d4e0;
+          background: #fdf5f8;
+          color: #9a5a72;
+        }
+        .stone-long-desc {
+          font-size: 11px;
+          line-height: 2;
+          color: #4a3040;
+          overflow: hidden;
+        }
+        .stone-section-divider {
+          height: 1px;
+          background: #f0d4e0;
+          margin: 10px 0;
+          flex-shrink: 0;
+        }
+        .stone-details {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+        .stone-detail-row {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+        }
+        .stone-detail-label {
+          width: 46px;
+          flex-shrink: 0;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: .2em;
+          color: #b08898;
+          padding-top: 1px;
+        }
+        .stone-detail-value {
+          font-size: 11.5px;
+          color: #4a3040;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .stone-detail-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          border: 1px solid rgba(0,0,0,.1);
+          display: inline-block;
+          flex-shrink: 0;
+        }
+        .page-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          opacity: .25;
+          margin-top: 10px;
+          flex-shrink: 0;
+        }
+        .page-brand {
+          font-size: 9px;
+          font-style: italic;
+          font-family: var(--font-display, serif);
+          color: #2b1220;
+        }
+        .page-footer-line {
+          height: 1px;
+          width: 36px;
+          background: #c45a85;
+        }
+
+        /* ── Nav gombok ── */
+        .book-nav-btn {
+          position: absolute;
+          bottom: 30%;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1px solid rgba(196,90,133,.3);
+          background: rgba(255,255,255,.72);
+          color: #c45a85;
+          backdrop-filter: blur(8px);
+          cursor: pointer;
+          transition: background .15s, transform .15s;
+          box-shadow: 0 4px 12px rgba(42,18,30,.12);
+        }
+        .book-nav-btn:hover:not(:disabled) {
+          background: rgba(255,255,255,.92);
+          transform: scale(1.08);
+        }
+        .book-nav-btn:disabled { opacity: .3; cursor: default; }
+        .book-nav-prev { left: 1%; }
+        .book-nav-next { right: 1%; }
+
+        /* ── Pagination ── */
+        .book-pagination {
+          display: flex;
+          gap: 8px;
+          margin-top: 16px;
+          position: relative;
+          z-index: 1;
+        }
+        .book-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(196,90,133,.3);
+          border: none;
+          cursor: pointer;
+          transition: background .15s, transform .15s;
+          padding: 0;
+        }
+        .book-dot-active {
+          background: #c45a85;
+          transform: scale(1.3);
+        }
+
+        /* ── Reszponzív ── */
         @media (max-width: 640px) {
-          .stone-scene { margin: -3rem -1rem -5rem; }
-          .book {
-            grid-template-columns: 1fr;
-            border-radius: 16px;
-            transform: none;
-          }
-          .book-page-left { border-right: none; border-bottom: 1px solid rgba(42,18,30,.08); }
-          .book-hand { display: none; }
-          .table-surface { height: 48px; }
-          .book-container { padding: 24px 16px 0; }
+          .stones-scene { padding: 32px 8px 48px; }
+          .book-scene { max-width: 100%; }
+          .book-leaf-left { padding: 6% 7% 5% 3%; }
+          .book-leaf-right { padding: 6% 3% 5% 7%; }
+          .stone-name { font-size: 1rem; }
+          .stone-long-desc { font-size: 10px; }
         }
       `}</style>
     </div>

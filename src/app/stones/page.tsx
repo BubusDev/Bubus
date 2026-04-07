@@ -16,11 +16,14 @@ export default async function StonesPage() {
       id: true,
       name: true,
       slug: true,
+      color: true,
       colorHex: true,
       shortDesc: true,
+      longDesc: true,
       effects: true,
       origin: true,
       chakra: true,
+      imageUrl: true,
     },
   });
 

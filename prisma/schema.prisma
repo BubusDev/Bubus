@@ -350,6 +350,7 @@ model Stone {
   effects     String[]
   origin      String?
   chakra      String?
+  imageUrl    String?
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
