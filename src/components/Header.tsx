@@ -54,16 +54,6 @@ function HeaderActionButton({
   );
 }
 
-function ChickMark() {
-  return (
-    <span className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/80 bg-white/78 shadow-[0_10px_24px_rgba(184,122,160,0.1)] backdrop-blur-md">
-      <span className="absolute h-5 w-5 rounded-full bg-white" />
-      <span className="absolute left-[15px] top-[12px] h-2.5 w-2.5 rounded-full bg-[#ffd9ec]" />
-      <span className="absolute right-[12px] top-[15px] h-1.5 w-1.5 rounded-full bg-[#f183bc]" />
-      <span className="absolute right-[8px] top-[18px] h-2.5 w-2.5 rotate-45 rounded-[2px] bg-[#ffeaf4]" />
-    </span>
-  );
-}
 
 export function Header({
   user,
@@ -87,7 +77,6 @@ export function Header({
           href="/"
           className="flex min-w-0 items-center gap-3 transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
         >
-          <ChickMark />
           <div className="flex flex-col leading-none">
             <span className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
               Boutique ékszer

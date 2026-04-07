@@ -1,13 +1,5 @@
 import Link from "next/link";
-import { Gem, Leaf, Shield, Sparkles, Star } from "lucide-react";
-
-const BOTTOM_VALUES = [
-  { Icon: Sparkles, label: "KÉZZEL ALKOTVA" },
-  { Icon: Gem, label: "FÉLDRÁGAKÖVEK" },
-  { Icon: Leaf, label: "ETIKUS BESZERZÉS" },
-  { Icon: Star, label: "LIMITÁLT DARABOK" },
-  { Icon: Shield, label: "MINŐSÉG GARANTÁLT" },
-];
+import { ArrowRight, Gem } from "lucide-react";
 
 export function HomeHero() {
   return (
@@ -54,15 +46,10 @@ export function HomeHero() {
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
         <div className="mx-auto max-w-2xl">
           {/* Eyebrow pill */}
-          <div className="mb-8 inline-flex items-center rounded-full border border-rose-200/60 bg-white/80 px-5 py-2 backdrop-blur-sm">
-            <span
-              style={{
-                fontSize: "10px",
-                letterSpacing: "0.32em",
-                color: "#c0517a",
-              }}
-            >
-              ✦ Kézzel alkotva · Féldrágakövekből
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-5 py-2 backdrop-blur-sm">
+            <span className="text-[#e07a9e]">✦</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
+              Kézzel alkotva · Féldrágakövekből
             </span>
           </div>
 
@@ -79,73 +66,65 @@ export function HomeHero() {
           </h1>
 
           {/* Subtitle */}
-          <p
-            className="mx-auto mt-4 text-sm leading-[1.9]"
-            style={{ maxWidth: "38ch", color: "#7d5b75" }}
-          >
-            Minden kő más. Minden darab egyedi.
-            <br />
-            Minden Bubus ékszer egy apró történet, amelyet te viselsz.
+          <p className="mt-5 max-w-[36ch] mx-auto text-center text-[15px] leading-[1.85] text-[#8a6272]">
+            Féldrágakövekből készült, egyedi kézműves ékszerek —
+            minden darab Borbolya kézjegyével, szeretettel alkotva.
           </p>
 
-          {/* CTA buttons */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          {/* CTA */}
+          <div className="mt-10 flex flex-col items-center gap-4">
+            {/* Primary CTA */}
             <Link
               href="/new-in"
-              className="inline-flex items-center rounded-full px-7 py-3.5 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(196,90,133,.5)]"
+              className="inline-flex items-center gap-2.5 rounded-full px-8 py-3.5 text-sm font-medium text-white transition hover:opacity-90 hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, #c45a85, #e07a70)",
                 boxShadow: "0 8px 32px rgba(196,90,133,.35)",
               }}
             >
-              Kollekciók böngészése
+              <Gem className="h-4 w-4" />
+              Kollekciók felfedezése
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link
-              href="/about"
-              className="inline-flex items-center rounded-full border border-[#e8c0d4] bg-white/70 px-7 py-3.5 text-sm text-[#6b425a] backdrop-blur-sm transition hover:bg-white/90"
-            >
-              Rólunk
-            </Link>
-          </div>
 
-          {/* Floating stone chips */}
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <span
-              className="rounded-full border border-rose-200/50 bg-white/80 px-4 py-2 text-xs text-[#7a5a6c] backdrop-blur-sm"
-              style={{ transform: "rotate(-2deg)" }}
-            >
-              Rózsakvarc
-            </span>
-            <span
-              className="rounded-full border border-rose-200/50 bg-white/80 px-4 py-2 text-xs text-[#7a5a6c] backdrop-blur-sm"
-              style={{ transform: "rotate(1deg)" }}
-            >
-              Ametiszt
-            </span>
-            <span
-              className="rounded-full border border-rose-200/50 bg-white/80 px-4 py-2 text-xs text-[#7a5a6c] backdrop-blur-sm"
-              style={{ transform: "rotate(-1deg)" }}
-            >
-              Citrin
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom value strip */}
-      <div className="relative z-10 border-t border-[#f5e2eb] bg-white/40 py-6 px-8 backdrop-blur-sm">
-        <div className="flex flex-wrap justify-center gap-10">
-          {BOTTOM_VALUES.map(({ Icon, label }) => (
-            <div key={label} className="flex items-center gap-2">
-              <Icon className="h-4 w-4 text-[#c45a85]" strokeWidth={1.5} />
-              <span
-                className="uppercase text-[#9a7080]"
-                style={{ fontSize: "9px", letterSpacing: "0.28em" }}
-              >
-                {label}
-              </span>
+            {/* Secondary text links */}
+            <div className="flex items-center gap-6 text-[13px] text-[#9a7080]">
+              <Link href="/about" className="flex items-center gap-1.5 transition hover:text-[#c45a85]">
+                <span>Rólunk</span>
+              </Link>
+              <span className="text-[#e0c8d4]">·</span>
+              <Link href="/contact" className="flex items-center gap-1.5 transition hover:text-[#c45a85]">
+                <span>Kapcsolat</span>
+              </Link>
+              <span className="text-[#e0c8d4]">·</span>
+              <Link href="/faq" className="flex items-center gap-1.5 transition hover:text-[#c45a85]">
+                <span>GYIK</span>
+              </Link>
             </div>
-          ))}
+          </div>
+
+          {/* Trust stats */}
+          <div className="mt-14 flex items-center justify-center gap-10 border-t border-[#f5e2eb] pt-8">
+            <div className="text-center">
+              <p className="font-[family:var(--font-display)] text-2xl font-medium text-[#4d2741]">100%</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-[#b08898]">Kézműves</p>
+            </div>
+            <div className="h-8 w-px bg-[#f0d4e0]" />
+            <div className="text-center">
+              <p className="font-[family:var(--font-display)] text-2xl font-medium text-[#4d2741]">Egyedi</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-[#b08898]">Minden darab</p>
+            </div>
+            <div className="h-8 w-px bg-[#f0d4e0]" />
+            <div className="text-center">
+              <p className="font-[family:var(--font-display)] text-2xl font-medium text-[#4d2741]">Etikus</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-[#b08898]">Alapanyagok</p>
+            </div>
+            <div className="h-8 w-px bg-[#f0d4e0]" />
+            <div className="text-center">
+              <p className="font-[family:var(--font-display)] text-2xl font-medium text-[#4d2741]">♡</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-[#b08898]">Szeretettel alkotva</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
