@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { BackToHome } from "@/components/BackToHome";
 
 /* ─── Scroll reveal hook ─────────────────────────────────────── */
 function useScrollReveal() {
@@ -41,6 +42,9 @@ export function AboutClient() {
 
   return (
     <main>
+      <div className="mx-auto max-w-[1200px] px-6 pt-8">
+        <BackToHome />
+      </div>
       <HeroSection />
       <FounderSection />
       <ProcessSection />

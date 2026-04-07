@@ -1,57 +1,65 @@
 import Link from "next/link";
 
-const NAV_LINKS = [
-  { label: "Főoldal", href: "/" },
-  { label: "Rólunk", href: "/about" },
-  { label: "Kapcsolat", href: "/contact" },
-  { label: "GYIK", href: "/faq" },
-];
-
 export function EditorialBrandBlock() {
   return (
-    <div className="flex flex-col">
-      {/* Logo */}
-      <span
-        className="font-[family:var(--font-display)] text-[2rem] font-semibold leading-none"
-        style={{
-          background: "linear-gradient(135deg, #c45a85, #e07a70)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-        }}
-      >
-        Bubus
-      </span>
+    <aside className="px-2 py-2 lg:sticky lg:top-28">
+      <div className="max-w-[420px] space-y-8">
+        <div className="space-y-4">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
+            Butik ékszer webáruház
+          </p>
+          <div className="space-y-2">
+            <h1 className="max-w-[10ch] font-sans text-[2.9rem] font-semibold leading-[0.9] tracking-[-0.06em] text-[#4f2348] sm:text-[3.5rem]">
+              Ékszerek,
+              <br />
+              amik a te
+              <br />
+              történetedhez
+              <br />
+              készülnek.
+            </h1>
+            <p className="max-w-[14ch] font-serif text-[2rem] leading-[0.95] tracking-[-0.03em] text-[#4f2348] sm:text-[2.4rem]">
+              <span className="relative inline-block text-[#f77ff0]">
+                egyedi design
+                <span className="absolute inset-x-0 bottom-[0.08em] -z-10 h-[0.28em] rounded-full bg-[#f7ff7a]/70 blur-[1px]" />
+              </span>
+              <span className="text-[#4f2348]"> minden személyiséghez.</span>
+            </p>
+          </div>
+        </div>
 
-      {/* Eyebrow */}
-      <p className="mt-3 text-[10px] uppercase tracking-[0.32em] text-[#b06b8e]">
-        ✦ Kézzel alkotva · Féldrágakövekből
-      </p>
+        <div className="h-px w-16 bg-gradient-to-r from-[#f77ff0] to-transparent" />
 
-      {/* Brand statement */}
-      <p className="mt-5 text-sm leading-[1.85] text-[#7d5b75]">
-        Minden ékszerünk egyedi kézimunka — válogatott féldrágakövekből, szeretettel alkotva.
-      </p>
+        <div className="space-y-4">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
+            From the heart by Borbolya
+          </p>
+          <p className="max-w-[24ch] text-sm leading-7 text-[#7d5b75] sm:text-[15px]">
+            Megbízható, eredeti féldrágakövekből készített kollekciók,
+            finoman nőies, modern megjelenéssel.
+          </p>
+        </div>
 
-      {/* Decorative divider */}
-      <div className="mt-6 h-px w-12 bg-gradient-to-r from-[#e3ccd8] to-transparent" />
-
-      {/* Navigation */}
-      <nav className="mt-10 flex flex-col gap-1.5">
-        {/* Elválasztó vonal a tartalom és a nav között */}
-        <div className="mb-4 h-px w-12 bg-gradient-to-r from-[#f77ff0] to-transparent" />
-
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="group flex items-center gap-3 py-1 text-[13px] text-[#7d5b75] transition-all hover:text-[#4f2348]"
-          >
-            <span className="h-px w-3 bg-[#dfc8d8] transition-all duration-300 group-hover:w-5 group-hover:bg-[#c45a85]" />
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-    </div>
+        {/* Navigációs linkek */}
+        <div className="space-y-1 pt-2">
+          <div className="mb-4 h-px w-12 bg-gradient-to-r from-[#f77ff0] to-transparent" />
+          {[
+            { label: "Főoldal", href: "/" },
+            { label: "Rólunk", href: "/about" },
+            { label: "Kapcsolat", href: "/contact" },
+            { label: "GYIK", href: "/faq" },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="group flex items-center gap-3 py-1.5 text-sm text-[#7d5b75] transition-all hover:text-[#4f2348]"
+            >
+              <span className="h-px w-4 bg-[#e3ccd8] transition-all duration-300 group-hover:w-6 group-hover:bg-[#c45a85]" />
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </aside>
   );
 }

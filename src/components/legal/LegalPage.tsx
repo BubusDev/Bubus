@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AmbientBlobs } from "@/components/AmbientBlobs";
+import { BackToHome } from "@/components/BackToHome";
 
 type Section = { id: string; title: string };
 
@@ -19,6 +20,7 @@ export function LegalPage({ eyebrow, title, lastUpdated, sections, children }: L
       <AmbientBlobs opacity={0.3} />
 
       <main className="relative mx-auto max-w-[860px] px-6 py-16 sm:py-20">
+        <BackToHome />
         {/* Breadcrumb */}
         <nav className="mb-8 flex items-center gap-2 text-xs text-[#b08898]">
           <Link href="/" className="hover:text-[#c45a85] transition">Főoldal</Link>

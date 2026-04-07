@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { AmbientBlobs } from "@/components/AmbientBlobs";
+import { BackToHome } from "@/components/BackToHome";
 
 /* ─── Data ───────────────────────────────────────────────────── */
 type Category = "Összes" | "Rendelés" | "Szállítás" | "Termékek" | "Fizetés" | "Visszaküldés";
@@ -84,6 +85,7 @@ export default function FaqPage() {
       <AmbientBlobs opacity={0.3} />
 
       <main className="mx-auto max-w-[860px] px-4 py-16 sm:px-6 sm:py-20">
+        <BackToHome />
         {/* Header */}
         <div className="mb-12 text-center">
           <p className="text-[10px] uppercase tracking-[0.34em] text-[#af7795]">Segítség</p>

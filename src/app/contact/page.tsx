@@ -3,6 +3,7 @@ import { Mail, AtSign, Clock } from "lucide-react";
 
 import { AmbientBlobs } from "@/components/AmbientBlobs";
 import { ContactForm } from "@/components/contact/ContactForm";
+import { BackToHome } from "@/components/BackToHome";
 
 export const metadata: Metadata = {
   title: "Kapcsolat — Bubus",
@@ -36,6 +37,7 @@ export default function ContactPage() {
       <AmbientBlobs opacity={0.25} />
 
       <main className="mx-auto max-w-[1160px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <BackToHome />
         {/* Header */}
         <div className="mb-12 text-center">
           <p className="text-[10px] uppercase tracking-[0.34em] text-[#af7795]">Kapcsolat</p>
