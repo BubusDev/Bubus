@@ -32,10 +32,14 @@ function PriceOptions({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const [priceMin, priceMax] = availableFilters.priceRange;
+  const low  = Math.round((priceMin + (priceMax - priceMin) * 0.33) / 1000) * 1000;
+  const high = Math.round((priceMin + (priceMax - priceMin) * 0.66) / 1000) * 1000;
+
   const presets = [
-    { label: `${formatPrice(60)} alatt`, min: undefined, max: 60 },
-    { label: `${formatPrice(60)} – ${formatPrice(80)}`, min: 60, max: 80 },
-    { label: `${formatPrice(80)} felett`, min: 80, max: undefined },
+    { label: `${formatPrice(low)} alatt`,                    min: undefined, max: low  },
+    { label: `${formatPrice(low)} – ${formatPrice(high)}`,   min: low,       max: high },
+    { label: `${formatPrice(high)} felett`,                  min: high,      max: undefined },
   ];
 
   return (
