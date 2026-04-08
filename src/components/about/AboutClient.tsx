@@ -51,6 +51,7 @@ export function AboutClient() {
       <GallerySection />
       <ValuesSection />
       <CtaSection />
+      <InstagramSection />
     </main>
   );
 }
@@ -545,7 +546,65 @@ function ValuesSection() {
   );
 }
 
-/* ─── 6. CTA ─────────────────────────────────────────────────── */
+/* ─── 6. Instagram ───────────────────────────────────────────── */
+function InstagramSection() {
+  return (
+    <section
+      className="w-full px-6 py-20 text-center"
+      style={{ background: "#1f1e1c" }}
+    >
+      {/* Eyebrow */}
+      <p
+        className="scroll-reveal text-[10px] uppercase tracking-[0.42em] text-white/30"
+        style={revealStyle(0)}
+      >
+        Kövess minket
+      </p>
+
+      {/* Handle */}
+      <a
+        href="https://instagram.com/chicksjewelry"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="scroll-reveal group mt-4 inline-flex items-center gap-3 transition"
+        style={revealStyle(80)}
+      >
+        {/* Instagram icon */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-7 w-7 text-[#c45a85] transition group-hover:text-[#e07a70]"
+        >
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+        <span
+          className="font-[family:var(--font-display)] tracking-[-0.03em] text-white transition group-hover:text-white/80"
+          style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)" }}
+        >
+          @chicksjewelry
+        </span>
+      </a>
+
+      {/* Description */}
+      <p
+        className="scroll-reveal mx-auto mt-5 text-white/45"
+        style={{ ...revealStyle(160), maxWidth: "48ch", lineHeight: "1.95", fontSize: "14px" }}
+      >
+        Párosítási ötletek karkötőkhöz, előzetes betekintés az új kollekciókba
+        és exkluzív kampányok — elsőként értesülj mindenről.
+      </p>
+    </section>
+  );
+}
+
+/* ─── 7. CTA ─────────────────────────────────────────────────── */
 function CtaSection() {
   return (
     <section
