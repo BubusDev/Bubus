@@ -14,6 +14,8 @@ type CheckoutIntentPayload = {
   shippingName?: string;
   shippingPhone?: string;
   shippingAddress?: string;
+  shippingMethod?: string;
+  foxpostPointCode?: string | null;
 };
 
 function readString(value: unknown) {
@@ -35,6 +37,8 @@ export async function POST(request: Request) {
       shippingName: readString(body.shippingName),
       shippingPhone: readString(body.shippingPhone),
       shippingAddress: readString(body.shippingAddress),
+      shippingMethod: readString(body.shippingMethod) || "foxpost",
+      foxpostPointCode: readString(body.foxpostPointCode) || null,
     });
 
     return NextResponse.json(checkout);

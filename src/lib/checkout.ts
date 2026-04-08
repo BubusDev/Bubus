@@ -16,6 +16,8 @@ type CheckoutCustomerInput = {
   shippingName: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingMethod?: string;
+  foxpostPointCode?: string | null;
 };
 
 type CheckoutCartItem = {
@@ -173,6 +175,8 @@ async function upsertPendingOrderRecord(
     shippingName: customer.shippingName,
     shippingPhone: customer.shippingPhone,
     shippingAddress: customer.shippingAddress,
+    shippingMethod: input.shippingMethod ?? "foxpost",
+    foxpostPointCode: input.foxpostPointCode ?? null,
     paymentMethod: "Stripe",
     paidAt: null,
     items: {

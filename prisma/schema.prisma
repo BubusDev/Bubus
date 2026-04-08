@@ -291,8 +291,9 @@ model Order {
   paymentStatus   OrderPaymentStatus @default(PENDING)
   internalStatus  String      @default("received")
   trackingNumber  String?
-  shippingMethod  String?
-  internalNote    String?
+  shippingMethod   String?
+  foxpostPointCode String?
+  internalNote     String?
   statusUpdatedAt DateTime?
   subtotal        Int
   total           Int

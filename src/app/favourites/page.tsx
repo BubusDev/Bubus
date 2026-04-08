@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 
@@ -15,6 +16,7 @@ import {
 } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
+import { getCuratedProductRecommendations } from "@/lib/products";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -23,6 +25,10 @@ export const metadata: Metadata = {
 export default async function FavouritesPage() {
   const user = await requireUser("/favourites");
   const favourites = await getFavouriteProducts(user.id);
+  const wishlistProductIds = favourites.map((f) => f.productId);
+  const recommended = favourites.length > 0
+    ? await getCuratedProductRecommendations(wishlistProductIds, 4)
+    : [];
 
   return (
     <AccountShell
@@ -135,6 +141,54 @@ export default async function FavouritesPage() {
             ))}
           </div>
 
+        </section>
+      )}
+
+      {/* Esetleg érdekelheti */}
+      {recommended.length > 0 && (
+        <section className="mt-16 border-t-2 border-[#1a1a1a] pt-12 px-6 sm:px-10 lg:px-16">
+          <div className="text-center mb-10">
+            <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-2">Ajánlott</p>
+            <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
+              Esetleg érdekelheti Önt
+            </h2>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="grid grid-cols-2 gap-6 max-w-[900px] w-full sm:grid-cols-4">
+              {recommended.map((product) => (
+                <article key={product.id} className="group">
+                  <Link href={`/product/${product.slug}`}>
+                    <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3">
+                      {product.imageUrl ? (
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          fill
+                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                          sizes="(max-width: 640px) 50vw, 225px"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-[#f0ede8]" />
+                      )}
+                    </div>
+                  </Link>
+                  <p className="text-[10px] uppercase tracking-[.2em] text-[#888] mb-1">
+                    {product.collectionLabel}
+                  </p>
+                  <Link
+                    href={`/product/${product.slug}`}
+                    className="text-sm text-[#1a1a1a] hover:text-[#555] transition line-clamp-1"
+                  >
+                    {product.name}
+                  </Link>
+                  <p className="text-sm font-medium text-[#1a1a1a] mt-0.5">
+                    {formatPrice(product.price)}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
       )}
     </AccountShell>
