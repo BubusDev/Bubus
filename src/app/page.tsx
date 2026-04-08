@@ -4,6 +4,7 @@ import { EditorialBrandBlock } from "@/components/home/EditorialBrandBlock";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeProductSection } from "@/components/home/HomeProductSection";
 import { ValueStrip } from "@/components/home/ValueStrip";
+import { InstagramBanner } from "@/components/InstagramBanner";
 import { getHomepageProducts } from "@/lib/products";
 
 function toQueryString(searchParams: Record<string, string | undefined>) {
@@ -75,6 +76,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 pageParam="spotlightPage"
                 searchParams={normalizedSearchParams}
               />
+
+              <InstagramBanner />
 
               <HomeProductSection
                 eyebrow="Friss kincsek"

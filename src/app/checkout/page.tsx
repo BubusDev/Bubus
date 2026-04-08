@@ -1,4 +1,5 @@
-import { CreditCard } from "lucide-react";
+import { CreditCard, Lock } from "lucide-react";
+import Link from "next/link";
 
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
@@ -36,44 +37,46 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   }
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 pb-32 pt-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f8f7f5]">
 
-      {/* Header */}
-      <header className="mb-12">
-        <p className="text-[10px] uppercase tracking-[.28em] text-[#888] mb-3">Rendelés</p>
-        <h1 className="text-[2.4rem] font-semibold leading-tight tracking-[-0.03em] text-[#1a1a1a] sm:text-[3rem]">
-          Rendelés véglegesítése
-        </h1>
-        <p className="mt-3 max-w-[480px] text-sm leading-relaxed text-[#666]">
-          Ellenőrizze az adatait, majd fejezze be a vásárlást. A fizetés biztonságosan, Stripe-on
-          keresztül történik.
-        </p>
+      {/* Checkout header — logo centered, security right */}
+      <header className="border-b border-[#e8e5e0] bg-white px-8 py-4 flex items-center justify-between">
+        <div className="w-32" />
+        <Link href="/" className="text-center">
+          <span className="font-[family:var(--font-display)] text-xl tracking-[-0.02em] text-[#1a1a1a]">
+            Chicks Jewelry
+          </span>
+        </Link>
+        <div className="flex items-center gap-2 text-[12px] text-[#888]">
+          <Lock className="h-3.5 w-3.5" />
+          Biztonságos fizetés
+        </div>
       </header>
 
-      {/* Two-column layout */}
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      {/* Content */}
+      <div className="mx-auto max-w-[1000px] px-6 py-10">
+        <div className="grid grid-cols-1 gap-10 items-start lg:grid-cols-[1fr_380px]">
 
-        {/* LEFT — wizard */}
-        <div className="border border-[#e8e5e0] bg-white p-8 sm:p-10">
-          <CheckoutClient
-            cart={cart}
-            userEmail={user.email}
-            isLoggedIn={true}
-            initialProfile={{
-              name: profile.name,
-              phone: profile.phone ?? "",
-              shippingAddress: profile.defaultShippingAddress ?? "",
-            }}
-            hasUnavailableItems={hasUnavailableItems}
-            status={resolvedSearchParams.status}
-            stripePublishableKey={getStripePublishableKey()}
-            stripeConfigured={isStripeConfigured()}
-          />
-        </div>
+          {/* Left: checkout steps */}
+          <div className="bg-white border border-[#e8e5e0] p-8">
+            <CheckoutClient
+              cart={cart}
+              userEmail={user.email}
+              isLoggedIn={true}
+              initialProfile={{
+                name: profile.name,
+                phone: profile.phone ?? "",
+                shippingAddress: profile.defaultShippingAddress ?? "",
+              }}
+              hasUnavailableItems={hasUnavailableItems}
+              status={resolvedSearchParams.status}
+              stripePublishableKey={getStripePublishableKey()}
+              stripeConfigured={isStripeConfigured()}
+            />
+          </div>
 
-        {/* RIGHT — order summary */}
-        <aside>
-          <div className="sticky top-24 border border-[#e8e5e0] bg-white">
+          {/* Right: order summary — sticky */}
+          <div className="sticky top-6 bg-white border border-[#e8e5e0]">
 
             <div className="bg-[#1a1a1a] px-6 py-5">
               <p className="text-[10px] uppercase tracking-[.28em] text-[#999] mb-1">
@@ -109,16 +112,13 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                 </span>
               </div>
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#aaa]">
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
+                <Lock className="h-3.5 w-3.5" />
                 Biztonságos fizetés · Stripe
               </div>
             </div>
           </div>
-        </aside>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

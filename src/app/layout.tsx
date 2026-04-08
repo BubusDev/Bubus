@@ -5,6 +5,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Header } from "@/components/Header";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getHeaderCounts } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
@@ -41,6 +42,7 @@ export default async function RootLayout({
           />
           <CategoryNav />
           {children}
+          <SiteFooter />
         </AuthSessionProvider>
       </body>
     </html>

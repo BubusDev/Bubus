@@ -146,19 +146,21 @@ export default async function FavouritesPage() {
 
       {/* Esetleg érdekelheti */}
       {recommended.length > 0 && (
-        <section className="mt-16 border-t-2 border-[#1a1a1a] pt-12 px-6 sm:px-10 lg:px-16">
-          <div className="text-center mb-10">
-            <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-2">Ajánlott</p>
-            <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
-              Esetleg érdekelheti Önt
-            </h2>
-          </div>
+        <section className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8 bg-white border-t border-b border-[#e8e5e0] px-4 sm:px-6 lg:px-8 py-12">
+          <div className="mx-auto max-w-[900px]">
 
-          <div className="flex justify-center">
-            <div className="grid grid-cols-2 gap-6 max-w-[900px] w-full sm:grid-cols-4">
+            <div className="text-center mb-10">
+              <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-2">Ajánlott</p>
+              <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
+                Esetleg érdekelheti Önt
+              </h2>
+              <p className="mt-2 text-sm text-[#666]">A kedvencei alapján válogatva</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
               {recommended.map((product) => (
-                <article key={product.id} className="group">
-                  <Link href={`/product/${product.slug}`}>
+                <article key={product.id} className="group text-center">
+                  <Link href={`/product/${product.slug}?redirectTo=/favourites`}>
                     <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3">
                       {product.imageUrl ? (
                         <Image

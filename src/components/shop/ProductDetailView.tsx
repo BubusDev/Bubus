@@ -173,14 +173,24 @@ export function ProductDetailView({
 
       {/* Ajánlott termékek */}
       {relatedProducts.length > 0 && (
-        <section className="mt-20 border-t border-[#e8e5e0] pt-12">
-          <h2 className="mb-8 font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
-            Neked ajánljuk
-          </h2>
-          <RelatedProducts
-            products={relatedProducts}
-            redirectTo={`/product/${product.slug}`}
-          />
+        <section className="mt-20 -mx-4 sm:-mx-6 lg:-mx-8 bg-white border-t border-[#e8e5e0] px-4 sm:px-6 lg:px-8 py-14">
+          <div className="mx-auto max-w-[1100px]">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-1">Ajánlott</p>
+                <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
+                  Ez is érdekelheti Önt
+                </h2>
+              </div>
+              <a href="/new-in" className="text-sm text-[#888] hover:text-[#1a1a1a] transition">
+                Összes termék →
+              </a>
+            </div>
+            <RelatedProducts
+              products={relatedProducts}
+              redirectTo={`/product/${product.slug}`}
+            />
+          </div>
         </section>
       )}
     </main>
