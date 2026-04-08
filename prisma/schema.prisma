@@ -289,6 +289,11 @@ model Order {
   orderNumber     String      @unique
   status          String
   paymentStatus   OrderPaymentStatus @default(PENDING)
+  internalStatus  String      @default("received")
+  trackingNumber  String?
+  shippingMethod  String?
+  internalNote    String?
+  statusUpdatedAt DateTime?
   subtotal        Int
   total           Int
   currency        String      @default("HUF")
@@ -305,6 +310,7 @@ model Order {
 
   @@index([userId, createdAt])
   @@index([paymentStatus, createdAt])
+  @@index([internalStatus, createdAt])
 }
 
 model OrderItem {

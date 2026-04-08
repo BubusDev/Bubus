@@ -5,7 +5,13 @@ import {
   getAdminSpecialEditionCampaign,
 } from "@/lib/products";
 
-export default async function AdminSpecialEditionPage() {
+export default async function AdminSpecialEditionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   const [campaign, products] = await Promise.all([
     getAdminSpecialEditionCampaign(),
     getAdminSelectableProducts(),
@@ -14,8 +20,13 @@ export default async function AdminSpecialEditionPage() {
   return (
     <AdminShell
       title="Special Edition"
-      description="Manage the dedicated Special Edition campaign flow, including the global active state and the explicit left/right image assignment for each entry."
+      description="A limitált kampány kezelése — aktív állapot és termékenkénti képek beállítása."
     >
+      {error && (
+        <div className="mb-5 border border-[#fca5a5] bg-[#fef2f2] px-4 py-3 text-[13px] text-[#b91c1c]">
+          {decodeURIComponent(error)}
+        </div>
+      )}
       <AdminSpecialEditionManager campaign={campaign} products={products} />
     </AdminShell>
   );

@@ -39,9 +39,9 @@ function HeaderActionButton({
       href={href}
       aria-label={label}
       data-cart-icon-target={isCartButton ? "cart" : undefined}
-      className="group relative inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent text-[#5a4651] transition duration-300 hover:border-[#e8d6dd] hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+      className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
     >
-      <span className="transition duration-300 group-hover:scale-105">
+      <span className="transition-transform duration-200 group-hover:scale-105">
         {children}
       </span>
 
@@ -50,6 +50,9 @@ function HeaderActionButton({
           {badgeCount! > 9 ? "9+" : badgeCount}
         </span>
       ) : null}
+
+      {/* underline dot */}
+      <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
     </Link>
   );
 }
@@ -112,38 +115,40 @@ export function Header({
           </div>
         </nav>
 
-        <nav aria-label="Hasznos navigáció" className="hidden items-center gap-2 md:flex">
-          <div className="flex items-center gap-0.5 rounded-full border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] px-1.5 py-1 shadow-[0_12px_30px_rgba(138,95,120,0.08)] backdrop-blur-xl">
-            <HeaderActionButton
-              href="/favourites"
-              label="Kedvencek"
-              badgeCount={favouritesCount}
+        {/* Desktop icon nav — no background pill wrapper */}
+        <nav aria-label="Hasznos navigáció" className="hidden items-center gap-1 md:flex">
+          <HeaderActionButton
+            href="/favourites"
+            label="Kedvencek"
+            badgeCount={favouritesCount}
+          >
+            <Heart className="h-[1.1rem] w-[1.1rem]" />
+          </HeaderActionButton>
+
+          <HeaderActionButton
+            href="/cart"
+            label="Kosár"
+            badgeCount={cartCount}
+          >
+            <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
+          </HeaderActionButton>
+
+          <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
+
+          {user ? (
+            <ProfileDropdown user={user} />
+          ) : (
+            <Link
+              href="/sign-in"
+              aria-label="Belépés"
+              className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
             >
-              <Heart className="h-[1.1rem] w-[1.1rem]" />
-            </HeaderActionButton>
-
-            <HeaderActionButton
-              href="/cart"
-              label="Kosár"
-              badgeCount={cartCount}
-            >
-              <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
-            </HeaderActionButton>
-
-            <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
-
-            {user ? (
-              <ProfileDropdown user={user} />
-            ) : (
-              <Link
-                href="/sign-in"
-                aria-label="Belépés"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-transparent text-[#5a4651] transition duration-300 hover:border-[#e8d6dd] hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-              >
+              <span className="transition-transform duration-200 group-hover:scale-105">
                 <User className="h-[1.1rem] w-[1.1rem]" />
-              </Link>
-            )}
-          </div>
+              </span>
+              <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
+            </Link>
+          )}
         </nav>
 
         <button
