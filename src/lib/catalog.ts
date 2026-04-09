@@ -252,12 +252,12 @@ export function getStripeMinimumAmount(currency: string) {
   return STRIPE_MINIMUM_AMOUNTS[currency.toLowerCase()] ?? null;
 }
 
-export function toStripeAmount(amountInStoredCurrency: number, currency = STRIPE_CURRENCY) {
+export function toStripeAmount(amountInStoredCurrency: number, currency: string = STRIPE_CURRENCY) {
   const normalizedAmount = normalizeStoredPrice(amountInStoredCurrency);
   return normalizedAmount * getStripeChargeMultiplier(currency);
 }
 
-export function fromStripeAmount(stripeAmount: number, currency = STRIPE_CURRENCY) {
+export function fromStripeAmount(stripeAmount: number, currency: string = STRIPE_CURRENCY) {
   const normalizedAmount = normalizeStoredPrice(stripeAmount);
   const multiplier = getStripeChargeMultiplier(currency);
 
@@ -272,7 +272,7 @@ export function fromStripeAmount(stripeAmount: number, currency = STRIPE_CURRENC
   return normalizedAmount / multiplier;
 }
 
-export function isStripeAmountBelowMinimum(stripeAmount: number, currency = STRIPE_CURRENCY) {
+export function isStripeAmountBelowMinimum(stripeAmount: number, currency: string = STRIPE_CURRENCY) {
   const minimumAmount = getStripeMinimumAmount(currency);
 
   if (minimumAmount == null) {
