@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 
 import { ConfirmationStatusCard } from "@/components/checkout/ConfirmationStatusCard";
-import { getOrderForUser, formatDate } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { formatDate } from "@/lib/account";
 import { formatPrice } from "@/lib/catalog";
+import { getAccessibleCheckoutOrder } from "@/lib/order-access";
 
 type ConfirmationPageProps = {
   params: Promise<{ orderId: string }>;
@@ -14,10 +14,9 @@ export default async function ConfirmationPage({
   params,
   searchParams,
 }: ConfirmationPageProps) {
-  const user = await requireUser("/orders");
   const { orderId } = await params;
   const resolvedSearchParams = await searchParams;
-  const order = await getOrderForUser(user.id, orderId);
+  const order = await getAccessibleCheckoutOrder(orderId);
 
   if (!order) {
     notFound();
@@ -32,6 +31,7 @@ export default async function ConfirmationPage({
         totalLabel={formatPrice(order.total)}
         initialPaymentStatus={order.paymentStatus}
         redirectStatus={resolvedSearchParams.redirect_status}
+        canViewOrder={Boolean(order.userId)}
       />
     </main>
   );

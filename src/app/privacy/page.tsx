@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Adatkezelési tájékoztató — Bubus",
-  description: "Tájékoztató arról, hogyan kezeljük személyes adataidat a Bubus webáruházban.",
+  title: "Adatkezelési tájékoztató — Chicks Jewelry",
+  description: "Tájékoztató arról, hogyan kezeljük személyes adataidat a Chicks Jewelry webáruházban.",
 };
 
 const sections = [
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
     >
       <h2 id="adatkezelo">Az adatkezelő</h2>
       <p>
-        <strong>Cégnév:</strong> Bubus Ékszer (egyéni vállalkozó)<br />
+        <strong>Cégnév:</strong> Chicks Jewelry (egyéni vállalkozó)<br />
         <strong>Székhely:</strong> Budapest, Magyarország<br />
         <strong>E-mail:</strong> hello@bubus.hu
       </p>

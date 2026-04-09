@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice } from "@/lib/catalog";
-import { updateOrderInternalStatusAction } from "@/app/admin/orders/actions";
+import {
+  resendOrderStatusUpdateEmailAction,
+  updateOrderInternalStatusAction,
+} from "@/app/admin/orders/actions";
+import { getOrderStatusUpdateEmailAdminState } from "@/lib/order-status-email";
 
 // These fields are added via migration — cast until Prisma client is regenerated
 type OrderWithManagement = Awaited<ReturnType<typeof db.order.findUnique>> & {
@@ -38,7 +42,8 @@ export default async function AdminOrderDetailPage({
 }) {
   const { id } = await params;
 
-  const orderRaw = await db.order.findUnique({
+  const [orderRaw, statusEmail] = await Promise.all([
+    db.order.findUnique({
     where: { id },
     include: {
       user: { select: { name: true, email: true } },
@@ -50,12 +55,13 @@ export default async function AdminOrderDetailPage({
         },
       },
     },
-  });
+    }),
+    getOrderStatusUpdateEmailAdminState(id),
+  ]);
 
   if (!orderRaw) notFound();
 
   // Cast to include the new fields added via migration
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const order = orderRaw as OrderWithManagement & typeof orderRaw;
 
   const cfg = statusColors[order.internalStatus] ?? statusColors.received;
@@ -80,7 +86,7 @@ export default async function AdminOrderDetailPage({
               </div>
               <div>
                 <p className="text-[11px] text-[#888]">Email</p>
-                <p className="font-medium text-[#1a1a1a]">{order.user.email}</p>
+                <p className="font-medium text-[#1a1a1a]">{order.user?.email ?? order.guestEmail ?? "—"}</p>
               </div>
               <div>
                 <p className="text-[11px] text-[#888]">Szállítási cím</p>
@@ -147,6 +153,80 @@ export default async function AdminOrderDetailPage({
                 Megjegyzés mentése
               </button>
             </form>
+          </section>
+
+          {/* Status update email preview */}
+          <section className="border border-[#e8e5e0] bg-white p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-[10px] uppercase tracking-[.18em] text-[#888]">Státusz email műveletek</h2>
+                <p className="mt-2 text-sm text-[#555]">
+                  Az aktuális customer-facing állapothoz tartozó email előnézete és küldési állapota.
+                </p>
+              </div>
+              <form action={resendOrderStatusUpdateEmailAction}>
+                <input type="hidden" name="orderId" value={order.id} />
+                <button
+                  type="submit"
+                  disabled={!statusEmail?.projectedEmailUpdateKey || statusEmail.isSending}
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-[#1a1a1a] px-4 text-[13px] font-medium text-white transition hover:bg-[#333] disabled:cursor-not-allowed disabled:bg-[#c8c3be]"
+                >
+                  Aktuális email újraküldése
+                </button>
+              </form>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Jelenlegi projected státusz</p>
+                <p className="mt-1 font-medium text-[#1a1a1a]">{statusEmail?.projectedStatusLabel ?? "—"}</p>
+              </div>
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Jelenlegi projected email key</p>
+                <p className="mt-1 font-mono text-[#1a1a1a]">{statusEmail?.projectedEmailUpdateKey ?? "nincs küldhető email"}</p>
+              </div>
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Utolsó sikeres email key</p>
+                <p className="mt-1 font-mono text-[#1a1a1a]">{statusEmail?.lastStatusUpdateEmailKey ?? "—"}</p>
+              </div>
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Küldés folyamatban</p>
+                <p className="mt-1 font-medium text-[#1a1a1a]">{statusEmail?.isSending ? "Igen" : "Nem"}</p>
+              </div>
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Aktív sending key</p>
+                <p className="mt-1 font-mono text-[#1a1a1a]">{statusEmail?.statusUpdateEmailSendingKey ?? "—"}</p>
+              </div>
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-3 text-[13px]">
+                <p className="text-[11px] text-[#888]">Utolsó sikeres küldés</p>
+                <p className="mt-1 font-medium text-[#1a1a1a]">
+                  {statusEmail?.statusUpdateEmailSentAt
+                    ? statusEmail.statusUpdateEmailSentAt.toLocaleDateString("hu-HU", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "—"}
+                </p>
+              </div>
+            </div>
+
+            {statusEmail?.preview ? (
+              <div className="mt-5">
+                <p className="mb-2 text-[11px] text-[#888]">Email tárgy</p>
+                <p className="mb-4 font-medium text-[#1a1a1a]">{statusEmail.preview.subject}</p>
+                <div
+                  className="overflow-hidden border border-[#e8e5e0] bg-[#f6f2ed]"
+                  dangerouslySetInnerHTML={{ __html: statusEmail.preview.html }}
+                />
+              </div>
+            ) : (
+              <div className="mt-5 border border-[#f0eeec] bg-[#faf9f7] p-4 text-sm text-[#666]">
+                A jelenlegi rendelésállapothoz most nem tartozik külön customer status-update email.
+              </div>
+            )}
           </section>
         </div>
 

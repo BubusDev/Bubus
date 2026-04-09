@@ -70,50 +70,6 @@ export function ProductCard({
           )}
         </Link>
 
-        {/* Hover overlay — icons stacked top-right */}
-        <div className="absolute right-3 top-3 z-10 flex flex-col gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <AddToCartIconButton
-            productId={product.id}
-            quantity={1}
-            redirectTo={redirectTo}
-            disabled={isOutOfStock}
-            ariaLabel={`Kosárba: ${product.name}`}
-            soldOutAriaLabel={`${product.name} elfogyott`}
-            iconClassName="h-4 w-4"
-            baseClassName="flex h-9 w-9 items-center justify-center bg-white/90 backdrop-blur-sm border border-[#e8e5e0] transition hover:border-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
-            disabledClassName="cursor-not-allowed text-[#ccc]"
-            addedClassName="text-[#c45a85]"
-            idleClassName="text-[#888] hover:text-[#1a1a1a]"
-          />
-
-          <form
-            action={() => {
-              startWishlistTransition(async () => {
-                await onFavouriteToggle?.(product.id, isFavourite);
-              });
-            }}
-          >
-            <button
-              type="submit"
-              aria-label={
-                isFavourite
-                  ? `Eltávolítás a kedvencekből: ${product.name}`
-                  : `Kedvencekhez adás: ${product.name}`
-              }
-              aria-pressed={isFavourite}
-              disabled={isHeartPending}
-              className={`flex h-9 w-9 items-center justify-center bg-white/90 backdrop-blur-sm border border-[#e8e5e0] transition hover:border-[#c45a85] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
-                isFavourite ? "text-[#c45a85]" : "text-[#888]"
-              } ${isHeartPending ? "opacity-60" : ""}`}
-            >
-              <Heart
-                className={`h-4 w-4 transition-all duration-200 ${
-                  isFavourite ? "fill-current" : ""
-                }`}
-              />
-            </button>
-          </form>
-        </div>
       </div>
 
       {/* Info */}
@@ -128,6 +84,51 @@ export function ProductCard({
           {product.name}
         </Link>
         <p className="mt-1 text-sm text-[#444]">{formatPrice(product.price)}</p>
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-3 flex gap-2">
+        <AddToCartIconButton
+          productId={product.id}
+          quantity={1}
+          redirectTo={redirectTo}
+          disabled={isOutOfStock}
+          ariaLabel={`Kosárba: ${product.name}`}
+          soldOutAriaLabel={`${product.name} elfogyott`}
+          iconClassName="h-4 w-4"
+          baseClassName="flex h-9 w-9 items-center justify-center border border-[#e8e5e0] transition hover:border-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
+          disabledClassName="cursor-not-allowed text-[#ccc]"
+          addedClassName="text-[#c45a85]"
+          idleClassName="text-[#888] hover:text-[#1a1a1a]"
+        />
+
+        <form
+          action={() => {
+            startWishlistTransition(async () => {
+              await onFavouriteToggle?.(product.id, isFavourite);
+            });
+          }}
+        >
+          <button
+            type="submit"
+            aria-label={
+              isFavourite
+                ? `Eltávolítás a kedvencekből: ${product.name}`
+                : `Kedvencekhez adás: ${product.name}`
+            }
+            aria-pressed={isFavourite}
+            disabled={isHeartPending}
+            className={`flex h-9 w-9 items-center justify-center border border-[#e8e5e0] transition hover:border-[#c45a85] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
+              isFavourite ? "text-[#c45a85]" : "text-[#888]"
+            } ${isHeartPending ? "opacity-60" : ""}`}
+          >
+            <Heart
+              className={`h-4 w-4 transition-all duration-200 ${
+                isFavourite ? "fill-current" : ""
+              }`}
+            />
+          </button>
+        </form>
       </div>
     </article>
   );

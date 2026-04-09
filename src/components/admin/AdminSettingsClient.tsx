@@ -213,8 +213,8 @@ function GeneralPanel() {
   return (
     <Card title="Bolt — Általános" description="Az üzlet neve, URL-je és alapadatai.">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Bolt neve" name="shopName" defaultValue="Bubus" />
-        <Field label="URL azonosító" name="shopSlug" defaultValue="bubus" />
+        <Field label="Bolt neve" name="shopName" defaultValue="Chicks Jewelry" />
+        <Field label="URL azonosító" name="shopSlug" defaultValue="chicks-jewelry" />
         <div className="sm:col-span-2">
           <label className="mb-1.5 block text-sm text-[#5b344c]">Leírás</label>
           <textarea

@@ -3,8 +3,9 @@ import Link from "next/link";
 
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
-import { getCheckoutContext } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { getRequestCart } from "@/lib/account";
+import { getCheckoutSession } from "@/lib/checkoutSession";
+import { getCurrentUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/catalog";
 import { getStripePublishableKey, isStripeConfigured } from "@/lib/stripe";
 
@@ -13,9 +14,14 @@ type CheckoutPageProps = {
 };
 
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
-  const user = await requireUser("/checkout");
-  const { user: profile, cart } = await getCheckoutContext(user.id);
+  const [user, checkoutSession] = await Promise.all([
+    getCurrentUser(),
+    getCheckoutSession(),
+  ]);
+  const { cart } = await getRequestCart();
   const resolvedSearchParams = await searchParams;
+  const initialStep = user?.emailVerifiedAt || checkoutSession?.email ? 1 : 0;
+  const isLoggedIn = Boolean(user?.emailVerifiedAt);
 
   const hasUnavailableItems = cart.items.some(
     (item) => !item.isAvailable || item.exceedsStock,
@@ -61,12 +67,13 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
           <div className="bg-white border border-[#e8e5e0] p-8">
             <CheckoutClient
               cart={cart}
-              userEmail={user.email}
-              isLoggedIn={true}
+              initialStep={initialStep}
+              userEmail={user?.email}
+              isLoggedIn={isLoggedIn}
               initialProfile={{
-                name: profile.name,
-                phone: profile.phone ?? "",
-                shippingAddress: profile.defaultShippingAddress ?? "",
+                name: user?.name ?? "",
+                phone: user?.phone ?? "",
+                shippingAddress: user?.defaultShippingAddress ?? "",
               }}
               hasUnavailableItems={hasUnavailableItems}
               status={resolvedSearchParams.status}

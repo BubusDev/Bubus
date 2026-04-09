@@ -1,4 +1,7 @@
 import { getAuthBaseUrl } from "@/lib/env";
+import { renderGuestOrderRecoveryEmail } from "@/lib/email/guest-order-recovery";
+import { renderOrderConfirmationEmail } from "@/lib/email/order-confirmation";
+import { renderOrderStatusUpdateEmail } from "@/lib/email/order-status-update";
 
 type EmailPreviewResult = {
   previewUrl?: string;
@@ -30,6 +33,11 @@ export function buildEmailChangeConfirmationUrl(token: string) {
     `/confirm-email-change?token=${encodeURIComponent(token)}`,
     baseUrl,
   ).toString();
+}
+
+export function buildGuestOrderRecoveryUrl(token: string) {
+  const baseUrl = getAuthBaseUrl();
+  return new URL(`/order-status/recover?token=${encodeURIComponent(token)}`, baseUrl).toString();
 }
 
 function getEmailFromAddress() {
@@ -226,6 +234,149 @@ export async function sendContactEmail({
       `<strong>Tárgy:</strong> ${escapedSubject}</p>`,
       `<p>${escapedMessage}</p>`,
     ].join(""),
+  });
+
+  return {};
+}
+
+export async function sendOrderConfirmationEmail({
+  email,
+  accessModel,
+  orderNumber,
+  totalLabel,
+  createdAtLabel,
+  shippingName,
+  shippingAddress,
+  items,
+}: {
+  email: string;
+  accessModel: "authenticated" | "guest";
+  orderNumber: string;
+  totalLabel: string;
+  createdAtLabel: string;
+  shippingName: string;
+  shippingAddress: string;
+  items: Array<{ name: string; quantity: number; unitPriceLabel: string; lineTotalLabel: string }>;
+}): Promise<EmailPreviewResult> {
+  const renderedEmail = renderOrderConfirmationEmail({
+    locale: "hu",
+    accessModel,
+    orderNumber,
+    totalLabel,
+    createdAtLabel,
+    shippingName,
+    shippingAddress,
+    items,
+  });
+
+  if (isDevelopment()) {
+    console.info("[checkout] Order confirmation email prepared", {
+      to: email,
+      accessModel,
+      orderNumber,
+      totalLabel,
+      createdAtLabel,
+      shippingName,
+      shippingAddress,
+      subject: renderedEmail.subject,
+    });
+    return {};
+  }
+
+  await sendEmail({
+    to: email,
+    subject: renderedEmail.subject,
+    text: renderedEmail.text,
+    html: renderedEmail.html,
+  });
+
+  return {};
+}
+
+export async function sendOrderStatusUpdateEmail({
+  email,
+  accessModel,
+  orderNumber,
+  statusLabel,
+  statusDetail,
+  trackingNumber,
+  shippingMethodLabel,
+  lastUpdatedLabel,
+}: {
+  email: string;
+  accessModel: "authenticated" | "guest";
+  orderNumber: string;
+  statusLabel: string;
+  statusDetail: string;
+  trackingNumber?: string | null;
+  shippingMethodLabel?: string | null;
+  lastUpdatedLabel?: string | null;
+}): Promise<EmailPreviewResult> {
+  const renderedEmail = renderOrderStatusUpdateEmail({
+    locale: "hu",
+    accessModel,
+    orderNumber,
+    statusLabel,
+    statusDetail,
+    trackingNumber,
+    shippingMethodLabel,
+    lastUpdatedLabel,
+  });
+
+  if (isDevelopment()) {
+    console.info("[orders] Order status update email prepared", {
+      to: email,
+      accessModel,
+      orderNumber,
+      statusLabel,
+      trackingNumber,
+      shippingMethodLabel,
+      lastUpdatedLabel,
+      subject: renderedEmail.subject,
+    });
+    return {};
+  }
+
+  await sendEmail({
+    to: email,
+    subject: renderedEmail.subject,
+    text: renderedEmail.text,
+    html: renderedEmail.html,
+  });
+
+  return {};
+}
+
+export async function sendGuestOrderRecoveryEmail({
+  email,
+  orderNumber,
+  token,
+}: {
+  email: string;
+  orderNumber: string;
+  token: string;
+}): Promise<EmailPreviewResult> {
+  const recoveryUrl = buildGuestOrderRecoveryUrl(token);
+  const renderedEmail = renderGuestOrderRecoveryEmail({
+    orderNumber,
+    recoveryUrl,
+  });
+
+  if (isDevelopment()) {
+    console.info("[orders] Guest order recovery email prepared", {
+      to: email,
+      orderNumber,
+      recoveryUrl,
+      subject: renderedEmail.subject,
+    });
+    return {};
+  }
+
+  await sendEmail({
+    to: email,
+    subject: renderedEmail.subject,
+    text: renderedEmail.text,
+    html: renderedEmail.html,
   });
 
   return {};

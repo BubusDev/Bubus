@@ -7,6 +7,7 @@ import { AccountShell } from "@/components/account/AccountShell";
 import { formatDate, getOrderForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/catalog";
+import { getCustomerOrderStatusView } from "@/lib/order-status";
 
 type OrderDetailPageProps = {
   params: Promise<{ orderId: string }>;
@@ -21,16 +22,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     notFound();
   }
 
-  const paymentStatusNote =
-    order.paymentStatus === "PAID"
-      ? "A Stripe sikeresen visszaigazolta a fizetést."
-      : order.paymentStatus === "PROCESSING" || order.paymentStatus === "FINALIZING"
-        ? "A Stripe még feldolgozza a tranzakciót."
-        : order.paymentStatus === "STOCK_UNAVAILABLE"
-          ? "A fizetés után készleteltérés történt, ezért manuális ellenőrzés szükséges."
-          : order.paymentStatus === "FAILED" || order.paymentStatus === "CANCELED"
-            ? "A fizetés nem zárult le sikeresen."
-            : "A fizetés visszaigazolására várunk.";
+  const customerStatus = getCustomerOrderStatusView({
+    status: order.status,
+    paymentStatus: order.paymentStatus,
+    internalStatus: order.internalStatus,
+    trackingNumber: order.trackingNumber,
+    shippingMethod: order.shippingMethod,
+    statusUpdatedAt: order.statusUpdatedAt,
+  });
 
   return (
     <AccountShell
@@ -45,9 +44,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               {order.orderNumber}
             </p>
             <h2 className="mt-3 font-[family:var(--font-display)] text-[2rem] text-[#4d2741]">
-              {order.status}
+              {customerStatus.label}
             </h2>
             <p className="mt-2 text-sm text-[#7a6070]">{formatDate(order.createdAt)}</p>
+            <p className="mt-3 max-w-[52ch] text-sm leading-7 text-[#7a6070]">{customerStatus.detail}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <form action={reorderAction}>
@@ -79,12 +79,50 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff9fc] p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Fizetés</p>
             <p className="mt-3 text-sm font-medium text-[#4d2741]">{order.paymentMethod}</p>
-            <p className="mt-2 text-sm text-[#7a6070]">{paymentStatusNote}</p>
+            <p className="mt-2 text-sm text-[#7a6070]">
+              {order.paymentStatus === "PAID"
+                ? "A Stripe sikeresen visszaigazolta a fizetést."
+                : order.paymentStatus === "PROCESSING" || order.paymentStatus === "FINALIZING"
+                  ? "A Stripe még feldolgozza a tranzakciót."
+                  : order.paymentStatus === "STOCK_UNAVAILABLE"
+                    ? "A fizetés után készleteltérés történt, ezért manuális ellenőrzés szükséges."
+                    : order.paymentStatus === "FAILED" || order.paymentStatus === "CANCELED"
+                      ? "A fizetés nem zárult le sikeresen."
+                      : "A fizetés visszaigazolására várunk."}
+            </p>
           </div>
           <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff9fc] p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Összesen</p>
             <p className="mt-3 text-2xl font-semibold text-[#4d2741]">{formatPrice(order.total)}</p>
             <p className="mt-2 text-sm text-[#7a6070]">Részösszeg: {formatPrice(order.subtotal)}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-white/90 p-4">
+            <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Rendelés állapota</p>
+            <p className="mt-3 text-sm font-medium text-[#4d2741]">{customerStatus.label}</p>
+            <p className="mt-2 text-sm leading-7 text-[#7a6070]">{customerStatus.detail}</p>
+          </div>
+          <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-white/90 p-4">
+            <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Szállítási követés</p>
+            <p className="mt-3 text-sm font-medium text-[#4d2741]">
+              {customerStatus.trackingNumber ?? "Még nincs tracking szám"}
+            </p>
+            <p className="mt-2 text-sm text-[#7a6070]">
+              {customerStatus.shippingMethodLabel
+                ? `Szállítási mód: ${customerStatus.shippingMethodLabel}`
+                : "A szállítási mód hamarosan frissül."}
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] border border-[#f0d8e5] bg-white/90 p-4">
+            <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Utolsó frissítés</p>
+            <p className="mt-3 text-sm font-medium text-[#4d2741]">
+              {customerStatus.lastUpdatedLabel ?? "Még nincs fulfillment frissítés"}
+            </p>
+            <p className="mt-2 text-sm text-[#7a6070]">
+              Ha új státusz vagy tracking szám kerül a rendeléshez, itt fog megjelenni.
+            </p>
           </div>
         </div>
 

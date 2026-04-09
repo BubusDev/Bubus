@@ -26,7 +26,7 @@ const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Hogyan gondozzam az ékszeremet?",
-    a: "Kerüld a vízzel, parfümmel és vegyi anyagokkal való érintkezést. Puha kendővel töröld le használat után. Tároláskor tedd vissza a Bubus dobozba, fénytől védett helyre.",
+    a: "Kerüld a vízzel, parfümmel és vegyi anyagokkal való érintkezést. Puha kendővel töröld le használat után. Tároláskor tedd vissza a Chicks Jewelry dobozba, fénytől védett helyre.",
   },
   {
     q: "Visszaküldhetem, ha nem tetszik?",
@@ -42,7 +42,7 @@ const faqs: { q: string; a: string }[] = [
   },
   {
     q: "Hogyan csomagoljátok a rendeléseket?",
-    a: "Minden darab egyedi Bubus dobozban érkezik, szövetpárnán, köteléssel. Ajándékba is tökéletes, ahogy van — külön kérésre köszöntőkártyát is teszünk mellé.",
+    a: "Minden darab egyedi Chicks Jewelry dobozban érkezik, szövetpárnán, köteléssel. Ajándékba is tökéletes, ahogy van — külön kérésre köszöntőkártyát is teszünk mellé.",
   },
   {
     q: "Mikor kapom meg a rendelésemet?",

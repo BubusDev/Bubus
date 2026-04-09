@@ -1364,7 +1364,7 @@ export function AdminProductForm({
                     Google előnézet
                   </p>
                   <p className="text-sm font-medium text-[#1a0dab]">
-                    {formValues.name || "Terméknév"} – Bubus
+                    {formValues.name || "Terméknév"} – Chicks Jewelry
                   </p>
                   <p className="text-xs text-[#006621]">bubus.hu/termekek/{formValues.slug || "slug"}</p>
                   <p className="mt-1 text-xs text-[#545454] line-clamp-2">

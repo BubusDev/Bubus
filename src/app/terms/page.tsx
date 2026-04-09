@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "ÁSZF — Bubus",
-  description: "Általános Szerződési Feltételek a Bubus ékszer webáruházhoz.",
+  title: "ÁSZF — Chicks Jewelry",
+  description: "Általános Szerződési Feltételek a Chicks Jewelry ékszer webáruházhoz.",
 };
 
 const sections = [
@@ -27,7 +27,7 @@ export default function TermsPage() {
     >
       <h2 id="altalanos">Általános rendelkezések</h2>
       <p>
-        Jelen Általános Szerződési Feltételek (ÁSZF) a Bubus Ékszer (továbbiakban: Szolgáltató) és
+        Jelen Általános Szerződési Feltételek (ÁSZF) a Chicks Jewelry (továbbiakban: Szolgáltató) és
         a webáruházon keresztül vásárló természetes személyek (továbbiakban: Vásárló) között
         létrejövő adásvételi szerződés feltételeit rögzítik.
       </p>
@@ -81,7 +81,7 @@ export default function TermsPage() {
       </p>
       <ul>
         <li>A termék viseletlenállapotban van</li>
-        <li>Az eredeti Bubus doboz és csomagolás sértetlen</li>
+        <li>Az eredeti Chicks Jewelry doboz és csomagolás sértetlen</li>
         <li>A terméket nem egyedi megrendelésre készítettük</li>
       </ul>
       <p>

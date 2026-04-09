@@ -20,7 +20,8 @@ type CheckoutClientProps = {
     subtotal: number;
     total: number;
   };
-  userEmail: string;
+  initialStep?: number;
+  userEmail?: string;
   isLoggedIn: boolean;
   initialProfile: {
     name: string;
@@ -35,6 +36,7 @@ type CheckoutClientProps = {
 
 export function CheckoutClient({
   cart,
+  initialStep = 0,
   userEmail,
   isLoggedIn,
   initialProfile,
@@ -43,8 +45,8 @@ export function CheckoutClient({
   stripePublishableKey,
   stripeConfigured,
 }: CheckoutClientProps) {
-  const [step, setStep] = useState(0);
-  const [email, setEmail] = useState(userEmail);
+  const [step, setStep] = useState(initialStep);
+  const [email, setEmail] = useState(userEmail ?? "");
   const [shippingName, setShippingName] = useState(initialProfile.name);
   const [shippingPhone, setShippingPhone] = useState(initialProfile.phone);
   const [shippingAddress, setShippingAddress] = useState(initialProfile.shippingAddress);
@@ -98,8 +100,7 @@ export function CheckoutClient({
 
       {step === 0 && (
         <ContactStep
-          email={email}
-          isLoggedIn={isLoggedIn}
+          userEmail={isLoggedIn ? email : undefined}
           onNext={handleContactNext}
         />
       )}

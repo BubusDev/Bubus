@@ -6,7 +6,7 @@ import { requireAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Archivált termékek — Bubus Admin",
+  title: "Archivált termékek — Chicks Jewelry Admin",
   description: "Archivált termékek visszaállítása vagy végleges törlése.",
   robots: { index: false, follow: false },
 };

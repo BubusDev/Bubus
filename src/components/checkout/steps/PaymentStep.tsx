@@ -39,6 +39,8 @@ function buildErrorMessage(
       return "Az egyik termék időközben elfogyott vagy már nincs elegendő készleten.";
     case "CART_EMPTY":
       return "A kosár kiürült. Ellenőrizd a kosarat, mielőtt újra fizetést indítasz.";
+    case "CHECKOUT_EMAIL_REQUIRED":
+      return "Előbb add meg az e-mail-címed a kapcsolati adatok lépésben.";
     case "STRIPE_NOT_CONFIGURED":
       return "A Stripe fizetés még nincs beállítva ebben a környezetben.";
     case "AMOUNT_BELOW_MINIMUM": {

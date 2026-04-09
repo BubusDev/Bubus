@@ -99,7 +99,7 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-[#1a1a1a]">{order.shippingName}</p>
-                    <p className="text-[11px] text-[#888]">{order.user.email}</p>
+                    <p className="text-[11px] text-[#888]">{order.user?.email ?? order.guestEmail ?? "—"}</p>
                   </td>
                   <td className="px-4 py-3 text-[#555]">
                     {order.items.map((item) => (

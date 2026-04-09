@@ -143,7 +143,9 @@ export default async function AdminPage() {
                   </td>
                   <td className="px-5 py-3.5 text-sm text-[#1a1a1a]">
                     {order.shippingName}
-                    <span className="block text-[11px] text-[#888]">{order.user.email}</span>
+                    <span className="block text-[11px] text-[#888]">
+                      {order.user?.email ?? order.guestEmail ?? "—"}
+                    </span>
                   </td>
                   <td className="px-5 py-3.5 text-sm font-medium text-[#1a1a1a]">
                     {formatPrice(order.total)}

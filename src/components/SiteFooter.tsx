@@ -88,7 +88,7 @@ export function SiteFooter() {
               </p>
               <ul className="space-y-2.5">
                 {[
-                  { label: "Rendelési állapot", href: "/account/orders" },
+                  { label: "Rendelési állapot", href: "/order-status" },
                   { label: "Kapcsolat", href: "/contact" },
                   { label: "Szállítás", href: "/terms#szallitas" },
                 ].map((link) => (

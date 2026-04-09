@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, LoaderCircle, ShoppingBag } from "lucide-react";
+import { AlertCircle, CheckCircle2, LoaderCircle, RefreshCcw, ShoppingBag } from "lucide-react";
 
 const POLL_INTERVAL_MS = 2500;
 
@@ -22,6 +22,7 @@ type ConfirmationStatusCardProps = {
   totalLabel: string;
   initialPaymentStatus: PaymentStatus;
   redirectStatus?: string;
+  canViewOrder?: boolean;
 };
 
 function isPendingPaymentStatus(paymentStatus: PaymentStatus) {
@@ -77,35 +78,64 @@ export function ConfirmationStatusCard({
   totalLabel,
   initialPaymentStatus,
   redirectStatus,
+  canViewOrder = false,
 }: ConfirmationStatusCardProps) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(initialPaymentStatus);
+  const [pollingError, setPollingError] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const mountedRef = useRef(true);
+
+  const refreshPaymentStatus = useCallback(async () => {
+    setIsRefreshing(true);
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        if (mountedRef.current) {
+          setPollingError(
+            "A rendelés állapotát most nem tudtuk megerősíteni. Próbáld meg újra néhány másodperc múlva.",
+          );
+        }
+        return;
+      }
+
+      const payload = (await response.json()) as { paymentStatus?: PaymentStatus };
+
+      if (mountedRef.current) {
+        setPollingError("");
+
+        if (payload.paymentStatus) {
+          setPaymentStatus(payload.paymentStatus);
+        }
+      }
+    } catch {
+      if (mountedRef.current) {
+        setPollingError(
+          "Ideiglenesen nem érhető el az állapotfrissítés. Próbáld meg újra hamarosan.",
+        );
+      }
+    } finally {
+      if (mountedRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPendingPaymentStatus(paymentStatus)) {
       return;
-    }
-
-    let isCancelled = false;
-
-    async function refreshPaymentStatus() {
-      try {
-        const response = await fetch(`/api/orders/${orderId}/status`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const payload = (await response.json()) as { paymentStatus?: PaymentStatus };
-
-        if (!isCancelled && payload.paymentStatus) {
-          setPaymentStatus(payload.paymentStatus);
-        }
-      } catch {
-        // Keep the current pending UI and try again on the next interval.
-      }
     }
 
     void refreshPaymentStatus();
@@ -115,14 +145,14 @@ export function ConfirmationStatusCard({
     }, POLL_INTERVAL_MS);
 
     return () => {
-      isCancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [orderId, paymentStatus]);
+  }, [orderId, paymentStatus, refreshPaymentStatus]);
 
   const isPaid = paymentStatus === "PAID";
   const isStockUnavailable = paymentStatus === "STOCK_UNAVAILABLE";
   const isFailed = paymentStatus === "FAILED" || paymentStatus === "CANCELED";
+  const isUnableToVerify = isPendingPaymentStatus(paymentStatus) && Boolean(pollingError);
 
   return (
     <section className="rounded-[2.5rem] border border-white/70 bg-white/78 p-8 shadow-[0_24px_55px_rgba(198,129,167,0.12)] backdrop-blur-xl sm:p-10">
@@ -132,6 +162,13 @@ export function ConfirmationStatusCard({
           eyebrow="Fizetés sikeres"
           title="Köszönjük a rendelésedet"
           description="A fizetés beérkezett, a készlet frissült, a rendelés részleteit pedig a fiókodban bármikor újra megnyithatod."
+        />
+      ) : isUnableToVerify ? (
+        <ConfirmationContent
+          tone="warning"
+          eyebrow="Ellenőrzés szükséges"
+          title="A fizetés állapota most nem ellenőrizhető"
+          description="A rendelésedet megkaptuk, de a végleges fizetési állapotot pillanatnyilag nem tudjuk visszaolvasni. Újraellenőrizheted innen, vagy frissítheted az oldalt néhány másodperc múlva."
         />
       ) : isStockUnavailable ? (
         <ConfirmationContent
@@ -175,13 +212,46 @@ export function ConfirmationStatusCard({
         </div>
       </div>
 
+      {pollingError ? (
+        <div className="mt-5 rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
+          {pollingError}
+        </div>
+      ) : null}
+
+      {isPendingPaymentStatus(paymentStatus) ? (
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              void refreshPaymentStatus();
+            }}
+            disabled={isRefreshing}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isRefreshing ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+            Állapot újraellenőrzése
+          </button>
+        </div>
+      ) : null}
+
       <div className="mt-8 flex flex-wrap justify-center gap-3">
-        {isPaid ? (
+        {isPaid && canViewOrder ? (
           <Link
             href={`/orders/${orderId}`}
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
           >
             Rendelés megtekintése
+          </Link>
+        ) : isPaid ? (
+          <Link
+            href="/"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
+          >
+            Tovább válogatok
           </Link>
         ) : (
           <Link

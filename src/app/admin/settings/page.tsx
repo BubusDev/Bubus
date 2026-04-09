@@ -5,7 +5,7 @@ import { AdminSettingsClient } from "@/components/admin/AdminSettingsClient";
 import { requireAdminUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Beállítások — Bubus Admin",
+  title: "Beállítások — Chicks Jewelry Admin",
   description: "Fiók- és boltbeállítások kezelése.",
   robots: { index: false, follow: false },
 };

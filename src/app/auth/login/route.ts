@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { AuthError } from "next-auth";
 
 import { signIn } from "../../../../auth";
+import { mergeGuestCartIntoUserCart } from "@/lib/account";
+import { verifyCredentials } from "@/lib/auth/credentials";
+import { normalizeEmail } from "@/lib/auth/validation";
+import { getGuestCartToken } from "@/lib/cartToken";
 
 export const runtime = "nodejs";
 
@@ -21,10 +25,20 @@ export async function POST(request: Request) {
   const nextPath =
     typeof formData.get("next") === "string" ? String(formData.get("next")) : "/account";
   const normalizedNextPath = normalizeNextPath(nextPath);
+  const normalizedEmail = normalizeEmail(email);
 
   try {
+    const [guestToken, user] = await Promise.all([
+      getGuestCartToken(),
+      verifyCredentials(normalizedEmail, password),
+    ]);
+
+    if (guestToken && user) {
+      await mergeGuestCartIntoUserCart(user.id, guestToken);
+    }
+
     await signIn("credentials", {
-      email,
+      email: normalizedEmail,
       password,
       redirect: false,
       redirectTo: normalizedNextPath,

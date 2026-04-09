@@ -7,24 +7,32 @@ import {
   finalizePaidOrder,
   markOrderPaymentState,
 } from "@/lib/checkout";
+import { logCheckoutEvent, resolveRequestCorrelationId } from "@/lib/checkout-observability";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  console.log("[stripe-webhook] request received", {
+  const requestCorrelationId = resolveRequestCorrelationId(request);
+  logCheckoutEvent("log", "webhook_request_received", {
+    actorType: "system",
+    status: "received",
     method: request.method,
     url: request.url,
-  });
+    requestCorrelationId,
+  }, { correlationId: requestCorrelationId });
 
   const signature = request.headers.get("stripe-signature");
   const webhookSecret = getStripeWebhookSecret();
 
   if (!signature || !webhookSecret) {
-    console.error("[stripe-webhook] configuration error", {
+    logCheckoutEvent("error", "webhook_configuration_error", {
+      actorType: "system",
+      result: "invalid_configuration",
       hasSignature: Boolean(signature),
       hasWebhookSecret: Boolean(webhookSecret),
-    });
+      requestCorrelationId,
+    }, { correlationId: requestCorrelationId });
     return NextResponse.json({ error: "Webhook is not configured." }, { status: 400 });
   }
 
@@ -36,14 +44,19 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (error) {
-    console.error("[stripe-webhook] signature verification failed", {
+    logCheckoutEvent("error", "webhook_signature_verification_failed", {
+      actorType: "system",
+      result: "signature_verification_failed",
       message: error instanceof Error ? error.message : "Invalid webhook signature.",
-    });
+      requestCorrelationId,
+    }, { correlationId: requestCorrelationId });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Invalid webhook signature." },
       { status: 400 },
     );
   }
+
+  let checkoutCorrelationId = requestCorrelationId;
 
   if ("object" in event.data && event.data.object && typeof event.data.object === "object") {
     const paymentIntentId =
@@ -58,18 +71,35 @@ export async function POST(request: Request) {
       typeof event.data.object.metadata.orderId === "string"
         ? event.data.object.metadata.orderId
         : null;
+    const metadataCorrelationId =
+      "metadata" in event.data.object &&
+      event.data.object.metadata &&
+      typeof event.data.object.metadata === "object" &&
+      "correlationId" in event.data.object.metadata &&
+      typeof event.data.object.metadata.correlationId === "string" &&
+      event.data.object.metadata.correlationId
+        ? event.data.object.metadata.correlationId
+        : null;
 
-    console.log("[stripe-webhook] event received", {
+    checkoutCorrelationId = metadataCorrelationId ?? requestCorrelationId;
+
+    logCheckoutEvent("log", "webhook_event_received", {
+      actorType: "system",
+      status: "received",
       eventType: event.type,
       paymentIntentId,
       metadataOrderId,
-    });
+      requestCorrelationId,
+    }, { correlationId: checkoutCorrelationId });
   } else {
-    console.log("[stripe-webhook] event received", {
+    logCheckoutEvent("log", "webhook_event_received", {
+      actorType: "system",
+      status: "received",
       eventType: event.type,
       paymentIntentId: null,
       metadataOrderId: null,
-    });
+      requestCorrelationId,
+    }, { correlationId: checkoutCorrelationId });
   }
 
   switch (event.type) {
@@ -78,6 +108,7 @@ export async function POST(request: Request) {
         event.data.object.id,
         OrderPaymentStatus.PROCESSING,
         "Fizetés feldolgozás alatt",
+        checkoutCorrelationId,
       );
       break;
     }
@@ -86,6 +117,7 @@ export async function POST(request: Request) {
         event.data.object.id,
         OrderPaymentStatus.FAILED,
         "Sikertelen fizetés",
+        checkoutCorrelationId,
       );
       break;
     }
@@ -94,18 +126,22 @@ export async function POST(request: Request) {
         event.data.object.id,
         OrderPaymentStatus.CANCELED,
         "Megszakított fizetés",
+        checkoutCorrelationId,
       );
       break;
     }
     case "payment_intent.succeeded": {
-      console.log("[stripe-webhook] finalization triggered", {
+      logCheckoutEvent("log", "webhook_finalization_triggered", {
+        actorType: "system",
+        status: "started",
         eventType: event.type,
         paymentIntentId: event.data.object.id,
         metadataOrderId:
           typeof event.data.object.metadata?.orderId === "string"
             ? event.data.object.metadata.orderId
             : null,
-      });
+        requestCorrelationId,
+      }, { correlationId: checkoutCorrelationId });
 
       const result = await finalizePaidOrder({
         paymentIntentId: event.data.object.id,
@@ -114,13 +150,21 @@ export async function POST(request: Request) {
           typeof event.data.object.metadata?.orderId === "string"
             ? event.data.object.metadata.orderId
             : null,
-      });
+        cartId:
+          typeof event.data.object.metadata?.cartId === "string"
+            ? event.data.object.metadata.cartId
+            : null,
+      }, checkoutCorrelationId);
 
-      console.log("[stripe-webhook] finalization result", {
+      logCheckoutEvent("log", "webhook_finalization_result", {
+        actorType: "system",
+        status: "completed",
+        result: result.type,
         eventType: event.type,
         paymentIntentId: event.data.object.id,
         resultType: result.type,
-      });
+        requestCorrelationId,
+      }, { correlationId: checkoutCorrelationId });
 
       if ("paths" in result && result.paths) {
         for (const path of result.paths) {

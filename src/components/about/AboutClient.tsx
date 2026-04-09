@@ -131,7 +131,7 @@ function HeroSection() {
                 backgroundClip: "text",
               }}
             >
-              a Bubus.
+              a Chicks Jewelry.
             </span>
           </h1>
 
@@ -147,7 +147,7 @@ function HeroSection() {
             style={{ ...revealStyle(180), maxWidth: "40ch", lineHeight: "1.95", fontSize: "15px" }}
           >
             Minden kő más. Minden darab egyedi.
-            Minden Bubus ékszer egy apró történet,
+            Minden Chicks Jewelry ékszer egy apró történet,
             amelyet te viselsz.
           </p>
 
@@ -333,7 +333,7 @@ function FounderSection() {
             style={{ ...revealStyle(160), fontSize: "15px", lineHeight: "1.9" }}
           >
             <p>
-              A Bubus egy reggelen született, amikor Sára — az alapító —
+              A Chicks Jewelry egy reggelen született, amikor Sára — az alapító —
               megtalálta a nagyanyja régi rózsakvarc karkötőjét egy dobozban.
               Abban a pillanatban értette meg: az ékszer nem csupán díszítés.
               Emlékeztet. Összeköt. Mesél.
@@ -346,7 +346,7 @@ function FounderSection() {
             </p>
             <p>
               A kézműves alkotás folyamata lassú és tudatos. Nem gyártunk
-              tömegesen. Nem sietünk. Minden Bubus ékszer annyi figyelmet kap,
+              tömegesen. Nem sietünk. Minden Chicks Jewelry ékszer annyi figyelmet kap,
               amennyit egy valódi kincs megérdemel.
             </p>
           </div>
@@ -384,7 +384,7 @@ const processSteps = [
   {
     num: "04",
     title: "Csomagolás",
-    desc: "Minden darab egyedi Bubus dobozban érkezik — ajándékba is tökéletes, ahogy van.",
+    desc: "Minden darab egyedi Chicks Jewelry dobozban érkezik — ajándékba is tökéletes, ahogy van.",
   },
 ];
 

@@ -8,8 +8,7 @@ import {
 } from "@/app/account/actions";
 import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
-import { type CartItemSummary, getCartForUser } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
 import { getCuratedProductRecommendations } from "@/lib/products";
 
@@ -341,8 +340,7 @@ function CartRecommendations({ products }: { products: Product[] }) {
 }
 
 export default async function CartPage() {
-  const user = await requireUser("/cart");
-  const cart = await getCartForUser(user.id);
+  const { cart } = await getRequestCart();
   const hasUnavailableItems = cart.items.some((item) => !item.isAvailable || item.exceedsStock);
   const recommendations = await getCuratedProductRecommendations(
     cart.items.map((item) => item.productId),

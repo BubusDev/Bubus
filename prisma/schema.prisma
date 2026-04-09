@@ -54,6 +54,11 @@ enum OrderPaymentStatus {
   STOCK_UNAVAILABLE
 }
 
+enum GuestOrderAccessTokenKind {
+  RECOVERY
+  ACCESS
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -262,11 +267,14 @@ model Favourite {
 
 model Cart {
   id        String     @id @default(cuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?    @unique
+  guestToken String?   @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([guestToken])
 }
 
 model CartItem {
@@ -285,7 +293,9 @@ model CartItem {
 
 model Order {
   id              String      @id @default(cuid())
-  userId          String
+  userId          String?
+  guestEmail      String?
+  guestAccessTokenHash String?    @unique
   orderNumber     String      @unique
   status          String
   paymentStatus   OrderPaymentStatus @default(PENDING)
@@ -304,14 +314,42 @@ model Order {
   paymentMethod   String
   stripePaymentIntentId String? @unique
   paidAt          DateTime?
+  confirmationEmailSendingAt DateTime?
+  confirmationEmailSentAt DateTime?
+  statusUpdateEmailKey       String?
+  statusUpdateEmailSendingKey String?
+  statusUpdateEmailSendingAt DateTime?
+  statusUpdateEmailSentAt    DateTime?
   items           OrderItem[]
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessTokens    GuestOrderAccessToken[]
+  user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([userId, createdAt])
   @@index([paymentStatus, createdAt])
   @@index([internalStatus, createdAt])
+}
+
+model GuestOrderAccessToken {
+  id        String                    @id @default(cuid())
+  orderId    String
+  order      Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tokenHash  String                    @unique
+  kind       GuestOrderAccessTokenKind
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime                  @default(now())
+
+  @@index([orderId, kind, expiresAt])
+}
+
+model GuestOrderRecoveryRequest {
+  id        String   @id @default(cuid())
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
 }
 
 model OrderItem {

@@ -3,11 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { addProductToCart, getOrderForUser, getOrCreateCart } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import {
+  addProductToCart,
+  addProductToResolvedCart,
+  getOrderForUser,
+  getOrCreateCart,
+  resolveRequestCart,
+} from "@/lib/account";
+import { getCurrentUser, requireUser } from "@/lib/auth";
 import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
+import { ensureGuestCartToken } from "@/lib/cartToken";
 import { db } from "@/lib/db";
 import { getAvailableToSell } from "@/lib/inventory";
 
@@ -27,7 +34,7 @@ function readPositiveInt(formData: FormData, key: string, fallback = 1) {
 
 export async function addToCartAction(formData: FormData) {
   const redirectTo = readString(formData, "redirectTo") || "/";
-  const user = await requireUser(redirectTo);
+  const user = await getCurrentUser();
   const productId = readString(formData, "productId");
   const quantity = readPositiveInt(formData, "quantity");
 
@@ -35,22 +42,39 @@ export async function addToCartAction(formData: FormData) {
     return { added: false };
   }
 
-  const added = await addProductToCart(user.id, productId, quantity);
+  const guestToken = user ? null : await ensureGuestCartToken();
+  const added = await addProductToResolvedCart(
+    {
+      userId: user?.id,
+      guestToken,
+    },
+    productId,
+    quantity,
+  );
+
   revalidatePath("/");
   revalidatePath("/", "layout");
   revalidatePath("/cart");
   revalidatePath("/favourites");
+  if (redirectTo === "/cart") {
+    revalidatePath(redirectTo);
+  }
   return { added };
 }
 
 export async function updateCartItemQuantityAction(formData: FormData) {
-  const user = await requireUser("/cart");
   const itemId = readString(formData, "itemId");
   const quantity = readPositiveInt(formData, "quantity");
+  const { owner, cart } = await resolveRequestCart(false);
 
-  const cart = await getOrCreateCart(user.id);
+  if (!owner || !cart.id) {
+    revalidatePath("/cart");
+    return;
+  }
+
+  const persistedCart = await getOrCreateCart(owner);
   const cartItem = await db.cartItem.findFirst({
-    where: { id: itemId, cartId: cart.id },
+    where: { id: itemId, cartId: persistedCart.id },
     include: {
       product: {
         select: { stockQuantity: true, reservedQuantity: true },
@@ -75,24 +99,32 @@ export async function updateCartItemQuantityAction(formData: FormData) {
   }
 
   await db.cartItem.updateMany({
-    where: { id: itemId, cartId: cart.id },
+    where: { id: itemId, cartId: persistedCart.id },
     data: { quantity: Math.min(quantity, availableToSell) },
   });
 
   revalidatePath("/cart");
+  revalidatePath("/", "layout");
 }
 
 export async function removeCartItemAction(formData: FormData) {
-  const user = await requireUser("/cart");
   const itemId = readString(formData, "itemId");
-  const cart = await getOrCreateCart(user.id);
+  const { owner, cart } = await resolveRequestCart(false);
+
+  if (!owner || !cart.id) {
+    revalidatePath("/cart");
+    return;
+  }
+
+  const persistedCart = await getOrCreateCart(owner);
 
   await db.cartItem.deleteMany({
-    where: { id: itemId, cartId: cart.id },
+    where: { id: itemId, cartId: persistedCart.id },
   });
 
   revalidatePath("/");
   revalidatePath("/cart");
+  revalidatePath("/", "layout");
 }
 
 export async function addFavouriteAction(formData: FormData) {

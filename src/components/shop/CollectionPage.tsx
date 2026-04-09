@@ -2,7 +2,6 @@ import { ActiveFilterChips } from "@/components/shop/ActiveFilterChips";
 import { CollectionSort } from "@/components/shop/CollectionSort";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
 import { ProductGrid } from "@/components/shop/ProductGrid";
-import { InstagramBanner } from "@/components/InstagramBanner";
 import {
   type CatalogFilters,
   type CategoryDefinition,
@@ -86,9 +85,6 @@ export function CollectionPage({
               </div>
               <CollectionSort currentSort={state.sort} />
             </div>
-
-            {/* Instagram banner before grid */}
-            <InstagramBanner />
 
             {/* Product grid or empty state */}
             {products.length > 0 ? (

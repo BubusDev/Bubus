@@ -6,7 +6,7 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { BackToHome } from "@/components/BackToHome";
 
 export const metadata: Metadata = {
-  title: "Kapcsolat — Bubus",
+  title: "Kapcsolat — Chicks Jewelry",
   description: "Írj nekünk! Szívesen válaszolunk rendelési, egyedi darab és egyéb kérdésekre 1-2 munkanapon belül.",
 };
 
@@ -95,7 +95,7 @@ export default function ContactPage() {
             </div>
 
             <p className="text-xs leading-7 text-[#b08898]">
-              Ha azonosító alapján keresnél minket, itt is megtalálod a Bubus fiókot.
+              Ha azonosító alapján keresnél minket, itt is megtalálod a Chicks Jewelry fiókot.
             </p>
           </div>
 

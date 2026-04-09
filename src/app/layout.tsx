@@ -5,6 +5,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Header } from "@/components/Header";
+import { InstagramBanner } from "@/components/InstagramBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getHeaderCounts } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
@@ -42,6 +43,7 @@ export default async function RootLayout({
           />
           <CategoryNav />
           {children}
+          <InstagramBanner />
           <SiteFooter />
         </AuthSessionProvider>
       </body>

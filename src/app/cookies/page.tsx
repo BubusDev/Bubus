@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Cookie Irányelv — Bubus",
-  description: "Tájékoztató a Bubus webáruház által használt cookie-król.",
+  title: "Cookie Irányelv — Chicks Jewelry",
+  description: "Tájékoztató a Chicks Jewelry webáruház által használt cookie-król.",
 };
 
 const sections = [
@@ -22,7 +22,7 @@ export default function CookiesPage() {
       sections={sections}
     >
       <p>
-        A Bubus webáruház cookie-kat (sütiket) használ a felhasználói élmény javítása és a weboldal
+        A Chicks Jewelry webáruház cookie-kat (sütiket) használ a felhasználói élmény javítása és a weboldal
         működésének biztosítása érdekében. Ez az irányelv tájékoztat a használt cookie-k típusairól
         és céljairól.
       </p>
