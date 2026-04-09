@@ -53,6 +53,11 @@ type CheckoutCartSnapshot = {
 };
 
 const CONFIRMATION_EMAIL_LOCK_TIMEOUT_MS = 1000 * 60 * 10;
+const PENDING_ORDER_PAYMENT_STATUSES = [
+  OrderPaymentStatus.PENDING,
+  OrderPaymentStatus.PROCESSING,
+  OrderPaymentStatus.FINALIZING,
+] as const;
 
 export class CheckoutConfigurationError extends Error {
   constructor(message = "Stripe checkout is not configured.") {
@@ -1032,4 +1037,100 @@ export async function finalizePaidOrder({
   }
 
   return result;
+}
+
+export async function syncPendingOrderPaymentStatus(orderId: string, correlationId?: string) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      paymentStatus: true,
+      status: true,
+      internalStatus: true,
+      stripePaymentIntentId: true,
+    },
+  });
+
+  if (!order) {
+    return null;
+  }
+
+  if (
+    !PENDING_ORDER_PAYMENT_STATUSES.includes(order.paymentStatus) ||
+    !order.stripePaymentIntentId
+  ) {
+    return order;
+  }
+
+  try {
+    const paymentIntent = await getStripe().paymentIntents.retrieve(order.stripePaymentIntentId);
+
+    logCheckoutEvent("log", "confirmation_status_reconciled_with_stripe", {
+      orderId: order.id,
+      paymentIntentId: paymentIntent.id,
+      paymentStatus: order.paymentStatus,
+      stripePaymentIntentStatus: paymentIntent.status,
+      stripeAmountReceived: paymentIntent.amount_received,
+      result: "retrieved",
+    }, { correlationId });
+
+    switch (paymentIntent.status) {
+      case "succeeded":
+        await finalizePaidOrder({
+          paymentIntentId: paymentIntent.id,
+          stripeAmount: paymentIntent.amount_received,
+          orderId,
+          cartId:
+            typeof paymentIntent.metadata.cartId === "string"
+              ? paymentIntent.metadata.cartId
+              : null,
+        }, correlationId);
+        break;
+      case "processing":
+        await markOrderPaymentState(
+          paymentIntent.id,
+          OrderPaymentStatus.PROCESSING,
+          "Fizetés feldolgozás alatt",
+          correlationId,
+        );
+        break;
+      case "requires_payment_method":
+        await markOrderPaymentState(
+          paymentIntent.id,
+          OrderPaymentStatus.FAILED,
+          "Sikertelen fizetés",
+          correlationId,
+        );
+        break;
+      case "canceled":
+        await markOrderPaymentState(
+          paymentIntent.id,
+          OrderPaymentStatus.CANCELED,
+          "Megszakított fizetés",
+          correlationId,
+        );
+        break;
+      default:
+        break;
+    }
+  } catch (error) {
+    logCheckoutEvent("warn", "confirmation_status_reconciliation_failed", {
+      orderId: order.id,
+      paymentIntentId: order.stripePaymentIntentId,
+      paymentStatus: order.paymentStatus,
+      result: "stripe_lookup_failed",
+      error,
+    }, { correlationId });
+  }
+
+  return db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      paymentStatus: true,
+      status: true,
+      internalStatus: true,
+      stripePaymentIntentId: true,
+    },
+  });
 }
