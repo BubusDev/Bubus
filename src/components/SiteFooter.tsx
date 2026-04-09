@@ -1,78 +1,89 @@
 import Link from "next/link";
 
-export function SiteFooter() {
+type SiteFooterProps = {
+  showCategoryDiscovery?: boolean;
+};
+
+export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
   return (
     <footer>
-      {/* Shop by category */}
-      <div className="px-8 py-14" style={{ background: "#fdf2f5" }}>
-        <div className="mx-auto max-w-[1200px]">
-          <p className="text-[10px] uppercase tracking-[0.38em] text-[#af7795] mb-2">
-            Fedezd fel
-          </p>
-          <h3 className="font-[family:var(--font-display)] tracking-[-0.03em] text-[#4d2741] mb-10"
-            style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)" }}>
-            Vásároljon kategória szerint
-          </h3>
+      {showCategoryDiscovery ? (
+        <div className="px-8 py-14" style={{ background: "#fdf2f5" }}>
+          <div className="mx-auto max-w-[1200px]">
+            <p className="mb-2 text-[10px] uppercase tracking-[0.38em] text-[#af7795]">
+              Fedezd fel
+            </p>
+            <h3
+              className="mb-10 font-[family:var(--font-display)] tracking-[-0.03em] text-[#4d2741]"
+              style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)" }}
+            >
+              Vásároljon kategória szerint
+            </h3>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Karkötő 1 */}
-            <Link href="/bracelets" className="group overflow-hidden rounded-[1.6rem] block">
-              <div
-                className="aspect-[3/4] w-full flex items-end transition-transform duration-500 group-hover:scale-[1.02]"
-                style={{ background: "linear-gradient(145deg, #fff0f7 0%, #f5c9e2 50%, #e8a8cc 100%)" }}
-              >
-                <div className="w-full p-4"
-                  style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/70 mb-0.5">Karkötő</p>
-                  <p className="text-sm font-medium text-white">Rózsakvarc</p>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <Link href="/bracelets" className="group block overflow-hidden rounded-[1.6rem]">
+                <div
+                  className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(145deg, #fff0f7 0%, #f5c9e2 50%, #e8a8cc 100%)" }}
+                >
+                  <div
+                    className="w-full p-4"
+                    style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
+                  >
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
+                    <p className="text-sm font-medium text-white">Rózsakvarc</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
 
-            {/* Karkötő 2 */}
-            <Link href="/bracelets" className="group overflow-hidden rounded-[1.6rem] block">
-              <div
-                className="aspect-[3/4] w-full flex items-end transition-transform duration-500 group-hover:scale-[1.02]"
-                style={{ background: "linear-gradient(145deg, #f4f0ff 0%, #ddd4f5 50%, #c4aee8 100%)" }}
-              >
-                <div className="w-full p-4"
-                  style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/70 mb-0.5">Karkötő</p>
-                  <p className="text-sm font-medium text-white">Ametiszt</p>
+              <Link href="/bracelets" className="group block overflow-hidden rounded-[1.6rem]">
+                <div
+                  className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(145deg, #f4f0ff 0%, #ddd4f5 50%, #c4aee8 100%)" }}
+                >
+                  <div
+                    className="w-full p-4"
+                    style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
+                  >
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
+                    <p className="text-sm font-medium text-white">Ametiszt</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
 
-            {/* Nyaklánc 1 */}
-            <Link href="/necklaces" className="group overflow-hidden rounded-[1.6rem] block">
-              <div
-                className="aspect-[3/4] w-full flex items-end transition-transform duration-500 group-hover:scale-[1.02]"
-                style={{ background: "linear-gradient(145deg, #f8f4ff 0%, #e8dff5 50%, #d4c4e8 100%)" }}
-              >
-                <div className="w-full p-4"
-                  style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/70 mb-0.5">Nyaklánc</p>
-                  <p className="text-sm font-medium text-white">Holdkő</p>
+              <Link href="/necklaces" className="group block overflow-hidden rounded-[1.6rem]">
+                <div
+                  className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(145deg, #f8f4ff 0%, #e8dff5 50%, #d4c4e8 100%)" }}
+                >
+                  <div
+                    className="w-full p-4"
+                    style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
+                  >
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Nyaklánc</p>
+                    <p className="text-sm font-medium text-white">Holdkő</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
 
-            {/* Nyaklánc 2 */}
-            <Link href="/necklaces" className="group overflow-hidden rounded-[1.6rem] block">
-              <div
-                className="aspect-[3/4] w-full flex items-end transition-transform duration-500 group-hover:scale-[1.02]"
-                style={{ background: "linear-gradient(145deg, #fffbf0 0%, #fdefd4 50%, #f5d8a8 100%)" }}
-              >
-                <div className="w-full p-4"
-                  style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/70 mb-0.5">Nyaklánc</p>
-                  <p className="text-sm font-medium text-white">Citrin</p>
+              <Link href="/necklaces" className="group block overflow-hidden rounded-[1.6rem]">
+                <div
+                  className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(145deg, #fffbf0 0%, #fdefd4 50%, #f5d8a8 100%)" }}
+                >
+                  <div
+                    className="w-full p-4"
+                    style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
+                  >
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Nyaklánc</p>
+                    <p className="text-sm font-medium text-white">Citrin</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Main footer */}
       <div style={{ background: "#1f1e1c" }} className="px-8 py-12">

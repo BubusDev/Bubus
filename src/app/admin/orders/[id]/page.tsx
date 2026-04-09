@@ -1,39 +1,19 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice } from "@/lib/catalog";
 import {
   resendOrderStatusUpdateEmailAction,
+  updateOrderAssignmentAction,
   updateOrderInternalStatusAction,
 } from "@/app/admin/orders/actions";
 import { getOrderStatusUpdateEmailAdminState } from "@/lib/order-status-email";
-
-// These fields are added via migration — cast until Prisma client is regenerated
-type OrderWithManagement = Awaited<ReturnType<typeof db.order.findUnique>> & {
-  internalStatus: string;
-  trackingNumber: string | null;
-  shippingMethod: string | null;
-  internalNote: string | null;
-  statusUpdatedAt: Date | null;
-};
-
-const internalStatuses = [
-  { value: "received",      label: "Beérkezett" },
-  { value: "in_production", label: "Elkészítés alatt" },
-  { value: "packed",        label: "Becsomagolva" },
-  { value: "label_ready",   label: "Címke kész" },
-  { value: "shipped",       label: "Feladva" },
-  { value: "closed",        label: "Lezárva" },
-];
-
-const statusColors: Record<string, { bg: string; color: string; border: string }> = {
-  received:      { bg: "#f0f0f0", color: "#555", border: "#ddd" },
-  in_production: { bg: "#fef9e7", color: "#7d6608", border: "#f0d080" },
-  packed:        { bg: "#eaf4fb", color: "#1a5276", border: "#a9cce3" },
-  label_ready:   { bg: "#e8f8f5", color: "#1e8449", border: "#a9dfbf" },
-  shipped:       { bg: "#eafaf1", color: "#145a32", border: "#82e0aa" },
-  closed:        { bg: "#f2f3f4", color: "#333", border: "#ccc" },
-};
+import {
+  internalOrderStatuses,
+  orderStatusConfig,
+  returnRequestStatusConfig,
+} from "@/lib/admin-order-workflow";
 
 export default async function AdminOrderDetailPage({
   params,
@@ -42,11 +22,12 @@ export default async function AdminOrderDetailPage({
 }) {
   const { id } = await params;
 
-  const [orderRaw, statusEmail] = await Promise.all([
+  const [orderRaw, statusEmail, admins] = await Promise.all([
     db.order.findUnique({
     where: { id },
     include: {
       user: { select: { name: true, email: true } },
+      assignedTo: { select: { id: true, name: true, email: true } },
       items: {
         include: {
           product: {
@@ -54,18 +35,47 @@ export default async function AdminOrderDetailPage({
           },
         },
       },
+      returnRequests: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      workflowHistory: {
+        orderBy: {
+          changedAt: "desc",
+        },
+        include: {
+          changedBy: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
     },
     }),
     getOrderStatusUpdateEmailAdminState(id),
+    db.user.findMany({
+      where: {
+        role: "ADMIN",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
   ]);
 
   if (!orderRaw) notFound();
+  const order = orderRaw;
 
-  // Cast to include the new fields added via migration
-  const order = orderRaw as OrderWithManagement & typeof orderRaw;
-
-  const cfg = statusColors[order.internalStatus] ?? statusColors.received;
-  const statusLabel = internalStatuses.find((s) => s.value === order.internalStatus)?.label ?? order.internalStatus;
+  const cfg = orderStatusConfig[order.internalStatus] ?? orderStatusConfig.received;
+  const statusLabel = internalOrderStatuses.find((s) => s.value === order.internalStatus)?.label ?? order.internalStatus;
 
   return (
     <AdminShell title={`Rendelés — ${order.orderNumber}`}>
@@ -89,10 +99,77 @@ export default async function AdminOrderDetailPage({
                 <p className="font-medium text-[#1a1a1a]">{order.user?.email ?? order.guestEmail ?? "—"}</p>
               </div>
               <div>
+                <p className="text-[11px] text-[#888]">Felelős</p>
+                <p className="font-medium text-[#1a1a1a]">
+                  {order.assignedTo?.name?.trim() || order.assignedTo?.email?.trim() || "Nincs kijelölve"}
+                </p>
+              </div>
+              <div>
                 <p className="text-[11px] text-[#888]">Szállítási cím</p>
                 <p className="font-medium text-[#1a1a1a]">{order.shippingAddress}</p>
               </div>
             </div>
+          </section>
+
+          <section className="border border-[#e8e5e0] bg-white p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-[10px] uppercase tracking-[.18em] text-[#888]">Visszaküldési kérelmek</h2>
+                <p className="mt-2 text-sm text-[#555]">
+                  Az ehhez a rendeléshez kapcsolódó kérelmek gyors áttekintése.
+                </p>
+              </div>
+              <Link
+                href="/admin/returns"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-[#e8e5e0] px-4 text-[13px] font-medium text-[#1a1a1a] transition hover:bg-[#faf9f7]"
+              >
+                Összes kérelem
+              </Link>
+            </div>
+
+            {order.returnRequests.length === 0 ? (
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-4 text-sm text-[#666]">
+                Ehhez a rendeléshez még nem érkezett visszaküldési kérelem.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {order.returnRequests.map((request) => {
+                  const requestCfg = returnRequestStatusConfig[request.status] ?? returnRequestStatusConfig.new;
+
+                  return (
+                    <Link
+                      key={request.id}
+                      href={`/admin/returns/${request.id}`}
+                      className="block border border-[#f0eeec] bg-[#faf9f7] p-4 transition hover:border-[#dfc3d2] hover:bg-white"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[.16em] text-[#888]">
+                            {new Date(request.createdAt).toLocaleDateString("hu-HU")}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-[#1a1a1a]">
+                            {request.reason?.trim() || "Nincs rövid ok megadva"}
+                          </p>
+                          <p className="mt-1 text-[13px] text-[#666]">
+                            {request.requesterEmail}
+                          </p>
+                        </div>
+                        <span
+                          className="inline-flex items-center px-2.5 py-1 text-[12px] font-medium"
+                          style={{
+                            background: requestCfg.bg,
+                            color: requestCfg.color,
+                            border: `1px solid ${requestCfg.border}`,
+                          }}
+                        >
+                          {requestCfg.label}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* Rendelt termékek */}
@@ -132,6 +209,34 @@ export default async function AdminOrderDetailPage({
           </section>
 
           {/* Belső megjegyzés */}
+          <section className="border border-[#e8e5e0] bg-white p-5">
+            <h2 className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#888]">Felelős kijelölése</h2>
+            <form action={updateOrderAssignmentAction} className="space-y-3">
+              <input type="hidden" name="orderId" value={order.id} />
+              <label className="block">
+                <span className="mb-1 block text-[11px] text-[#888]">Admin tulajdonos</span>
+                <select
+                  name="assignedToId"
+                  defaultValue={order.assignedTo?.id ?? ""}
+                  className="w-full border border-[#d0ccc8] bg-white px-3 py-2 text-[13px] text-[#1a1a1a] outline-none transition focus:border-[#1a1a1a]"
+                >
+                  <option value="">Nincs kijelölve</option>
+                  {admins.map((admin) => (
+                    <option key={admin.id} value={admin.id}>
+                      {admin.name} {admin.email ? `(${admin.email})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="submit"
+                className="bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#333]"
+              >
+                Felelős mentése
+              </button>
+            </form>
+          </section>
+
           <section className="border border-[#e8e5e0] bg-white p-5">
             <h2 className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#888]">Belső megjegyzés</h2>
             <form action={updateOrderInternalStatusAction}>
@@ -228,6 +333,49 @@ export default async function AdminOrderDetailPage({
               </div>
             )}
           </section>
+
+          <section className="border border-[#e8e5e0] bg-white p-5">
+            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Workflow előzmények</h2>
+            {order.workflowHistory.length === 0 ? (
+              <div className="border border-[#f0eeec] bg-[#faf9f7] p-4 text-sm text-[#666]">
+                Ehhez a rendeléshez még nincs rögzített workflow előzmény.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {order.workflowHistory.map((entry) => (
+                  <div key={entry.id} className="border border-[#f0eeec] bg-[#faf9f7] p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        {entry.assignmentChanged ? (
+                          <p className="text-sm font-medium text-[#1a1a1a]">
+                            Felelős: {entry.previousAssigneeLabel ?? "nincs"} {"->"} {entry.newAssigneeLabel ?? "nincs"}
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-[#1a1a1a]">
+                            {entry.previousStatus ?? "nincs"} {"->"} {entry.newStatus}
+                          </p>
+                        )}
+                        <p className="mt-1 text-[12px] text-[#666]">
+                          Forrás: {entry.source === "bulk" ? "bulk művelet" : "egyedi frissítés"}
+                        </p>
+                        {entry.assignmentChanged ? (
+                          <p className="mt-1 text-[12px] text-[#666]">
+                            Státusz ekkor: {entry.newStatus}
+                          </p>
+                        ) : null}
+                        <p className="mt-1 text-[12px] text-[#666]">
+                          Módosította: {entry.changedBy?.name ?? entry.changedBy?.email ?? "ismeretlen admin"}
+                        </p>
+                      </div>
+                      <p className="text-[12px] text-[#888]">
+                        {new Date(entry.changedAt).toLocaleString("hu-HU")}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
         {/* Jobb oszlop — státusz kezelés */}
@@ -261,7 +409,7 @@ export default async function AdminOrderDetailPage({
                   defaultValue={order.internalStatus}
                   className="w-full border border-[#d0ccc8] bg-white px-3 py-2 text-[13px] text-[#1a1a1a] outline-none focus:border-[#1a1a1a]"
                 >
-                  {internalStatuses.map((s) => (
+                  {internalOrderStatuses.map((s) => (
                     <option key={s.value} value={s.value}>{s.label}</option>
                   ))}
                 </select>

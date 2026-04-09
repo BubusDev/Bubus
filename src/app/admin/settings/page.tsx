@@ -24,6 +24,10 @@ export default async function AdminSettingsPage() {
           name: user.name,
           email: user.email,
           phone: user.phone ?? null,
+          adminNotifyNewOrder: user.adminNotifyNewOrder,
+          adminNotifyReturnRequest: user.adminNotifyReturnRequest,
+          adminNotifyLowStock: user.adminNotifyLowStock,
+          adminNotifyWeeklySummary: user.adminNotifyWeeklySummary,
         }}
       />
     </AdminShell>

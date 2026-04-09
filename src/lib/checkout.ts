@@ -10,6 +10,10 @@ import {
 import { createDurationTracker, logCheckoutEvent } from "@/lib/checkout-observability";
 import { db } from "@/lib/db";
 import {
+  sendLowStockAdminNotificationIfNeeded,
+  sendNewOrderAdminNotificationIfNeeded,
+} from "@/lib/admin-notifications";
+import {
   STRIPE_CURRENCY,
   fromStripeAmount,
   getStripeMinimumAmount,
@@ -829,6 +833,7 @@ export async function finalizePaidOrder({
   cartId,
 }: FinalizePaidOrderInput, correlationId?: string) {
   const duration = createDurationTracker();
+  let lowStockAdjustments: Awaited<ReturnType<typeof applyCompletedOrderInventory>> = [];
   const result = await db.$transaction(async (tx) => {
     const order = await findOrderForFinalization(tx, { paymentIntentId, orderId }, correlationId);
 
@@ -961,7 +966,7 @@ export async function finalizePaidOrder({
     }
 
     try {
-      await applyCompletedOrderInventory(tx, {
+      lowStockAdjustments = await applyCompletedOrderInventory(tx, {
         orderId: order.id,
         items: order.items.map((item) => ({
           productId: item.productId,
@@ -1034,6 +1039,21 @@ export async function finalizePaidOrder({
 
   if ((result.type === "paid" || result.type === "already_paid") && "orderId" in result) {
     await sendOrderConfirmationEmailIfNeeded(result.orderId, correlationId);
+  }
+
+  if (result.type === "paid" && "orderId" in result) {
+    await sendNewOrderAdminNotificationIfNeeded(result.orderId);
+
+    await Promise.all(
+      lowStockAdjustments.map((adjustment) =>
+        sendLowStockAdminNotificationIfNeeded({
+          productId: adjustment.productId,
+          productName: adjustment.productName,
+          productSlug: adjustment.productSlug,
+          stockAfter: adjustment.stockAfter,
+        }),
+      ),
+    );
   }
 
   return result;

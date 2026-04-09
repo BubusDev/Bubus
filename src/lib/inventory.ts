@@ -52,7 +52,13 @@ export async function applyCompletedOrderInventory(
   tx: Prisma.TransactionClient,
   { orderId, items }: CompleteOrderInput,
 ) {
-  const adjustments: { productId: string; quantity: number; stockAfter: number }[] = [];
+  const adjustments: {
+    productId: string;
+    productName: string;
+    productSlug: string;
+    quantity: number;
+    stockAfter: number;
+  }[] = [];
 
   for (const item of items) {
     const updated = await tx.product.updateMany({
@@ -75,6 +81,8 @@ export async function applyCompletedOrderInventory(
       where: { id: item.productId },
       select: {
         id: true,
+        name: true,
+        slug: true,
         stockQuantity: true,
         soldOutAt: true,
       },
@@ -91,6 +99,8 @@ export async function applyCompletedOrderInventory(
 
     adjustments.push({
       productId: item.productId,
+      productName: product.name,
+      productSlug: product.slug,
       quantity: item.quantity,
       stockAfter: product.stockQuantity,
     });
@@ -110,4 +120,6 @@ export async function applyCompletedOrderInventory(
       })),
     });
   }
+
+  return adjustments;
 }

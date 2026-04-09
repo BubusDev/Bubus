@@ -18,7 +18,10 @@ import {
   Smartphone,
 } from "lucide-react";
 
-import { updateProfileAction } from "@/app/admin/settings/actions";
+import {
+  updateNotificationPreferencesAction,
+  updateProfileAction,
+} from "@/app/admin/settings/actions";
 
 type Tab = "profile" | "security" | "general" | "notifications" | "integrations";
 
@@ -45,6 +48,10 @@ type AdminUser = {
   name: string;
   email: string;
   phone: string | null;
+  adminNotifyNewOrder: boolean;
+  adminNotifyReturnRequest: boolean;
+  adminNotifyLowStock: boolean;
+  adminNotifyWeeklySummary: boolean;
 };
 
 export function AdminSettingsClient({ user }: { user: AdminUser }) {
@@ -110,7 +117,15 @@ export function AdminSettingsClient({ user }: { user: AdminUser }) {
 
         {activeTab === "security" && <SecurityPanel />}
         {activeTab === "general" && <GeneralPanel />}
-        {activeTab === "notifications" && <NotificationsPanel />}
+        {activeTab === "notifications" && (
+          <NotificationsPanel
+            user={user}
+            onSaved={() => {
+              setSaveMessage("Értesítési beállítások mentve!");
+              setTimeout(() => setSaveMessage(null), 3000);
+            }}
+          />
+        )}
         {activeTab === "integrations" && <IntegrationsPanel />}
       </div>
     </div>
@@ -252,34 +267,59 @@ function GeneralPanel() {
 }
 
 /* ─── Notifications panel ────────────────────────────────────── */
-function NotificationsPanel() {
+function NotificationsPanel({
+  user,
+  onSaved,
+}: {
+  user: AdminUser;
+  onSaved: () => void;
+}) {
   const toggles = [
-    { key: "newOrder", Icon: ShoppingBag, label: "Új rendelés", desc: "Értesítés minden beérkező rendelésről" },
-    { key: "restore", Icon: RefreshCw, label: "Visszaállítási kérés", desc: "Ha egy vásárló visszaküldési kérelmet nyújt be" },
-    { key: "lowStock", Icon: Package, label: "Alacsony készlet", desc: "Ha egy termék 3 db alá csökken" },
-    { key: "weekly", Icon: BarChart2, label: "Heti összesítő", desc: "Rendelések és forgalom minden hétfőn" },
+    { key: "adminNotifyNewOrder", Icon: ShoppingBag, label: "Új rendelés", desc: "Értesítés minden beérkező rendelésről" },
+    { key: "adminNotifyReturnRequest", Icon: RefreshCw, label: "Visszaállítási kérés", desc: "Ha egy vásárló visszaküldési kérelmet nyújt be" },
+    { key: "adminNotifyLowStock", Icon: Package, label: "Alacsony készlet", desc: "Ha egy termék 3 db alá csökken" },
+    { key: "adminNotifyWeeklySummary", Icon: BarChart2, label: "Heti összesítő", desc: "Rendelések és forgalom minden hétfőn" },
   ];
   const [enabled, setEnabled] = useState<Record<string, boolean>>({
-    newOrder: true, restore: false, lowStock: true, weekly: true,
+    adminNotifyNewOrder: user.adminNotifyNewOrder,
+    adminNotifyReturnRequest: user.adminNotifyReturnRequest,
+    adminNotifyLowStock: user.adminNotifyLowStock,
+    adminNotifyWeeklySummary: user.adminNotifyWeeklySummary,
   });
 
   return (
-    <Card title="Értesítések" description="Döntsd el, mikor és miről értesítsen a rendszer.">
-      <div className="space-y-1">
-        {toggles.map(({ key, Icon, label, desc }) => (
-          <div key={key} className="flex items-center gap-4 rounded-[1.2rem] px-3 py-3 transition hover:bg-white/40">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#fff0f7]">
-              <Icon className="h-4 w-4 text-[#c45a85]" />
+    <form
+      action={async (formData) => {
+        await updateNotificationPreferencesAction(formData);
+        onSaved();
+      }}
+    >
+      <Card title="Értesítések" description="Döntsd el, mikor és miről értesítsen a rendszer.">
+        <div className="space-y-1">
+          {toggles.map(({ key, Icon, label, desc }) => (
+            <div key={key} className="flex items-center gap-4 rounded-[1.2rem] px-3 py-3 transition hover:bg-white/40">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#fff0f7]">
+                <Icon className="h-4 w-4 text-[#c45a85]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-[#4d2741]">{label}</p>
+                <p className="text-xs text-[#9b7a8b]">{desc}</p>
+              </div>
+              {enabled[key] ? <input type="hidden" name={key} value="on" /> : null}
+              <RoseToggle enabled={enabled[key]!} onChange={(v) => setEnabled((p) => ({ ...p, [key]: v }))} />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-[#4d2741]">{label}</p>
-              <p className="text-xs text-[#9b7a8b]">{desc}</p>
-            </div>
-            <RoseToggle enabled={enabled[key]!} onChange={(v) => setEnabled((p) => ({ ...p, [key]: v }))} />
-          </div>
-        ))}
-      </div>
-    </Card>
+          ))}
+        </div>
+        <div className="mt-6 flex items-center justify-end">
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#ec7cb2,#d95f92)] px-6 py-2.5 text-sm font-medium text-white shadow-[0_8px_22px_rgba(217,95,146,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_12px_28px_rgba(217,95,146,0.34)]"
+          >
+            Mentés
+          </button>
+        </div>
+      </Card>
+    </form>
   );
 }
 

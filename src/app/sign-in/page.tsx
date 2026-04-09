@@ -14,7 +14,7 @@ type SignInPageProps = {
 };
 
 function normalizeNextPath(nextPath: string | null | undefined) {
-  if (!nextPath || !nextPath.startsWith("/")) return "/account";
+  if (!nextPath || !nextPath.startsWith("/")) return "/new-in";
   return nextPath;
 }
 

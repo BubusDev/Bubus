@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { AdminRecentActivityList } from "@/components/admin/AdminRecentActivityList";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { getRecentAdminActivity } from "@/lib/admin-activity";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/catalog";
 
@@ -25,7 +27,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OrderWithInternalStatus = any;
 
 export default async function AdminPage() {
@@ -40,6 +41,7 @@ export default async function AdminPage() {
     weekOrders,
     pendingOrderCount,
     recentOrders,
+    recentActivity,
   ] = await Promise.all([
     db.product.count({ where: { archivedAt: null } }),
     db.order.count({
@@ -50,7 +52,6 @@ export default async function AdminPage() {
       select: { total: true },
     }),
     db.order.count({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       where: { paymentStatus: "PAID", internalStatus: { in: ["received", "in_production", "packed", "label_ready"] } } as any,
     }),
     db.order.findMany({
@@ -59,6 +60,7 @@ export default async function AdminPage() {
       take: 8,
       include: { user: { select: { email: true } } },
     }),
+    getRecentAdminActivity(8),
   ]);
 
   const weekRevenue = weekOrders.reduce((sum, o) => sum + o.total, 0);
@@ -173,12 +175,25 @@ export default async function AdminPage() {
         </table>
       </div>
 
+      <div className="mt-6 overflow-hidden border border-[#e8e5e0] bg-white">
+        <div className="flex items-center justify-between border-b border-[#e8e5e0] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[#1a1a1a]">Legutóbbi aktivitás</h2>
+          <Link
+            href="/admin/activity"
+            className="text-xs text-[#888] transition hover:text-[#1a1a1a]"
+          >
+            Teljes lista →
+          </Link>
+        </div>
+        <AdminRecentActivityList items={recentActivity} />
+      </div>
+
       {/* Quick links */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { href: "/admin/products",        label: "Termékek" },
+          { href: "/admin/activity",        label: "Aktivitás" },
           { href: "/admin/special-edition", label: "Special Edition" },
-          { href: "/admin/announcement",    label: "Üzenetsáv" },
           { href: "/admin/settings",        label: "Beállítások" },
         ].map((link) => (
           <Link

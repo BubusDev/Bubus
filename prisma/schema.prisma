@@ -71,12 +71,21 @@ model User {
   profileImageUrl        String?
   defaultShippingAddress String?
   newsletterSubscribed   Boolean    @default(true)
+  adminNotifyNewOrder    Boolean    @default(true)
+  adminNotifyReturnRequest Boolean  @default(false)
+  adminNotifyLowStock    Boolean    @default(true)
+  adminNotifyWeeklySummary Boolean  @default(true)
   emailVerificationTokens EmailVerificationToken[]
   emailChangeTokens      EmailChangeToken[]
   passwordResetTokens    PasswordResetToken[]
   favourites             Favourite[]
   cart                   Cart?
   orders                 Order[]
+  weeklySummaryDispatches WeeklySummaryDispatch[]
+  orderWorkflowHistoryEntries OrderWorkflowHistory[] @relation("OrderWorkflowHistoryChangedBy")
+  returnRequestHistoryEntries ReturnRequestHistory[] @relation("ReturnRequestHistoryChangedBy")
+  assignedOrders         Order[]    @relation("OrderAssignedTo")
+  assignedReturnRequests ReturnRequest[] @relation("ReturnRequestAssignedTo")
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 }
@@ -159,6 +168,7 @@ model Product {
   homepagePlacement HomepagePlacement  @default(NONE)
   archivedAt        DateTime?
   archiveReason     String?
+  lowStockAlertSentAt DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -316,19 +326,26 @@ model Order {
   paidAt          DateTime?
   confirmationEmailSendingAt DateTime?
   confirmationEmailSentAt DateTime?
+  adminNewOrderNotificationSendingAt DateTime?
+  adminNewOrderNotificationSentAt DateTime?
+  assignedToId     String?
   statusUpdateEmailKey       String?
   statusUpdateEmailSendingKey String?
   statusUpdateEmailSendingAt DateTime?
   statusUpdateEmailSentAt    DateTime?
   items           OrderItem[]
   accessTokens    GuestOrderAccessToken[]
+  returnRequests  ReturnRequest[]
+  workflowHistory OrderWorkflowHistory[]
   user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo      User?       @relation("OrderAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([userId, createdAt])
   @@index([paymentStatus, createdAt])
   @@index([internalStatus, createdAt])
+  @@index([assignedToId, createdAt])
 }
 
 model GuestOrderAccessToken {
@@ -382,6 +399,89 @@ model InventoryEvent {
   @@index([productId, createdAt])
   @@index([orderId])
   @@index([type, createdAt])
+}
+
+model ReturnRequest {
+  id                     String   @id @default(cuid())
+  orderId                String
+  requesterEmail         String
+  status                 String   @default("new")
+  assignedToId           String?
+  refundStatus           String   @default("not_refunded")
+  refundedAmount         Int?
+  refundedAt             DateTime?
+  stripeRefundId         String?  @unique
+  refundFailureReason    String?
+  refundProcessingAt     DateTime?
+  refundConfirmationEmailSendingAt DateTime?
+  refundConfirmationEmailSentAt DateTime?
+  reason                 String?
+  details                String
+  adminNote              String?
+  resolution             String?
+  adminNotificationSentAt DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  order                  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  assignedTo             User?    @relation("ReturnRequestAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  history                ReturnRequestHistory[]
+
+  @@index([status, createdAt])
+  @@index([orderId, createdAt])
+  @@index([assignedToId, createdAt])
+}
+
+model OrderWorkflowHistory {
+  id             String   @id @default(cuid())
+  orderId         String
+  previousStatus  String?
+  newStatus       String
+  changedAt       DateTime @default(now())
+  changedById     String?
+  source          String
+  previousAssigneeLabel String?
+  newAssigneeLabel String?
+  assignmentChanged Boolean @default(false)
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy       User?    @relation("OrderWorkflowHistoryChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([orderId, changedAt])
+  @@index([changedById, changedAt])
+}
+
+model ReturnRequestHistory {
+  id               String   @id @default(cuid())
+  returnRequestId   String
+  previousStatus    String?
+  newStatus         String
+  previousRefundStatus String?
+  newRefundStatus   String?
+  refundChanged     Boolean  @default(false)
+  refundedAmount    Int?
+  stripeRefundId    String?
+  adminNoteChanged  Boolean  @default(false)
+  resolutionChanged Boolean  @default(false)
+  changedAt         DateTime @default(now())
+  changedById       String?
+  previousAssigneeLabel String?
+  newAssigneeLabel String?
+  assignmentChanged Boolean @default(false)
+  returnRequest     ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+  changedBy         User?    @relation("ReturnRequestHistoryChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([returnRequestId, changedAt])
+  @@index([changedById, changedAt])
+}
+
+model WeeklySummaryDispatch {
+  id        String   @id @default(cuid())
+  userId    String
+  weekStart DateTime
+  sentAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([weekStart, sentAt])
 }
 
 model Stone {

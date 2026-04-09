@@ -14,6 +14,7 @@ type InternalStatus =
   | "label_ready"
   | "shipped"
   | "closed"
+  | "issue"
   | string
   | null
   | undefined;
@@ -166,6 +167,16 @@ export function getCustomerOrderStatusView(
         lastUpdatedLabel,
         emailUpdateKey: null,
         emailUpdateKind: null,
+      };
+    case "issue":
+      return {
+        label: "Kézi ellenőrzés alatt",
+        detail: "A rendeléseddel kapcsolatban manuális ellenőrzés szükséges. Ha további információ kell, felvesszük veled a kapcsolatot.",
+        trackingNumber,
+        shippingMethodLabel,
+        lastUpdatedLabel,
+        emailUpdateKey: "issue:internal_status",
+        emailUpdateKind: "issue",
       };
     case "received":
     default:

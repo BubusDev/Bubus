@@ -16,6 +16,8 @@ import {
   Image,
   Settings,
   User,
+  RotateCcw,
+  Activity,
 } from "lucide-react";
 
 type NavItem = {
@@ -35,6 +37,7 @@ const navGroups: NavGroup[] = [
     label: "Áttekintés",
     items: [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
+      { label: "Aktivitás", href: "/admin/activity", icon: Activity, exact: true },
     ],
   },
   {
@@ -50,8 +53,14 @@ const navGroups: NavGroup[] = [
     label: "Rendelések",
     items: [
       { label: "Összes rendelés", href: "/admin/orders", icon: ShoppingCart, exact: true },
+      { label: "Beérkezett", href: "/admin/orders?status=received", icon: Clock },
+      { label: "Címkézés", href: "/admin/orders?status=label_ready", icon: Package },
+      { label: "Csomagolás", href: "/admin/orders?status=packed", icon: Package },
       { label: "Feldolgozás alatt", href: "/admin/orders?status=in_production", icon: Clock },
       { label: "Feladva", href: "/admin/orders?status=shipped", icon: Truck },
+      { label: "Lezárva", href: "/admin/orders?status=closed", icon: ShoppingCart },
+      { label: "Problémás", href: "/admin/orders?status=exceptions", icon: RotateCcw },
+      { label: "Visszaküldések", href: "/admin/returns", icon: RotateCcw, exact: true },
     ],
   },
   {

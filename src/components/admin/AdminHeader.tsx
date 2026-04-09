@@ -19,6 +19,8 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
     special: "Special Edition",
     "special-edition": "Special Edition",
     orders: "Rendelések",
+    returns: "Visszaküldések",
+    activity: "Aktivitás",
     content: "Tartalom",
     announcement: "Üzenetsáv",
     stones: "Kövek",

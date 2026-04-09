@@ -20,3 +20,19 @@ export async function updateProfileAction(formData: FormData) {
 
   revalidatePath("/admin/settings");
 }
+
+export async function updateNotificationPreferencesAction(formData: FormData) {
+  const user = await requireAdminUser("/admin/settings");
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      adminNotifyNewOrder: formData.get("adminNotifyNewOrder") === "on",
+      adminNotifyReturnRequest: formData.get("adminNotifyReturnRequest") === "on",
+      adminNotifyLowStock: formData.get("adminNotifyLowStock") === "on",
+      adminNotifyWeeklySummary: formData.get("adminNotifyWeeklySummary") === "on",
+    },
+  });
+
+  revalidatePath("/admin/settings");
+}

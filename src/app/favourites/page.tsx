@@ -87,6 +87,11 @@ export default async function FavouritesPage() {
                         <div className="absolute right-2.5 top-2.5">
                           <Heart className="h-4 w-4 fill-[#df6da8] text-[#df6da8]" />
                         </div>
+                        {isOutOfStock ? (
+                          <div className="absolute inset-x-3 bottom-3 rounded-[1.1rem] border border-[#f0d8e5] bg-white/92 px-3 py-2 text-center text-[11px] font-medium text-[#8d4b6d] shadow-[0_10px_24px_rgba(77,39,65,0.12)] backdrop-blur-sm">
+                            Ez a termék jelenleg nem elérhető
+                          </div>
+                        ) : null}
                       </Link>
 
                       <div className="mt-3 flex flex-col gap-1">
@@ -102,6 +107,11 @@ export default async function FavouritesPage() {
                         <p className="text-sm text-[#2f2230]">
                           {formatPrice(item.price)}
                         </p>
+                        {isOutOfStock ? (
+                          <p className="pt-1 text-xs font-medium text-[#9b476f]">
+                            Ez a termék jelenleg nem elérhető
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="mt-3 flex items-center justify-between border-t border-[#f0e8ee] pt-3">

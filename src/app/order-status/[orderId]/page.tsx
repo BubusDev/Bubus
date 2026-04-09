@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { submitReturnRequestAction } from "@/app/order-status/actions";
 import { formatDate } from "@/lib/account";
 import { formatPrice } from "@/lib/catalog";
 import { getAccessibleCheckoutOrder } from "@/lib/order-access";
@@ -8,12 +9,15 @@ import { getCustomerOrderStatusView } from "@/lib/order-status";
 
 type GuestOrderStatusDetailPageProps = {
   params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ return?: string }>;
 };
 
 export default async function GuestOrderStatusDetailPage({
   params,
+  searchParams,
 }: GuestOrderStatusDetailPageProps) {
   const { orderId } = await params;
+  const resolvedSearchParams = await searchParams;
   const order = await getAccessibleCheckoutOrder(orderId);
 
   if (!order) {
@@ -79,6 +83,47 @@ export default async function GuestOrderStatusDetailPage({
           <p className="mt-3 text-sm font-medium text-[#4d2741]">{order.shippingName}</p>
           <p className="mt-1 text-sm text-[#7a6070]">{order.shippingPhone}</p>
           <p className="mt-2 text-sm leading-7 text-[#7a6070]">{order.shippingAddress}</p>
+        </div>
+
+        <div className="mt-5 rounded-[1.5rem] border border-[#f0d8e5] bg-white/90 p-4">
+          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Visszaállítási kérelem</p>
+          <p className="mt-3 text-sm leading-7 text-[#7a6070]">
+            Ha visszaküldési vagy elállási kérelmet szeretnél indítani, itt közvetlenül elküldheted.
+          </p>
+          {resolvedSearchParams.return === "requested" ? (
+            <p className="mt-3 rounded-[1rem] bg-[#f0faf3] px-3 py-2 text-sm text-[#3f6f4f]">
+              A kérelmedet elküldtük az admin csapatnak.
+            </p>
+          ) : null}
+          {resolvedSearchParams.return === "error" ? (
+            <p className="mt-3 rounded-[1rem] bg-[#fff4f7] px-3 py-2 text-sm text-[#9b476f]">
+              A kérelemhez legalább 10 karakteres leírás szükséges.
+            </p>
+          ) : null}
+          <form action={submitReturnRequestAction} className="mt-4 space-y-3">
+            <input type="hidden" name="orderId" value={order.id} />
+            <input type="hidden" name="redirectTo" value={`/order-status/${order.id}`} />
+            <input
+              type="text"
+              name="reason"
+              placeholder="Rövid ok, pl. Méret vagy mégsem kérem"
+              className="w-full rounded-[1rem] border border-[#ead0df] bg-white/90 px-4 py-3 text-sm text-[#4d2741] outline-none focus:border-[#d95f92]"
+            />
+            <textarea
+              name="details"
+              rows={4}
+              required
+              minLength={10}
+              placeholder="Írd le röviden, miért szeretnéd visszaküldeni a terméket."
+              className="w-full resize-none rounded-[1rem] border border-[#ead0df] bg-white/90 px-4 py-3 text-sm text-[#4d2741] outline-none focus:border-[#d95f92]"
+            />
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+            >
+              Kérelem elküldése
+            </button>
+          </form>
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">

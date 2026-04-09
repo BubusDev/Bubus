@@ -6,7 +6,7 @@ import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Header } from "@/components/Header";
 import { InstagramBanner } from "@/components/InstagramBanner";
-import { SiteFooter } from "@/components/SiteFooter";
+import { RouteAwareSiteFooter } from "@/components/RouteAwareSiteFooter";
 import { getHeaderCounts } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
@@ -44,7 +44,7 @@ export default async function RootLayout({
           <CategoryNav />
           {children}
           <InstagramBanner />
-          <SiteFooter />
+          <RouteAwareSiteFooter />
         </AuthSessionProvider>
       </body>
     </html>

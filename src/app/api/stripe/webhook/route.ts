@@ -171,6 +171,10 @@ export async function POST(request: Request) {
           revalidatePath(path);
         }
       }
+
+      if (result.type === "paid" || result.type === "already_paid") {
+        revalidatePath("/", "layout");
+      }
       break;
     }
     default:

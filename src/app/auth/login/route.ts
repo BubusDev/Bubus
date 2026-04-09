@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 function normalizeNextPath(nextPath: string | null) {
   if (!nextPath || !nextPath.startsWith("/")) {
-    return "/account";
+    return "/new-in";
   }
 
   return nextPath;
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const password =
     typeof formData.get("password") === "string" ? String(formData.get("password")) : "";
   const nextPath =
-    typeof formData.get("next") === "string" ? String(formData.get("next")) : "/account";
+    typeof formData.get("next") === "string" ? String(formData.get("next")) : "/new-in";
   const normalizedNextPath = normalizeNextPath(nextPath);
   const normalizedEmail = normalizeEmail(email);
 

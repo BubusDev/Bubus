@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, LoaderCircle, RefreshCcw, ShoppingBag } from "lucide-react";
 
 import {
@@ -71,11 +72,13 @@ export function ConfirmationStatusCard({
   redirectStatus,
   canViewOrder = false,
 }: ConfirmationStatusCardProps) {
+  const router = useRouter();
   const [statusSnapshot, setStatusSnapshot] = useState(initialStatus);
   const [pollingError, setPollingError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const mountedRef = useRef(true);
   const latestStatusRef = useRef(initialStatus);
+  const hasRefreshedLayoutRef = useRef(false);
 
   const refreshPaymentStatus = useCallback(async () => {
     setIsRefreshing(true);
@@ -141,6 +144,20 @@ export function ConfirmationStatusCard({
   useEffect(() => {
     latestStatusRef.current = statusSnapshot;
   }, [statusSnapshot]);
+
+  useEffect(() => {
+    if (isPendingPaymentStatus(statusSnapshot.paymentStatus)) {
+      hasRefreshedLayoutRef.current = false;
+      return;
+    }
+
+    if (hasRefreshedLayoutRef.current) {
+      return;
+    }
+
+    hasRefreshedLayoutRef.current = true;
+    router.refresh();
+  }, [router, statusSnapshot.paymentStatus]);
 
   useEffect(() => {
     if (!isPendingPaymentStatus(statusSnapshot.paymentStatus)) {

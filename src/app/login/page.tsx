@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const nextPath =
     resolvedSearchParams.next && resolvedSearchParams.next.startsWith("/")
       ? resolvedSearchParams.next
-      : "/account";
+      : "/new-in";
 
   redirect(
     resolvedSearchParams.mode === "register"

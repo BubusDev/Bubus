@@ -2,6 +2,7 @@ import { getAuthBaseUrl } from "@/lib/env";
 import { renderGuestOrderRecoveryEmail } from "@/lib/email/guest-order-recovery";
 import { renderOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 import { renderOrderStatusUpdateEmail } from "@/lib/email/order-status-update";
+import { renderRefundConfirmationEmail } from "@/lib/email/refund-confirmation";
 
 type EmailPreviewResult = {
   previewUrl?: string;
@@ -112,6 +113,15 @@ async function sendEmail({
   }
 
   console.info("[auth/email] Email accepted by Resend", { to, subject });
+}
+
+export async function sendTransactionalEmail(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  await sendEmail(input);
 }
 
 export async function sendVerificationEmail(
@@ -332,6 +342,49 @@ export async function sendOrderStatusUpdateEmail({
       trackingNumber,
       shippingMethodLabel,
       lastUpdatedLabel,
+      subject: renderedEmail.subject,
+    });
+    return {};
+  }
+
+  await sendEmail({
+    to: email,
+    subject: renderedEmail.subject,
+    text: renderedEmail.text,
+    html: renderedEmail.html,
+  });
+
+  return {};
+}
+
+export async function sendRefundConfirmationEmail({
+  email,
+  accessModel,
+  orderNumber,
+  refundedAmountLabel,
+  refundedAtLabel,
+}: {
+  email: string;
+  accessModel: "authenticated" | "guest";
+  orderNumber: string;
+  refundedAmountLabel: string;
+  refundedAtLabel: string;
+}): Promise<EmailPreviewResult> {
+  const renderedEmail = renderRefundConfirmationEmail({
+    locale: "hu",
+    accessModel,
+    orderNumber,
+    refundedAmountLabel,
+    refundedAtLabel,
+  });
+
+  if (isDevelopment()) {
+    console.info("[returns] Refund confirmation email prepared", {
+      to: email,
+      accessModel,
+      orderNumber,
+      refundedAmountLabel,
+      refundedAtLabel,
       subject: renderedEmail.subject,
     });
     return {};

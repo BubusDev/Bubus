@@ -157,6 +157,7 @@ export async function createProductAction(formData: FormData) {
           ...data,
           reservedQuantity: 0,
           soldOutAt: getSoldOutTimestamp(null, nextStockQuantity),
+          lowStockAlertSentAt: null,
           imageUrl: coverUrl,
           images: {
             create: uploadedImages.map((image, index) => ({
@@ -244,6 +245,10 @@ export async function updateProductAction(formData: FormData) {
       data: {
         ...data,
         soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, data.stockQuantity ?? 0),
+        lowStockAlertSentAt:
+          (data.stockQuantity ?? 0) >= 3
+            ? null
+            : existingProduct.lowStockAlertSentAt,
         imageUrl: nextImageUrl,
         images: {
           deleteMany: {
