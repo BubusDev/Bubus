@@ -104,12 +104,11 @@ export async function getRecentAdminActivity(limit = 12) {
     changedAt: entry.changedAt,
   }));
 
-  const returnItems: AdminActivityItem[] = returnHistory
-    .map((entry) => {
+  const returnItems: AdminActivityItem[] = returnHistory.flatMap((entry) => {
       const requestLabel = `${entry.returnRequest.order.orderNumber} / ${entry.returnRequest.id.slice(0, 8)}`;
 
       if (entry.refundChanged) {
-        return {
+        return [{
           id: `return-${entry.id}`,
           kind: "return_request" as const,
           href: `/admin/returns/${entry.returnRequestId}`,
@@ -118,11 +117,11 @@ export async function getRecentAdminActivity(limit = 12) {
           summary: `${requestLabel} · ${formatRefundStatus(entry.previousRefundStatus)} -> ${formatRefundStatus(entry.newRefundStatus)}`,
           actorLabel: formatActorLabel(entry.changedBy),
           changedAt: entry.changedAt,
-        };
+        }];
       }
 
       if (entry.assignmentChanged) {
-        return {
+        return [{
           id: `return-${entry.id}`,
           kind: "return_request" as const,
           href: `/admin/returns/${entry.returnRequestId}`,
@@ -131,11 +130,11 @@ export async function getRecentAdminActivity(limit = 12) {
           summary: `${requestLabel} · ${entry.previousAssigneeLabel ?? "nincs"} -> ${entry.newAssigneeLabel ?? "nincs"}`,
           actorLabel: formatActorLabel(entry.changedBy),
           changedAt: entry.changedAt,
-        };
+        }];
       }
 
       if ((entry.previousStatus ?? null) !== entry.newStatus) {
-        return {
+        return [{
           id: `return-${entry.id}`,
           kind: "return_request" as const,
           href: `/admin/returns/${entry.returnRequestId}`,
@@ -144,12 +143,11 @@ export async function getRecentAdminActivity(limit = 12) {
           summary: `${requestLabel} · ${formatReturnStatus(entry.previousStatus)} -> ${formatReturnStatus(entry.newStatus)}`,
           actorLabel: formatActorLabel(entry.changedBy),
           changedAt: entry.changedAt,
-        };
+        }];
       }
 
-      return null;
-    })
-    .filter((item): item is AdminActivityItem => item !== null);
+      return [];
+    });
 
   return [...orderItems, ...returnItems]
     .sort((a, b) => b.changedAt.getTime() - a.changedAt.getTime())
