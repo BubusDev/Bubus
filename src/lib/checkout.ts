@@ -185,7 +185,7 @@ async function upsertPendingOrderRecord(
                 guestEmail: email,
               }),
           paymentStatus: {
-            in: REUSABLE_DRAFT_STATUSES,
+            in: [...REUSABLE_DRAFT_STATUSES],
           },
           updatedAt: {
             gte: staleCutoff,
@@ -235,11 +235,10 @@ async function upsertPendingOrderRecord(
     : await tx.order.create({
         data: {
           userId: actor.userId ?? null,
-          guestEmail: actor.userId ? null : email,
           orderNumber: createOrderNumber(),
           ...orderData,
-      },
-    });
+        },
+      });
 
   logCheckoutEvent(
     "log",
@@ -273,7 +272,7 @@ async function upsertPendingOrderRecord(
     });
   }
 
-  return { order, cart };
+  return { order, cart, guestAccessToken };
 }
 
 export async function initializeStripeCheckout(
@@ -304,7 +303,7 @@ export async function initializeStripeCheckout(
 
   const stripe = getStripe();
 
-  const { order, cart } = await db.$transaction((tx) =>
+  const { order, cart, guestAccessToken } = await db.$transaction((tx) =>
     upsertPendingOrderRecord(tx, actor, input, correlationId),
   );
 
