@@ -71,6 +71,8 @@ export async function getAccessibleCheckoutOrderStatus(orderId: string) {
       id: true,
       userId: true,
       paymentStatus: true,
+      status: true,
+      internalStatus: true,
     },
   });
 }

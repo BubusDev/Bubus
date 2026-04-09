@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ConfirmationStatusCard } from "@/components/checkout/ConfirmationStatusCard";
 import { formatDate } from "@/lib/account";
 import { formatPrice } from "@/lib/catalog";
+import { type ConfirmationStatusSnapshot } from "@/lib/checkout-confirmation-status";
 import { getAccessibleCheckoutOrder } from "@/lib/order-access";
 
 type ConfirmationPageProps = {
@@ -29,7 +30,13 @@ export default async function ConfirmationPage({
         orderNumber={order.orderNumber}
         createdAtLabel={formatDate(order.createdAt)}
         totalLabel={formatPrice(order.total)}
-        initialPaymentStatus={order.paymentStatus}
+        initialStatus={
+          {
+            paymentStatus: order.paymentStatus,
+            status: order.status,
+            internalStatus: order.internalStatus,
+          } satisfies ConfirmationStatusSnapshot
+        }
         redirectStatus={resolvedSearchParams.redirect_status}
         canViewOrder={Boolean(order.userId)}
       />

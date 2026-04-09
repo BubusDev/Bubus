@@ -15,7 +15,11 @@ export async function GET(_request: Request, { params }: RouteContext) {
   }
 
   return NextResponse.json(
-    { paymentStatus: order.paymentStatus },
+    {
+      paymentStatus: order.paymentStatus,
+      status: order.status,
+      internalStatus: order.internalStatus,
+    },
     {
       headers: {
         "Cache-Control": "no-store, max-age=0",

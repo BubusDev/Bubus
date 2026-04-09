@@ -4,34 +4,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, LoaderCircle, RefreshCcw, ShoppingBag } from "lucide-react";
 
-const POLL_INTERVAL_MS = 2500;
+import {
+  isPendingPaymentStatus,
+  normalizeConfirmationStatusSnapshot,
+  shouldApplyConfirmationStatusUpdate,
+  type ConfirmationStatusSnapshot,
+  type PaymentStatus,
+} from "@/lib/checkout-confirmation-status";
 
-type PaymentStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "FINALIZING"
-  | "PAID"
-  | "FAILED"
-  | "CANCELED"
-  | "STOCK_UNAVAILABLE";
+const POLL_INTERVAL_MS = 2500;
 
 type ConfirmationStatusCardProps = {
   orderId: string;
   orderNumber: string;
   createdAtLabel: string;
   totalLabel: string;
-  initialPaymentStatus: PaymentStatus;
+  initialStatus: ConfirmationStatusSnapshot;
   redirectStatus?: string;
   canViewOrder?: boolean;
 };
-
-function isPendingPaymentStatus(paymentStatus: PaymentStatus) {
-  return (
-    paymentStatus === "PENDING" ||
-    paymentStatus === "PROCESSING" ||
-    paymentStatus === "FINALIZING"
-  );
-}
 
 function ConfirmationContent({
   tone,
@@ -76,14 +67,15 @@ export function ConfirmationStatusCard({
   orderNumber,
   createdAtLabel,
   totalLabel,
-  initialPaymentStatus,
+  initialStatus,
   redirectStatus,
   canViewOrder = false,
 }: ConfirmationStatusCardProps) {
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(initialPaymentStatus);
+  const [statusSnapshot, setStatusSnapshot] = useState(initialStatus);
   const [pollingError, setPollingError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const mountedRef = useRef(true);
+  const latestStatusRef = useRef(initialStatus);
 
   const refreshPaymentStatus = useCallback(async () => {
     setIsRefreshing(true);
@@ -103,13 +95,26 @@ export function ConfirmationStatusCard({
         return;
       }
 
-      const payload = (await response.json()) as { paymentStatus?: PaymentStatus };
+      const payload = (await response.json()) as
+        | Partial<ConfirmationStatusSnapshot>
+        | { order?: Partial<ConfirmationStatusSnapshot> | null };
 
       if (mountedRef.current) {
         setPollingError("");
 
-        if (payload.paymentStatus) {
-          setPaymentStatus(payload.paymentStatus);
+        const nextSnapshot = normalizeConfirmationStatusSnapshot(
+          payload,
+          latestStatusRef.current.paymentStatus,
+        );
+
+        if (
+          shouldApplyConfirmationStatusUpdate(
+            latestStatusRef.current.paymentStatus,
+            nextSnapshot.paymentStatus,
+          )
+        ) {
+          latestStatusRef.current = nextSnapshot;
+          setStatusSnapshot(nextSnapshot);
         }
       }
     } catch {
@@ -134,7 +139,11 @@ export function ConfirmationStatusCard({
   }, []);
 
   useEffect(() => {
-    if (!isPendingPaymentStatus(paymentStatus)) {
+    latestStatusRef.current = statusSnapshot;
+  }, [statusSnapshot]);
+
+  useEffect(() => {
+    if (!isPendingPaymentStatus(statusSnapshot.paymentStatus)) {
       return;
     }
 
@@ -147,7 +156,9 @@ export function ConfirmationStatusCard({
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [orderId, paymentStatus, refreshPaymentStatus]);
+  }, [orderId, refreshPaymentStatus, statusSnapshot.paymentStatus]);
+
+  const paymentStatus = statusSnapshot.paymentStatus;
 
   const isPaid = paymentStatus === "PAID";
   const isStockUnavailable = paymentStatus === "STOCK_UNAVAILABLE";
