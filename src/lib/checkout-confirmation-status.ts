@@ -19,6 +19,12 @@ type ConfirmationStatusPayload =
       order?: Partial<ConfirmationStatusSnapshot> | null;
     };
 
+function hasNestedOrderPayload(
+  payload: ConfirmationStatusPayload | null | undefined,
+): payload is { order?: Partial<ConfirmationStatusSnapshot> | null } {
+  return payload != null && "order" in payload;
+}
+
 const PENDING_PAYMENT_STATUSES: PaymentStatus[] = ["PENDING", "PROCESSING", "FINALIZING"];
 const TERMINAL_PAYMENT_STATUSES: PaymentStatus[] = [
   "PAID",
@@ -57,7 +63,12 @@ export function normalizeConfirmationStatusSnapshot(
   payload: ConfirmationStatusPayload | null | undefined,
   fallbackPaymentStatus: PaymentStatus,
 ): ConfirmationStatusSnapshot {
-  const source = payload && "order" in payload && payload.order ? payload.order : payload;
+  const source =
+    hasNestedOrderPayload(payload) && payload.order
+      ? payload.order
+      : payload && !hasNestedOrderPayload(payload)
+        ? payload
+        : null;
 
   return {
     paymentStatus: isPaymentStatus(source?.paymentStatus)
