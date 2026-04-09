@@ -57,11 +57,11 @@ type CheckoutCartSnapshot = {
 };
 
 const CONFIRMATION_EMAIL_LOCK_TIMEOUT_MS = 1000 * 60 * 10;
-const PENDING_ORDER_PAYMENT_STATUSES = [
+const PENDING_ORDER_PAYMENT_STATUSES: readonly OrderPaymentStatus[] = [
   OrderPaymentStatus.PENDING,
   OrderPaymentStatus.PROCESSING,
   OrderPaymentStatus.FINALIZING,
-] as const;
+];
 
 export class CheckoutConfigurationError extends Error {
   constructor(message = "Stripe checkout is not configured.") {
