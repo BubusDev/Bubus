@@ -1,4 +1,4 @@
-import { saveAnnouncementBarAction } from "@/app/admin/announcement/actions";
+import { saveAnnouncementBarAction } from "@/app/(admin)/admin/announcement/actions";
 import type { AdminAnnouncementBarValues } from "@/lib/announcement-bar";
 
 type AdminAnnouncementBarFormProps = {

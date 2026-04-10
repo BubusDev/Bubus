@@ -6,7 +6,7 @@ import {
   triggerReturnRequestRefundAction,
   updateReturnRequestAction,
   updateReturnRequestAssignmentAction,
-} from "@/app/admin/returns/actions";
+} from "@/app/(admin)/admin/returns/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
 import {
   returnRefundStatusConfig,

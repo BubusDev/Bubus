@@ -8,7 +8,7 @@ import {
   deleteProductOptionAction,
   reorderProductOptionsAction,
   updateProductOptionAction,
-} from "@/app/admin/products/actions";
+} from "@/app/(admin)/admin/products/actions";
 import { type ProductOptionGroup, type ProductOptionValue } from "@/lib/products";
 
 type AdminOptionManagerProps = {

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { updateProductAction } from "@/app/admin/products/actions";
+import { updateProductAction } from "@/app/(admin)/admin/products/actions";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 import { AdminShell } from "@/components/admin/AdminShell";
 import {

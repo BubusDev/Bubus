@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { requestGuestOrderRecoveryAction } from "@/app/order-status/actions";
+import { requestGuestOrderRecoveryAction } from "@/app/(storefront)/order-status/actions";
 import { verifyGuestOrderRecoveryToken } from "@/lib/order-recovery";
 import { resolveRecoveryCorrelationId } from "@/lib/order-recovery-observability";
 

@@ -7,7 +7,7 @@ import {
   resendOrderStatusUpdateEmailAction,
   updateOrderAssignmentAction,
   updateOrderInternalStatusAction,
-} from "@/app/admin/orders/actions";
+} from "@/app/(admin)/admin/orders/actions";
 import { getOrderStatusUpdateEmailAdminState } from "@/lib/order-status-email";
 import {
   internalOrderStatuses,

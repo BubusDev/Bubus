@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FileText } from "lucide-react";
 import { notFound } from "next/navigation";
 
-import { reorderAction } from "@/app/account/actions";
-import { submitReturnRequestAction } from "@/app/order-status/actions";
+import { reorderAction } from "@/app/(storefront)/account/actions";
+import { submitReturnRequestAction } from "@/app/(storefront)/order-status/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { formatDate, getOrderForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";

@@ -54,7 +54,15 @@ export async function requireUser(nextPath = "/") {
 }
 
 export async function requireAdminUser(nextPath = "/admin") {
-  const user = await requireUser(nextPath);
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/admin/sign-in?next=${encodeURIComponent(normalizeNextPath(nextPath))}`);
+  }
+
+  if (!user.emailVerifiedAt) {
+    redirect("/verify-email");
+  }
 
   if (user.role !== "ADMIN") {
     redirect("/");

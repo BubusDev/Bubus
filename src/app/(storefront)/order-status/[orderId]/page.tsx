@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { submitReturnRequestAction } from "@/app/order-status/actions";
+import { submitReturnRequestAction } from "@/app/(storefront)/order-status/actions";
 import { formatDate } from "@/lib/account";
 import { formatPrice } from "@/lib/catalog";
 import { getAccessibleCheckoutOrder } from "@/lib/order-access";

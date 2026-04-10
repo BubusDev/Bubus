@@ -5,7 +5,7 @@ import {
   deleteAccountAction,
   updateNewsletterAction,
   updatePasswordAction,
-} from "@/app/account/actions";
+} from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
-import { reorderAction } from "@/app/account/actions";
+import { reorderAction } from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
 import {

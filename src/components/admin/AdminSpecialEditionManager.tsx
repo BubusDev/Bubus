@@ -6,7 +6,7 @@ import {
   updateSpecialEditionBannerAction,
   updateSpecialEditionCampaignStateAction,
   updateSpecialEditionEntryAction,
-} from "@/app/admin/special-edition/actions";
+} from "@/app/(admin)/admin/special-edition/actions";
 import type {
   AdminSpecialEditionCampaignValues,
 } from "@/lib/products";

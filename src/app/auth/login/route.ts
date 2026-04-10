@@ -17,6 +17,10 @@ function normalizeNextPath(nextPath: string | null) {
   return nextPath;
 }
 
+function getSignInPath(nextPath: string) {
+  return nextPath.startsWith("/admin") ? "/admin/sign-in" : "/sign-in";
+}
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   const email = typeof formData.get("email") === "string" ? String(formData.get("email")) : "";
@@ -58,7 +62,7 @@ export async function POST(request: Request) {
 
       return NextResponse.redirect(
         new URL(
-          `/sign-in?error=${encodeURIComponent(errorParam)}&next=${encodeURIComponent(normalizedNextPath)}`,
+          `${getSignInPath(normalizedNextPath)}?error=${encodeURIComponent(errorParam)}&next=${encodeURIComponent(normalizedNextPath)}`,
           request.url,
         ),
         { status: 303 },

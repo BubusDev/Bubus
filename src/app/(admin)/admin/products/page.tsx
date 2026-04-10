@@ -2,7 +2,7 @@ import {
   deleteProductAction,
   toggleProductArchiveAction,
   toggleProductFlagAction,
-} from "@/app/admin/products/actions";
+} from "@/app/(admin)/admin/products/actions";
 import {
   AdminActionButton,
   AdminActionLink,

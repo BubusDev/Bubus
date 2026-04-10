@@ -1,6 +1,6 @@
 import { ChevronDown, Heart, Info, Truck } from "lucide-react";
 
-import { addFavouriteAction } from "@/app/account/actions";
+import { addFavouriteAction } from "@/app/(storefront)/account/actions";
 import { StoneInfoButton } from "@/components/product/StoneInfoButton";
 import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageGallery } from "@/components/shop/ProductImageGallery";

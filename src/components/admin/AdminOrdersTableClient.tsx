@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { bulkUpdateOrderInternalStatusAction } from "@/app/admin/orders/actions";
+import { bulkUpdateOrderInternalStatusAction } from "@/app/(admin)/admin/orders/actions";
 import { orderStatusConfig } from "@/lib/admin-order-workflow";
 
 type AdminOrderRow = {

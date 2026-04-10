@@ -5,7 +5,7 @@ import { ShoppingBag, Trash2 } from "lucide-react";
 import {
   removeCartItemAction,
   updateCartItemQuantityAction,
-} from "@/app/account/actions";
+} from "@/app/(storefront)/account/actions";
 import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";

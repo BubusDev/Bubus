@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import {
   requestEmailChangeAction,
   resendVerificationAction,
-} from "@/app/account/actions";
+} from "@/app/(storefront)/account/actions";
 import { requireAuthenticatedUser } from "@/lib/auth";
 
 export const metadata: Metadata = {

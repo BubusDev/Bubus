@@ -17,7 +17,7 @@ import { ChevronDown, ImagePlus, Plus, Save, Sparkles, Star, Trash2, X } from "l
 import {
   createProductOptionAction,
   deleteProductOptionAction,
-} from "@/app/admin/products/actions";
+} from "@/app/(admin)/admin/products/actions";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
 import { homepagePlacementLabels } from "@/lib/catalog";
 import {

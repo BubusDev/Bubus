@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useOptimistic, useTransition } from "react";
 import { Archive, RotateCcw, Trash2 } from "lucide-react";
 
-import { restoreProduct, permanentlyDeleteProduct, restoreAllProducts } from "@/app/admin/products/archive/actions";
+import { restoreProduct, permanentlyDeleteProduct, restoreAllProducts } from "@/app/(admin)/admin/products/archive/actions";
 
 type ArchivedProduct = {
   id: string;

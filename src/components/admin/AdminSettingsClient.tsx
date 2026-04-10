@@ -21,7 +21,7 @@ import {
 import {
   updateNotificationPreferencesAction,
   updateProfileAction,
-} from "@/app/admin/settings/actions";
+} from "@/app/(admin)/admin/settings/actions";
 
 type Tab = "profile" | "security" | "general" | "notifications" | "integrations";
 

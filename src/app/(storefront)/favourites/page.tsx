@@ -6,7 +6,7 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import {
   moveFavouriteToCartAction,
   removeFavouriteAction,
-} from "@/app/account/actions";
+} from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";

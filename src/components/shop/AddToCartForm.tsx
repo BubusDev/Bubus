@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Check, ShoppingBag } from "lucide-react";
 
-import { addToCartAction } from "@/app/account/actions";
+import { addToCartAction } from "@/app/(storefront)/account/actions";
 
 type AddToCartRenderState = {
   isPending: boolean;

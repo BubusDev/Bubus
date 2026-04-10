@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { bulkUpdateReturnRequestAction } from "@/app/admin/returns/actions";
+import { bulkUpdateReturnRequestAction } from "@/app/(admin)/admin/returns/actions";
 import { returnRefundStatusConfig, returnRequestStatusConfig } from "@/lib/admin-order-workflow";
 
 type AdminReturnRequestRow = {

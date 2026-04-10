@@ -4,7 +4,7 @@
 import { useRef, useState } from "react";
 import { Camera, Link2, MapPin, User2 } from "lucide-react";
 
-import { saveProfileAction } from "@/app/account/actions";
+import { saveProfileAction } from "@/app/(storefront)/account/actions";
 
 type ProfileFormProps = {
   user: {

@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { Send, CheckCircle } from "lucide-react";
 
-import { initialContactFormState, submitContactAction } from "@/app/contact/actions";
+import { initialContactFormState, submitContactAction } from "@/app/(storefront)/contact/actions";
 
 const subjects = ["Rendelés", "Egyedi darab", "Egyéb"] as const;
 
