@@ -44,7 +44,7 @@ export function AdminAnnouncementBarForm({
               defaultValue={announcement.text}
               maxLength={120}
               placeholder="New collection now live"
-              className="admin-input h-12 rounded-2xl px-4 text-sm"
+              className="admin-input h-12 px-4 text-sm"
             />
           </label>
 
@@ -55,7 +55,7 @@ export function AdminAnnouncementBarForm({
               name="href"
               defaultValue={announcement.href}
               placeholder="/new-in"
-              className="admin-input h-12 rounded-2xl px-4 text-sm"
+              className="admin-input h-12 px-4 text-sm"
             />
           </label>
 
@@ -64,7 +64,7 @@ export function AdminAnnouncementBarForm({
             <select
               name="variant"
               defaultValue={announcement.variant}
-              className="admin-select h-12 rounded-2xl px-4 text-sm"
+              className="admin-select h-12 px-4 text-sm"
             >
               {variants.map((variant) => (
                 <option key={variant.value} value={variant.value}>
@@ -74,7 +74,7 @@ export function AdminAnnouncementBarForm({
             </select>
           </label>
 
-          <label className="admin-checkbox-pill inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm">
+          <label className="admin-checkbox-pill inline-flex items-center gap-3 px-4 py-3 text-sm">
             <input
               type="checkbox"
               name="isActive"

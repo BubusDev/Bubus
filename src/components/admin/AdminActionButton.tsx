@@ -20,7 +20,7 @@ type AdminActionButtonProps = SharedProps &
 
 const sizeClassNames: Record<AdminActionButtonSize, string> = {
   md: "h-11 px-5 text-sm tracking-[-0.01em]",
-  sm: "h-10 px-4 text-sm",
+  sm: "h-8 px-3 text-xs tracking-[0.01em]",
 };
 
 const variantClassNames: Record<AdminActionButtonVariant, string> = {
@@ -35,7 +35,7 @@ function getClassName({
   className,
 }: Omit<SharedProps, "children">) {
   const classes = [
-    "group relative inline-flex items-center justify-center overflow-hidden rounded-full font-medium disabled:pointer-events-none",
+    "inline-flex items-center justify-center overflow-hidden rounded-md font-medium disabled:pointer-events-none",
     sizeClassNames[size],
     variantClassNames[variant],
     className,
@@ -45,16 +45,7 @@ function getClassName({
 }
 
 function Label({ children }: { children: ReactNode }) {
-  return <span className="relative z-10">{children}</span>;
-}
-
-function PrimaryChrome() {
-  return (
-    <>
-      <span className="pointer-events-none absolute inset-x-[8%] top-[1px] h-[42%] rounded-full bg-white/14 blur-[6px]" />
-      <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
-    </>
-  );
+  return <span>{children}</span>;
 }
 
 export function AdminActionLink({
@@ -66,7 +57,6 @@ export function AdminActionLink({
 }: AdminActionLinkProps) {
   return (
     <Link href={href} className={getClassName({ className, variant, size })}>
-      {variant === "primary" ? <PrimaryChrome /> : null}
       <Label>{children}</Label>
     </Link>
   );
@@ -86,7 +76,6 @@ export function AdminActionButton({
       className={getClassName({ className, variant, size })}
       {...props}
     >
-      {variant === "primary" ? <PrimaryChrome /> : null}
       <Label>{children}</Label>
     </button>
   );

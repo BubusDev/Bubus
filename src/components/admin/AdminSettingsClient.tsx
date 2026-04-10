@@ -78,9 +78,9 @@ export function AdminSettingsClient({ user }: { user: AdminUser }) {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition ${
+                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-sm transition ${
                     activeTab === key
-                      ? "bg-[var(--admin-blue-100)] font-medium text-[var(--admin-blue-700)]"
+                      ? "border-l-2 border-[var(--admin-blue-600)] bg-[rgba(42,99,181,0.08)] font-medium text-[var(--admin-blue-700)]"
                       : "text-[var(--admin-ink-700)] hover:bg-[var(--admin-surface-100)] hover:text-[var(--admin-ink-900)]"
                   }`}
                 >
@@ -138,7 +138,7 @@ function ProfilePanel({ user }: { user: AdminUser }) {
     <Card title="Profil adatok" description="Személyes adataid és megjelenésed az admin felületen.">
       {/* Avatar */}
       <div className="mb-6 flex items-center gap-4">
-        <div className="group relative h-20 w-20 cursor-pointer overflow-hidden rounded-full bg-[linear-gradient(135deg,#edf4fd,#d7e5f8)] shadow-[0_6px_18px_rgba(31,79,150,0.14)]">
+        <div className="group relative h-20 w-20 cursor-pointer overflow-hidden border border-[var(--admin-line-100)] bg-[var(--admin-surface-100)]">
           <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
             <div className="flex h-full w-full items-center justify-center bg-[rgba(31,79,150,0.42)]">
               <Camera className="h-6 w-6 text-white" />
@@ -298,7 +298,7 @@ function NotificationsPanel({
         <div className="space-y-1">
           {toggles.map(({ key, Icon, label, desc }) => (
             <div key={key} className="flex items-center gap-4 rounded-[1.2rem] px-3 py-3 transition hover:bg-[var(--admin-surface-100)]">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--admin-blue-100)]">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[var(--admin-blue-100)]">
                 <Icon className="h-4 w-4 text-[var(--admin-blue-700)]" />
               </div>
               <div className="flex-1">
@@ -338,7 +338,7 @@ function IntegrationsPanel() {
               <p className="text-sm font-medium text-[var(--admin-ink-900)]">{name}</p>
               <p className="text-xs text-[var(--admin-ink-500)]">{desc}</p>
             </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ${status === "Csatlakoztatva" ? "bg-[#f0faf3] text-[#3f6f4f]" : "admin-badge-neutral"}`}>
+            <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${status === "Csatlakoztatva" ? "border border-[#d6e8dc] bg-[#f6fbf7] text-[#3f6f4f]" : "admin-badge-neutral"}`}>
               {status}
             </span>
           </div>
@@ -415,10 +415,10 @@ function AdminToggle({ enabled, onChange }: { enabled: boolean; onChange: (v: bo
       role="switch"
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
-      className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer items-center rounded-full transition-all duration-200 ${enabled ? "bg-[linear-gradient(180deg,#2f69bf,#1f4f96)] shadow-[0_4px_12px_rgba(31,79,150,0.24)]" : "bg-[var(--admin-line-200)]"}`}
+      className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer items-center rounded-sm border transition-all duration-200 ${enabled ? "border-[var(--admin-blue-600)] bg-[rgba(42,99,181,0.14)]" : "border-[var(--admin-line-200)] bg-[var(--admin-surface-100)]"}`}
     >
       <span
-        className={`inline-block h-4 w-4 translate-x-1 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? "translate-x-5" : ""}`}
+        className={`inline-block h-3.5 w-3.5 translate-x-1 rounded-[2px] bg-white ring-1 ring-black/5 transition-transform duration-200 ${enabled ? "translate-x-5" : ""}`}
       />
     </button>
   );

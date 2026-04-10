@@ -107,7 +107,7 @@ export function AdminReturnsTableClient({
             name="bulkAction"
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value)}
-            className="admin-select admin-control-md rounded-full"
+            className="admin-select admin-control-md"
           >
             {bulkActionOptions.map((option) => (
               <option key={option.value} value={option.value}>

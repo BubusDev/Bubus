@@ -311,14 +311,14 @@ async function uploadProductImage(file: File) {
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 const inputCls =
-  "h-12 w-full rounded-[14px] border-[1.5px] border-[#f0d4e0] bg-white/80 px-4 text-sm text-[#4d2741] outline-none transition-all placeholder:text-[#c9a8ba] focus:border-[#c45a85] focus:shadow-[0_0_0_3px_rgba(196,90,133,0.12)]";
+  "h-11 w-full rounded-md border border-[var(--admin-line-200)] bg-white px-3.5 text-sm text-[var(--admin-ink-900)] outline-none transition-all placeholder:text-[var(--admin-ink-500)] focus:border-[var(--admin-blue-600)] focus:shadow-[0_0_0_3px_rgba(63,122,210,0.12)]";
 
 const textareaCls =
-  "w-full rounded-[14px] border-[1.5px] border-[#f0d4e0] bg-white/80 px-4 py-3 text-sm text-[#4d2741] outline-none transition-all resize-y placeholder:text-[#c9a8ba] focus:border-[#c45a85] focus:shadow-[0_0_0_3px_rgba(196,90,133,0.12)]";
+  "w-full rounded-md border border-[var(--admin-line-200)] bg-white px-3.5 py-3 text-sm text-[var(--admin-ink-900)] outline-none transition-all resize-y placeholder:text-[var(--admin-ink-500)] focus:border-[var(--admin-blue-600)] focus:shadow-[0_0_0_3px_rgba(63,122,210,0.12)]";
 
-const eyebrowCls = "text-[9px] uppercase tracking-[0.3em] text-[#c0517a] font-medium";
+const eyebrowCls = "text-[9px] uppercase tracking-[0.28em] text-[var(--admin-ink-500)] font-medium";
 
-const ctaGradient = "linear-gradient(135deg, #c45a85, #e07a70)";
+const ctaGradient = "#2a63b5";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -332,10 +332,10 @@ function CardShell({
   title: string;
 }) {
   return (
-    <section className="rounded-[2.5rem] border border-white/80 bg-white/60 p-6 shadow-[0_16px_40px_rgba(196,90,133,0.07)] backdrop-blur-xl">
+    <section className="border border-[var(--admin-line-100)] bg-white/70 p-6">
       <div className="mb-5">
         {eyebrow && <p className={`mb-1 ${eyebrowCls}`}>{eyebrow}</p>}
-        <h2 className="font-[family:var(--font-display)] text-[1.1rem] font-semibold text-[#4d2741]">
+        <h2 className="text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
           {title}
         </h2>
       </div>
@@ -379,15 +379,18 @@ function ToggleSwitch({
     >
       <div className="relative shrink-0">
         <div
-          className="h-5 w-10 rounded-full transition-all duration-200"
-          style={{ background: checked ? ctaGradient : "#f0d4e0" }}
+          className="h-5 w-10 rounded-sm border transition-all duration-200"
+          style={{
+            background: checked ? "rgba(42,99,181,0.14)" : "#e7edf5",
+            borderColor: checked ? "#2a63b5" : "var(--admin-line-200)",
+          }}
         />
         <div
-          className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200"
+          className="absolute top-0.5 h-3.5 w-3.5 rounded-[2px] bg-white ring-1 ring-black/5 transition-all duration-200"
           style={{ left: checked ? "22px" : "2px" }}
         />
       </div>
-      <span className="text-sm text-[#5a374e]">{label}</span>
+      <span className="text-sm text-[var(--admin-ink-700)]">{label}</span>
     </button>
   );
 }
@@ -405,11 +408,11 @@ function PillChip({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 hover:scale-[1.03]"
+      className="rounded-sm px-2.5 py-1.5 text-[11px] font-medium transition-all duration-150"
       style={
         active
-          ? { background: ctaGradient, color: "white", border: "1.5px solid transparent" }
-          : { background: "rgba(255,255,255,0.7)", color: "#7a5a6c", border: "1.5px solid #f0d4e0" }
+          ? { background: "#eef3fb", color: "#1f4f96", border: "1px solid rgba(42,99,181,0.24)" }
+          : { background: "rgba(255,255,255,0.88)", color: "#42516a", border: "1px solid #d7dfeb" }
       }
     >
       {children}
@@ -464,7 +467,7 @@ function InlineOptionCreate({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#f0d4e0] bg-white/70 px-3 py-1.5 text-xs font-medium text-[#c0517a] transition hover:bg-white"
+        className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-[var(--admin-line-200)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--admin-blue-700)] transition hover:bg-[var(--admin-blue-050)]"
       >
         <Plus className="h-3 w-3" />
         Új hozzáadása
@@ -473,13 +476,13 @@ function InlineOptionCreate({
   }
 
   return (
-    <div className="mt-3 rounded-[1.2rem] border border-[#f0d8e5] bg-white/80 p-4">
+    <div className="mt-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-medium text-[#4d2741]">Új {label.toLowerCase()} hozzáadása</p>
+        <p className="text-sm font-medium text-[var(--admin-ink-900)]">Új {label.toLowerCase()} hozzáadása</p>
         <button
           type="button"
           onClick={reset}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[#f0d4e0] bg-white text-[#7b576a] transition hover:bg-[#fff8fb]"
+          className="flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-surface-100)]"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -507,7 +510,7 @@ function InlineOptionCreate({
           type="button"
           disabled={isPending || !name.trim()}
           onClick={handleCreate}
-          className="inline-flex h-9 items-center rounded-full px-4 text-xs font-medium text-white transition disabled:opacity-70"
+          className="inline-flex h-9 items-center rounded-sm border border-[#295da8] px-4 text-xs font-medium text-white transition disabled:opacity-70"
           style={{ background: ctaGradient }}
         >
           {isPending ? "Mentés..." : "Létrehozás"}
@@ -515,7 +518,7 @@ function InlineOptionCreate({
         <button
           type="button"
           onClick={reset}
-          className="inline-flex h-9 items-center rounded-full border border-[#f0d4e0] bg-white px-4 text-xs font-medium text-[#6b425a] transition hover:bg-[#fff8fb]"
+          className="inline-flex h-9 items-center rounded-sm border border-[var(--admin-line-200)] bg-white px-4 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-surface-100)]"
         >
           Mégse
         </button>
@@ -573,7 +576,7 @@ function PillSelectField({
         <button
           type="button"
           onClick={() => setIsManagerOpen(true)}
-          className="inline-flex items-center gap-1 rounded-full border border-[#f0d4e0] bg-white/70 px-2.5 py-1 text-[10px] font-medium text-[#c0517a] transition hover:bg-white"
+          className="inline-flex items-center gap-1 rounded-sm border border-[var(--admin-line-200)] bg-white px-2.5 py-1 text-[10px] font-medium text-[var(--admin-blue-700)] transition hover:bg-[var(--admin-blue-050)]"
         >
           <Plus className="h-3 w-3" />
           Kezelés
@@ -599,37 +602,37 @@ function PillSelectField({
 
       {isManagerOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f2435]/20 p-4 backdrop-blur-[3px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.16)] p-4 backdrop-blur-[2px]"
           onClick={() => setIsManagerOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-[2rem] border border-white/80 bg-white/90 p-6 shadow-[0_24px_60px_rgba(120,52,88,0.18)] backdrop-blur-xl"
+            className="w-full max-w-lg border border-[var(--admin-line-100)] bg-white p-6 shadow-[0_18px_36px_rgba(21,33,61,0.08)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className={eyebrowCls}>Opciókezelés</p>
-                <h3 className="mt-1 font-[family:var(--font-display)] text-lg text-[#4d2741]">
+                <h3 className="mt-1 text-lg font-semibold text-[var(--admin-ink-900)]">
                   {label}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsManagerOpen(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#f0d4e0] bg-white text-[#7b576a] transition hover:bg-[#fff8fb]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-surface-100)]"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="max-h-64 overflow-y-auto rounded-[1.2rem] border border-[#f0d4e0] bg-white/70 p-2">
+            <div className="max-h-64 overflow-y-auto border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-2">
               {options.map((option) => {
                 const isSelected = option.id === selectedValue;
                 const isPendingDelete = isDeletePending && pendingDeleteId === option.id;
                 return (
                   <div
                     key={option.id}
-                    className="flex items-center justify-between gap-3 rounded-[0.8rem] px-3 py-2 text-sm text-[#5a374e] transition hover:bg-[#fff8fb]"
+                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-[var(--admin-ink-700)] transition hover:bg-white"
                   >
                     <span className="truncate">
                       {option.name}
@@ -639,7 +642,7 @@ function PillSelectField({
                       type="button"
                       disabled={isSelected || isPendingDelete}
                       onClick={() => handleDelete(option)}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#f0d4e0] bg-white text-[#8a6178] transition hover:border-[#f0b3d1] hover:bg-[#fff8fb] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:border-[#e3c7cf] hover:bg-[#fbf5f6] disabled:cursor-not-allowed disabled:opacity-50"
                       title={isSelected ? "A kiválasztott érték nem törölhető" : "Opció törlése"}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -975,77 +978,13 @@ export function AdminProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <style>{`
-        @keyframes blob-1 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          33%      { transform: translate(30px,-50px) scale(1.05); }
-          66%      { transform: translate(-20px,20px) scale(0.95); }
-        }
-        @keyframes blob-2 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          33%      { transform: translate(-40px,30px) scale(1.08); }
-          66%      { transform: translate(25px,-35px) scale(0.92); }
-        }
-        @keyframes blob-3 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50%      { transform: translate(20px,40px) scale(1.06); }
-        }
-      `}</style>
-
-      {/* ── Ambient blobs ── */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        <div
-          style={{
-            position: "absolute",
-            top: "8%",
-            left: "12%",
-            width: "500px",
-            height: "500px",
-            background: "#fbc7d8",
-            borderRadius: "50%",
-            filter: "blur(80px)",
-            opacity: 0.45,
-            animation: "blob-1 20s ease-in-out infinite",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "45%",
-            right: "8%",
-            width: "420px",
-            height: "420px",
-            background: "#fddcb0",
-            borderRadius: "50%",
-            filter: "blur(80px)",
-            opacity: 0.4,
-            animation: "blob-2 24s ease-in-out infinite",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "10%",
-            left: "35%",
-            width: "380px",
-            height: "380px",
-            background: "#d8c8f5",
-            borderRadius: "50%",
-            filter: "blur(80px)",
-            opacity: 0.35,
-            animation: "blob-3 17s ease-in-out infinite",
-          }}
-        />
-      </div>
-
-      {/* ── Page header ── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#f0d4e0] bg-white/70 px-3.5 py-1.5 backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5 text-[#c45a85]" />
+          <div className="mb-3 inline-flex items-center gap-2 border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-[var(--admin-blue-700)]" />
             <span className={eyebrowCls}>✦ Termékkezelés</span>
           </div>
-          <h1 className="font-[family:var(--font-display)] text-[2rem] leading-tight tracking-[-0.03em] text-[#4d2741] sm:text-[2.5rem]">
+          <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.03em] text-[var(--admin-ink-900)] sm:text-[2.2rem]">
             {values.id ? "Termék szerkesztése" : "Új termék feltöltése"}
           </h1>
         </div>
@@ -1054,7 +993,7 @@ export function AdminProductForm({
           <button
             type="submit"
             disabled={hasUploadingImages || isSubmitting}
-            className="inline-flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(196,90,133,0.25)] transition hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md border border-[#295da8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
             style={{ background: ctaGradient }}
           >
             <Save className="h-4 w-4" />
@@ -1144,12 +1083,13 @@ export function AdminProductForm({
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.5rem] text-center transition-all duration-200"
+                className="flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-3 border text-center transition-all duration-200"
                 style={{
-                  border: `2px dashed ${isDragOver ? "#c45a85" : "#f0d4e0"}`,
+                  borderStyle: "dashed",
+                  borderColor: isDragOver ? "#2a63b5" : "var(--admin-line-200)",
                   background: isDragOver
-                    ? "rgba(253,240,245,0.7)"
-                    : "rgba(255,255,255,0.5)",
+                    ? "rgba(238,243,251,0.8)"
+                    : "rgba(255,255,255,0.72)",
                 }}
               >
                 <input
@@ -1162,26 +1102,26 @@ export function AdminProductForm({
                 />
                 <ImagePlus
                   className="h-9 w-9 transition-colors"
-                  style={{ color: isDragOver ? "#c45a85" : "#e0a0bc" }}
+                  style={{ color: isDragOver ? "#2a63b5" : "#768196" }}
                 />
                 <div>
-                  <p className="text-sm font-medium text-[#5a374e]">
+                  <p className="text-sm font-medium text-[var(--admin-ink-900)]">
                     {isDragOver ? "Engedd el a képeket" : "Húzd ide a képeket"}
                   </p>
-                  <p className="mt-0.5 text-xs text-[#a08090]">
+                  <p className="mt-0.5 text-xs text-[var(--admin-ink-500)]">
                     PNG, JPG, WEBP — Vercel Blob tárhelyre töltődik
                   </p>
                 </div>
               </div>
 
               {hasUploadingImages && (
-                <div className="rounded-[1rem] border border-[#f2d7e6] bg-[#fff8fb] px-4 py-3 text-sm text-[#7a6070]">
+                <div className="border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 text-sm text-[var(--admin-ink-700)]">
                   Képfeltöltés folyamatban...
                 </div>
               )}
 
               {uploadErrors.length > 0 && (
-                <div className="rounded-[1rem] border border-[#f3ccd9] bg-[#fff4f7] px-4 py-3 text-sm text-[#9b476f]">
+                <div className="border border-[#e3c7cf] bg-[#fbf5f6] px-4 py-3 text-sm text-[#ad4455]">
                   {uploadErrors[0]}
                 </div>
               )}
@@ -1193,11 +1133,11 @@ export function AdminProductForm({
                     return (
                       <div
                         key={image.id}
-                        className="group relative overflow-hidden rounded-[1.2rem] border bg-white transition-all"
+                        className="group relative overflow-hidden border bg-white transition-all"
                         style={{
-                          borderColor: isCover ? "#c45a85" : "#f0d4e0",
+                          borderColor: isCover ? "#2a63b5" : "var(--admin-line-200)",
                           boxShadow: isCover
-                            ? "0 0 0 2px rgba(196,90,133,0.2)"
+                            ? "0 0 0 1px rgba(42,99,181,0.2)"
                             : undefined,
                         }}
                       >
@@ -1217,15 +1157,16 @@ export function AdminProductForm({
                             setSubmitError(null);
                           }}
                           disabled={image.status !== "ready"}
-                          className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition"
+                          className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border transition"
                           style={{
-                            background: isCover ? ctaGradient : "rgba(255,255,255,0.9)",
+                            background: isCover ? ctaGradient : "rgba(255,255,255,0.95)",
+                            borderColor: isCover ? "#295da8" : "var(--admin-line-200)",
                           }}
                           title={isCover ? "Borítókép" : "Beállítás borítóképnek"}
                         >
                           <Star
                             className="h-3 w-3"
-                            style={{ color: isCover ? "white" : "#c0517a" }}
+                            style={{ color: isCover ? "white" : "#2a63b5" }}
                             fill={isCover ? "white" : "none"}
                           />
                         </button>
@@ -1234,7 +1175,7 @@ export function AdminProductForm({
                         <button
                           type="button"
                           onClick={() => removeImage(image)}
-                          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-[#9b476f] shadow-sm transition hover:bg-white"
+                          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white/95 text-[var(--admin-ink-600)] transition hover:bg-white"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -1293,7 +1234,7 @@ export function AdminProductForm({
                   </span>
                   {discountPercent !== null && (
                     <span
-                      className="absolute -top-3 right-3 rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+                      className="absolute -top-3 right-3 rounded-sm px-2 py-0.5 text-[11px] font-bold text-white"
                       style={{ background: ctaGradient }}
                     >
                       -{discountPercent}%
@@ -1332,7 +1273,7 @@ export function AdminProductForm({
           </CardShell>
 
           {/* SEO accordion */}
-          <div className="rounded-[2rem] border border-white/80 bg-white/60 backdrop-blur-xl shadow-[0_16px_40px_rgba(196,90,133,0.07)] overflow-hidden">
+          <div className="overflow-hidden border border-[var(--admin-line-100)] bg-white/72">
             <button
               type="button"
               onClick={() => setSeoOpen((o) => !o)}
@@ -1340,12 +1281,12 @@ export function AdminProductForm({
             >
               <div>
                 <p className={eyebrowCls}>SEO</p>
-                <h2 className="font-[family:var(--font-display)] text-[1.1rem] font-semibold text-[#4d2741]">
+                <h2 className="text-[1rem] font-semibold text-[var(--admin-ink-900)]">
                   Keresőoptimalizálás
                 </h2>
               </div>
               <ChevronDown
-                className="h-5 w-5 text-[#c0517a] transition-transform duration-200"
+                className="h-5 w-5 text-[var(--admin-ink-500)] transition-transform duration-200"
                 style={{ transform: seoOpen ? "rotate(180deg)" : "rotate(0deg)" }}
               />
             </button>
@@ -1407,7 +1348,7 @@ export function AdminProductForm({
                 </select>
               </FieldWrap>
 
-              <div className="space-y-3 rounded-[1.2rem] border border-[#f0d4e0] bg-white/50 p-4">
+              <div className="space-y-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
                 <ToggleSwitch
                   checked={formValues.isNew}
                   onChange={(v) => handleFieldChange("isNew", v)}
@@ -1426,7 +1367,7 @@ export function AdminProductForm({
               </div>
 
               {submitError && (
-                <p className="rounded-[0.8rem] border border-[#f3ccd9] bg-[#fff4f7] px-3 py-2 text-sm text-[#9b476f]">
+                <p className="border border-[#e3c7cf] bg-[#fbf5f6] px-3 py-2 text-sm text-[#ad4455]">
                   {submitError}
                 </p>
               )}
@@ -1434,7 +1375,7 @@ export function AdminProductForm({
               <button
                 type="submit"
                 disabled={hasUploadingImages || isSubmitting}
-                className="flex w-full items-center justify-center gap-2 rounded-[14px] py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(196,90,133,0.2)] transition hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
                 style={{ background: ctaGradient }}
               >
                 <Save className="h-4 w-4" />

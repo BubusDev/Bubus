@@ -16,7 +16,7 @@ function ContentCard({
   return (
     <Link
       href={href}
-      className="admin-panel group px-5 py-5 transition duration-200 hover:-translate-y-[2px] hover:border-[#bfd0ea] hover:shadow-[0_18px_40px_rgba(21,33,61,0.08)]"
+      className="admin-panel group px-5 py-5 transition duration-200 hover:border-[#bfd0ea] hover:bg-white"
     >
       <p className="admin-eyebrow">
         {eyebrow}

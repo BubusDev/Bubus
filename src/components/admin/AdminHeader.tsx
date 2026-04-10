@@ -49,7 +49,6 @@ export function AdminHeader() {
   return (
     <header
       className="sticky top-0 z-40 flex items-center border-b border-[var(--admin-line-100)] bg-[rgba(255,255,255,0.94)] px-6 py-3 backdrop-blur-xl"
-      style={{ boxShadow: "0 10px 30px rgba(18, 31, 58, 0.04)" }}
     >
       <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
         {crumbs.map((crumb, i) => {

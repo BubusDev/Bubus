@@ -339,12 +339,12 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             <input
               name="name"
               placeholder={`Új ${group.label.toLowerCase()} neve`}
-              className="admin-input h-11 rounded-2xl px-4 text-sm"
+              className="admin-input h-11 px-4 text-sm"
             />
             <input
               name="slug"
               placeholder="Slug (opcionális)"
-              className="admin-input h-11 rounded-2xl px-4 text-sm"
+              className="admin-input h-11 px-4 text-sm"
             />
             <button
               type="submit"
@@ -363,9 +363,9 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
               return (
                 <form
                   key={option.clientId}
-                  className={`flex flex-col gap-3 rounded-[1.4rem] border bg-white p-4 transition xl:flex-row xl:items-end xl:justify-between ${
+                  className={`flex flex-col gap-3 border bg-white p-4 transition xl:flex-row xl:items-end xl:justify-between ${
                     draggedOptionId === option.clientId
-                      ? "border-[#bfd0ea] shadow-[0_10px_24px_rgba(31,79,150,0.12)]"
+                      ? "border-[#bfd0ea] bg-[var(--admin-blue-050)]"
                       : "border-[var(--admin-line-100)]"
                   }`}
                   onSubmit={(event) => {
@@ -403,7 +403,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           setDraggedOptionId(option.clientId);
                         }}
                         onDragEnd={() => setDraggedOptionId(null)}
-                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center rounded-2xl text-[var(--admin-ink-600)]"
+                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)]"
                         aria-label={`${option.name} átrendezése`}
                         title="Húzd az elem átrendezéséhez"
                       >
@@ -436,12 +436,12 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                       <input
                         name="name"
                         defaultValue={option.name}
-                        className="admin-input h-11 min-w-0 rounded-2xl px-4 text-sm"
+                        className="admin-input h-11 min-w-0 px-4 text-sm"
                       />
                       <input
                         name="slug"
                         defaultValue={option.slug}
-                        className="admin-input h-11 min-w-0 rounded-2xl px-4 text-sm"
+                        className="admin-input h-11 min-w-0 px-4 text-sm"
                       />
                     </div>
                   </div>
