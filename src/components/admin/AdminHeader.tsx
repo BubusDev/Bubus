@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 
 type Crumb = { label: string; href?: string };
 
@@ -48,7 +48,7 @@ export function AdminHeader() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center border-b border-[var(--admin-line-100)] bg-[rgba(255,255,255,0.94)] px-6 py-3 backdrop-blur-xl"
+      className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-[var(--admin-line-100)] bg-[rgba(255,255,255,0.94)] px-6 py-3 backdrop-blur-xl"
     >
       <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
         {crumbs.map((crumb, i) => {
@@ -72,6 +72,14 @@ export function AdminHeader() {
           );
         })}
       </nav>
+
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 border border-[var(--admin-line-100)] px-3 py-1.5 text-xs font-medium text-[var(--admin-ink-700)] transition hover:border-[var(--admin-line-200)] hover:text-[var(--admin-ink-900)]"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Vissza a webshophoz
+      </Link>
     </header>
   );
 }
