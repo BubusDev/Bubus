@@ -3,6 +3,7 @@ import { renderGuestOrderRecoveryEmail } from "@/lib/email/guest-order-recovery"
 import { renderOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 import { renderOrderStatusUpdateEmail } from "@/lib/email/order-status-update";
 import { renderRefundConfirmationEmail } from "@/lib/email/refund-confirmation";
+import { renderRefundFailureEmail } from "@/lib/email/refund-failure";
 
 type EmailPreviewResult = {
   previewUrl?: string;
@@ -385,6 +386,41 @@ export async function sendRefundConfirmationEmail({
       orderNumber,
       refundedAmountLabel,
       refundedAtLabel,
+      subject: renderedEmail.subject,
+    });
+    return {};
+  }
+
+  await sendEmail({
+    to: email,
+    subject: renderedEmail.subject,
+    text: renderedEmail.text,
+    html: renderedEmail.html,
+  });
+
+  return {};
+}
+
+export async function sendRefundFailureEmail({
+  email,
+  accessModel,
+  orderNumber,
+}: {
+  email: string;
+  accessModel: "authenticated" | "guest";
+  orderNumber: string;
+}): Promise<EmailPreviewResult> {
+  const renderedEmail = renderRefundFailureEmail({
+    locale: "hu",
+    accessModel,
+    orderNumber,
+  });
+
+  if (isDevelopment()) {
+    console.info("[returns] Refund failure email prepared", {
+      to: email,
+      accessModel,
+      orderNumber,
       subject: renderedEmail.subject,
     });
     return {};

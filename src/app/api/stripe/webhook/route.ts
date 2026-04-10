@@ -8,6 +8,8 @@ import {
   markOrderPaymentState,
 } from "@/lib/checkout";
 import { logCheckoutEvent, resolveRequestCorrelationId } from "@/lib/checkout-observability";
+import { db } from "@/lib/db";
+import { reconcileReturnRequestRefundWithStripeRefund } from "@/lib/return-refund-reconciliation";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -103,6 +105,78 @@ export async function POST(request: Request) {
   }
 
   switch (event.type) {
+    case "refund.created":
+    case "refund.updated":
+    case "refund.failed": {
+      const refund = event.data.object;
+      const request = await db.returnRequest.findUnique({
+        where: { stripeRefundId: refund.id },
+        select: {
+          id: true,
+          status: true,
+          refundStatus: true,
+          refundedAmount: true,
+          refundedAt: true,
+          stripeRefundId: true,
+          order: {
+            select: {
+              currency: true,
+            },
+          },
+        },
+      });
+
+      if (!request) {
+        logCheckoutEvent("log", "webhook_refund_reconciliation_skipped", {
+          actorType: "system",
+          status: "ignored",
+          eventType: event.type,
+          refundId: refund.id,
+          reason: "return_request_not_found",
+          requestCorrelationId,
+        }, { correlationId: checkoutCorrelationId });
+        break;
+      }
+
+      if (request.refundStatus !== "pending") {
+        logCheckoutEvent("log", "webhook_refund_reconciliation_skipped", {
+          actorType: "system",
+          status: "ignored",
+          eventType: event.type,
+          refundId: refund.id,
+          returnRequestId: request.id,
+          currentRefundStatus: request.refundStatus,
+          reason: "local_refund_not_pending",
+          requestCorrelationId,
+        }, { correlationId: checkoutCorrelationId });
+        break;
+      }
+
+      const result = await reconcileReturnRequestRefundWithStripeRefund({
+        request,
+        stripeRefund: refund,
+        changedById: null,
+        sendConfirmationEmail: false,
+      });
+
+      logCheckoutEvent("log", "webhook_refund_reconciliation_result", {
+        actorType: "system",
+        status: result.ok ? "completed" : "ignored",
+        eventType: event.type,
+        refundId: refund.id,
+        returnRequestId: request.id,
+        previousRefundStatus: request.refundStatus,
+        result: result.ok ? result.refundStatus : result.reason,
+        refundChanged: result.ok ? result.refundChanged : false,
+        requestCorrelationId,
+      }, { correlationId: checkoutCorrelationId });
+
+      revalidatePath("/admin/returns");
+      revalidatePath(`/admin/returns/${request.id}`);
+      revalidatePath("/admin/activity");
+      revalidatePath("/admin");
+      break;
+    }
     case "payment_intent.processing": {
       await markOrderPaymentState(
         event.data.object.id,

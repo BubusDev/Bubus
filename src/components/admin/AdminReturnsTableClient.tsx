@@ -15,9 +15,21 @@ type AdminReturnRequestRow = {
   customerEmail: string;
   status: string;
   refundStatus: string;
+  bulkRefundReconcileResult: string | null;
   assignedOwnerLabel: string;
   reasonSummary: string;
   detailsSummary: string;
+};
+
+const bulkRefundResultLabels: Record<string, string> = {
+  updated_succeeded: "Refund egyeztetés: succeeded",
+  updated_failed: "Refund egyeztetés: failed",
+  updated_pending: "Refund egyeztetés: pending",
+  skipped_not_eligible: "Refund egyeztetés: nem egyeztethető",
+  skipped_missing_stripe_refund_id: "Refund egyeztetés: nincs Stripe refund ID",
+  skipped_unchanged: "Refund egyeztetés: nincs változás",
+  skipped_not_found: "Refund egyeztetés: kérelem nem található",
+  skipped_stripe_lookup_failed: "Refund egyeztetés: Stripe lekérés sikertelen",
 };
 
 const bulkActionOptions = [
@@ -25,6 +37,7 @@ const bulkActionOptions = [
   { value: "move_to_approved", label: "Ellenőrzés alatt -> Jóváhagyva" },
   { value: "move_to_rejected", label: "Ellenőrzés alatt -> Elutasítva" },
   { value: "move_to_completed", label: "Jóváhagyva -> Lezárva" },
+  { value: "reconcile_refunds", label: "Refund állapot egyeztetése" },
 ] as const;
 
 function StatusBadge({ status }: { status: string }) {
@@ -109,6 +122,11 @@ export function AdminReturnsTableClient({
           >
             Bulk művelet
           </button>
+          {bulkAction === "reconcile_refunds" ? (
+            <p className="text-[12px] text-[#666]">
+              Csak a `pending` vagy `failed` refund státuszú, Stripe refund azonosítóval rendelkező kérelmek frissülnek.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -174,6 +192,11 @@ export function AdminReturnsTableClient({
                   <td className="px-4 py-3 text-[#555]">
                     <p className="text-[12px] font-medium text-[#1a1a1a]">{request.reasonSummary}</p>
                     <p className="mt-1 line-clamp-2 text-[12px]">{request.detailsSummary}</p>
+                    {request.bulkRefundReconcileResult ? (
+                      <p className="mt-2 text-[11px] font-medium text-[#6b425a]">
+                        {bulkRefundResultLabels[request.bulkRefundReconcileResult] ?? request.bulkRefundReconcileResult}
+                      </p>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link

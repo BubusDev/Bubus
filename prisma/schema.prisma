@@ -415,6 +415,8 @@ model ReturnRequest {
   refundProcessingAt     DateTime?
   refundConfirmationEmailSendingAt DateTime?
   refundConfirmationEmailSentAt DateTime?
+  refundFailureEmailSendingAt DateTime?
+  refundFailureEmailSentAt DateTime?
   reason                 String?
   details                String
   adminNote              String?

@@ -4,10 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminUser } from "@/lib/auth";
-import { fromStripeAmount, toStripeAmount } from "@/lib/catalog";
+import { toStripeAmount } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { recordReturnRequestHistory } from "@/lib/admin-workflow-history";
 import { sendRefundConfirmationEmailIfNeeded } from "@/lib/refund-confirmation-email";
+import {
+  isEligibleForRefundReconciliation,
+  reconcileReturnRequestRefundFromStripe,
+} from "@/lib/return-refund-reconciliation";
 import { getStripe } from "@/lib/stripe";
 
 const bulkTransitionMap = {
@@ -16,6 +20,23 @@ const bulkTransitionMap = {
   move_to_rejected: { from: "in_review", to: "rejected" },
   move_to_completed: { from: "approved", to: "completed" },
 } as const;
+
+const bulkRefundReconcileAction = "reconcile_refunds" as const;
+
+type BulkRefundReconcileItemResultCode =
+  | "updated_succeeded"
+  | "updated_failed"
+  | "updated_pending"
+  | "skipped_not_eligible"
+  | "skipped_missing_stripe_refund_id"
+  | "skipped_unchanged"
+  | "skipped_not_found"
+  | "skipped_stripe_lookup_failed";
+
+type BulkRefundReconcileItemResult = {
+  requestId: string;
+  code: BulkRefundReconcileItemResultCode;
+};
 
 function formatAssigneeLabel(input: { name?: string | null; email?: string | null } | null | undefined) {
   if (!input) {
@@ -44,6 +65,54 @@ function readPositiveInteger(formData: FormData, key: string) {
   }
 
   return Math.round(parsed);
+}
+
+function buildReturnsRedirect(input: {
+  currentFilter: string;
+  currentRefundFilter: string;
+  bulk: string;
+  updated?: number;
+  skipped?: number;
+  bulkKind?: "status_transition" | "refund_reconcile";
+  bulkResults?: string;
+}) {
+  const targetUrl = new URL("http://localhost/admin/returns");
+
+  if (input.currentFilter) {
+    targetUrl.searchParams.set("status", input.currentFilter);
+  }
+
+  if (input.currentRefundFilter) {
+    targetUrl.searchParams.set("refund", input.currentRefundFilter);
+  }
+
+  targetUrl.searchParams.set("bulk", input.bulk);
+
+  if (input.bulkKind) {
+    targetUrl.searchParams.set("bulkKind", input.bulkKind);
+  }
+
+  if (typeof input.updated === "number") {
+    targetUrl.searchParams.set("updated", String(input.updated));
+  }
+
+  if (typeof input.skipped === "number") {
+    targetUrl.searchParams.set("skipped", String(input.skipped));
+  }
+
+  if (input.bulkResults) {
+    targetUrl.searchParams.set("bulkResults", input.bulkResults);
+  }
+
+  return `${targetUrl.pathname}${targetUrl.search}`;
+}
+
+function serializeBulkRefundReconcileResults(results: BulkRefundReconcileItemResult[]) {
+  if (results.length === 0) {
+    return "";
+  }
+
+  return Buffer.from(JSON.stringify(results)).toString("base64url");
 }
 
 export async function updateReturnRequestAction(formData: FormData) {
@@ -107,37 +176,121 @@ export async function bulkUpdateReturnRequestAction(formData: FormData) {
     typeof formData.get("currentRefundFilter") === "string"
       ? String(formData.get("currentRefundFilter"))
       : "";
+  const redirectBase = {
+    currentFilter,
+    currentRefundFilter,
+  };
 
-  function buildReturnsRedirect(params: { bulk: string; updated?: number; skipped?: number }) {
-    const targetUrl = new URL("http://localhost/admin/returns");
-
-    if (currentFilter) {
-      targetUrl.searchParams.set("status", currentFilter);
-    }
-
-    if (currentRefundFilter) {
-      targetUrl.searchParams.set("refund", currentRefundFilter);
-    }
-
-    targetUrl.searchParams.set("bulk", params.bulk);
-
-    if (typeof params.updated === "number") {
-      targetUrl.searchParams.set("updated", String(params.updated));
-    }
-
-    if (typeof params.skipped === "number") {
-      targetUrl.searchParams.set("skipped", String(params.skipped));
-    }
-
-    return `${targetUrl.pathname}${targetUrl.search}`;
+  if (typeof bulkAction !== "string" || selectedRequestIds.length === 0) {
+    redirect(buildReturnsRedirect({ ...redirectBase, bulk: "invalid" }));
   }
 
-  if (
-    typeof bulkAction !== "string" ||
-    !(bulkAction in bulkTransitionMap) ||
-    selectedRequestIds.length === 0
-  ) {
-    redirect(buildReturnsRedirect({ bulk: "invalid" }));
+  if (bulkAction === bulkRefundReconcileAction) {
+    const requests = await db.returnRequest.findMany({
+      where: {
+        id: {
+          in: selectedRequestIds,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        refundStatus: true,
+        refundedAmount: true,
+        refundedAt: true,
+        stripeRefundId: true,
+        order: {
+          select: {
+            currency: true,
+          },
+        },
+      },
+    });
+
+    const requestMap = new Map(requests.map((request) => [request.id, request]));
+
+    let updated = 0;
+    let skipped = 0;
+    const results: BulkRefundReconcileItemResult[] = [];
+
+    for (const requestId of selectedRequestIds) {
+      const request = requestMap.get(requestId);
+
+      if (!request) {
+        skipped += 1;
+        results.push({ requestId, code: "skipped_not_found" });
+        continue;
+      }
+
+      if (!request.stripeRefundId) {
+        skipped += 1;
+        results.push({ requestId, code: "skipped_missing_stripe_refund_id" });
+        continue;
+      }
+
+      if (!isEligibleForRefundReconciliation(request)) {
+        skipped += 1;
+        results.push({ requestId, code: "skipped_not_eligible" });
+        continue;
+      }
+
+      const result = await reconcileReturnRequestRefundFromStripe({
+        request,
+        changedById: admin.id,
+        retrieveStripeRefund: (refundId) => getStripe().refunds.retrieve(refundId),
+      });
+
+      if (!result.ok) {
+        skipped += 1;
+        results.push({
+          requestId: request.id,
+          code:
+            result.reason === "stripe_error"
+              ? "skipped_stripe_lookup_failed"
+              : result.reason === "invalid"
+                ? "skipped_not_eligible"
+                : "skipped_not_found",
+        });
+        continue;
+      }
+
+      if (!result.refundChanged) {
+        skipped += 1;
+        results.push({ requestId: request.id, code: "skipped_unchanged" });
+        continue;
+      }
+
+      updated += 1;
+      results.push({
+        requestId: request.id,
+        code:
+          result.refundStatus === "succeeded"
+            ? "updated_succeeded"
+            : result.refundStatus === "failed"
+              ? "updated_failed"
+              : "updated_pending",
+      });
+    }
+
+    revalidatePath("/admin/returns");
+    for (const requestId of selectedRequestIds) {
+      revalidatePath(`/admin/returns/${requestId}`);
+    }
+
+    redirect(
+      buildReturnsRedirect({
+        ...redirectBase,
+        bulk: "done",
+        bulkKind: "refund_reconcile",
+        updated,
+        skipped,
+        bulkResults: serializeBulkRefundReconcileResults(results),
+      }),
+    );
+  }
+
+  if (!(bulkAction in bulkTransitionMap)) {
+    redirect(buildReturnsRedirect({ ...redirectBase, bulk: "invalid" }));
   }
 
   const transition = bulkTransitionMap[bulkAction as keyof typeof bulkTransitionMap];
@@ -194,7 +347,15 @@ export async function bulkUpdateReturnRequestAction(formData: FormData) {
     revalidatePath(`/admin/returns/${requestId}`);
   }
 
-  redirect(buildReturnsRedirect({ bulk: "done", updated, skipped }));
+  redirect(
+    buildReturnsRedirect({
+      ...redirectBase,
+      bulk: "done",
+      bulkKind: "status_transition",
+      updated,
+      skipped,
+    }),
+  );
 }
 
 export async function updateReturnRequestAssignmentAction(formData: FormData) {
@@ -418,72 +579,23 @@ export async function reconcileReturnRequestRefundAction(formData: FormData) {
     },
   });
 
-  if (!request || request.refundStatus !== "pending" || !request.stripeRefundId) {
+  if (!request || !isEligibleForRefundReconciliation(request)) {
     redirect(`/admin/returns/${requestId}?refund=invalid`);
   }
-
-  let stripeRefund;
-
-  try {
-    stripeRefund = await getStripe().refunds.retrieve(request.stripeRefundId);
-  } catch {
-    redirect(`/admin/returns/${request.id}?refund=reconcile_error`);
-  }
-
-  let nextRefundStatus: "pending" | "succeeded" | "failed" = "pending";
-  let refundFailureReason: string | null = null;
-
-  if (stripeRefund.status === "succeeded") {
-    nextRefundStatus = "succeeded";
-  } else if (stripeRefund.status === "failed" || stripeRefund.status === "canceled") {
-    nextRefundStatus = "failed";
-    refundFailureReason = stripeRefund.failure_reason ?? `Stripe refund status: ${stripeRefund.status}`;
-  }
-
-  const refundedAmount =
-    typeof stripeRefund.amount === "number" && Number.isFinite(stripeRefund.amount)
-      ? fromStripeAmount(stripeRefund.amount, request.order.currency)
-      : request.refundedAmount;
-  const refundedAt =
-    nextRefundStatus === "succeeded"
-      ? request.refundedAt ?? new Date(stripeRefund.created * 1000)
-      : request.refundedAt;
-
-  const updatedRequest = await db.returnRequest.update({
-    where: { id: request.id },
-    data: {
-      refundStatus: nextRefundStatus,
-      refundedAmount,
-      refundedAt: nextRefundStatus === "succeeded" ? refundedAt : null,
-      refundFailureReason: nextRefundStatus === "failed" ? refundFailureReason : null,
-      refundProcessingAt: null,
-    },
-    select: {
-      status: true,
-      refundStatus: true,
-    },
-  });
-
-  await recordReturnRequestHistory({
-    returnRequestId: request.id,
-    previousStatus: request.status,
-    newStatus: updatedRequest.status,
-    previousRefundStatus: request.refundStatus,
-    newRefundStatus: updatedRequest.refundStatus,
-    refundChanged: request.refundStatus !== updatedRequest.refundStatus,
-    refundedAmount,
-    stripeRefundId: request.stripeRefundId,
+  const result = await reconcileReturnRequestRefundFromStripe({
+    request,
     changedById: admin.id,
+    retrieveStripeRefund: (refundId) => getStripe().refunds.retrieve(refundId),
   });
-
-  if (updatedRequest.refundStatus === "succeeded") {
-    await sendRefundConfirmationEmailIfNeeded(request.id);
-  }
 
   revalidatePath("/admin/returns");
   revalidatePath(`/admin/returns/${request.id}`);
 
-  if (updatedRequest.refundStatus === "pending") {
+  if (!result.ok) {
+    redirect(`/admin/returns/${request.id}?refund=reconcile_error`);
+  }
+
+  if (result.refundStatus === "pending") {
     redirect(`/admin/returns/${request.id}?refund=still_pending`);
   }
 
