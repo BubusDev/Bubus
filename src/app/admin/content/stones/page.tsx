@@ -15,10 +15,10 @@ export default async function AdminStonesPage() {
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-[#9a6878]">{stones.length} kő az adatbázisban</p>
+          <p className="text-sm text-[var(--admin-ink-600)]">{stones.length} kő az adatbázisban</p>
           <Link
             href="/admin/content/stones/new"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c45a85] to-[#9b3d6e] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+            className="admin-button-primary admin-control-md gap-2"
           >
             <Plus className="h-3.5 w-3.5" />
             Új kő
@@ -26,14 +26,14 @@ export default async function AdminStonesPage() {
         </div>
 
         {stones.length === 0 ? (
-          <p className="text-sm text-[#9a7080]">Még nincsenek kövek. Hozd létre az elsőt!</p>
+          <p className="text-sm text-[var(--admin-ink-600)]">Még nincsenek kövek. Hozd létre az elsőt!</p>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-[#f0dbe6]">
+          <div className="admin-table-shell">
             {stones.map((stone, index) => (
               <div
                 key={stone.id}
                 className={`flex items-center gap-4 px-5 py-4 ${
-                  index !== stones.length - 1 ? "border-b border-[#f8edf3]" : ""
+                  index !== stones.length - 1 ? "border-b border-[#eef2f7]" : ""
                 }`}
               >
                 {/* Color circle */}
@@ -45,8 +45,8 @@ export default async function AdminStonesPage() {
                 />
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#4d2741]">{stone.name}</p>
-                  <p className="text-[11px] text-[#9a7080]">
+                  <p className="text-sm font-medium text-[var(--admin-ink-900)]">{stone.name}</p>
+                  <p className="text-[11px] text-[var(--admin-ink-500)]">
                     {stone.effects.length} hatás
                     {stone.chakra ? ` · ${stone.chakra}` : ""}
                     {stone.origin ? ` · ${stone.origin}` : ""}
@@ -56,7 +56,7 @@ export default async function AdminStonesPage() {
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/admin/content/stones/${stone.id}/edit`}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#ecd3e3] bg-white px-3 text-xs font-medium text-[#6b425a] transition hover:border-[#e9b6d0]"
+                    className="admin-button-secondary admin-control-sm inline-flex items-center gap-1.5"
                   >
                     <Pencil className="h-3 w-3" />
                     Szerkesztés
@@ -66,7 +66,7 @@ export default async function AdminStonesPage() {
                     <input type="hidden" name="id" value={stone.id} />
                     <button
                       type="submit"
-                      className="inline-flex h-8 items-center rounded-full border border-[#f0dbe6] bg-white px-3 text-xs text-[#c0a0b4] transition hover:border-rose-200 hover:text-rose-500"
+                      className="admin-button-danger admin-control-sm inline-flex items-center"
                     >
                       Törlés
                     </button>

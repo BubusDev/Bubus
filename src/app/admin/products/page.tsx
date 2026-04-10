@@ -29,10 +29,10 @@ export default async function AdminProductsPage() {
         </AdminActionLink>
       </div>
 
-      <div className="overflow-hidden rounded-[2.2rem] border border-white/70 bg-white/76 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl">
+      <div className="admin-table-shell">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left">
-            <thead className="border-b border-[#f0d8e5] bg-[#fff7fb] text-[10px] uppercase tracking-[0.28em] text-[#af7795]">
+            <thead className="admin-table-head text-[10px] uppercase tracking-[0.28em] text-[var(--admin-ink-500)]">
               <tr>
                 <th className="px-5 py-4">Termék</th>
                 <th className="px-5 py-4">Kategória</th>
@@ -44,18 +44,18 @@ export default async function AdminProductsPage() {
             </thead>
             <tbody>
               {products.map((product) => (
-                <tr key={product.id} className="border-b border-[#f6e6ee] last:border-b-0">
+                <tr key={product.id} className="admin-table-row last:border-b-0">
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-[#4d2741]">{product.name}</p>
-                    <p className="mt-1 text-sm text-[#7a6070]">/{product.slug}</p>
+                    <p className="font-semibold text-[var(--admin-ink-900)]">{product.name}</p>
+                    <p className="mt-1 text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#6d5260]">
+                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {product.category.name}
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#6d5260]">
+                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {formatPrice(product.price)}
                   </td>
-                  <td className="px-5 py-4 text-sm text-[#6d5260]">
+                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {
                       homepagePlacementLabels[
                         product.homepagePlacement.toLowerCase() as keyof typeof homepagePlacementLabels
@@ -90,12 +90,13 @@ export default async function AdminProductsPage() {
                       <AdminActionLink
                         href={`/admin/products/${product.id}/edit`}
                         size="sm"
+                        className="!h-8 !px-3 !text-xs"
                       >
                         Szerkesztés
                       </AdminActionLink>
                       <form action={deleteProductAction}>
                         <input type="hidden" name="productId" value={product.id} />
-                        <AdminActionButton type="submit" variant="danger" size="sm">
+                        <AdminActionButton type="submit" variant="danger" size="sm" className="!h-8 !px-3 !text-xs">
                           Törlés
                         </AdminActionButton>
                       </form>
@@ -135,7 +136,7 @@ function ProductFlagToggle({
         type="submit"
         size="sm"
         variant={active ? "primary" : "secondary"}
-        className="h-8 px-3 text-xs"
+        className="!h-8 !px-3 !text-xs"
       >
         {label}
       </AdminActionButton>
@@ -153,7 +154,7 @@ function ProductArchiveToggle({ productId }: { productId: string }) {
         type="submit"
         size="sm"
         variant="danger"
-        className="h-8 px-3 text-xs"
+        className="!h-8 !px-3 !text-xs"
       >
         Archiválás
       </AdminActionButton>

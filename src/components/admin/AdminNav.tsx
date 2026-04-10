@@ -55,18 +55,13 @@ export function AdminNav() {
   };
 
   return (
-    <div className="border-b border-[#f0dbe6]">
-      {/* Main nav */}
+    <div className="border-b border-[var(--admin-line-100)]">
       <nav className="flex flex-wrap gap-1.5 px-5 py-3 sm:px-8">
         {mainNav.map(({ label, href, icon: Icon }) => (
           <Link
             key={href}
             href={href}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-              isMainActive(href)
-                ? "bg-gradient-to-r from-[#c45a85] to-[#9b3d6e] text-white shadow-sm"
-                : "border border-[#ecd3e3] bg-white/90 text-[#6b425a] hover:border-[#e9b6d0] hover:bg-white"
-            }`}
+            className={`admin-tab admin-control-md font-medium ${isMainActive(href) ? "admin-tab-active" : ""}`}
           >
             <Icon className="h-3.5 w-3.5" />
             {label}
@@ -76,16 +71,12 @@ export function AdminNav() {
 
       {/* Contextual sub-nav */}
       {subNav && (
-        <nav className="flex flex-wrap gap-1.5 border-t border-[#f8edf3] bg-[#fff5f8] px-5 py-2.5 sm:px-8">
+        <nav className="flex flex-wrap gap-1.5 border-t border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-5 py-2.5 sm:px-8">
           {subNav.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                isSubActive(href)
-                  ? "border-b-2 border-[#c45a85] bg-white text-[#c45a85]"
-                  : "text-[#9a6878] hover:text-[#4d2741]"
-              }`}
+              className={`admin-filter-chip admin-control-sm font-medium ${isSubActive(href) ? "admin-filter-chip-soft-active" : ""}`}
             >
               {label}
             </Link>

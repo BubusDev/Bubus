@@ -80,13 +80,13 @@ export default async function AdminPage() {
         <div className="flex gap-2">
           <Link
             href="/admin/products/new"
-            className="inline-flex items-center h-9 px-4 text-sm font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition"
+            className="admin-button-primary h-9 px-4 text-sm"
           >
             + Új termék
           </Link>
           <Link
             href="/admin/orders"
-            className="inline-flex items-center h-9 px-4 text-sm font-medium border border-[#e8e5e0] text-[#1a1a1a] hover:bg-[#faf9f7] transition"
+            className="admin-button-secondary h-9 px-4 text-sm"
           >
             Rendelések
           </Link>
@@ -96,21 +96,21 @@ export default async function AdminPage() {
       {/* Metric cards */}
       <div className="grid grid-cols-2 gap-4 mb-8 xl:grid-cols-4">
         {metrics.map((m) => (
-          <div key={m.label} className="bg-white border border-[#e8e5e0] p-5">
-            <p className="text-[11px] uppercase tracking-[.18em] text-[#888] mb-2">{m.label}</p>
-            <p className="text-2xl font-semibold text-[#1a1a1a]">{m.value}</p>
+          <div key={m.label} className="admin-panel p-5">
+            <p className="mb-2 text-[11px] uppercase tracking-[.18em] text-[var(--admin-ink-500)]">{m.label}</p>
+            <p className="text-2xl font-semibold text-[var(--admin-ink-900)]">{m.value}</p>
             {m.delta && <p className="text-xs text-[#16a34a] mt-1">{m.delta}</p>}
           </div>
         ))}
       </div>
 
       {/* Recent orders table */}
-      <div className="bg-white border border-[#e8e5e0]">
-        <div className="px-5 py-4 border-b border-[#e8e5e0] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#1a1a1a]">Legutóbbi rendelések</h2>
+      <div className="admin-table-shell">
+        <div className="flex items-center justify-between border-b border-[var(--admin-line-100)] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[var(--admin-ink-900)]">Legutóbbi rendelések</h2>
           <Link
             href="/admin/orders"
-            className="text-xs text-[#888] hover:text-[#1a1a1a] transition"
+            className="admin-inline-link text-xs"
           >
             Összes →
           </Link>
@@ -118,11 +118,11 @@ export default async function AdminPage() {
 
         <table className="w-full">
           <thead>
-            <tr className="border-b border-[#f0ede8]">
+            <tr className="admin-table-head">
               {["#", "Vevő", "Összeg", "Státusz", "Dátum"].map((col) => (
                 <th
                   key={col}
-                  className="px-5 py-3 text-left text-[11px] uppercase tracking-[.15em] text-[#888] font-medium"
+                  className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-[.15em] text-[var(--admin-ink-500)]"
                 >
                   {col}
                 </th>
@@ -130,26 +130,26 @@ export default async function AdminPage() {
               <th className="px-5 py-3 w-10" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f5f4f2]">
+          <tbody>
             {recentOrders.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-sm text-[#888]">
+                <td colSpan={6} className="px-5 py-10 text-center text-sm text-[var(--admin-ink-500)]">
                   Még nincs fizetett rendelés.
                 </td>
               </tr>
             ) : (
               recentOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-[#faf9f7] transition">
-                  <td className="px-5 py-3.5 text-sm font-mono text-[#888]">
+                <tr key={order.id} className="admin-table-row">
+                  <td className="px-5 py-3.5 text-sm font-mono text-[var(--admin-ink-500)]">
                     {order.orderNumber}
                   </td>
-                  <td className="px-5 py-3.5 text-sm text-[#1a1a1a]">
+                  <td className="px-5 py-3.5 text-sm text-[var(--admin-ink-900)]">
                     {order.shippingName}
-                    <span className="block text-[11px] text-[#888]">
+                    <span className="block text-[11px] text-[var(--admin-ink-500)]">
                       {order.user?.email ?? order.guestEmail ?? "—"}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-sm font-medium text-[#1a1a1a]">
+                  <td className="px-5 py-3.5 text-sm font-medium text-[var(--admin-ink-900)]">
                     {formatPrice(order.total)}
                   </td>
                   <td className="px-5 py-3.5">
@@ -157,13 +157,13 @@ export default async function AdminPage() {
                       status={(order as OrderWithInternalStatus).internalStatus ?? "received"}
                     />
                   </td>
-                  <td className="px-5 py-3.5 text-sm text-[#888]">
+                  <td className="px-5 py-3.5 text-sm text-[var(--admin-ink-500)]">
                     {new Date(order.createdAt).toLocaleDateString("hu-HU")}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <Link
                       href={`/admin/orders/${order.id}`}
-                      className="text-[12px] font-medium text-[#1a1a1a] underline-offset-2 hover:underline"
+                      className="admin-table-link text-[12px] font-medium underline-offset-2 hover:underline"
                     >
                       →
                     </Link>
@@ -175,12 +175,12 @@ export default async function AdminPage() {
         </table>
       </div>
 
-      <div className="mt-6 overflow-hidden border border-[#e8e5e0] bg-white">
-        <div className="flex items-center justify-between border-b border-[#e8e5e0] px-5 py-4">
-          <h2 className="text-sm font-semibold text-[#1a1a1a]">Legutóbbi aktivitás</h2>
+      <div className="admin-table-shell mt-6">
+        <div className="flex items-center justify-between border-b border-[var(--admin-line-100)] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[var(--admin-ink-900)]">Legutóbbi aktivitás</h2>
           <Link
             href="/admin/activity"
-            className="text-xs text-[#888] transition hover:text-[#1a1a1a]"
+            className="admin-inline-link text-xs"
           >
             Teljes lista →
           </Link>
@@ -199,7 +199,7 @@ export default async function AdminPage() {
           <Link
             key={link.href}
             href={link.href}
-            className="border border-[#e8e5e0] bg-white px-4 py-3.5 text-sm font-medium text-[#1a1a1a] hover:bg-[#faf9f7] transition"
+            className="admin-panel-soft px-4 py-3.5 text-sm font-medium text-[var(--admin-ink-900)] transition hover:border-[#bfd0ea] hover:bg-[var(--admin-blue-050)]"
           >
             {link.label} →
           </Link>

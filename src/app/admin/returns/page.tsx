@@ -161,14 +161,10 @@ export default async function AdminReturnsPage({
       description={`${requests.length} kérelem${activeStatus !== "all" ? ` — státusz: ${returnRequestStatusConfig[activeStatus]?.label ?? activeStatus}` : ""}${activeRefund !== "all" ? ` — refund: ${returnRefundQueueFilters.find((item) => item.value === activeRefund)?.label ?? activeRefund}` : ""}`}
       actions={
         <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap gap-2">
+          <div className="admin-filter-row">
             <Link
               href={buildReturnsFilterHref({ status: "all" })}
-              className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-medium transition ${
-                activeStatus === "all"
-                  ? "bg-[#1a1a1a] text-white"
-                  : "border border-[#e8e5e0] bg-white text-[#6b425a] hover:bg-[#faf9f7]"
-              }`}
+              className={`admin-filter-chip admin-control-md ${activeStatus === "all" ? "admin-filter-chip-active" : ""}`}
             >
               Összes státusz
             </Link>
@@ -176,26 +172,18 @@ export default async function AdminReturnsPage({
               <Link
                 key={item.value}
                 href={buildReturnsFilterHref({ status: item.value })}
-                className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-medium transition ${
-                  activeStatus === item.value
-                    ? "bg-[#1a1a1a] text-white"
-                    : "border border-[#e8e5e0] bg-white text-[#6b425a] hover:bg-[#faf9f7]"
-                }`}
+                className={`admin-filter-chip admin-control-md ${activeStatus === item.value ? "admin-filter-chip-active" : ""}`}
               >
                 {item.label}
               </Link>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="admin-filter-row">
             {returnRefundQueueFilters.map((item) => (
               <Link
                 key={item.value}
                 href={buildReturnsFilterHref({ refund: item.value })}
-                className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-medium transition ${
-                  activeRefund === item.value
-                    ? "bg-[#6b425a] text-white"
-                    : "border border-[#e8e5e0] bg-white text-[#6b425a] hover:bg-[#faf9f7]"
-                }`}
+                className={`admin-filter-chip admin-control-md ${activeRefund === item.value ? "admin-filter-chip-soft-active" : ""}`}
               >
                 {item.label}
               </Link>
@@ -205,11 +193,11 @@ export default async function AdminReturnsPage({
       }
     >
       {feedbackMessage ? (
-        <div className="mb-4 rounded-[1.2rem] border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#6b425a]">
+        <div className="admin-panel-soft mb-4 px-4 py-3 text-sm text-[var(--admin-ink-700)]">
           <p>{feedbackMessage}</p>
           {bulkKind === "refund_reconcile" && refundReconcileResults.length > 0 ? (
-            <div className="mt-3 border-t border-[#f0eeec] pt-3">
-              <p className="text-[12px] font-medium uppercase tracking-[.16em] text-[#888]">
+            <div className="mt-3 border-t border-[var(--admin-line-100)] pt-3">
+              <p className="text-[12px] font-medium uppercase tracking-[.16em] text-[var(--admin-ink-500)]">
                 Kérelmenkénti eredmények
               </p>
               <ul className="mt-2 space-y-2">
@@ -217,11 +205,11 @@ export default async function AdminReturnsPage({
                   <li key={`${result.requestId}:${result.code}`} className="flex flex-wrap items-center gap-2 text-[13px]">
                     <Link
                       href={`/admin/returns/${result.requestId}`}
-                      className="font-mono text-[#1a1a1a] underline-offset-2 hover:underline"
+                      className="admin-table-link font-mono underline-offset-2 hover:underline"
                     >
                       {result.requestId.slice(0, 8)}
                     </Link>
-                    <span className="text-[#6b425a]">{bulkRefundResultLabels[result.code]}</span>
+                    <span className="text-[var(--admin-ink-700)]">{bulkRefundResultLabels[result.code]}</span>
                   </li>
                 ))}
               </ul>

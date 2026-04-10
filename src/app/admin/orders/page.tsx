@@ -77,16 +77,12 @@ export default async function AdminOrdersPage({
       title="Rendelések"
       description={`${orders.length} rendelés${activeFilter !== "all" ? ` — szűrve: ${adminOrderQueueFilters.find((item) => item.key === activeFilter)?.label ?? activeFilter}` : ""}`}
       actions={
-        <div className="flex flex-wrap gap-2">
+        <div className="admin-filter-row">
           {adminOrderQueueFilters.map((filter) => (
             <Link
               key={filter.key}
               href={filter.key === "all" ? "/admin/orders" : `/admin/orders?status=${encodeURIComponent(filter.key)}`}
-              className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-medium transition ${
-                activeFilter === filter.key
-                  ? "bg-[#1a1a1a] text-white"
-                  : "border border-[#e8e5e0] bg-white text-[#6b425a] hover:bg-[#faf9f7]"
-              }`}
+              className={`admin-filter-chip admin-control-md ${activeFilter === filter.key ? "admin-filter-chip-active" : ""}`}
             >
               {filter.label}
             </Link>
@@ -95,7 +91,7 @@ export default async function AdminOrdersPage({
       }
     >
       {feedbackMessage ? (
-        <div className="mb-4 rounded-[1.2rem] border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#6b425a]">
+        <div className="admin-panel-soft mb-4 px-4 py-3 text-sm text-[var(--admin-ink-700)]">
           {feedbackMessage}
         </div>
       ) : null}

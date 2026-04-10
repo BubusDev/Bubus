@@ -48,11 +48,8 @@ export function AdminHeader() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center px-6 py-3"
-      style={{
-        borderBottom: "1px solid #e8e5e0",
-        background: "white",
-      }}
+      className="sticky top-0 z-40 flex items-center border-b border-[var(--admin-line-100)] bg-[rgba(255,255,255,0.94)] px-6 py-3 backdrop-blur-xl"
+      style={{ boxShadow: "0 10px 30px rgba(18, 31, 58, 0.04)" }}
     >
       <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
         {crumbs.map((crumb, i) => {
@@ -60,14 +57,14 @@ export function AdminHeader() {
           return (
             <span key={i} className="flex items-center gap-1">
               {i > 0 && (
-                <ChevronRight className="h-3 w-3 flex-shrink-0 text-[#bbb]" />
+                <ChevronRight className="h-3 w-3 flex-shrink-0 text-[var(--admin-ink-500)]" />
               )}
               {isLast || !crumb.href ? (
-                <span className="font-medium text-[#1a1a1a]">{crumb.label}</span>
+                <span className="font-medium text-[var(--admin-ink-900)]">{crumb.label}</span>
               ) : (
                 <Link
                   href={crumb.href}
-                  className="text-[#888] transition hover:text-[#1a1a1a]"
+                  className="text-[var(--admin-ink-500)] transition hover:text-[var(--admin-blue-700)]"
                 >
                   {crumb.label}
                 </Link>

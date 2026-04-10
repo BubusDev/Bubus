@@ -14,7 +14,7 @@ export default async function AdminLayout({
   await requireAdminUser("/admin");
 
   return (
-    <div className="flex min-h-screen bg-[#f8f7f5]">
+    <div className="admin-shell-bg flex min-h-screen">
       <AdminSidebar />
       <div className="ml-56 flex min-h-screen flex-1 flex-col">
         <AdminHeader />

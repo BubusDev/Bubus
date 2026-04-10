@@ -313,22 +313,22 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
       {localGroups.map((group) => (
         <section
           key={group.type}
-          className="rounded-[2rem] border border-white/70 bg-white/76 p-6 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl"
+          className="admin-panel p-6"
         >
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-[#af7795]">
+              <p className="admin-eyebrow">
                 Opciókészlet
               </p>
-              <h2 className="mt-2 text-xl font-semibold text-[#4d2741]">{group.label}</h2>
-              <p className="mt-2 text-sm text-[#7a6070]">
+              <h2 className="mt-2 text-xl font-semibold text-[var(--admin-ink-900)]">{group.label}</h2>
+              <p className="mt-2 text-sm text-[var(--admin-ink-600)]">
                 Húzd a fogantyút az elemek átrendezéséhez. A sorrend automatikusan mentődik.
               </p>
             </div>
           </div>
 
           <form
-            className="mb-5 grid gap-3 rounded-[1.4rem] border border-[#f0d8e5] bg-[#fff8fb] p-4 md:grid-cols-[1fr_1fr_auto]"
+            className="admin-panel-soft mb-5 grid gap-3 p-4 md:grid-cols-[1fr_1fr_auto]"
             onSubmit={(event) => {
               event.preventDefault();
               handleCreate(group.type, new FormData(event.currentTarget));
@@ -339,17 +339,17 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             <input
               name="name"
               placeholder={`Új ${group.label.toLowerCase()} neve`}
-              className="h-11 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
+              className="admin-input h-11 rounded-2xl px-4 text-sm"
             />
             <input
               name="slug"
               placeholder="Slug (opcionális)"
-              className="h-11 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
+              className="admin-input h-11 rounded-2xl px-4 text-sm"
             />
             <button
               type="submit"
               disabled={isPending && pendingCreateType === group.type}
-              className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white disabled:opacity-60"
+              className="admin-button-primary inline-flex h-11 items-center justify-center px-5 text-sm"
             >
               Opció hozzáadása
             </button>
@@ -365,8 +365,8 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                   key={option.clientId}
                   className={`flex flex-col gap-3 rounded-[1.4rem] border bg-white p-4 transition xl:flex-row xl:items-end xl:justify-between ${
                     draggedOptionId === option.clientId
-                      ? "border-[#ecb6d2] shadow-[0_10px_24px_rgba(191,117,162,0.12)]"
-                      : "border-[#f2dce7]"
+                      ? "border-[#bfd0ea] shadow-[0_10px_24px_rgba(31,79,150,0.12)]"
+                      : "border-[var(--admin-line-100)]"
                   }`}
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -403,7 +403,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           setDraggedOptionId(option.clientId);
                         }}
                         onDragEnd={() => setDraggedOptionId(null)}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#ecd3e3] bg-[#fff8fb] text-[#8b6279] transition hover:border-[#e8b2cf] hover:bg-white"
+                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center rounded-2xl text-[var(--admin-ink-600)]"
                         aria-label={`${option.name} átrendezése`}
                         title="Húzd az elem átrendezéséhez"
                       >
@@ -415,7 +415,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           type="button"
                           onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                           disabled={isPending || index === 0}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
+                          className="admin-button-secondary inline-flex h-9 w-9 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                           aria-label={`${option.name} mozgatása felfelé`}
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
@@ -424,7 +424,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           type="button"
                           onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                           disabled={isPending || index === group.options.length - 1}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
+                          className="admin-button-secondary inline-flex h-9 w-9 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                           aria-label={`${option.name} mozgatása lefelé`}
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
@@ -436,30 +436,30 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                       <input
                         name="name"
                         defaultValue={option.name}
-                        className="h-11 min-w-0 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
+                        className="admin-input h-11 min-w-0 rounded-2xl px-4 text-sm"
                       />
                       <input
                         name="slug"
                         defaultValue={option.slug}
-                        className="h-11 min-w-0 rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none"
+                        className="admin-input h-11 min-w-0 rounded-2xl px-4 text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-[auto_auto_auto_auto] sm:items-end sm:justify-end xl:flex xl:flex-none xl:items-end">
-                    <label className="flex h-11 items-center gap-2 rounded-full border border-[#ecd3e3] bg-[#fff8fb] px-4 text-sm text-[#5a374e]">
+                    <label className="admin-checkbox-pill flex h-11 items-center gap-2 px-4 text-sm">
                       <input
                         type="checkbox"
                         name="isActive"
                         defaultChecked={option.isActive}
-                        className="h-4 w-4 accent-[#f183bc]"
+                        className="h-4 w-4 accent-[var(--admin-blue-600)]"
                       />
                       Aktív
                     </label>
                     <button
                       type="submit"
                       disabled={isPendingSave || isPendingDelete}
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white px-4 text-sm font-medium text-[#6b425a] disabled:opacity-60"
+                      className="admin-button-secondary inline-flex h-11 items-center justify-center px-4 text-sm disabled:opacity-60"
                     >
                       Mentés
                     </button>
@@ -467,7 +467,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                       type="button"
                       disabled={isPendingSave || isPendingDelete}
                       onClick={() => handleDelete(group.type, option)}
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] disabled:opacity-60"
+                      className="admin-button-danger inline-flex h-11 items-center justify-center px-4 text-sm disabled:opacity-60"
                     >
                       Törlés
                     </button>
@@ -476,7 +476,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         type="button"
                         onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                         disabled={isPending || index === 0}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
+                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                         aria-label={`${option.name} mozgatása felfelé`}
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -485,7 +485,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                         type="button"
                         onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                         disabled={isPending || index === group.options.length - 1}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#ecd3e3] bg-white text-[#8b6279] disabled:opacity-40"
+                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                         aria-label={`${option.name} mozgatása lefelé`}
                       >
                         <ArrowDown className="h-4 w-4" />
@@ -498,7 +498,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
           </div>
 
           {errorByGroup[group.type] ? (
-            <p className="mt-3 text-sm text-[#9b476f]">{errorByGroup[group.type]}</p>
+            <p className="mt-3 text-sm text-[#ad4455]">{errorByGroup[group.type]}</p>
           ) : null}
         </section>
       ))}

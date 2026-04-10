@@ -92,18 +92,18 @@ export function AdminSidebar() {
     <aside
       className="fixed inset-y-0 left-0 z-50 flex w-56 flex-col"
       style={{
-        background: "#1a1a1a",
-        borderRight: "1px solid #2a2a2a",
+        background: "linear-gradient(180deg, #12213a 0%, #0d1729 100%)",
+        borderRight: "1px solid rgba(202, 216, 239, 0.14)",
       }}
     >
       {/* Logo */}
       <div
         className="flex flex-col px-5 pb-4 pt-5"
-        style={{ borderBottom: "1px solid #2a2a2a" }}
+        style={{ borderBottom: "1px solid rgba(202, 216, 239, 0.12)" }}
       >
         <span
           className="text-[9px] font-semibold uppercase tracking-[.28em]"
-          style={{ color: "#666" }}
+          style={{ color: "rgba(198, 212, 235, 0.6)" }}
         >
           Admin felület
         </span>
@@ -120,7 +120,7 @@ export function AdminSidebar() {
           <div key={group.label} className="mb-1">
             <p
               className="px-5 pb-1.5 pt-4 text-[9px] uppercase tracking-[.18em]"
-              style={{ color: "#666" }}
+              style={{ color: "rgba(198, 212, 235, 0.56)" }}
             >
               {group.label}
             </p>
@@ -133,9 +133,9 @@ export function AdminSidebar() {
                   href={item.href}
                   className="flex items-center gap-2.5 px-5 py-2 text-[13px] transition-all duration-150"
                   style={{
-                    color: active ? "#fff" : "#aaa",
-                    background: active ? "rgba(255,255,255,.07)" : "transparent",
-                    borderLeft: `2px solid ${active ? "#c45a85" : "transparent"}`,
+                    color: active ? "#fff" : "rgba(213, 223, 239, 0.76)",
+                    background: active ? "linear-gradient(90deg, rgba(63,122,210,0.28), rgba(63,122,210,0.08))" : "transparent",
+                    borderLeft: `2px solid ${active ? "#4d86dc" : "transparent"}`,
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
@@ -162,12 +162,12 @@ export function AdminSidebar() {
       {/* Footer */}
       <div
         className="px-5 py-3 text-[11px]"
-        style={{ borderTop: "1px solid #2a2a2a", color: "#555" }}
+        style={{ borderTop: "1px solid rgba(202, 216, 239, 0.12)", color: "rgba(198, 212, 235, 0.52)" }}
       >
         <Link
           href="/"
           className="transition hover:text-white"
-          style={{ color: "#555" }}
+          style={{ color: "rgba(198, 212, 235, 0.52)" }}
         >
           ← Vissza a webshophoz
         </Link>

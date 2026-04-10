@@ -16,16 +16,16 @@ function ContentCard({
   return (
     <Link
       href={href}
-      className="group rounded-[1.6rem] border border-[#e7d5df] bg-white px-5 py-5 transition duration-200 hover:-translate-y-[2px] hover:shadow-[0_16px_35px_rgba(99,46,73,0.08)]"
+      className="admin-panel group px-5 py-5 transition duration-200 hover:-translate-y-[2px] hover:border-[#bfd0ea] hover:shadow-[0_18px_40px_rgba(21,33,61,0.08)]"
     >
-      <p className="text-[10px] uppercase tracking-[0.3em] text-[#b07c97]">
+      <p className="admin-eyebrow">
         {eyebrow}
       </p>
-      <h3 className="mt-3 font-[family:var(--font-display)] text-[1.35rem] leading-tight tracking-[-0.03em] text-[#432335]">
+      <h3 className="mt-3 font-[family:var(--font-display)] text-[1.35rem] leading-tight tracking-[-0.03em] text-[var(--admin-ink-900)]">
         {title}
       </h3>
-      <p className="mt-3 text-sm leading-6 text-[#735d69]">{description}</p>
-      <span className="mt-5 inline-flex text-sm font-medium text-[#5f3d50] transition group-hover:translate-x-1">
+      <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">{description}</p>
+      <span className="admin-inline-link mt-5 inline-flex text-sm font-medium transition group-hover:translate-x-1">
         Megnyitás
       </span>
     </Link>
