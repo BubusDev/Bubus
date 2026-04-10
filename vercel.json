@@ -3,10 +3,6 @@
     {
       "path": "/api/internal/admin/weekly-summary",
       "schedule": "0 8 * * 1"
-    },
-    {
-      "path": "/api/internal/returns/refund-reconciliation",
-      "schedule": "*/15 * * * *"
     }
   ]
 }
