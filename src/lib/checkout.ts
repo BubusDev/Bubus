@@ -22,7 +22,13 @@ import {
   normalizeStoredPrice,
   toStripeAmount,
 } from "@/lib/catalog";
-import { getAvailableToSell, InsufficientStockError, applyCompletedOrderInventory } from "@/lib/inventory";
+import {
+  applyCompletedOrderInventory,
+  getAvailableToSell,
+  hasBecomeOutOfStock,
+  hasCrossedIntoLowStock,
+  InsufficientStockError,
+} from "@/lib/inventory";
 import { getStripe } from "@/lib/stripe";
 
 type CheckoutCustomerInput = {
@@ -1046,19 +1052,25 @@ export async function finalizePaidOrder({
     await sendNewOrderAdminNotificationIfNeeded(result.orderId);
 
     await Promise.all(
-      lowStockAdjustments.map((adjustment) =>
-        adjustment.stockAfter === 0
-          ? sendOutOfStockAdminNotification({
-              productName: adjustment.productName,
-              productSlug: adjustment.productSlug,
-            })
-          : sendLowStockAdminNotificationIfNeeded({
-              productId: adjustment.productId,
-              productName: adjustment.productName,
-              productSlug: adjustment.productSlug,
-              stockAfter: adjustment.stockAfter,
-            }),
-      ),
+      lowStockAdjustments.map((adjustment) => {
+        if (hasBecomeOutOfStock(adjustment.previousStock, adjustment.stockAfter)) {
+          return sendOutOfStockAdminNotification({
+            productName: adjustment.productName,
+            productSlug: adjustment.productSlug,
+          });
+        }
+
+        if (hasCrossedIntoLowStock(adjustment.previousStock, adjustment.stockAfter)) {
+          return sendLowStockAdminNotificationIfNeeded({
+            productId: adjustment.productId,
+            productName: adjustment.productName,
+            productSlug: adjustment.productSlug,
+            stockAfter: adjustment.stockAfter,
+          });
+        }
+
+        return false;
+      }),
     );
   }
 

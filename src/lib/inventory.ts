@@ -1,5 +1,7 @@
 import { type Prisma } from "@prisma/client";
 
+export const LOW_STOCK_THRESHOLD = 3;
+
 export class InsufficientStockError extends Error {
   readonly code = "INSUFFICIENT_STOCK";
 
@@ -38,6 +40,14 @@ export function getSoldOutTimestamp(
   return null;
 }
 
+export function hasCrossedIntoLowStock(previousStock: number, nextStock: number) {
+  return previousStock >= LOW_STOCK_THRESHOLD && nextStock > 0 && nextStock < LOW_STOCK_THRESHOLD;
+}
+
+export function hasBecomeOutOfStock(previousStock: number, nextStock: number) {
+  return previousStock > 0 && nextStock === 0;
+}
+
 type CompleteOrderItem = {
   productId: string;
   quantity: number;
@@ -57,6 +67,7 @@ export async function applyCompletedOrderInventory(
     productName: string;
     productSlug: string;
     quantity: number;
+    previousStock: number;
     stockAfter: number;
   }[] = [];
 
@@ -102,6 +113,7 @@ export async function applyCompletedOrderInventory(
       productName: product.name,
       productSlug: product.slug,
       quantity: item.quantity,
+      previousStock: product.stockQuantity + item.quantity,
       stockAfter: product.stockQuantity,
     });
   }

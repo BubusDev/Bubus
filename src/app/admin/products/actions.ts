@@ -11,7 +11,11 @@ import {
 } from "@/lib/admin-notifications";
 import { getImageAltTextFromUrl } from "@/lib/blob-upload";
 import { db } from "@/lib/db";
-import { getSoldOutTimestamp } from "@/lib/inventory";
+import {
+  getSoldOutTimestamp,
+  hasBecomeOutOfStock,
+  hasCrossedIntoLowStock,
+} from "@/lib/inventory";
 import { deleteProductImageFile } from "@/lib/product-images";
 import { parseProductFormData, slugifyOptionName } from "@/lib/products";
 
@@ -243,10 +247,14 @@ export async function updateProductAction(formData: FormData) {
     uploadedImages[0]?.url ??
     null;
   const nextStockQuantity = data.stockQuantity ?? 0;
-  const shouldTriggerLowStockNotification =
-    existingProduct.stockQuantity >= 3 && nextStockQuantity > 0 && nextStockQuantity < 3;
-  const shouldTriggerOutOfStockNotification =
-    existingProduct.stockQuantity > 0 && nextStockQuantity === 0;
+  const shouldTriggerLowStockNotification = hasCrossedIntoLowStock(
+    existingProduct.stockQuantity,
+    nextStockQuantity,
+  );
+  const shouldTriggerOutOfStockNotification = hasBecomeOutOfStock(
+    existingProduct.stockQuantity,
+    nextStockQuantity,
+  );
   let updatedProduct: Awaited<ReturnType<typeof db.product.update>> | null = null;
 
   try {

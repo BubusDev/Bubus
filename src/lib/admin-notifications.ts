@@ -1,8 +1,7 @@
 import { db } from "@/lib/db";
 import { sendTransactionalEmail } from "@/lib/auth/email";
 import { formatPrice } from "@/lib/catalog";
-
-const LOW_STOCK_THRESHOLD = 3;
+import { LOW_STOCK_THRESHOLD } from "@/lib/inventory";
 const SUMMARY_TIME_ZONE = "Europe/Budapest";
 
 type AdminNotificationPreferenceKey =
