@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 import { type ProductOptionType } from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
+import {
+  sendLowStockAdminNotificationIfNeeded,
+  sendOutOfStockAdminNotification,
+} from "@/lib/admin-notifications";
 import { getImageAltTextFromUrl } from "@/lib/blob-upload";
 import { db } from "@/lib/db";
 import { getSoldOutTimestamp } from "@/lib/inventory";
@@ -238,15 +242,21 @@ export async function updateProductAction(formData: FormData) {
     retainedImages[0]?.url ??
     uploadedImages[0]?.url ??
     null;
+  const nextStockQuantity = data.stockQuantity ?? 0;
+  const shouldTriggerLowStockNotification =
+    existingProduct.stockQuantity >= 3 && nextStockQuantity > 0 && nextStockQuantity < 3;
+  const shouldTriggerOutOfStockNotification =
+    existingProduct.stockQuantity > 0 && nextStockQuantity === 0;
+  let updatedProduct: Awaited<ReturnType<typeof db.product.update>> | null = null;
 
   try {
-    const updatedProduct = await db.product.update({
+    updatedProduct = await db.product.update({
       where: { id: productId },
       data: {
         ...data,
-        soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, data.stockQuantity ?? 0),
+        soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, nextStockQuantity),
         lowStockAlertSentAt:
-          (data.stockQuantity ?? 0) >= 3
+          nextStockQuantity >= 3
             ? null
             : existingProduct.lowStockAlertSentAt,
         imageUrl: nextImageUrl,
@@ -296,6 +306,22 @@ export async function updateProductAction(formData: FormData) {
   }
 
   await Promise.all(removedImages.map((image) => deleteProductImageFile(image.url)));
+
+  if (updatedProduct && shouldTriggerLowStockNotification) {
+    await sendLowStockAdminNotificationIfNeeded({
+      productId: updatedProduct.id,
+      productName: updatedProduct.name,
+      productSlug: updatedProduct.slug,
+      stockAfter: updatedProduct.stockQuantity,
+    });
+  }
+
+  if (updatedProduct && shouldTriggerOutOfStockNotification) {
+    await sendOutOfStockAdminNotification({
+      productName: updatedProduct.name,
+      productSlug: updatedProduct.slug,
+    });
+  }
 
   revalidateCatalogPaths();
   revalidatePath(`/product/${existingProduct.slug}`);

@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import {
   sendLowStockAdminNotificationIfNeeded,
   sendNewOrderAdminNotificationIfNeeded,
+  sendOutOfStockAdminNotification,
 } from "@/lib/admin-notifications";
 import {
   STRIPE_CURRENCY,
@@ -1046,12 +1047,17 @@ export async function finalizePaidOrder({
 
     await Promise.all(
       lowStockAdjustments.map((adjustment) =>
-        sendLowStockAdminNotificationIfNeeded({
-          productId: adjustment.productId,
-          productName: adjustment.productName,
-          productSlug: adjustment.productSlug,
-          stockAfter: adjustment.stockAfter,
-        }),
+        adjustment.stockAfter === 0
+          ? sendOutOfStockAdminNotification({
+              productName: adjustment.productName,
+              productSlug: adjustment.productSlug,
+            })
+          : sendLowStockAdminNotificationIfNeeded({
+              productId: adjustment.productId,
+              productName: adjustment.productName,
+              productSlug: adjustment.productSlug,
+              stockAfter: adjustment.stockAfter,
+            }),
       ),
     );
   }

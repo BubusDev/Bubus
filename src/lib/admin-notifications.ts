@@ -152,7 +152,7 @@ export async function sendLowStockAdminNotificationIfNeeded(input: {
   productSlug: string;
   stockAfter: number;
 }) {
-  if (input.stockAfter >= LOW_STOCK_THRESHOLD) {
+  if (input.stockAfter <= 0 || input.stockAfter >= LOW_STOCK_THRESHOLD) {
     return false;
   }
 
@@ -200,6 +200,32 @@ export async function sendLowStockAdminNotificationIfNeeded(input: {
 
     return false;
   }
+}
+
+export async function sendOutOfStockAdminNotification(input: {
+  productName: string;
+  productSlug: string;
+}) {
+  await sendToAdmins(
+    "adminNotifyLowStock",
+    `Elfogyott készlet: ${input.productName}`,
+    () => ({
+      text: [
+        "Egy termék teljesen elfogyott.",
+        `Termék: ${input.productName}`,
+        `Slug: ${input.productSlug}`,
+        "Elérhető készlet: 0 db",
+      ].join("\n"),
+      html: [
+        "<p>Egy termék teljesen elfogyott.</p>",
+        `<p><strong>Termék:</strong> ${escapeHtml(input.productName)}<br />`,
+        `<strong>Slug:</strong> ${escapeHtml(input.productSlug)}<br />`,
+        "<strong>Elérhető készlet:</strong> 0 db</p>",
+      ].join(""),
+    }),
+  );
+
+  return true;
 }
 
 export async function sendReturnRequestAdminNotificationIfNeeded(returnRequestId: string) {
