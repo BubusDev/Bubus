@@ -15,6 +15,9 @@ const activityFilterFields = [
   { name: "orderNumber", label: "Rendelésszám", placeholder: "BB-..." },
 ] as const;
 
+const customerFilterFields = activityFilterFields.slice(0, 2);
+const workflowFilterFields = activityFilterFields.slice(2);
+
 function getSearchParamValue(
   searchParams: Record<string, string | string[] | undefined>,
   key: keyof AdminActivityFilters,
@@ -63,20 +66,37 @@ export default async function AdminActivityPage({
               </div>
               <span className="admin-filter-chip admin-control-sm font-medium">Keresés / szűrés</span>
             </summary>
-            <div className="border-t border-[#f0eeec] bg-[#fbfcfe] px-5 py-4">
-              <form action="/admin/activity" className="grid gap-3 md:grid-cols-4 md:items-end">
-                {activityFilterFields.map((field) => (
-                  <label key={field.name} className="block">
-                    <span className="admin-eyebrow mb-1.5 block">{field.label}</span>
-                    <input
-                      name={field.name}
-                      defaultValue={filters[field.name] ?? ""}
-                      placeholder={field.placeholder}
-                      className="admin-input min-h-9 px-3 text-sm"
-                    />
-                  </label>
-                ))}
-                <div className="flex flex-wrap items-center gap-2 md:col-span-4">
+            <div className="border-t border-[#f0eeec] bg-[#fbfcfe] px-5 py-3">
+              <form action="/admin/activity" className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_auto] lg:items-end">
+                <fieldset className="grid gap-2 sm:grid-cols-2">
+                  <legend className="admin-eyebrow mb-2">Vevő</legend>
+                  {customerFilterFields.map((field) => (
+                    <label key={field.name} className="block">
+                      <span className="mb-1 block text-[12px] font-medium text-[var(--admin-ink-700)]">{field.label}</span>
+                      <input
+                        name={field.name}
+                        defaultValue={filters[field.name] ?? ""}
+                        placeholder={field.placeholder}
+                        className="admin-input min-h-8 px-2.5 text-[13px]"
+                      />
+                    </label>
+                  ))}
+                </fieldset>
+                <fieldset className="grid gap-2 sm:grid-cols-2">
+                  <legend className="admin-eyebrow mb-2">Workflow</legend>
+                  {workflowFilterFields.map((field) => (
+                    <label key={field.name} className="block">
+                      <span className="mb-1 block text-[12px] font-medium text-[var(--admin-ink-700)]">{field.label}</span>
+                      <input
+                        name={field.name}
+                        defaultValue={filters[field.name] ?? ""}
+                        placeholder={field.placeholder}
+                        className="admin-input min-h-8 px-2.5 text-[13px]"
+                      />
+                    </label>
+                  ))}
+                </fieldset>
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                   <button type="submit" className="admin-button-secondary admin-control-sm">
                     Szűrés
                   </button>

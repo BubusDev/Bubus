@@ -48,7 +48,7 @@ export async function CategoryNav() {
         })}
 
         {specialtyItems.length > 0 ? (
-          <div className="group/specialty contents">
+          <div className="group/specialty relative inline-flex">
             <Link
               href={SPECIALTIES_BASE_PATH}
               className={`${topLevelNavItemClassName} inline-flex items-center gap-1`}
@@ -59,9 +59,9 @@ export async function CategoryNav() {
                 ⌄
               </span>
             </Link>
-            <div className="invisible absolute inset-x-0 top-full z-40 max-h-0 overflow-hidden border-y border-transparent bg-white/80 opacity-0 backdrop-blur-md transition-[max-height,opacity,border-color] duration-200 ease-out group-hover/specialty:visible group-hover/specialty:max-h-24 group-hover/specialty:border-[#eadce4] group-hover/specialty:opacity-100 group-focus-within/specialty:visible group-focus-within/specialty:max-h-24 group-focus-within/specialty:border-[#eadce4] group-focus-within/specialty:opacity-100">
+            <div className="invisible absolute left-0 top-full z-40 w-max max-w-[calc(100vw-2rem)] origin-top-left pt-2 opacity-0 translate-y-1 transition-[opacity,transform,visibility] duration-150 ease-out group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:opacity-100 group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:opacity-100">
               <div
-                className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8"
+                className="flex max-w-[24rem] flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-[#eadce4] bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(49,25,45,0.08)] backdrop-blur-md"
                 role="menu"
                 aria-label="Különlegességek"
               >
