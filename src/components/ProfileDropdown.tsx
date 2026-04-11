@@ -56,11 +56,12 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         <div
           role="menu"
           aria-label="Profil menü"
-          className="dropdown-reveal absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-[#efd6e3] bg-[linear-gradient(180deg,#fffafc_0%,#fff4f8_100%)] p-2 shadow-[0_24px_60px_rgba(108,60,86,0.18)]"
+          className="dropdown-reveal absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-[#ecd0de] bg-[linear-gradient(160deg,rgba(255,252,254,0.96)_0%,rgba(255,244,250,0.98)_100%)] p-2 shadow-[0_24px_64px_rgba(108,60,86,0.22),0_4px_16px_rgba(180,100,140,0.10)] backdrop-blur-2xl"
         >
-          <div className="rounded-[1.1rem] border border-[#f1dbe6] bg-[#fffdfd] px-4 py-3.5">
+          {/* user info card */}
+          <div className="rounded-[1.1rem] border border-[#f0d8e6] bg-gradient-to-br from-white to-[#fff7fb] px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#fff5fa] text-[#e16aa8] shadow-sm">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fde8f3] to-[#fbd0e8] text-[#d96a9c] shadow-[0_2px_8px_rgba(217,106,156,0.18)]">
                 <User className="h-5 w-5" />
               </span>
 
@@ -78,38 +79,42 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
             </div>
           </div>
 
-          <div className="my-2 h-px bg-[#f1dce7]" />
+          <div className="my-2 h-px bg-gradient-to-r from-transparent via-[#ecd0de] to-transparent" />
 
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {menuItems.map(({ href, icon: Icon, label }) => (
               <Link
                 key={label}
                 href={href}
                 role="menuitem"
-                className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 hover:bg-[#fce8f3] focus-visible:bg-[#fce8f3] focus-visible:outline-none"
                 onClick={() => setIsOpen(false)}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-[#fffdfd] text-[#8e5f79]">
-                  <Icon className="h-4 w-4" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#efd4e2] bg-white text-[#9e6882] shadow-sm transition-all duration-200 group-hover:border-[#e0b0cc] group-hover:bg-[#fde8f3] group-hover:text-[#c4447a] group-hover:shadow-[0_2px_8px_rgba(196,68,122,0.15)]">
+                  <Icon className="h-[0.9rem] w-[0.9rem]" />
                 </span>
-                <span className="font-medium text-[#4d2741]">{label}</span>
+                <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#4d2741]">
+                  {label}
+                </span>
               </Link>
             ))}
           </div>
 
-          <div className="my-2 h-px bg-[#f1dce7]" />
+          <div className="my-2 h-px bg-gradient-to-r from-transparent via-[#ecd0de] to-transparent" />
 
           <button
             type="button"
-            className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-sm text-[#6b425a] transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 hover:bg-[#fce8f3] focus-visible:bg-[#fce8f3] focus-visible:outline-none"
             onClick={() => {
               window.location.href = "/auth/logout";
             }}
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#efd4e2] bg-[#fffdfd] text-[#8e5f79]">
-              <LogOut className="h-4 w-4" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#efd4e2] bg-white text-[#9e6882] shadow-sm transition-all duration-200 group-hover:border-[#e0b0cc] group-hover:bg-[#fde8f3] group-hover:text-[#c4447a] group-hover:shadow-[0_2px_8px_rgba(196,68,122,0.15)]">
+              <LogOut className="h-[0.9rem] w-[0.9rem]" />
             </span>
-            <span className="font-medium text-[#4d2741]">Kijelentkezés</span>
+            <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#4d2741]">
+              Kijelentkezés
+            </span>
           </button>
         </div>
       ) : null}

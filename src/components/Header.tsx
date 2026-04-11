@@ -74,7 +74,7 @@ export function Header({
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-[rgba(255,241,247,0.72)] backdrop-blur-2xl">
+    <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/40 bg-[rgba(255,241,247,0.72)] hover:bg-[rgba(255,241,247,0.91)] hover:border-white/60">
       <div className="mx-auto grid min-h-[84px] w-full max-w-[1500px] grid-cols-[2.5rem_1fr_2.5rem] items-center gap-3 px-4 py-3 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
         <span aria-hidden="true" className="h-10 w-10 md:hidden" />
 
