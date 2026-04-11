@@ -26,6 +26,7 @@ const productSubNav = [
 const contentSubNav = [
   { label: "Üzenetsáv", href: "/admin/content/announcement" },
   { label: "Kövek szerkesztő", href: "/admin/content/stones" },
+  { label: "Különlegességek menü", href: "/admin/content/specialties" },
 ];
 
 export function AdminNav() {

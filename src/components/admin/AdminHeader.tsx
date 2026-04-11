@@ -24,6 +24,7 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
     content: "Tartalom",
     announcement: "Üzenetsáv",
     stones: "Kövek",
+    specialties: "Különlegességek menü",
     settings: "Beállítások",
   };
 

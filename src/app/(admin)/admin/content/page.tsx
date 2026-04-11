@@ -51,6 +51,12 @@ export default function AdminContentPage() {
           title="Üzenetsáv"
           description="A fejlécben megjelenő értesítési sáv szövegének és aktiválásának kezelése."
         />
+        <ContentCard
+          href="/admin/content/specialties"
+          eyebrow="Navigáció"
+          title="Különlegességek menü"
+          description="A webshop felső navigációjában megjelenő Különlegességek legördülő elemeinek kezelése."
+        />
       </div>
     </AdminShell>
   );

@@ -13,6 +13,7 @@ import {
   Truck,
   Gem,
   Megaphone,
+  Menu,
   Image,
   Settings,
   User,
@@ -68,6 +69,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Kövek", href: "/admin/content/stones", icon: Gem },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
+      { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },
       { label: "Kampány bannerek", href: "/admin/special-edition", icon: Image },
     ],
   },

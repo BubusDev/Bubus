@@ -162,6 +162,7 @@ async function main() {
   await prisma.favourite.deleteMany();
   await prisma.productImage.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.specialtyNavigationItem.deleteMany();
   await prisma.productOption.deleteMany();
   await prisma.user.deleteMany();
 
@@ -627,6 +628,7 @@ async function main() {
   });
 
   await seedStones();
+  await seedSpecialtyNavigationItems();
 
   await prisma.order.create({
     data: {
@@ -726,6 +728,16 @@ async function seedStones() {
 
   await prisma.stone.deleteMany();
   await prisma.stone.createMany({ data: stones });
+}
+
+async function seedSpecialtyNavigationItems() {
+  await prisma.specialtyNavigationItem.createMany({
+    data: [
+      { label: "Napfogó", href: "/napfogo", sortOrder: 0, isVisible: true },
+      { label: "Álomfogó", href: "/alomfogo", sortOrder: 1, isVisible: true },
+      { label: "Bokaláncok", href: "/anklets", sortOrder: 2, isVisible: true },
+    ],
+  });
 }
 
 main()
