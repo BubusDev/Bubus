@@ -1,7 +1,10 @@
 import { Plus, Trash2 } from "lucide-react";
 
 import { AdminShell } from "@/components/admin/AdminShell";
-import { getAdminSpecialtyNavigationItems } from "@/lib/specialty-navigation";
+import {
+  DEFAULT_SPECIALTY_LISTING_HREF,
+  getAdminSpecialtyNavigationItems,
+} from "@/lib/specialty-navigation";
 import {
   createSpecialtyNavigationItemAction,
   deleteSpecialtyNavigationItemAction,
@@ -48,6 +51,10 @@ export default async function AdminSpecialtiesPage({
               Új elem hozzáadása
             </h2>
           </div>
+          <p className="mt-2 text-sm text-[var(--admin-ink-600)]">
+            A cél URL egy meglévő terméklista legyen. A menüpont ehhez adja hozzá a
+            különlegesség szűrőt, így nem kell külön oldalt létrehozni.
+          </p>
 
           <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_1fr_7rem_auto] md:items-end">
             <label className="block">
@@ -56,13 +63,23 @@ export default async function AdminSpecialtiesPage({
             </label>
 
             <label className="block">
-              <span className="admin-eyebrow mb-1.5 block">Cél URL</span>
-              <input name="href" required placeholder="/karkotok" className={inputClassName} />
+              <span className="admin-eyebrow mb-1.5 block">Lista URL</span>
+              <input
+                name="href"
+                required
+                defaultValue={DEFAULT_SPECIALTY_LISTING_HREF}
+                placeholder="/bracelets"
+                className={inputClassName}
+              />
             </label>
 
             <label className="block">
               <span className="admin-eyebrow mb-1.5 block">Szűrő kulcs</span>
-              <input name="filterKey" placeholder="napfogo" className={inputClassName} />
+              <input
+                name="filterKey"
+                placeholder="Üresen a névből készül"
+                className={inputClassName}
+              />
             </label>
 
             <label className="block">
@@ -117,7 +134,7 @@ export default async function AdminSpecialtiesPage({
                   </label>
 
                   <label className="block">
-                    <span className="admin-eyebrow mb-1.5 block">Cél URL</span>
+                    <span className="admin-eyebrow mb-1.5 block">Lista URL</span>
                     <input
                       name="href"
                       required
@@ -131,7 +148,7 @@ export default async function AdminSpecialtiesPage({
                     <input
                       name="filterKey"
                       defaultValue={item.filterKey ?? ""}
-                      placeholder="napfogo"
+                      placeholder="Üresen a névből készül"
                       className={inputClassName}
                     />
                   </label>

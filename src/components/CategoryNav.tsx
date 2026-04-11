@@ -7,6 +7,9 @@ import {
   getSpecialtyNavigationHref,
 } from "@/lib/specialty-navigation";
 
+const topLevelNavItemClassName =
+  "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition duration-200 hover:opacity-60 active:opacity-80";
+
 export async function CategoryNav() {
   const [navigationCategories, specialtyItems] = await Promise.all([
     getNavigationCategories(),
@@ -28,8 +31,8 @@ export async function CategoryNav() {
               href={item.href}
               className={
                 isSpecialEdition
-                  ? "relative whitespace-nowrap text-sm font-medium tracking-[0.02em] text-[#4f2348] transition duration-200 hover:opacity-80 active:opacity-90"
-                  : "whitespace-nowrap text-sm tracking-[0.02em] text-[#121313] transition duration-200 hover:opacity-60 active:opacity-80"
+                  ? "relative whitespace-nowrap text-sm font-medium leading-5 tracking-[0.02em] text-[#4f2348] transition duration-200 hover:opacity-80 active:opacity-90"
+                  : topLevelNavItemClassName
               }
             >
               {isSpecialEdition ? (
@@ -48,13 +51,13 @@ export async function CategoryNav() {
           <div className="group relative flex items-center">
             <button
               type="button"
-              className="inline-flex items-center gap-1 whitespace-nowrap text-sm tracking-[0.02em] text-[#121313] transition duration-200 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] active:opacity-80"
+              className={`${topLevelNavItemClassName} inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]`}
               aria-haspopup="menu"
             >
               <span>Különlegességek</span>
               <ChevronDown
                 aria-hidden="true"
-                className="h-3 w-3 transition duration-150 group-hover:translate-y-px"
+                className="h-2.5 w-2.5 opacity-70 transition duration-150 group-hover:opacity-90"
               />
             </button>
             <div className="invisible absolute left-1/2 top-full z-40 mt-2 min-w-36 -translate-x-1/2 rounded-[3px] border border-[#eadce4] bg-white/95 p-1 opacity-0 backdrop-blur-sm transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">

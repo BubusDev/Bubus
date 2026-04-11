@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 
+export const DEFAULT_SPECIALTY_LISTING_HREF = "/bracelets";
+
 export type SpecialtyNavigationItemView = {
   id: string;
   label: string;
