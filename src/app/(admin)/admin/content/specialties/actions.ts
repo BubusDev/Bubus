@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getCategoryDefinition, slugifyOptionName } from "@/lib/products";
-import { DEFAULT_SPECIALTY_LISTING_HREF } from "@/lib/specialty-navigation";
+import { slugifyOptionName } from "@/lib/products";
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -18,52 +17,59 @@ function readSortOrder(formData: FormData) {
   return Number.isFinite(sortOrder) ? sortOrder : 0;
 }
 
-function normalizeListingHref(href: string) {
-  const value = href || DEFAULT_SPECIALTY_LISTING_HREF;
-
-  if (!value.startsWith("/") || value.startsWith("//")) {
-    return null;
-  }
-
-  const url = new URL(value, "https://chicks-jewelry.local");
-
-  return `${url.pathname}${url.search}`;
+function readProductIds(formData: FormData) {
+  return [
+    ...new Set(
+      formData
+        .getAll("productIds")
+        .filter((value): value is string => typeof value === "string" && value.length > 0),
+    ),
+  ];
 }
 
-function getListingSlug(href: string) {
-  const pathname = new URL(href, "https://chicks-jewelry.local").pathname;
-  const segments = pathname.split("/").filter(Boolean);
+async function readSpecialtyFormData(formData: FormData) {
+  const name = readString(formData, "name");
+  const slug = slugifyOptionName(readString(formData, "slug") || name);
 
-  return segments.length === 1 ? segments[0] : null;
-}
-
-async function readSpecialtyNavigationItemFormData(formData: FormData) {
-  const label = readString(formData, "label");
-  const href = normalizeListingHref(readString(formData, "href"));
-  const filterKey = slugifyOptionName(readString(formData, "filterKey") || label);
-
-  if (!label || !href || !filterKey) {
-    redirectWithError("A név, a létező lista URL és a szűrő kulcs megadása kötelező.");
+  if (!name || !slug) {
+    redirectWithError("A név és a slug megadása kötelező.");
   }
 
-  const listingSlug = getListingSlug(href);
-  const listing = listingSlug ? await getCategoryDefinition(listingSlug) : null;
+  const productIds = readProductIds(formData);
+  const products = productIds.length > 0
+    ? await db.product.findMany({
+        where: { id: { in: productIds }, archivedAt: null },
+        select: { id: true },
+      })
+    : [];
+  const validProductIds = new Set(products.map((product) => product.id));
 
-  if (!listing) {
-    redirectWithError("A Különlegesség elem célja csak létező terméklista lehet, például /bracelets vagy /anklets.");
+  if (productIds.some((productId) => !validProductIds.has(productId))) {
+    redirectWithError("Érvénytelen termék-hozzárendelés.");
   }
 
   return {
-    label,
-    href,
-    filterKey,
-    sortOrder: readSortOrder(formData),
-    isVisible: formData.get("isVisible") === "on",
+    specialty: {
+      name,
+      slug,
+      shortDescription: readString(formData, "shortDescription") || null,
+      sortOrder: readSortOrder(formData),
+      isVisible: formData.get("isVisible") === "on",
+    },
+    productIds,
   };
 }
 
-function revalidateSpecialtyNavigation() {
+function specialtyProductCreates(productIds: string[]) {
+  return productIds.map((productId) => ({
+    productId,
+  }));
+}
+
+function revalidateSpecialties() {
   revalidatePath("/admin/content/specialties");
+  revalidatePath("/kulonlegessegek");
+  revalidatePath("/kulonlegessegek/[slug]", "page");
   revalidatePath("/", "layout");
 }
 
@@ -71,48 +77,67 @@ function redirectWithError(message: string): never {
   redirect(`/admin/content/specialties?error=${encodeURIComponent(message)}`);
 }
 
-export async function createSpecialtyNavigationItemAction(formData: FormData) {
+export async function createSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
-  const item = await readSpecialtyNavigationItemFormData(formData);
+  const { specialty, productIds } = await readSpecialtyFormData(formData);
 
-  await db.specialtyNavigationItem.create({
-    data: item,
-  });
+  try {
+    await db.specialty.create({
+      data: {
+        ...specialty,
+        products: {
+          create: specialtyProductCreates(productIds),
+        },
+      },
+    });
+  } catch {
+    redirectWithError("Nem sikerült létrehozni. Ellenőrizd, hogy a slug egyedi-e.");
+  }
 
-  revalidateSpecialtyNavigation();
+  revalidateSpecialties();
   redirect("/admin/content/specialties");
 }
 
-export async function updateSpecialtyNavigationItemAction(formData: FormData) {
+export async function updateSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
   const id = readString(formData, "id");
-  const item = await readSpecialtyNavigationItemFormData(formData);
+  const { specialty, productIds } = await readSpecialtyFormData(formData);
 
   if (!id) {
-    redirectWithError("Hiányzó navigációs elem azonosító.");
+    redirectWithError("Hiányzó különlegesség azonosító.");
   }
 
-  await db.specialtyNavigationItem.update({
-    where: { id },
-    data: item,
-  });
+  try {
+    await db.specialty.update({
+      where: { id },
+      data: {
+        ...specialty,
+        products: {
+          deleteMany: {},
+          create: specialtyProductCreates(productIds),
+        },
+      },
+    });
+  } catch {
+    redirectWithError("Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.");
+  }
 
-  revalidateSpecialtyNavigation();
+  revalidateSpecialties();
   redirect("/admin/content/specialties");
 }
 
-export async function deleteSpecialtyNavigationItemAction(formData: FormData) {
+export async function deleteSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
   const id = readString(formData, "id");
   if (!id) {
-    redirectWithError("Hiányzó navigációs elem azonosító.");
+    redirectWithError("Hiányzó különlegesség azonosító.");
   }
 
-  await db.specialtyNavigationItem.delete({ where: { id } });
+  await db.specialty.delete({ where: { id } });
 
-  revalidateSpecialtyNavigation();
+  revalidateSpecialties();
   redirect("/admin/content/specialties");
 }

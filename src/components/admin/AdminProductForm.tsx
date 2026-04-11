@@ -69,11 +69,12 @@ type ProductFormState = {
   isGiftable: boolean;
   isOnSale: boolean;
   specialtyKey: string;
+  specialtyIds: string[];
 };
 
 type FormFieldName = keyof ProductFormState;
 type FormErrorState = Partial<Record<FormFieldName, string>>;
-type OptionListKey = Exclude<keyof AdminProductFormOptions, "homepagePlacements">;
+type OptionListKey = Exclude<keyof AdminProductFormOptions, "homepagePlacements" | "specialties">;
 
 type SelectFieldProps = {
   error?: string;
@@ -249,6 +250,7 @@ function buildInitialFormState(values: AdminProductFormValues): ProductFormState
     isGiftable: values.isGiftable,
     isOnSale: values.isOnSale,
     specialtyKey: values.specialtyKey,
+    specialtyIds: values.specialtyIds,
   };
 }
 
@@ -907,6 +909,9 @@ export function AdminProductForm({
     if (formValues.isGiftable) formData.append("isGiftable", "on");
     if (formValues.isOnSale) formData.append("isOnSale", "on");
     formData.append("specialtyKey", formValues.specialtyKey);
+    for (const specialtyId of formValues.specialtyIds) {
+      formData.append("specialtyIds", specialtyId);
+    }
     if (retainedIds.length > 0) formData.append("retainedImageIdsCsv", retainedIds.join(","));
     if (uploadPayload.length > 0) formData.append("uploadedImagesJson", JSON.stringify(uploadPayload));
     formData.append("coverImageKey", effectiveCoverImageKey);
@@ -1369,15 +1374,53 @@ export function AdminProductForm({
                 />
               </div>
 
-              <FieldWrap label="Különlegesség kulcs">
-                <input
-                  name="specialtyKey"
-                  value={formValues.specialtyKey}
-                  onChange={(e) => handleFieldChange("specialtyKey", e.target.value)}
-                  placeholder="napfogo"
-                  className={inputCls}
-                />
-              </FieldWrap>
+              <div>
+                <p className={`mb-2 block ${eyebrowCls}`}>Különlegességek</p>
+                {dynamicOptions.specialties.length > 0 ? (
+                  <div className="space-y-2 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
+                    {dynamicOptions.specialties.map((specialty) => {
+                      const checked = formValues.specialtyIds.includes(specialty.id);
+
+                      return (
+                        <label
+                          key={specialty.id}
+                          className="flex items-start gap-3 text-sm text-[var(--admin-ink-700)]"
+                        >
+                          <input
+                            type="checkbox"
+                            name="specialtyIds"
+                            checked={checked}
+                            onChange={(event) => {
+                              handleFieldChange(
+                                "specialtyIds",
+                                event.target.checked
+                                  ? [...formValues.specialtyIds, specialty.id]
+                                  : formValues.specialtyIds.filter((id) => id !== specialty.id),
+                              );
+                            }}
+                            className="mt-0.5 h-4 w-4"
+                          />
+                          <span>
+                            <span className="font-medium">{specialty.name}</span>
+                            <span className="ml-2 font-mono text-[11px] text-[var(--admin-ink-500)]">
+                              /kulonlegessegek/{specialty.slug}
+                            </span>
+                            {!specialty.isVisible ? (
+                              <span className="ml-2 text-[11px] text-[var(--admin-ink-500)]">
+                                rejtett
+                              </span>
+                            ) : null}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
+                    Még nincs különlegesség csoport. Hozz létre egyet a Tartalom / Különlegességek menüben.
+                  </p>
+                )}
+              </div>
 
               {submitError && (
                 <p className="border border-[#e3c7cf] bg-[#fbf5f6] px-3 py-2 text-sm text-[#ad4455]">

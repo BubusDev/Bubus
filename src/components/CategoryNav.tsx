@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
 
 import { getNavigationCategories } from "@/lib/products";
 import {
-  getActiveSpecialtyNavigationItems,
-  getSpecialtyNavigationHref,
+  SPECIALTIES_BASE_PATH,
+  getSpecialtyHref,
+  getVisibleSpecialties,
 } from "@/lib/specialty-navigation";
 
 const topLevelNavItemClassName =
@@ -13,7 +13,7 @@ const topLevelNavItemClassName =
 export async function CategoryNav() {
   const [navigationCategories, specialtyItems] = await Promise.all([
     getNavigationCategories(),
-    getActiveSpecialtyNavigationItems(),
+    getVisibleSpecialties(),
   ]);
 
   return (
@@ -49,28 +49,23 @@ export async function CategoryNav() {
 
         {specialtyItems.length > 0 ? (
           <div className="group relative flex items-center">
-            <button
-              type="button"
-              className={`${topLevelNavItemClassName} inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]`}
+            <Link
+              href={SPECIALTIES_BASE_PATH}
+              className={topLevelNavItemClassName}
               aria-haspopup="menu"
             >
-              <span>Különlegességek</span>
-              <ChevronDown
-                aria-hidden="true"
-                className="h-2.5 w-2.5 opacity-70 transition duration-150 group-hover:opacity-90"
-              />
-            </button>
-            <div className="invisible absolute left-1/2 top-full z-40 mt-2 min-w-36 -translate-x-1/2 rounded-[3px] border border-[#eadce4] bg-white/95 p-1 opacity-0 backdrop-blur-sm transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              <div className="absolute -top-2 left-0 h-2 w-full" />
-              <div className="flex flex-col items-stretch" role="menu" aria-label="Különlegességek">
+              Különlegességek
+            </Link>
+            <div className="invisible absolute left-1/2 top-full z-40 min-w-max -translate-x-1/2 border-t border-[#eadce4] bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              <div className="flex items-center gap-5" role="menu" aria-label="Különlegességek">
                 {specialtyItems.map((item) => (
                   <Link
                     key={item.id}
-                    href={getSpecialtyNavigationHref(item)}
+                    href={getSpecialtyHref(item)}
                     role="menuitem"
-                    className="whitespace-nowrap rounded-[2px] px-3 py-1.5 text-left text-sm tracking-[0.02em] text-[#121313] transition duration-150 hover:bg-[#fff1f7] hover:text-[#2f2230] focus-visible:bg-[#fff1f7] focus-visible:outline-none"
+                    className="whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition duration-150 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
                   >
-                    {item.label}
+                    {item.name}
                   </Link>
                 ))}
               </div>

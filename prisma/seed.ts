@@ -144,6 +144,13 @@ async function createProduct(
       images: {
         create: orderedGallery,
       },
+      specialties: product.specialtyKey
+        ? {
+            create: {
+              specialty: { connect: { slug: product.specialtyKey } },
+            },
+          }
+        : undefined,
     },
   });
 }
@@ -161,12 +168,14 @@ async function main() {
   await prisma.cart.deleteMany();
   await prisma.favourite.deleteMany();
   await prisma.productImage.deleteMany();
+  await prisma.productSpecialty.deleteMany();
   await prisma.product.deleteMany();
-  await prisma.specialtyNavigationItem.deleteMany();
+  await prisma.specialty.deleteMany();
   await prisma.productOption.deleteMany();
   await prisma.user.deleteMany();
 
   await seedOptions();
+  await seedSpecialties();
 
   await prisma.user.createMany({
     data: [
@@ -631,7 +640,6 @@ async function main() {
   });
 
   await seedStones();
-  await seedSpecialtyNavigationItems();
 
   await prisma.order.create({
     data: {
@@ -733,12 +741,12 @@ async function seedStones() {
   await prisma.stone.createMany({ data: stones });
 }
 
-async function seedSpecialtyNavigationItems() {
-  await prisma.specialtyNavigationItem.createMany({
+async function seedSpecialties() {
+  await prisma.specialty.createMany({
     data: [
-      { label: "Napfogó", href: "/karkotok", filterKey: "napfogo", sortOrder: 0, isVisible: true },
-      { label: "Álomfogó", href: "/karkotok", filterKey: "alomfogo", sortOrder: 1, isVisible: true },
-      { label: "Bokaláncok", href: "/anklets", sortOrder: 2, isVisible: true },
+      { name: "Napfogó", slug: "napfogo", sortOrder: 0, isVisible: true },
+      { name: "Álomfogó", slug: "alomfogo", sortOrder: 1, isVisible: true },
+      { name: "Bokaláncok", slug: "bokalancok", sortOrder: 2, isVisible: true },
     ],
   });
 }

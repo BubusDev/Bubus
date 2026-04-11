@@ -30,6 +30,9 @@ const productWithImagesAndOptions = {
   images: {
     orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
   },
+  specialties: {
+    select: { specialtyId: true },
+  },
   category: true,
   stoneType: true,
   color: true,
@@ -354,6 +357,58 @@ export async function getProductsForCategory(categorySlug: CategorySlug) {
   return products.map(mapProduct);
 }
 
+export async function getSpecialtyBySlug(slug: string, visibleOnly = true) {
+  const specialty = await db.specialty.findFirst({
+    where: {
+      slug,
+      ...(visibleOnly ? { isVisible: true } : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      shortDescription: true,
+      isVisible: true,
+      sortOrder: true,
+      _count: { select: { products: true } },
+    },
+  });
+
+  return specialty
+    ? {
+        id: specialty.id,
+        name: specialty.name,
+        slug: specialty.slug,
+        shortDescription: specialty.shortDescription,
+        isVisible: specialty.isVisible,
+        sortOrder: specialty.sortOrder,
+        productCount: specialty._count.products,
+      }
+    : null;
+}
+
+export async function getProductsForSpecialty(slug: string) {
+  const productSpecialties = await db.productSpecialty.findMany({
+    where: {
+      specialty: {
+        slug,
+        isVisible: true,
+      },
+      product: {
+        archivedAt: null,
+      },
+    },
+    include: {
+      product: {
+        include: productWithImagesAndOptions,
+      },
+    },
+    orderBy: [{ product: { updatedAt: "desc" } }],
+  });
+
+  return productSpecialties.map((entry) => mapProduct(entry.product));
+}
+
 export async function getFilterOptionsForCategory(categorySlug: CategorySlug) {
   const products = await getProductsForCategory(categorySlug);
   return getFilterOptionsForProducts(products);
@@ -614,6 +669,7 @@ export type AdminProductFormValues = {
   isGiftable: boolean;
   isOnSale: boolean;
   specialtyKey: string;
+  specialtyIds: string[];
   tone: string;
   homepagePlacement: HomepagePlacement;
   images: AdminProductImageValue[];
@@ -627,7 +683,16 @@ export type AdminProductFormOptions = {
   occasions: ProductOptionValue[];
   availability: ProductOptionValue[];
   tones: ProductOptionValue[];
+  specialties: SpecialtyOptionValue[];
   homepagePlacements: readonly HomepagePlacement[];
+};
+
+export type SpecialtyOptionValue = {
+  id: string;
+  name: string;
+  slug: string;
+  isVisible: boolean;
+  sortOrder: number;
 };
 
 export type SpecialEditionEntryView = {
@@ -671,7 +736,19 @@ export type AdminSpecialEditionCampaignValues = {
 };
 
 export async function getAdminProductFormOptions(): Promise<AdminProductFormOptions> {
-  const groups = await getProductOptionGroups();
+  const [groups, specialties] = await Promise.all([
+    getProductOptionGroups(),
+    db.specialty.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isVisible: true,
+        sortOrder: true,
+      },
+    }),
+  ]);
   const byField = new Map(groups.map((group) => [group.fieldName, group.options]));
 
   return {
@@ -682,6 +759,7 @@ export async function getAdminProductFormOptions(): Promise<AdminProductFormOpti
     occasions: byField.get("occasion") ?? [],
     availability: byField.get("availability") ?? [],
     tones: byField.get("tone") ?? [],
+    specialties,
     homepagePlacements,
   };
 }
@@ -712,6 +790,7 @@ export function toAdminProductFormValues(
       isGiftable: false,
       isOnSale: false,
       specialtyKey: "",
+      specialtyIds: [],
       tone: options.tones[0]?.id ?? "",
       homepagePlacement: "none",
       images: [],
@@ -747,6 +826,7 @@ export function toAdminProductFormValues(
     isGiftable: product.isGiftable,
     isOnSale: product.isOnSale,
     specialtyKey: product.specialtyKey ?? "",
+    specialtyIds: product.specialties.map((entry) => entry.specialtyId),
     tone: product.toneId,
     homepagePlacement: homepagePlacementMap[product.homepagePlacement],
     images,
@@ -766,9 +846,35 @@ async function requireOption(optionId: string, type: ProductOptionType) {
   return option.id;
 }
 
+async function readProductSpecialtyIds(formData: FormData) {
+  const selectedIds = [
+    ...new Set(
+      formData
+        .getAll("specialtyIds")
+        .filter((value): value is string => typeof value === "string" && value.length > 0),
+    ),
+  ];
+
+  if (selectedIds.length === 0) {
+    return [];
+  }
+
+  const specialties = await db.specialty.findMany({
+    where: { id: { in: selectedIds } },
+    select: { id: true },
+  });
+  const validIds = new Set(specialties.map((specialty) => specialty.id));
+
+  if (selectedIds.some((id) => !validIds.has(id))) {
+    throw new Error("Érvénytelen különlegesség besorolás.");
+  }
+
+  return selectedIds;
+}
+
 export async function parseProductFormData(
   formData: FormData,
-): Promise<Prisma.ProductUncheckedCreateInput> {
+): Promise<{ data: Prisma.ProductUncheckedCreateInput; specialtyIds: string[] }> {
   const slug = requireNonEmptyString(formData, "slug", "A slug kötelező.");
   const name = requireNonEmptyString(formData, "name", "A termék neve kötelező.");
   const badge = requireNonEmptyString(formData, "badge", "A címke kötelező.");
@@ -832,28 +938,33 @@ export async function parseProductFormData(
     requireOption(readString(formData, "tone"), "VISUAL_TONE"),
   ]);
 
+  const specialtyIds = await readProductSpecialtyIds(formData);
+
   return {
-    slug,
-    name,
-    categoryId,
-    price,
-    stockQuantity,
-    compareAtPrice: compareAtPriceNumber,
-    shortDescription,
-    description,
-    badge,
-    collectionLabel,
-    stoneTypeId,
-    colorId,
-    styleId,
-    occasionId,
-    availabilityId,
-    isNew: readBoolean(formData, "isNew"),
-    isGiftable: readBoolean(formData, "isGiftable"),
-    isOnSale: readBoolean(formData, "isOnSale"),
-    specialtyKey: slugifyOptionName(readString(formData, "specialtyKey")) || null,
-    toneId,
-    homepagePlacement: reverseHomepagePlacementMap[homepagePlacement as HomepagePlacement],
+    data: {
+      slug,
+      name,
+      categoryId,
+      price,
+      stockQuantity,
+      compareAtPrice: compareAtPriceNumber,
+      shortDescription,
+      description,
+      badge,
+      collectionLabel,
+      stoneTypeId,
+      colorId,
+      styleId,
+      occasionId,
+      availabilityId,
+      isNew: readBoolean(formData, "isNew"),
+      isGiftable: readBoolean(formData, "isGiftable"),
+      isOnSale: readBoolean(formData, "isOnSale"),
+      specialtyKey: null,
+      toneId,
+      homepagePlacement: reverseHomepagePlacementMap[homepagePlacement as HomepagePlacement],
+    },
+    specialtyIds,
   };
 }
 

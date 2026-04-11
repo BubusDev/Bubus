@@ -166,6 +166,7 @@ model Product {
   orderItems        OrderItem[]
   inventoryEvents   InventoryEvent[]
   specialEditionEntries SpecialEditionEntry[]
+  specialties       ProductSpecialty[]
   homepagePlacement HomepagePlacement  @default(NONE)
   archivedAt        DateTime?
   archiveReason     String?
@@ -265,17 +266,31 @@ model AnnouncementBar {
   @@index([isActive, updatedAt])
 }
 
-model SpecialtyNavigationItem {
-  id        String   @id @default(cuid())
-  label     String
-  href      String
-  filterKey String?
-  isVisible Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Specialty {
+  id               String             @id @default(cuid())
+  name             String
+  slug             String             @unique
+  shortDescription String?
+  isVisible        Boolean            @default(true)
+  sortOrder        Int                @default(0)
+  products         ProductSpecialty[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([isVisible, sortOrder])
+}
+
+model ProductSpecialty {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  specialtyId String
+  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([productId, specialtyId])
+  @@index([specialtyId])
+  @@index([productId])
 }
 
 model Favourite {

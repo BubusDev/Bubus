@@ -1,53 +1,74 @@
 import { db } from "@/lib/db";
 
-export const DEFAULT_SPECIALTY_LISTING_HREF = "/bracelets";
+export const SPECIALTIES_BASE_PATH = "/kulonlegessegek";
 
-export type SpecialtyNavigationItemView = {
+export type SpecialtyView = {
   id: string;
-  label: string;
-  href: string;
-  filterKey: string | null;
+  name: string;
+  slug: string;
+  shortDescription: string | null;
   isVisible: boolean;
   sortOrder: number;
+  productCount: number;
 };
 
-export function getSpecialtyNavigationHref(item: Pick<SpecialtyNavigationItemView, "href" | "filterKey">) {
-  if (!item.filterKey) {
-    return item.href;
-  }
-
-  const [pathname, query = ""] = item.href.split("?");
-  const searchParams = new URLSearchParams(query);
-  searchParams.set("special", item.filterKey);
-
-  return `${pathname}?${searchParams.toString()}`;
+export function getSpecialtyHref(item: Pick<SpecialtyView, "slug">) {
+  return `${SPECIALTIES_BASE_PATH}/${item.slug}`;
 }
 
-export async function getActiveSpecialtyNavigationItems(): Promise<SpecialtyNavigationItemView[]> {
-  return db.specialtyNavigationItem.findMany({
+function mapSpecialty(
+  specialty: {
+    id: string;
+    name: string;
+    slug: string;
+    shortDescription: string | null;
+    isVisible: boolean;
+    sortOrder: number;
+    _count: { products: number };
+  },
+): SpecialtyView {
+  return {
+    id: specialty.id,
+    name: specialty.name,
+    slug: specialty.slug,
+    shortDescription: specialty.shortDescription,
+    isVisible: specialty.isVisible,
+    sortOrder: specialty.sortOrder,
+    productCount: specialty._count.products,
+  };
+}
+
+export async function getVisibleSpecialties(): Promise<SpecialtyView[]> {
+  const specialties = await db.specialty.findMany({
     where: { isVisible: true },
-    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: {
       id: true,
-      label: true,
-      href: true,
-      filterKey: true,
+      name: true,
+      slug: true,
+      shortDescription: true,
       isVisible: true,
       sortOrder: true,
+      _count: { select: { products: true } },
     },
   });
+
+  return specialties.map(mapSpecialty);
 }
 
-export async function getAdminSpecialtyNavigationItems(): Promise<SpecialtyNavigationItemView[]> {
-  return db.specialtyNavigationItem.findMany({
-    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+export async function getAdminSpecialties(): Promise<SpecialtyView[]> {
+  const specialties = await db.specialty.findMany({
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: {
       id: true,
-      label: true,
-      href: true,
-      filterKey: true,
+      name: true,
+      slug: true,
+      shortDescription: true,
       isVisible: true,
       sortOrder: true,
+      _count: { select: { products: true } },
     },
   });
+
+  return specialties.map(mapSpecialty);
 }

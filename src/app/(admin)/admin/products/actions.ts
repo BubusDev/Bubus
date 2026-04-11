@@ -26,6 +26,8 @@ function revalidateCatalogPaths() {
   revalidatePath("/admin/products/archive");
   revalidatePath("/new-in");
   revalidatePath("/special-edition");
+  revalidatePath("/kulonlegessegek");
+  revalidatePath("/kulonlegessegek/[slug]", "page");
   revalidatePath("/sale");
   revalidatePath("/", "layout");
 }
@@ -151,7 +153,7 @@ function buildProductImageRecords(
 
 export async function createProductAction(formData: FormData) {
   await requireAdminUser("/admin/products/new");
-  const data = await parseProductFormData(formData);
+  const { data, specialtyIds } = await parseProductFormData(formData);
   const { uploadedImages, coverImageKey } = buildProductImageRecords(formData, data.name);
 
   const coverUrl =
@@ -177,6 +179,9 @@ export async function createProductAction(formData: FormData) {
                   ? coverImageKey === image.key
                   : index === 0,
             })),
+          },
+          specialties: {
+            create: specialtyIds.map((specialtyId) => ({ specialtyId })),
           },
         },
       });
@@ -229,7 +234,7 @@ export async function updateProductAction(formData: FormData) {
     (image) => !retainedImageIds.includes(image.id),
   );
 
-  const data = await parseProductFormData(formData);
+  const { data, specialtyIds } = await parseProductFormData(formData);
   const { uploadedImages, coverImageKey } = buildProductImageRecords(
     formData,
     data.name,
@@ -287,6 +292,10 @@ export async function updateProductAction(formData: FormData) {
             sortOrder: retainedImages.length + index,
             isCover: coverImageKey === image.key,
           })),
+        },
+        specialties: {
+          deleteMany: {},
+          create: specialtyIds.map((specialtyId) => ({ specialtyId })),
         },
       },
     });
