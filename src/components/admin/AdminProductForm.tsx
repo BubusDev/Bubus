@@ -68,6 +68,7 @@ type ProductFormState = {
   isNew: boolean;
   isGiftable: boolean;
   isOnSale: boolean;
+  specialtyKey: string;
 };
 
 type FormFieldName = keyof ProductFormState;
@@ -247,6 +248,7 @@ function buildInitialFormState(values: AdminProductFormValues): ProductFormState
     isNew: values.isNew,
     isGiftable: values.isGiftable,
     isOnSale: values.isOnSale,
+    specialtyKey: values.specialtyKey,
   };
 }
 
@@ -904,6 +906,7 @@ export function AdminProductForm({
     if (formValues.isNew) formData.append("isNew", "on");
     if (formValues.isGiftable) formData.append("isGiftable", "on");
     if (formValues.isOnSale) formData.append("isOnSale", "on");
+    formData.append("specialtyKey", formValues.specialtyKey);
     if (retainedIds.length > 0) formData.append("retainedImageIdsCsv", retainedIds.join(","));
     if (uploadPayload.length > 0) formData.append("uploadedImagesJson", JSON.stringify(uploadPayload));
     formData.append("coverImageKey", effectiveCoverImageKey);
@@ -1365,6 +1368,16 @@ export function AdminProductForm({
                   label="Akciós"
                 />
               </div>
+
+              <FieldWrap label="Különlegesség kulcs">
+                <input
+                  name="specialtyKey"
+                  value={formValues.specialtyKey}
+                  onChange={(e) => handleFieldChange("specialtyKey", e.target.value)}
+                  placeholder="napfogo"
+                  className={inputCls}
+                />
+              </FieldWrap>
 
               {submitError && (
                 <p className="border border-[#e3c7cf] bg-[#fbf5f6] px-3 py-2 text-sm text-[#ad4455]">

@@ -49,7 +49,7 @@ export default async function AdminSpecialtiesPage({
             </h2>
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_7rem_auto] md:items-end">
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_1fr_7rem_auto] md:items-end">
             <label className="block">
               <span className="admin-eyebrow mb-1.5 block">Név</span>
               <input name="label" required placeholder="Kulcstartók" className={inputClassName} />
@@ -57,7 +57,12 @@ export default async function AdminSpecialtiesPage({
 
             <label className="block">
               <span className="admin-eyebrow mb-1.5 block">Cél URL</span>
-              <input name="href" required placeholder="/kulcstartok" className={inputClassName} />
+              <input name="href" required placeholder="/karkotok" className={inputClassName} />
+            </label>
+
+            <label className="block">
+              <span className="admin-eyebrow mb-1.5 block">Szűrő kulcs</span>
+              <input name="filterKey" placeholder="napfogo" className={inputClassName} />
             </label>
 
             <label className="block">
@@ -90,7 +95,7 @@ export default async function AdminSpecialtiesPage({
             {items.map((item, index) => (
               <div
                 key={item.id}
-                className={`grid gap-4 px-5 py-4 lg:grid-cols-[1fr_1fr_7rem_auto_auto] lg:items-end ${
+                className={`grid gap-4 px-5 py-4 lg:grid-cols-[1fr_1fr_1fr_7rem_auto_auto] lg:items-end ${
                   index !== items.length - 1 ? "border-b border-[#eef2f7]" : ""
                 }`}
               >
@@ -117,6 +122,16 @@ export default async function AdminSpecialtiesPage({
                       name="href"
                       required
                       defaultValue={item.href}
+                      className={inputClassName}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="admin-eyebrow mb-1.5 block">Szűrő kulcs</span>
+                    <input
+                      name="filterKey"
+                      defaultValue={item.filterKey ?? ""}
+                      placeholder="napfogo"
                       className={inputClassName}
                     />
                   </label>

@@ -270,6 +270,7 @@ function mapProduct(product: DbProductWithRelations): Product {
     isNew: product.isNew,
     isGiftable: product.isGiftable,
     isOnSale: product.isOnSale,
+    specialtyKey: product.specialtyKey,
     tone: tone.slug,
     imageUrl: coverImage?.url ?? product.imageUrl,
     images,
@@ -612,6 +613,7 @@ export type AdminProductFormValues = {
   isNew: boolean;
   isGiftable: boolean;
   isOnSale: boolean;
+  specialtyKey: string;
   tone: string;
   homepagePlacement: HomepagePlacement;
   images: AdminProductImageValue[];
@@ -709,6 +711,7 @@ export function toAdminProductFormValues(
       isNew: false,
       isGiftable: false,
       isOnSale: false,
+      specialtyKey: "",
       tone: options.tones[0]?.id ?? "",
       homepagePlacement: "none",
       images: [],
@@ -743,6 +746,7 @@ export function toAdminProductFormValues(
     isNew: product.isNew,
     isGiftable: product.isGiftable,
     isOnSale: product.isOnSale,
+    specialtyKey: product.specialtyKey ?? "",
     tone: product.toneId,
     homepagePlacement: homepagePlacementMap[product.homepagePlacement],
     images,
@@ -847,6 +851,7 @@ export async function parseProductFormData(
     isNew: readBoolean(formData, "isNew"),
     isGiftable: readBoolean(formData, "isGiftable"),
     isOnSale: readBoolean(formData, "isOnSale"),
+    specialtyKey: slugifyOptionName(readString(formData, "specialtyKey")) || null,
     toneId,
     homepagePlacement: reverseHomepagePlacementMap[homepagePlacement as HomepagePlacement],
   };

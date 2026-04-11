@@ -156,6 +156,7 @@ model Product {
   isNew             Boolean            @default(false)
   isGiftable        Boolean            @default(false)
   isOnSale          Boolean            @default(false)
+  specialtyKey      String?
   toneId            String
   tone              ProductOption      @relation("ProductTone", fields: [toneId], references: [id])
   imageUrl          String?
@@ -183,6 +184,7 @@ model Product {
   @@index([isNew])
   @@index([isGiftable])
   @@index([isOnSale])
+  @@index([specialtyKey])
   @@index([stockQuantity, reservedQuantity])
 }
 
@@ -267,6 +269,7 @@ model SpecialtyNavigationItem {
   id        String   @id @default(cuid())
   label     String
   href      String
+  filterKey String?
   isVisible Boolean  @default(true)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())

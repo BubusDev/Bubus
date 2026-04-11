@@ -59,6 +59,7 @@ export type Product = {
   isNew: boolean;
   isGiftable: boolean;
   isOnSale: boolean;
+  specialtyKey?: string | null;
   tone: ProductTone;
   imageUrl?: string | null;
   images: {
@@ -291,6 +292,7 @@ export type ParsedCollectionState = {
     occasion: string[];
     availability: string[];
   };
+  special?: string;
   priceMin?: number;
   priceMax?: number;
   sort: string;
@@ -299,6 +301,15 @@ export type ParsedCollectionState = {
 export function parseCollectionSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): ParsedCollectionState {
+  const normalizeSpecialKey = (value: string | undefined) =>
+    value
+      ?.normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || undefined;
+
   const readMany = (key: string) => {
     const raw = searchParams[key];
     if (!raw) {
@@ -329,6 +340,7 @@ export function parseCollectionSearchParams(
       occasion: readMany("occasion"),
       availability: readMany("availability"),
     },
+    special: normalizeSpecialKey(readMany("special")[0]),
     priceMin: readNumber("priceMin"),
     priceMax: readNumber("priceMax"),
     sort: sort ?? "featured",
@@ -379,6 +391,10 @@ export function filterProducts(
       state.selected.availability.length > 0 &&
       !state.selected.availability.includes(product.availability)
     ) {
+      return false;
+    }
+
+    if (state.special && product.specialtyKey !== state.special) {
       return false;
     }
 

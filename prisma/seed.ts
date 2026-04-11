@@ -287,6 +287,7 @@ async function main() {
       isNew: true,
       isGiftable: false,
       isOnSale: false,
+      specialtyKey: "napfogo",
       tone: "pearl",
       homepagePlacement: "SPOTLIGHT",
       gallery: [
@@ -388,6 +389,7 @@ async function main() {
       isNew: false,
       isGiftable: true,
       isOnSale: true,
+      specialtyKey: "alomfogo",
       tone: "petal",
       homepagePlacement: "NONE",
       gallery: [
@@ -564,6 +566,7 @@ async function main() {
       isNew: true,
       isGiftable: true,
       isOnSale: false,
+      specialtyKey: "napfogo",
       tone: "pearl",
       homepagePlacement: "NEW_ARRIVALS",
       gallery: [
@@ -733,8 +736,8 @@ async function seedStones() {
 async function seedSpecialtyNavigationItems() {
   await prisma.specialtyNavigationItem.createMany({
     data: [
-      { label: "Napfogó", href: "/napfogo", sortOrder: 0, isVisible: true },
-      { label: "Álomfogó", href: "/alomfogo", sortOrder: 1, isVisible: true },
+      { label: "Napfogó", href: "/karkotok", filterKey: "napfogo", sortOrder: 0, isVisible: true },
+      { label: "Álomfogó", href: "/karkotok", filterKey: "alomfogo", sortOrder: 1, isVisible: true },
       { label: "Bokaláncok", href: "/anklets", sortOrder: 2, isVisible: true },
     ],
   });

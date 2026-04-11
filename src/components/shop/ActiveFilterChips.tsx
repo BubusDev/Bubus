@@ -37,6 +37,9 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
           },
         ]
       : []),
+    ...(state.special
+      ? [{ key: "special", value: state.special, label: state.special }]
+      : []),
   ];
 
   if (chips.length === 0) {
@@ -49,6 +52,8 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
     if (chip.key === "price") {
       params.delete("priceMin");
       params.delete("priceMax");
+    } else if (chip.key === "special") {
+      params.delete("special");
     } else {
       const next = params.getAll(chip.key).filter((entry) => entry !== chip.value);
       params.delete(chip.key);

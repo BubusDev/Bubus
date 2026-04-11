@@ -24,6 +24,16 @@ function normalizeHref(href: string) {
   return `/${href.replace(/^\/+/, "")}`;
 }
 
+function normalizeFilterKey(filterKey: string) {
+  return filterKey
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function revalidateSpecialtyNavigation() {
   revalidatePath("/admin/content/specialties");
   revalidatePath("/", "layout");
@@ -38,6 +48,7 @@ export async function createSpecialtyNavigationItemAction(formData: FormData) {
 
   const label = readString(formData, "label");
   const href = normalizeHref(readString(formData, "href"));
+  const filterKey = normalizeFilterKey(readString(formData, "filterKey"));
 
   if (!label || !href || href === "/") {
     redirectWithError("A név és a cél URL megadása kötelező.");
@@ -47,6 +58,7 @@ export async function createSpecialtyNavigationItemAction(formData: FormData) {
     data: {
       label,
       href,
+      filterKey: filterKey || null,
       sortOrder: readSortOrder(formData),
       isVisible: formData.get("isVisible") === "on",
     },
@@ -62,6 +74,7 @@ export async function updateSpecialtyNavigationItemAction(formData: FormData) {
   const id = readString(formData, "id");
   const label = readString(formData, "label");
   const href = normalizeHref(readString(formData, "href"));
+  const filterKey = normalizeFilterKey(readString(formData, "filterKey"));
 
   if (!id || !label || !href || href === "/") {
     redirectWithError("A név és a cél URL megadása kötelező.");
@@ -72,6 +85,7 @@ export async function updateSpecialtyNavigationItemAction(formData: FormData) {
     data: {
       label,
       href,
+      filterKey: filterKey || null,
       sortOrder: readSortOrder(formData),
       isVisible: formData.get("isVisible") === "on",
     },
