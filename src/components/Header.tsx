@@ -70,7 +70,7 @@ export function Header({
     `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
       pathname === href
         ? "bg-white/90 text-[#4d2741] shadow-[0_10px_28px_rgba(138,95,120,0.12)]"
-        : "text-[#6b425a] hover:bg-white/65 hover:text-[#4d2741]"
+        : "text-[#6b425a] hover:bg-[#a8346a]/90 hover:text-white"
     }`;
 
   return (

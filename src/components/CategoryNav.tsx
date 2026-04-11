@@ -8,7 +8,7 @@ import {
 } from "@/lib/specialty-navigation";
 
 const topLevelNavItemClassName =
-  "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
+  "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
 
 export async function CategoryNav() {
   const [navigationCategories, specialtyItems] = await Promise.all([
@@ -19,7 +19,7 @@ export async function CategoryNav() {
   return (
     <nav
       aria-label="Category navigation"
-      className="group/category-nav relative z-40 border-b border-white/50 bg-white/20 backdrop-blur-sm transition-[background-color,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-white/70 hover:bg-[#d7659a]/72 hover:shadow-[0_18px_46px_rgba(159,56,108,0.18)] hover:backdrop-blur-2xl focus-within:border-white/70 focus-within:bg-[#d7659a]/72 focus-within:shadow-[0_18px_46px_rgba(159,56,108,0.18)] focus-within:backdrop-blur-2xl"
+      className="group/category-nav relative z-40 border-b border-white/50 bg-white/20 backdrop-blur-sm transition-[background-color,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-white/70 hover:bg-[#a8346a]/88 hover:shadow-[0_18px_46px_rgba(120,35,75,0.22)] hover:backdrop-blur-2xl focus-within:border-white/70 focus-within:bg-[#a8346a]/88 focus-within:shadow-[0_18px_46px_rgba(120,35,75,0.22)] focus-within:backdrop-blur-2xl"
     >
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
         {navigationCategories.map((item) => (
