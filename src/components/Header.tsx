@@ -75,12 +75,31 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-[rgba(255,241,247,0.72)] backdrop-blur-2xl">
-      <div className="mx-auto flex min-h-[84px] w-full max-w-[1500px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto grid min-h-[84px] w-full max-w-[1500px] grid-cols-[2.5rem_1fr_2.5rem] items-center gap-3 px-4 py-3 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
+        <span aria-hidden="true" className="h-10 w-10 md:hidden" />
+
+        <nav
+          aria-label="Fő navigáció"
+          className="hidden items-center justify-self-start md:flex"
+        >
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {headerPrimaryNavItems.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={getNavLinkClassName(href)}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-3 transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+          className="flex min-w-0 items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
         >
-          <div className="flex flex-col leading-none">
+          <div className="flex flex-col items-center leading-none">
             <span className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
               Boutique ékszer
             </span>
@@ -98,25 +117,8 @@ export function Header({
           </div>
         </Link>
 
-        <nav
-          aria-label="Fő navigáció"
-          className="hidden flex-1 items-center justify-center md:flex"
-        >
-          <div className="flex flex-wrap items-center justify-center gap-1">
-            {headerPrimaryNavItems.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={getNavLinkClassName(href)}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-
         {/* Desktop icon nav — no background pill wrapper */}
-        <nav aria-label="Hasznos navigáció" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Hasznos navigáció" className="hidden items-center gap-1 justify-self-end md:flex">
           <HeaderActionButton
             href="/favourites"
             label="Kedvencek"
@@ -157,7 +159,7 @@ export function Header({
           aria-controls="mobile-header-menu"
           aria-label={isMobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
           onClick={() => setIsMobileMenuOpen((open) => !open)}
-          className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] md:hidden"
+          className="flex h-10 w-10 items-center justify-center justify-self-end rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] md:hidden"
         >
           {isMobileMenuOpen ? (
             <X className="h-5 w-5" />

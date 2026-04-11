@@ -20,7 +20,6 @@ type CollectionPageProps = {
 };
 
 export function CollectionPage({
-  category,
   products,
   availableFilters,
   filterGroups,
@@ -29,22 +28,6 @@ export function CollectionPage({
 }: CollectionPageProps) {
   return (
     <main className="mx-auto max-w-[1450px] pb-24">
-
-      {/* ── EDITORIAL HEADER ── */}
-      <header className="border-b border-[#e8e5e0] px-6 py-12 sm:px-8">
-        <p className="mb-2 text-[10px] uppercase tracking-[.3em] text-[#888]">
-          Kollekció
-        </p>
-        <h1 className="font-[family:var(--font-display)] text-[2.8rem] leading-none tracking-[-0.03em] text-[#1a1a1a] sm:text-[3.2rem]">
-          {category.title}
-        </h1>
-        {category.seoDescription && (
-          <p className="mt-3 max-w-[52ch] text-sm leading-[1.9] text-[#666]">
-            {category.seoDescription}
-          </p>
-        )}
-      </header>
-
       <div className="px-6 pt-6 sm:px-8">
 
         {/* ── MOBILE: filter + sort ── */}

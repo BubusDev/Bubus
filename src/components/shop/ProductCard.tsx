@@ -35,7 +35,7 @@ export function ProductCard({
 
   return (
     <article className="group flex flex-col">
-      {/* Image + hover overlay */}
+      {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0]">
         <Link
           href={productHref}
@@ -69,8 +69,21 @@ export function ProductCard({
             </div>
           )}
         </Link>
+      </div>
 
-        <div className="absolute right-3 top-3 z-10">
+      {/* Info */}
+      <div className="mt-3 flex-1">
+        <p className="mb-1 text-[10px] uppercase tracking-[.22em] text-[#888]">
+          {product.collectionLabel}
+        </p>
+        <Link
+          href={productHref}
+          className="block text-sm font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
+        >
+          {product.name}
+        </Link>
+        <p className="mt-1 text-sm text-[#444]">{formatPrice(product.price)}</p>
+        <div className="mt-2 flex items-center justify-between">
           <form
             action={() => {
               startWishlistTransition(async () => {
@@ -87,8 +100,8 @@ export function ProductCard({
               }
               aria-pressed={isFavourite}
               disabled={isHeartPending}
-              className={`flex h-9 w-9 items-center justify-center border border-[#e8e5e0] bg-white/90 backdrop-blur-sm transition hover:border-[#c45a85] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
-                isFavourite ? "text-[#c45a85]" : "text-[#888]"
+              className={`inline-flex h-5 w-5 items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
+                isFavourite ? "text-[#c45a85]" : "text-[#888] hover:text-[#1a1a1a]"
               } ${isHeartPending ? "opacity-60" : ""}`}
             >
               <Heart
@@ -98,9 +111,7 @@ export function ProductCard({
               />
             </button>
           </form>
-        </div>
 
-        <div className="absolute bottom-3 left-3 z-10">
           <AddToCartIconButton
             productId={product.id}
             quantity={1}
@@ -109,26 +120,12 @@ export function ProductCard({
             ariaLabel={`Kosárba: ${product.name}`}
             soldOutAriaLabel={`${product.name} elfogyott`}
             iconClassName="h-4 w-4"
-            baseClassName="flex h-9 w-9 items-center justify-center border border-[#e8e5e0] bg-white/90 backdrop-blur-sm transition hover:border-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
+            baseClassName="inline-flex h-5 w-5 items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
             disabledClassName="cursor-not-allowed text-[#ccc]"
             addedClassName="text-[#c45a85]"
             idleClassName="text-[#888] hover:text-[#1a1a1a]"
           />
         </div>
-      </div>
-
-      {/* Info */}
-      <div className="mt-3 flex-1">
-        <p className="mb-1 text-[10px] uppercase tracking-[.22em] text-[#888]">
-          {product.collectionLabel}
-        </p>
-        <Link
-          href={productHref}
-          className="block text-sm font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
-        >
-          {product.name}
-        </Link>
-        <p className="mt-1 text-sm text-[#444]">{formatPrice(product.price)}</p>
       </div>
     </article>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type PointerEvent } from "react";
 import Image from "next/image";
 
 type GalleryImage = {
@@ -20,7 +20,23 @@ export function ProductImageGallery({
   soldOut,
 }: ProductImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
   const activeImage = images[activeIndex];
+
+  function updateZoomOrigin(event: PointerEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    setZoomOrigin(`${x}% ${y}%`);
+  }
+
+  function handleThumbnailClick(index: number) {
+    setActiveIndex(index);
+    setIsZoomed(false);
+    setZoomOrigin("50% 50%");
+  }
 
   return (
     <div className="flex gap-3">
@@ -31,7 +47,7 @@ export function ProductImageGallery({
             <button
               key={i}
               type="button"
-              onClick={() => setActiveIndex(i)}
+              onClick={() => handleThumbnailClick(i)}
               className="relative h-16 w-16 flex-shrink-0 overflow-hidden transition"
               style={{
                 border: `1px solid ${i === activeIndex ? "#1a1a1a" : "transparent"}`,
@@ -52,15 +68,33 @@ export function ProductImageGallery({
       )}
 
       {/* Main image */}
-      <div className="relative flex-1 overflow-hidden bg-[#f5f3f0]" style={{ aspectRatio: "4/5" }}>
+      <button
+        type="button"
+        aria-label={
+          isZoomed
+            ? `${productName} kép kicsinyítése`
+            : `${productName} kép nagyítása`
+        }
+        aria-pressed={isZoomed}
+        disabled={!activeImage}
+        onPointerEnter={updateZoomOrigin}
+        onPointerMove={updateZoomOrigin}
+        onPointerLeave={() => setIsZoomed(false)}
+        onClick={() => setIsZoomed((zoomed) => !zoomed)}
+        className={`group relative flex-1 overflow-hidden bg-[#f5f3f0] p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
+          activeImage ? (isZoomed ? "cursor-zoom-out" : "cursor-zoom-in") : ""
+        }`}
+        style={{ aspectRatio: "4/5" }}
+      >
         {activeImage ? (
           <Image
             src={activeImage.url}
             alt={activeImage.alt ?? productName}
             fill
-            className={`object-cover transition-opacity duration-300 ${
+            className={`object-cover transition-transform duration-300 ease-out ${
               soldOut ? "saturate-[0.6] brightness-[0.9]" : ""
-            }`}
+            } ${isZoomed ? "scale-[1.65]" : "md:group-hover:scale-[1.45]"}`}
+            style={{ transformOrigin: zoomOrigin }}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
           />
@@ -73,13 +107,13 @@ export function ProductImageGallery({
           </div>
         )}
         {soldOut && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="bg-white/90 px-4 py-1.5 text-[11px] uppercase tracking-[.2em] text-[#555]">
               Elfogyott
             </span>
           </div>
         )}
-      </div>
+      </button>
     </div>
   );
 }
