@@ -59,7 +59,7 @@ export async function CategoryNav() {
                 ⌄
               </span>
             </Link>
-            <div className="invisible absolute left-0 top-full z-40 w-max max-w-[calc(100vw-2rem)] origin-top-left pt-2 opacity-0 translate-y-1 transition-[opacity,transform,visibility] duration-150 ease-out group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:opacity-100 group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:opacity-100">
+            <div className="invisible pointer-events-none absolute left-0 top-full z-40 w-max max-w-[calc(100vw-2rem)] origin-top-left -translate-y-1 scale-[0.985] pt-2 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] group-hover/specialty:pointer-events-auto group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:scale-100 group-hover/specialty:opacity-100 group-focus-within/specialty:pointer-events-auto group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:scale-100 group-focus-within/specialty:opacity-100 motion-reduce:duration-0">
               <div
                 className="flex max-w-[24rem] flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-[#eadce4] bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(49,25,45,0.08)] backdrop-blur-md"
                 role="menu"

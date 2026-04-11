@@ -56,7 +56,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         <div
           role="menu"
           aria-label="Profil menü"
-          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-[#efd6e3] bg-[linear-gradient(180deg,#fffafc_0%,#fff4f8_100%)] p-2 shadow-[0_24px_60px_rgba(108,60,86,0.18)]"
+          className="dropdown-reveal absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[18rem] overflow-hidden rounded-[1.5rem] border border-[#efd6e3] bg-[linear-gradient(180deg,#fffafc_0%,#fff4f8_100%)] p-2 shadow-[0_24px_60px_rgba(108,60,86,0.18)]"
         >
           <div className="rounded-[1.1rem] border border-[#f1dbe6] bg-[#fffdfd] px-4 py-3.5">
             <div className="flex items-start gap-3">
