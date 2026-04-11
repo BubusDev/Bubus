@@ -8,7 +8,7 @@ import {
 } from "@/lib/specialty-navigation";
 
 const topLevelNavItemClassName =
-  "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition duration-200 hover:opacity-60 active:opacity-80";
+  "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition duration-200 active:opacity-80 group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
 
 export async function CategoryNav() {
   const [navigationCategories, specialtyItems] = await Promise.all([
@@ -19,43 +19,28 @@ export async function CategoryNav() {
   return (
     <nav
       aria-label="Category navigation"
-      className="relative z-40 border-b border-white/50 bg-white/20 backdrop-blur-sm"
+      className="group/category-nav relative z-40 border-b border-white/50 bg-white/20 backdrop-blur-sm transition-colors duration-200 hover:bg-[#b64f7d] focus-within:bg-[#b64f7d]"
     >
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
-        {navigationCategories.map((item) => {
-          const isSpecialEdition = item.slug === "special-edition";
-
-          return (
-            <Link
-              key={item.slug}
-              href={item.href}
-              className={
-                isSpecialEdition
-                  ? "relative whitespace-nowrap text-sm font-medium leading-5 tracking-[0.02em] text-[#4f2348] transition duration-200 hover:opacity-80 active:opacity-90"
-                  : topLevelNavItemClassName
-              }
-            >
-              {isSpecialEdition ? (
-                <span className="relative inline-block px-1">
-                  <span className="relative z-10">{item.label}</span>
-                  <span className="absolute inset-x-0 bottom-[0.12em] -z-0 h-[0.72em] rounded-full bg-[#f7ff7a]/70 blur-[1px]" />
-                </span>
-              ) : (
-                item.label
-              )}
-            </Link>
-          );
-        })}
+        {navigationCategories.map((item) => (
+          <Link
+            key={item.slug}
+            href={item.href}
+            className={topLevelNavItemClassName}
+          >
+            {item.label}
+          </Link>
+        ))}
 
         {specialtyItems.length > 0 ? (
           <div className="group/specialty relative inline-flex">
             <Link
               href={SPECIALTIES_BASE_PATH}
-              className={`${topLevelNavItemClassName} -my-1.5 inline-flex items-center gap-1 rounded-full border border-white/65 bg-white/40 px-3 py-1.5 shadow-[0_8px_20px_rgba(49,25,45,0.05)] backdrop-blur-md hover:bg-white/65 hover:opacity-100`}
+              className={`${topLevelNavItemClassName} inline-flex items-center gap-1`}
               aria-haspopup="menu"
             >
               <span>Különlegességek</span>
-              <span aria-hidden="true" className="text-[10px] leading-none text-[#8b6d7f] transition-transform duration-200 group-hover/specialty:translate-y-0.5 group-focus-within/specialty:translate-y-0.5">
+              <span aria-hidden="true" className="text-[10px] leading-none text-[#8b6d7f] transition duration-200 group-hover/category-nav:text-white group-focus-within/category-nav:text-white group-hover/specialty:translate-y-0.5 group-focus-within/specialty:translate-y-0.5">
                 ⌄
               </span>
             </Link>
