@@ -2,7 +2,6 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { AdminShell } from "@/components/admin/AdminShell";
 import { db } from "@/lib/db";
-import { getAdminSelectableProducts } from "@/lib/products";
 import {
   createSpecialtyAction,
   deleteSpecialtyAction,
@@ -24,16 +23,10 @@ function getErrorMessage(searchParams: Record<string, string | string[] | undefi
 export default async function AdminSpecialtiesPage({
   searchParams,
 }: AdminSpecialtiesPageProps) {
-  const [items, products, resolvedSearchParams] = await Promise.all([
+  const [items, resolvedSearchParams] = await Promise.all([
     db.specialty.findMany({
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      include: {
-        products: {
-          select: { productId: true },
-        },
-      },
     }),
-    getAdminSelectableProducts(),
     searchParams,
   ]);
   const errorMessage = getErrorMessage(resolvedSearchParams);
@@ -41,7 +34,7 @@ export default async function AdminSpecialtiesPage({
   return (
     <AdminShell
       title="Különlegességek navigáció"
-      description="A Különlegességek storefront szekció csoportjainak, sorrendjének és termék-hozzárendeléseinek kezelése."
+      description="A Különlegességek storefront szekció csoportjainak, sorrendjének és láthatóságának kezelése."
     >
       <div className="space-y-6">
         {errorMessage ? (
@@ -102,18 +95,6 @@ export default async function AdminSpecialtiesPage({
             />
           </label>
 
-          <div className="mt-4">
-            <p className="admin-eyebrow mb-2">Termékek</p>
-            <div className="grid max-h-64 gap-2 overflow-y-auto rounded-md border border-[#e5e8ef] bg-white p-3 md:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <label key={product.id} className="flex items-center gap-2 text-sm text-[var(--admin-ink-700)]">
-                  <input name="productIds" type="checkbox" value={product.id} className="h-4 w-4" />
-                  <span>{product.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           <button type="submit" className="admin-button-primary admin-control-md mt-4">
             Létrehozás
           </button>
@@ -125,25 +106,19 @@ export default async function AdminSpecialtiesPage({
           </div>
         ) : (
           <div className="admin-table-shell">
-            {items.map((item, index) => {
-              const assignedProductIds = new Set(item.products.map((entry) => entry.productId));
-
-              return (
-                <div
-                  key={item.id}
-                  className={`grid gap-4 px-5 py-4 lg:grid-cols-[1fr_1fr_1fr_7rem_auto_auto] lg:items-end ${
-                    index !== items.length - 1 ? "border-b border-[#eef2f7]" : ""
-                  }`}
+            {items.map((item, index) => (
+              <div
+                key={item.id}
+                className={`grid gap-4 px-5 py-4 lg:grid-cols-[1fr_1fr_1fr_7rem_auto] lg:items-end ${
+                  index !== items.length - 1 ? "border-b border-[#eef2f7]" : ""
+                }`}
+              >
+                <form
+                  id={`specialty-item-${item.id}`}
+                  action={updateSpecialtyAction}
+                  className="contents"
                 >
-                  <form
-                    id={`specialty-item-${item.id}`}
-                    action={updateSpecialtyAction}
-                    className="contents"
-                  >
-                    <input type="hidden" name="id" value={item.id} />
-                    {item.products.map((entry) => (
-                      <input key={entry.productId} type="hidden" name="productIds" value={entry.productId} />
-                    ))}
+                  <input type="hidden" name="id" value={item.id} />
 
                   <label className="block">
                     <span className="admin-eyebrow mb-1.5 block">Név</span>
@@ -217,39 +192,8 @@ export default async function AdminSpecialtiesPage({
                   </form>
                 </div>
 
-                <div className="lg:col-span-6">
-                  <form id={`specialty-products-${item.id}`} action={updateSpecialtyAction} className="mt-3">
-                    <input type="hidden" name="id" value={item.id} />
-                    <input type="hidden" name="name" value={item.name} />
-                    <input type="hidden" name="slug" value={item.slug} />
-                    <input type="hidden" name="shortDescription" value={item.shortDescription ?? ""} />
-                    <input type="hidden" name="sortOrder" value={item.sortOrder} />
-                    {item.isVisible ? <input type="hidden" name="isVisible" value="on" /> : null}
-                    <p className="admin-eyebrow mb-2">Hozzárendelt termékek</p>
-                    <div className="grid max-h-56 gap-2 overflow-y-auto rounded-md border border-[#e5e8ef] bg-white p-3 md:grid-cols-2 xl:grid-cols-3">
-                      {products.map((product) => {
-                        return (
-                          <label key={product.id} className="flex items-center gap-2 text-sm text-[var(--admin-ink-700)]">
-                            <input
-                              name="productIds"
-                              type="checkbox"
-                              value={product.id}
-                              defaultChecked={assignedProductIds.has(product.id)}
-                              className="h-4 w-4"
-                            />
-                            <span>{product.name}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <button type="submit" className="admin-button-secondary admin-control-sm mt-3">
-                      Termékek mentése
-                    </button>
-                  </form>
-                </div>
-                </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>

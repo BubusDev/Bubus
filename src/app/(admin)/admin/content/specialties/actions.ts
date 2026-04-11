@@ -17,17 +17,7 @@ function readSortOrder(formData: FormData) {
   return Number.isFinite(sortOrder) ? sortOrder : 0;
 }
 
-function readProductIds(formData: FormData) {
-  return [
-    ...new Set(
-      formData
-        .getAll("productIds")
-        .filter((value): value is string => typeof value === "string" && value.length > 0),
-    ),
-  ];
-}
-
-async function readSpecialtyFormData(formData: FormData) {
+function readSpecialtyFormData(formData: FormData) {
   const name = readString(formData, "name");
   const slug = slugifyOptionName(readString(formData, "slug") || name);
 
@@ -35,35 +25,13 @@ async function readSpecialtyFormData(formData: FormData) {
     redirectWithError("A név és a slug megadása kötelező.");
   }
 
-  const productIds = readProductIds(formData);
-  const products = productIds.length > 0
-    ? await db.product.findMany({
-        where: { id: { in: productIds }, archivedAt: null },
-        select: { id: true },
-      })
-    : [];
-  const validProductIds = new Set(products.map((product) => product.id));
-
-  if (productIds.some((productId) => !validProductIds.has(productId))) {
-    redirectWithError("Érvénytelen termék-hozzárendelés.");
-  }
-
   return {
-    specialty: {
-      name,
-      slug,
-      shortDescription: readString(formData, "shortDescription") || null,
-      sortOrder: readSortOrder(formData),
-      isVisible: formData.get("isVisible") === "on",
-    },
-    productIds,
+    name,
+    slug,
+    shortDescription: readString(formData, "shortDescription") || null,
+    sortOrder: readSortOrder(formData),
+    isVisible: formData.get("isVisible") === "on",
   };
-}
-
-function specialtyProductCreates(productIds: string[]) {
-  return productIds.map((productId) => ({
-    productId,
-  }));
 }
 
 function revalidateSpecialties() {
@@ -80,16 +48,11 @@ function redirectWithError(message: string): never {
 export async function createSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
-  const { specialty, productIds } = await readSpecialtyFormData(formData);
+  const specialty = readSpecialtyFormData(formData);
 
   try {
     await db.specialty.create({
-      data: {
-        ...specialty,
-        products: {
-          create: specialtyProductCreates(productIds),
-        },
-      },
+      data: specialty,
     });
   } catch {
     redirectWithError("Nem sikerült létrehozni. Ellenőrizd, hogy a slug egyedi-e.");
@@ -103,7 +66,7 @@ export async function updateSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
   const id = readString(formData, "id");
-  const { specialty, productIds } = await readSpecialtyFormData(formData);
+  const specialty = readSpecialtyFormData(formData);
 
   if (!id) {
     redirectWithError("Hiányzó különlegesség azonosító.");
@@ -112,13 +75,7 @@ export async function updateSpecialtyAction(formData: FormData) {
   try {
     await db.specialty.update({
       where: { id },
-      data: {
-        ...specialty,
-        products: {
-          deleteMany: {},
-          create: specialtyProductCreates(productIds),
-        },
-      },
+      data: specialty,
     });
   } catch {
     redirectWithError("Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.");

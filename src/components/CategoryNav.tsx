@@ -48,16 +48,23 @@ export async function CategoryNav() {
         })}
 
         {specialtyItems.length > 0 ? (
-          <div className="group relative flex items-center">
+          <div className="group/specialty contents">
             <Link
               href={SPECIALTIES_BASE_PATH}
-              className={topLevelNavItemClassName}
+              className={`${topLevelNavItemClassName} inline-flex items-center gap-1`}
               aria-haspopup="menu"
             >
-              Különlegességek
+              <span>Különlegességek</span>
+              <span aria-hidden="true" className="text-[10px] leading-none text-[#6b6b6b]">
+                ⌄
+              </span>
             </Link>
-            <div className="invisible absolute left-1/2 top-full z-40 min-w-max -translate-x-1/2 border-t border-[#eadce4] bg-white/90 px-2 py-2 opacity-0 backdrop-blur-sm transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              <div className="flex items-center gap-5" role="menu" aria-label="Különlegességek">
+            <div className="invisible absolute inset-x-0 top-full z-40 max-h-0 overflow-hidden border-y border-transparent bg-white/80 opacity-0 backdrop-blur-md transition-[max-height,opacity,border-color] duration-200 ease-out group-hover/specialty:visible group-hover/specialty:max-h-24 group-hover/specialty:border-[#eadce4] group-hover/specialty:opacity-100 group-focus-within/specialty:visible group-focus-within/specialty:max-h-24 group-focus-within/specialty:border-[#eadce4] group-focus-within/specialty:opacity-100">
+              <div
+                className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8"
+                role="menu"
+                aria-label="Különlegességek"
+              >
                 {specialtyItems.map((item) => (
                   <Link
                     key={item.id}

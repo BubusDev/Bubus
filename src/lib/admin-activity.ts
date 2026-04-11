@@ -4,6 +4,7 @@ import {
   returnRefundStatusConfig,
   returnRequestStatusConfig,
 } from "@/lib/admin-order-workflow";
+import type { Prisma } from "@prisma/client";
 
 export type AdminActivityItem = {
   id: string;
@@ -15,6 +16,15 @@ export type AdminActivityItem = {
   actorLabel: string;
   changedAt: Date;
 };
+
+export type AdminActivityFilters = {
+  customerName?: string;
+  customerEmail?: string;
+  responsible?: string;
+  orderNumber?: string;
+};
+
+const insensitive = "insensitive" as const;
 
 function formatActorLabel(input: { name?: string | null; email?: string | null } | null | undefined) {
   return input?.name?.trim() || input?.email?.trim() || "ismeretlen admin";
@@ -44,11 +54,122 @@ function formatRefundStatus(status: string | null | undefined) {
   return returnRefundStatusConfig[status]?.label ?? status;
 }
 
-export async function getRecentAdminActivity(limit = 12) {
+function normalizeFilterValue(value: string | undefined) {
+  return value?.trim() || undefined;
+}
+
+function textFilter(value: string) {
+  return { contains: value, mode: insensitive };
+}
+
+function buildOrderActivityWhere(filters: AdminActivityFilters): Prisma.OrderWorkflowHistoryWhereInput {
+  const customerName = normalizeFilterValue(filters.customerName);
+  const customerEmail = normalizeFilterValue(filters.customerEmail);
+  const responsible = normalizeFilterValue(filters.responsible);
+  const orderNumber = normalizeFilterValue(filters.orderNumber);
+  const orderFilters: Prisma.OrderWhereInput[] = [];
+  const activityFilters: Prisma.OrderWorkflowHistoryWhereInput[] = [];
+
+  if (customerName) {
+    orderFilters.push({
+      OR: [
+        { shippingName: textFilter(customerName) },
+        { user: { is: { name: textFilter(customerName) } } },
+      ],
+    });
+  }
+
+  if (customerEmail) {
+    orderFilters.push({
+      OR: [
+        { guestEmail: textFilter(customerEmail) },
+        { user: { is: { email: textFilter(customerEmail) } } },
+      ],
+    });
+  }
+
+  if (orderNumber) {
+    orderFilters.push({ orderNumber: textFilter(orderNumber) });
+  }
+
+  if (responsible) {
+    activityFilters.push({
+      OR: [
+        { previousAssigneeLabel: textFilter(responsible) },
+        { newAssigneeLabel: textFilter(responsible) },
+        { order: { assignedTo: { is: { name: textFilter(responsible) } } } },
+        { order: { assignedTo: { is: { email: textFilter(responsible) } } } },
+      ],
+    });
+  }
+
+  if (orderFilters.length > 0) {
+    activityFilters.push({ order: { AND: orderFilters } });
+  }
+
+  return activityFilters.length > 0 ? { AND: activityFilters } : {};
+}
+
+function buildReturnActivityWhere(filters: AdminActivityFilters): Prisma.ReturnRequestHistoryWhereInput {
+  const customerName = normalizeFilterValue(filters.customerName);
+  const customerEmail = normalizeFilterValue(filters.customerEmail);
+  const responsible = normalizeFilterValue(filters.responsible);
+  const orderNumber = normalizeFilterValue(filters.orderNumber);
+  const requestFilters: Prisma.ReturnRequestWhereInput[] = [];
+  const orderFilters: Prisma.OrderWhereInput[] = [];
+  const activityFilters: Prisma.ReturnRequestHistoryWhereInput[] = [];
+
+  if (customerName) {
+    orderFilters.push({
+      OR: [
+        { shippingName: textFilter(customerName) },
+        { user: { is: { name: textFilter(customerName) } } },
+      ],
+    });
+  }
+
+  if (customerEmail) {
+    requestFilters.push({
+      OR: [
+        { requesterEmail: textFilter(customerEmail) },
+        { order: { guestEmail: textFilter(customerEmail) } },
+        { order: { user: { is: { email: textFilter(customerEmail) } } } },
+      ],
+    });
+  }
+
+  if (orderNumber) {
+    orderFilters.push({ orderNumber: textFilter(orderNumber) });
+  }
+
+  if (orderFilters.length > 0) {
+    requestFilters.push({ order: { AND: orderFilters } });
+  }
+
+  if (responsible) {
+    activityFilters.push({
+      OR: [
+        { previousAssigneeLabel: textFilter(responsible) },
+        { newAssigneeLabel: textFilter(responsible) },
+        { returnRequest: { assignedTo: { is: { name: textFilter(responsible) } } } },
+        { returnRequest: { assignedTo: { is: { email: textFilter(responsible) } } } },
+      ],
+    });
+  }
+
+  if (requestFilters.length > 0) {
+    activityFilters.push({ returnRequest: { AND: requestFilters } });
+  }
+
+  return activityFilters.length > 0 ? { AND: activityFilters } : {};
+}
+
+export async function getRecentAdminActivity(limit = 12, filters: AdminActivityFilters = {}) {
   const fetchSize = Math.max(limit * 3, 24);
 
   const [orderHistory, returnHistory] = await Promise.all([
     db.orderWorkflowHistory.findMany({
+      where: buildOrderActivityWhere(filters),
       orderBy: { changedAt: "desc" },
       take: fetchSize,
       include: {
@@ -67,6 +188,7 @@ export async function getRecentAdminActivity(limit = 12) {
       },
     }),
     db.returnRequestHistory.findMany({
+      where: buildReturnActivityWhere(filters),
       orderBy: { changedAt: "desc" },
       take: fetchSize,
       include: {
