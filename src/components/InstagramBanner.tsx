@@ -34,6 +34,38 @@ function ArrowIcon({ className }: { className?: string }) {
   );
 }
 
+const BUBBLE_SPECS = [
+  { size: 7, delay: "0s",   duration: "2s"   },
+  { size: 5, delay: "0.4s", duration: "1.8s" },
+  { size: 9, delay: "0.8s", duration: "2.2s" },
+  { size: 4, delay: "1.2s", duration: "1.6s" },
+  { size: 6, delay: "0.2s", duration: "2.4s" },
+] as const;
+
+function Bubbles() {
+  return (
+    <span
+      style={{ display: "flex", alignItems: "flex-end", height: 22, gap: 3 }}
+      aria-hidden="true"
+    >
+      {BUBBLE_SPECS.map((b, i) => (
+        <span
+          key={i}
+          style={{
+            width:  b.size,
+            height: b.size,
+            borderRadius: "50%",
+            background: "rgba(236, 72, 153, 0.35)",
+            border: "1px solid rgba(255, 255, 255, 0.6)",
+            animation: `rise ${b.duration} ${b.delay} infinite ease-out`,
+            flexShrink: 0,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
 /* AR aesthetic: thin crosshair accent (CSS only, no images) */
 function Crosshair({ className }: { className?: string }) {
   return (
@@ -128,6 +160,13 @@ const POSTS: {
 export function InstagramBanner() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
+      <style>{`
+        @keyframes rise {
+          0%   { transform: translateY(0) scale(1);      opacity: 0.7; }
+          50%  { transform: translateY(-8px) scale(1.1); opacity: 1;   }
+          100% { transform: translateY(-16px) scale(0.6); opacity: 0;  }
+        }
+      `}</style>
       {/* ── Layered depth planes (AR / glassmorphism backdrop) ── */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fdf6f8] via-[#faf2f6] to-[#fef0f8]" />
       <div className="pointer-events-none absolute -top-48 -left-48 h-[560px] w-[560px] rounded-full bg-[#f9d4e6]/50 blur-[90px]" />
@@ -169,25 +208,8 @@ export function InstagramBanner() {
               kollekciókba és exkluzív kampányok — elsőként értesülj mindenről.
             </p>
 
-            {/* ── CTA with gesture control hints ── */}
+            {/* ── CTA ── */}
             <div className="relative mt-9 inline-block">
-
-              {/* Ping ripple — tap hint */}
-              <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c45a85] opacity-35" />
-                <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-[#c45a85]/60" />
-              </span>
-
-              {/* Swipe hint below button */}
-              <span
-                className="absolute -bottom-7 left-1 flex items-center gap-1.5 text-[#c4a4b8] animate-pulse"
-                aria-hidden="true"
-              >
-                <svg width="16" height="9" viewBox="0 0 16 9" fill="none">
-                  <path d="M1 4.5h12M9.5 1l3.5 3.5-3.5 3.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="text-[8px] font-thin uppercase tracking-[0.32em]">kövess</span>
-              </span>
 
               <a
                 href="https://instagram.com/chicksjewelry"
@@ -208,6 +230,7 @@ export function InstagramBanner() {
               >
                 <InstagramIcon className="h-4 w-4" />
                 Követés most
+                <Bubbles />
                 <ArrowIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
               </a>
             </div>
