@@ -11,7 +11,7 @@ import {
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
-import { isBrowserSafeImageUrl } from "@/lib/image-safety";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ProductCardProps = {
   product: Product;
@@ -58,19 +58,23 @@ export function ProductCard({
   const [brokenImageUrls, setBrokenImageUrls] = useState<Set<string>>(new Set());
   const safeImages = useMemo(
     () =>
-      product.images.filter(
-        (image) => isBrowserSafeImageUrl(image.url) && !brokenImageUrls.has(image.url),
-      ),
+      product.images
+        .map((image) => ({ ...image, displayUrl: getBrowserDisplayImageUrl(image.url) }))
+        .filter(
+          (image): image is typeof image & { displayUrl: string } => {
+            const displayUrl = image.displayUrl;
+            return displayUrl !== null && !brokenImageUrls.has(displayUrl);
+          },
+        ),
     [brokenImageUrls, product.images],
   );
+  const productImageUrl = getBrowserDisplayImageUrl(product.imageUrl);
   const coverImage =
-    product.imageUrl &&
-    isBrowserSafeImageUrl(product.imageUrl) &&
-    !brokenImageUrls.has(product.imageUrl)
-      ? product.imageUrl
-      : safeImages[0]?.url ?? null;
-  const secondaryImage = safeImages.find((image) => image.url !== coverImage);
-  const secondaryImageUrl = secondaryImage?.url ?? null;
+    productImageUrl && !brokenImageUrls.has(productImageUrl)
+      ? productImageUrl
+      : safeImages[0]?.displayUrl ?? null;
+  const secondaryImage = safeImages.find((image) => image.displayUrl !== coverImage);
+  const secondaryImageUrl = secondaryImage?.displayUrl ?? null;
   const productHref = `/product/${product.slug}`;
   const isOutOfStock = isProductOutOfStock(product);
   const isHeartPending = isFavouritePending || isWishlistPending;

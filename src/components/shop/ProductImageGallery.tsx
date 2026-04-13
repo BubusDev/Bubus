@@ -3,7 +3,7 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import Image from "next/image";
 
-import { isBrowserSafeImageUrl } from "@/lib/image-safety";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type GalleryImage = {
   url: string;
@@ -27,9 +27,14 @@ export function ProductImageGallery({
   const [brokenImageUrls, setBrokenImageUrls] = useState<Set<string>>(new Set());
   const safeImages = useMemo(
     () =>
-      images.filter(
-        (image) => isBrowserSafeImageUrl(image.url) && !brokenImageUrls.has(image.url),
-      ),
+      images
+        .map((image) => ({ ...image, displayUrl: getBrowserDisplayImageUrl(image.url) }))
+        .filter(
+          (image): image is typeof image & { displayUrl: string } => {
+            const displayUrl = image.displayUrl;
+            return displayUrl !== null && !brokenImageUrls.has(displayUrl);
+          },
+        ),
     [brokenImageUrls, images],
   );
   const safeActiveIndex = Math.min(activeIndex, Math.max(safeImages.length - 1, 0));
@@ -67,13 +72,13 @@ export function ProductImageGallery({
               aria-label={`Kép ${i + 1}`}
             >
               <Image
-                src={img.url}
+                src={img.displayUrl}
                 alt={img.alt ?? productName}
                 fill
                 className="object-cover"
                 sizes="64px"
                 onError={() => {
-                  setBrokenImageUrls((current) => new Set(current).add(img.url));
+                  setBrokenImageUrls((current) => new Set(current).add(img.displayUrl));
                 }}
               />
             </button>
@@ -101,7 +106,7 @@ export function ProductImageGallery({
       >
         {activeImage ? (
           <Image
-            src={activeImage.url}
+            src={activeImage.displayUrl}
             alt={activeImage.alt ?? productName}
             fill
             className={`object-cover transition-transform duration-300 ease-out ${
@@ -111,7 +116,7 @@ export function ProductImageGallery({
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
             onError={() => {
-              setBrokenImageUrls((current) => new Set(current).add(activeImage.url));
+              setBrokenImageUrls((current) => new Set(current).add(activeImage.displayUrl));
             }}
           />
         ) : (

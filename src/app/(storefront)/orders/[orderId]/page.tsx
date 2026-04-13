@@ -8,6 +8,7 @@ import { AccountShell } from "@/components/account/AccountShell";
 import { formatDate, getOrderForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/catalog";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
 
 type OrderDetailPageProps = {
@@ -130,38 +131,42 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
         </div>
 
         <div className="mt-6 space-y-3">
-          {order.items.map((item) => (
-            <article
-              key={item.id}
-              className="flex flex-col gap-4 rounded-[1.6rem] border border-[#f0d8e5] bg-white/90 p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex items-center gap-4">
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.productName}
-                    className="h-20 w-20 rounded-[1.2rem] object-cover"
-                  />
-                ) : null}
-                <div>
-                  <Link
-                    href={`/product/${item.productSlug}`}
-                    className="text-lg font-semibold text-[#4d2741]"
-                  >
-                    {item.productName}
-                  </Link>
-                  <p className="mt-1 text-sm text-[#7a6070]">{item.quantity} db</p>
-                </div>
-              </div>
+          {order.items.map((item) => {
+            const displayImageUrl = getBrowserDisplayImageUrl(item.imageUrl);
 
-              <div className="text-left sm:text-right">
-                <p className="text-sm text-[#7a6070]">Egységár</p>
-                <p className="mt-1 text-lg font-semibold text-[#4d2741]">
-                  {formatPrice(item.unitPrice)}
-                </p>
-              </div>
-            </article>
-          ))}
+            return (
+              <article
+                key={item.id}
+                className="flex flex-col gap-4 rounded-[1.6rem] border border-[#f0d8e5] bg-white/90 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  {displayImageUrl ? (
+                    <img
+                      src={displayImageUrl}
+                      alt={item.productName}
+                      className="h-20 w-20 rounded-[1.2rem] object-cover"
+                    />
+                  ) : null}
+                  <div>
+                    <Link
+                      href={`/product/${item.productSlug}`}
+                      className="text-lg font-semibold text-[#4d2741]"
+                    >
+                      {item.productName}
+                    </Link>
+                    <p className="mt-1 text-sm text-[#7a6070]">{item.quantity} db</p>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right">
+                  <p className="text-sm text-[#7a6070]">Egységár</p>
+                  <p className="mt-1 text-lg font-semibold text-[#4d2741]">
+                    {formatPrice(item.unitPrice)}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         <div className="mt-6 rounded-[1.6rem] border border-[#f0d8e5] bg-white/90 p-4">

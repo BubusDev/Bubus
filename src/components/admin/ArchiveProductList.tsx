@@ -5,6 +5,7 @@ import { useState, useOptimistic, useTransition } from "react";
 import { Archive, RotateCcw, Trash2 } from "lucide-react";
 
 import { restoreProduct, permanentlyDeleteProduct, restoreAllProducts } from "@/app/(admin)/admin/products/archive/actions";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ArchivedProduct = {
   id: string;
@@ -108,65 +109,69 @@ export function ArchiveProductList({ products }: { products: ArchivedProduct[] }
         <EmptyState />
       ) : (
         <div className="space-y-3">
-          {filtered.map((product) => (
-            <div
-              key={product.id}
-              className="admin-panel flex items-center gap-4 overflow-hidden p-4 sm:gap-5 sm:p-5"
-            >
-              {/* Thumbnail */}
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[1rem] bg-[var(--admin-surface-100)] sm:h-20 sm:w-20">
-                {product.imageUrl ? (
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-cover opacity-60"
-                    style={{ filter: "grayscale(40%)" }}
-                    sizes="80px"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-[#edf4fd] to-[#d7e5f8]" />
-                )}
-              </div>
+          {filtered.map((product) => {
+            const displayImageUrl = getBrowserDisplayImageUrl(product.imageUrl);
 
-              {/* Info */}
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-[family:var(--font-display)] text-[1.05rem] leading-tight text-[var(--admin-ink-900)]">
-                  {product.name}
-                </p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="admin-badge-neutral admin-pill">
-                    {product.collectionLabel}
-                  </span>
-                  <span className="text-[10px] text-[var(--admin-ink-500)]">
-                    Archiválva:{" "}
-                    {new Intl.DateTimeFormat("hu-HU", { dateStyle: "short" }).format(
-                      new Date(product.archivedAt),
-                    )}
-                  </span>
-                  <span className="text-[10px] text-[var(--admin-ink-500)]">/{product.slug}</span>
+            return (
+              <div
+                key={product.id}
+                className="admin-panel flex items-center gap-4 overflow-hidden p-4 sm:gap-5 sm:p-5"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[1rem] bg-[var(--admin-surface-100)] sm:h-20 sm:w-20">
+                  {displayImageUrl ? (
+                    <Image
+                      src={displayImageUrl}
+                      alt={product.name}
+                      fill
+                      className="object-cover opacity-60"
+                      style={{ filter: "grayscale(40%)" }}
+                      sizes="80px"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-[#edf4fd] to-[#d7e5f8]" />
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-[family:var(--font-display)] text-[1.05rem] leading-tight text-[var(--admin-ink-900)]">
+                    {product.name}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="admin-badge-neutral admin-pill">
+                      {product.collectionLabel}
+                    </span>
+                    <span className="text-[10px] text-[var(--admin-ink-500)]">
+                      Archiválva:{" "}
+                      {new Intl.DateTimeFormat("hu-HU", { dateStyle: "short" }).format(
+                        new Date(product.archivedAt),
+                      )}
+                    </span>
+                    <span className="text-[10px] text-[var(--admin-ink-500)]">/{product.slug}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row">
+                  <button
+                    onClick={() => handleRestore(product.id)}
+                    className="admin-button-primary admin-control-sm inline-flex items-center gap-1.5"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Visszaállítás
+                  </button>
+                  <button
+                    onClick={() => setConfirm({ id: product.id, name: product.name })}
+                    className="admin-button-danger admin-control-sm inline-flex items-center gap-1.5"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Törlés
+                  </button>
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row">
-                <button
-                  onClick={() => handleRestore(product.id)}
-                  className="admin-button-primary admin-control-sm inline-flex items-center gap-1.5"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Visszaállítás
-                </button>
-                <button
-                  onClick={() => setConfirm({ id: product.id, name: product.name })}
-                  className="admin-button-danger admin-control-sm inline-flex items-center gap-1.5"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Törlés
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

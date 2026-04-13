@@ -50,6 +50,16 @@ export function isBrowserSafeImageUrl(url: string | null | undefined) {
   return BROWSER_SAFE_IMAGE_EXTENSIONS.has(extension);
 }
 
+export function getBrowserDisplayImageUrl(url: string | null | undefined) {
+  if (!url) return null;
+
+  if (isUnsafeImagePath(url)) {
+    return `/api/product-images/convert?src=${encodeURIComponent(url)}`;
+  }
+
+  return isBrowserSafeImageUrl(url) ? url : null;
+}
+
 export function isBrowserSafeImageFile(file: Pick<File, "name" | "type">) {
   if (isUnsafeImageContentType(file.type) || isUnsafeImagePath(file.name)) {
     return false;

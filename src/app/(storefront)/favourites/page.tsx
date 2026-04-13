@@ -16,6 +16,7 @@ import {
 } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCuratedProductRecommendations } from "@/lib/products";
 
 export const metadata: Metadata = {
@@ -168,37 +169,41 @@ export default async function FavouritesPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-              {recommended.map((product) => (
-                <article key={product.id} className="group text-center">
-                  <Link href={`/product/${product.slug}?redirectTo=/favourites`}>
-                    <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3">
-                      {product.imageUrl ? (
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.name}
-                          fill
-                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                          sizes="(max-width: 640px) 50vw, 225px"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-[#f0ede8]" />
-                      )}
-                    </div>
-                  </Link>
-                  <p className="text-[10px] uppercase tracking-[.2em] text-[#888] mb-1">
-                    {product.collectionLabel}
-                  </p>
-                  <Link
-                    href={`/product/${product.slug}`}
-                    className="text-sm text-[#1a1a1a] hover:text-[#555] transition line-clamp-1"
-                  >
-                    {product.name}
-                  </Link>
-                  <p className="text-sm font-medium text-[#1a1a1a] mt-0.5">
-                    {formatPrice(product.price)}
-                  </p>
-                </article>
-              ))}
+              {recommended.map((product) => {
+                const displayImageUrl = getBrowserDisplayImageUrl(product.imageUrl);
+
+                return (
+                  <article key={product.id} className="group text-center">
+                    <Link href={`/product/${product.slug}?redirectTo=/favourites`}>
+                      <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3">
+                        {displayImageUrl ? (
+                          <Image
+                            src={displayImageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                            sizes="(max-width: 640px) 50vw, 225px"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-[#f0ede8]" />
+                        )}
+                      </div>
+                    </Link>
+                    <p className="text-[10px] uppercase tracking-[.2em] text-[#888] mb-1">
+                      {product.collectionLabel}
+                    </p>
+                    <Link
+                      href={`/product/${product.slug}`}
+                      className="text-sm text-[#1a1a1a] hover:text-[#555] transition line-clamp-1"
+                    >
+                      {product.name}
+                    </Link>
+                    <p className="text-sm font-medium text-[#1a1a1a] mt-0.5">
+                      {formatPrice(product.price)}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import { isBrowserSafeImageUrl } from "@/lib/image-safety";
+import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ProductImageFrameProps = {
   alt: string;
@@ -36,7 +36,7 @@ export function ProductImageFrame({
   fallback,
   style,
 }: ProductImageFrameProps) {
-  const shouldRenderImage = isBrowserSafeImageUrl(imageUrl);
+  const displayImageUrl = getBrowserDisplayImageUrl(imageUrl);
 
   return (
     <div
@@ -46,9 +46,9 @@ export function ProductImageFrame({
         ...style,
       }}
     >
-      {shouldRenderImage ? (
+      {displayImageUrl ? (
         <img
-          src={imageUrl ?? ""}
+          src={displayImageUrl}
           alt={alt}
           className={`${imageClassName} transition duration-700 ${
             soldOut
