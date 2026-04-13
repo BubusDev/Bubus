@@ -15,7 +15,7 @@ import type { NavigationCategory } from "@/lib/catalog";
 import {
   getSpecialtyHref,
   type SpecialtyView,
-} from "@/lib/specialty-navigation";
+} from "@/lib/specialty-links";
 
 type HeaderProps = {
   user?: HeaderUser;

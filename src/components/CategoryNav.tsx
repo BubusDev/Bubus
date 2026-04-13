@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   getSpecialtyHref,
   type SpecialtyView,
-} from "@/lib/specialty-navigation";
+} from "@/lib/specialty-links";
 import type { NavigationCategory } from "@/lib/catalog";
 
 const topLevelNavItemClassName =

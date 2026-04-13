@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   type SpecialtyView,
   getSpecialtyHref,
-} from "@/lib/specialty-navigation";
+} from "@/lib/specialty-links";
 
 type SpecialtySectionNavProps = {
   specialties: SpecialtyView[];
