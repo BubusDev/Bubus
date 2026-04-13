@@ -9,7 +9,6 @@ import {
   upsertHomepageBlock,
   upsertHomepagePromoTile,
 } from "@/lib/homepage-content";
-import { saveUploadedHomepageImage } from "@/lib/product-images";
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -18,11 +17,6 @@ function readString(formData: FormData, key: string) {
 
 function readCheckbox(formData: FormData, key: string) {
   return formData.get(key) === "on";
-}
-
-function readImageFile(formData: FormData) {
-  const file = formData.get("imageFile");
-  return file instanceof File && file.size > 0 ? file : null;
 }
 
 function revalidateHomepageContent() {
@@ -38,16 +32,19 @@ export async function saveHomepageBlockAction(formData: FormData) {
     throw new Error("Érvénytelen kezdőlapi blokk.");
   }
 
-  const uploadedImage = await saveUploadedHomepageImage(readImageFile(formData));
+  // newImageUrl is set by the client-side Blob upload (AdminBlobImageInput).
+  // If no new image was uploaded the field is empty — fall back to imageUrl (existing).
+  const newImageUrl = readString(formData, "newImageUrl");
   const existingImageUrl = readString(formData, "imageUrl");
-  const existingImageAlt = readString(formData, "imageAlt");
+  const finalImageUrl = newImageUrl || existingImageUrl;
+  const imageAlt = readString(formData, "imageAlt");
 
   await upsertHomepageBlock(key, {
     title: readString(formData, "title"),
     eyebrow: readString(formData, "eyebrow"),
     body: readString(formData, "body"),
-    imageUrl: uploadedImage?.url ?? existingImageUrl,
-    imageAlt: uploadedImage?.alt || existingImageAlt,
+    imageUrl: finalImageUrl,
+    imageAlt,
     buttonText: readString(formData, "buttonText"),
     buttonHref: readString(formData, "buttonHref"),
     isVisible: readCheckbox(formData, "isVisible"),
@@ -65,16 +62,17 @@ export async function saveHomepagePromoTileAction(formData: FormData) {
     throw new Error("Érvénytelen promó csempe pozíció.");
   }
 
-  const uploadedImage = await saveUploadedHomepageImage(readImageFile(formData));
+  const newImageUrl = readString(formData, "newImageUrl");
   const existingImageUrl = readString(formData, "imageUrl");
-  const existingImageAlt = readString(formData, "imageAlt");
+  const finalImageUrl = newImageUrl || existingImageUrl;
+  const imageAlt = readString(formData, "imageAlt");
 
   await upsertHomepagePromoTile(slotIndex, {
     title: readString(formData, "title"),
     subtitle: readString(formData, "subtitle"),
     href: readString(formData, "href"),
-    imageUrl: uploadedImage?.url ?? existingImageUrl,
-    imageAlt: uploadedImage?.alt || existingImageAlt,
+    imageUrl: finalImageUrl,
+    imageAlt,
     isVisible: readCheckbox(formData, "isVisible"),
   });
 

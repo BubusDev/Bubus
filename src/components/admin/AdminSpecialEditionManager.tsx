@@ -7,6 +7,7 @@ import {
   updateSpecialEditionCampaignStateAction,
   updateSpecialEditionEntryAction,
 } from "@/app/(admin)/admin/special-edition/actions";
+import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import type {
   AdminSpecialEditionCampaignValues,
 } from "@/lib/products";
@@ -66,45 +67,28 @@ function ImagePreview({
   );
 }
 
-function ImageField({
+function AltTextField({
+  name,
   label,
-  inputName,
-  altName,
-  defaultAlt,
-  helper,
-  required = false,
+  defaultValue,
+  placeholder,
 }: {
+  name: string;
   label: string;
-  inputName: string;
-  altName: string;
-  defaultAlt?: string;
-  helper: string;
-  required?: boolean;
+  defaultValue?: string;
+  placeholder?: string;
 }) {
   return (
-    <div className="space-y-3">
-      <label className="space-y-2">
-        <span className="text-sm font-medium text-[#5a374e]">{label}</span>
-        <input
-          type="file"
-          name={inputName}
-          accept="image/*"
-          required={required}
-          className="block w-full rounded-2xl border border-[#edd1e1] bg-white px-4 py-3 text-sm text-[#4d2741] file:mr-4 file:rounded-full file:border-0 file:bg-[#f183bc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
-        />
-      </label>
-      <label className="space-y-2">
-        <span className="text-sm font-medium text-[#5a374e]">{label} alt text</span>
-        <input
-          type="text"
-          name={altName}
-          defaultValue={defaultAlt ?? ""}
-          placeholder={helper}
-          className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
-        />
-      </label>
-      <p className="text-xs leading-5 text-[#7a6070]">{helper}</p>
-    </div>
+    <label className="space-y-2">
+      <span className="text-sm font-medium text-[#5a374e]">{label} alt text</span>
+      <input
+        type="text"
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        placeholder={placeholder}
+        className="h-12 w-full rounded-2xl border border-[#edd1e1] bg-white px-4 text-sm text-[#4d2741] outline-none transition focus:border-[#e9b6d0]"
+      />
+    </label>
   );
 }
 
@@ -172,15 +156,26 @@ export function AdminSpecialEditionManager({
           )}
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <ImageField
-              label="Special Edition Banner Image"
-              inputName="bannerImage"
-              altName="bannerImageAlt"
-              defaultAlt={campaign.bannerImageAlt}
-              helper="Wide editorial banner displayed directly below the category navigation."
-            />
+            <div className="space-y-3">
+              <AdminBlobImageInput
+                name="newBannerImageUrl"
+                label="Special Edition Banner Image"
+                folder="special-edition"
+              />
+              <AltTextField
+                name="bannerImageAlt"
+                label="Banner"
+                defaultValue={campaign.bannerImageAlt}
+                placeholder="Wide editorial banner displayed directly below the category navigation."
+              />
+              <p className="text-xs leading-5 text-[#7a6070]">
+                Wide editorial banner displayed directly below the category navigation.
+              </p>
+            </div>
             <div className="border border-dashed border-[#ebcede] bg-[#fff8fb] px-5 py-4 text-sm leading-7 text-[#765f6d]">
-              {!hasBannerImage ? "Preferred: upload a banner image so the storefront campaign opens with a full-width visual." : "Leave the file empty to keep the current banner image."}
+              {!hasBannerImage
+                ? "Preferred: upload a banner image so the storefront campaign opens with a full-width visual."
+                : "Leave the file empty to keep the current banner image."}
             </div>
           </div>
 
@@ -216,20 +211,36 @@ export function AdminSpecialEditionManager({
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <ImageField
-              label="Left-side promo image"
-              inputName="promoImage"
-              altName="promoImageAlt"
-              helper="Shown on the left side of the Special Edition layout."
-              required
-            />
-            <ImageField
-              label="Right-side product image"
-              inputName="productImage"
-              altName="productImageAlt"
-              helper="Shown on the right side above the product details."
-              required
-            />
+            <div className="space-y-3">
+              <AdminBlobImageInput
+                name="promoImageUrl"
+                label="Left-side promo image"
+                folder="special-edition"
+              />
+              <AltTextField
+                name="promoImageAlt"
+                label="Promo"
+                placeholder="Shown on the left side of the Special Edition layout."
+              />
+              <p className="text-xs leading-5 text-[#7a6070]">
+                Shown on the left side of the Special Edition layout.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <AdminBlobImageInput
+                name="productImageUrl"
+                label="Right-side product image"
+                folder="special-edition"
+              />
+              <AltTextField
+                name="productImageAlt"
+                label="Product"
+                placeholder="Shown on the right side above the product details."
+              />
+              <p className="text-xs leading-5 text-[#7a6070]">
+                Shown on the right side above the product details.
+              </p>
+            </div>
           </div>
 
           <button
@@ -320,20 +331,38 @@ export function AdminSpecialEditionManager({
                 </div>
 
                 <div className="grid gap-5 lg:grid-cols-2">
-                  <ImageField
-                    label="Replace left-side promo image"
-                    inputName="promoImage"
-                    altName="promoImageAlt"
-                    defaultAlt={entry.promoImageAlt}
-                    helper="Leave the file empty to keep the current left-side promo image."
-                  />
-                  <ImageField
-                    label="Replace right-side product image"
-                    inputName="productImage"
-                    altName="productImageAlt"
-                    defaultAlt={entry.productImageAlt}
-                    helper="Leave the file empty to keep the current right-side product image."
-                  />
+                  <div className="space-y-3">
+                    <AdminBlobImageInput
+                      name="newPromoImageUrl"
+                      label="Replace left-side promo image"
+                      folder="special-edition"
+                    />
+                    <AltTextField
+                      name="promoImageAlt"
+                      label="Promo"
+                      defaultValue={entry.promoImageAlt}
+                      placeholder="Leave the file empty to keep the current left-side promo image."
+                    />
+                    <p className="text-xs leading-5 text-[#7a6070]">
+                      Leave the file empty to keep the current left-side promo image.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <AdminBlobImageInput
+                      name="newProductImageUrl"
+                      label="Replace right-side product image"
+                      folder="special-edition"
+                    />
+                    <AltTextField
+                      name="productImageAlt"
+                      label="Product"
+                      defaultValue={entry.productImageAlt}
+                      placeholder="Leave the file empty to keep the current right-side product image."
+                    />
+                    <p className="text-xs leading-5 text-[#7a6070]">
+                      Leave the file empty to keep the current right-side product image.
+                    </p>
+                  </div>
                 </div>
 
                 <button

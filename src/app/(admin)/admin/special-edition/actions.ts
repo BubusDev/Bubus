@@ -8,8 +8,6 @@ import { db } from "@/lib/db";
 import {
   deleteProductImageFile,
   deleteSpecialEditionImageFile,
-  saveUploadedProductImages,
-  saveUploadedSpecialEditionImages,
 } from "@/lib/product-images";
 import { getOrCreateSpecialEditionCampaign } from "@/lib/products";
 
@@ -41,23 +39,10 @@ function readNumber(formData: FormData, key: string) {
   return Number.isFinite(value) ? value : NaN;
 }
 
-async function readUploadedImage(formData: FormData, key: string) {
-  const file = formData.get(key);
-  if (!(file instanceof File) || file.size === 0) return null;
-  const [uploadedImage] = await saveUploadedProductImages([file]);
-  return uploadedImage ?? null;
-}
-
-async function readUploadedCampaignImage(formData: FormData, key: string) {
-  const file = formData.get(key);
-  if (!(file instanceof File) || file.size === 0) return null;
-  const [uploadedImage] = await saveUploadedSpecialEditionImages([file]);
-  return uploadedImage ?? null;
-}
-
-function hasUploadedFile(formData: FormData, key: string) {
-  const file = formData.get(key);
-  return file instanceof File && file.size > 0;
+/** Reads a pre-uploaded Vercel Blob URL from a hidden form input. */
+function readPreUploadedUrl(formData: FormData, key: string): string | null {
+  const url = formData.get(key);
+  return typeof url === "string" && url.trim() ? url.trim() : null;
 }
 
 function errorRedirect(message: string) {
@@ -86,11 +71,11 @@ export async function updateSpecialEditionBannerAction(formData: FormData) {
     const campaign = await getOrCreateSpecialEditionCampaign();
     const currentBannerImageUrl = readString(formData, "currentBannerImageUrl");
     const bannerAlt = readString(formData, "bannerImageAlt");
-    const nextBannerImage = await readUploadedCampaignImage(formData, "bannerImage");
+    const newBannerImageUrl = readPreUploadedUrl(formData, "newBannerImageUrl");
 
-    const bannerImageUrl = nextBannerImage?.url || currentBannerImageUrl || null;
+    const bannerImageUrl = newBannerImageUrl || currentBannerImageUrl || null;
     const bannerImageAlt = bannerImageUrl
-      ? bannerAlt || nextBannerImage?.alt || "Special Edition banner"
+      ? bannerAlt || "Special Edition banner"
       : null;
 
     await db.specialEditionCampaign.update({
@@ -98,7 +83,7 @@ export async function updateSpecialEditionBannerAction(formData: FormData) {
       data: { bannerImageUrl, bannerImageAlt },
     });
 
-    if (nextBannerImage && currentBannerImageUrl && currentBannerImageUrl !== nextBannerImage.url) {
+    if (newBannerImageUrl && currentBannerImageUrl && currentBannerImageUrl !== newBannerImageUrl) {
       await deleteSpecialEditionImageFile(currentBannerImageUrl);
     }
 
@@ -134,18 +119,11 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
       return;
     }
 
-    if (!hasUploadedFile(formData, "promoImage") || !hasUploadedFile(formData, "productImage")) {
+    const promoImageUrl = readPreUploadedUrl(formData, "promoImageUrl");
+    const productImageUrl = readPreUploadedUrl(formData, "productImageUrl");
+
+    if (!promoImageUrl || !productImageUrl) {
       errorRedirect("Mindkét képet (promo és termék) kötelező feltölteni.");
-      return;
-    }
-
-    const [promoImage, productImage] = await Promise.all([
-      readUploadedImage(formData, "promoImage"),
-      readUploadedImage(formData, "productImage"),
-    ]);
-
-    if (!promoImage || !productImage) {
-      errorRedirect("Hiba a képfeltöltés során. Próbáld újra.");
       return;
     }
 
@@ -153,9 +131,9 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
       data: {
         campaignId: campaign.id,
         productId: product.id,
-        promoImageUrl: promoImage.url,
+        promoImageUrl,
         promoImageAlt: promoAlt || product.name,
-        productImageUrl: productImage.url,
+        productImageUrl,
         productImageAlt: productAlt || product.name,
         sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
       },
@@ -165,7 +143,7 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
     redirect("/admin/special-edition");
   } catch (e) {
     if (isRedirectError(e)) throw e;
-    errorRedirect("Hiba az elem létrehozásakor. Ellenőrizd a feltöltött fájlokat.");
+    errorRedirect("Hiba az elem létrehozásakor. Ellenőrizd a feltöltött képeket.");
   }
 }
 
@@ -185,7 +163,10 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
       return;
     }
 
-    const [existingEntry, product, nextPromoImage, nextProductImage] = await Promise.all([
+    const newPromoImageUrl = readPreUploadedUrl(formData, "newPromoImageUrl");
+    const newProductImageUrl = readPreUploadedUrl(formData, "newProductImageUrl");
+
+    const [existingEntry, product] = await Promise.all([
       db.specialEditionEntry.findUnique({
         where: { id: entryId },
         select: { id: true, promoImageUrl: true, productImageUrl: true },
@@ -194,8 +175,6 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
         where: { id: productId, archivedAt: null },
         select: { id: true, name: true },
       }),
-      readUploadedImage(formData, "promoImage"),
-      readUploadedImage(formData, "productImage"),
     ]);
 
     if (!existingEntry) {
@@ -209,9 +188,9 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
     }
 
     const promoImageUrl =
-      nextPromoImage?.url || currentPromoImageUrl || existingEntry.promoImageUrl;
+      newPromoImageUrl || currentPromoImageUrl || existingEntry.promoImageUrl;
     const productImageUrl =
-      nextProductImage?.url || currentProductImageUrl || existingEntry.productImageUrl;
+      newProductImageUrl || currentProductImageUrl || existingEntry.productImageUrl;
 
     if (!promoImageUrl || !productImageUrl) {
       errorRedirect("Mindkét kép szükséges.");
@@ -231,12 +210,12 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
     });
 
     await Promise.all([
-      nextPromoImage &&
+      newPromoImageUrl &&
       existingEntry.promoImageUrl !== promoImageUrl &&
       existingEntry.promoImageUrl !== productImageUrl
         ? deleteProductImageFile(existingEntry.promoImageUrl)
         : Promise.resolve(),
-      nextProductImage &&
+      newProductImageUrl &&
       existingEntry.productImageUrl !== productImageUrl &&
       existingEntry.productImageUrl !== promoImageUrl
         ? deleteProductImageFile(existingEntry.productImageUrl)

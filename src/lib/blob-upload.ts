@@ -35,6 +35,20 @@ export function createProductImageUploadPathname(fileName: string) {
   return `products/${sanitizedBaseName}-${uniqueSuffix}${extension}`;
 }
 
+export function createAdminImageUploadPathname(
+  folder: "products" | "special-edition" | "homepage",
+  fileName: string,
+) {
+  const { baseName, extension } = splitFileName(fileName);
+  const sanitizedBaseName = sanitizeSegment(baseName) || "image";
+  const uniqueSuffix =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}`;
+
+  return `${folder}/${sanitizedBaseName}-${uniqueSuffix}${extension}`;
+}
+
 function humanizeFileStem(value: string) {
   return value.replace(/[-_]+/g, " ").trim();
 }
