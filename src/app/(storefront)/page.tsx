@@ -1,8 +1,10 @@
-import { AmbientBlobs } from "@/components/AmbientBlobs";
-import { EditorialBrandBlock } from "@/components/home/EditorialBrandBlock";
 import { HomeHero } from "@/components/home/HomeHero";
+import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
+import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomeProductSection } from "@/components/home/HomeProductSection";
+import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { ValueStrip } from "@/components/home/ValueStrip";
+import { getHomepageContent } from "@/lib/homepage-content";
 import { getHomepageProducts } from "@/lib/products";
 
 function toQueryString(searchParams: Record<string, string | undefined>) {
@@ -36,64 +38,36 @@ function readPageParam(
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
   const spotlightPage = readPageParam(resolvedSearchParams, "spotlightPage");
-  const newArrivalsPage = readPageParam(resolvedSearchParams, "newArrivalsPage");
-  const [spotlightData, newArrivalData] = await Promise.all([
+  const [homepageContent, spotlightData] = await Promise.all([
+    getHomepageContent(),
     getHomepageProducts("spotlight", spotlightPage),
-    getHomepageProducts("new_arrivals", newArrivalsPage),
   ]);
   const normalizedSearchParams = {
     spotlightPage: spotlightPage > 1 ? String(spotlightPage) : undefined,
-    newArrivalsPage: newArrivalsPage > 1 ? String(newArrivalsPage) : undefined,
   };
   const homeRedirectTo = toQueryString(normalizedSearchParams);
 
   return (
-    <main className="min-h-screen">
-      {/* Products at top — ambient blobs only here */}
-      <div className="relative overflow-hidden">
-        <AmbientBlobs />
-        <section className="mx-auto max-w-[1600px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
-          <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-20 xl:gap-32">
-            {/* Left: Editorial brand block */}
-            <div className="hidden lg:block">
-              <div className="sticky top-8 pt-4">
-                <EditorialBrandBlock />
-              </div>
-            </div>
-
-            {/* Right: Products */}
-            <div className="space-y-6 sm:space-y-8">
-              <HomeProductSection
-                eyebrow="Válogatott kedvencek"
-                title="FÓKUSZBAN"
-                href="/new-in"
-                products={spotlightData.products}
-                redirectTo={homeRedirectTo}
-                page={spotlightData.page}
-                totalPages={spotlightData.totalPages}
-                pageParam="spotlightPage"
-                searchParams={normalizedSearchParams}
-              />
-
-              <HomeProductSection
-                eyebrow="Friss kincsek"
-                title="ÚJDONSÁGOK"
-                href="/new-in"
-                products={newArrivalData.products}
-                redirectTo={homeRedirectTo}
-                page={newArrivalData.page}
-                totalPages={newArrivalData.totalPages}
-                pageParam="newArrivalsPage"
-                searchParams={normalizedSearchParams}
-              />
-            </div>
-          </div>
-        </section>
-      </div>
-
+    <main className="min-h-screen bg-[#fbfaf7]">
+      <HomeHero block={homepageContent.hero} />
       <ValueStrip />
-
-      <HomeHero />
+      <section className="mx-auto max-w-[1320px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <HomeProductSection
+          eyebrow="Fókuszban"
+          title="Újdonságok"
+          href="/new-in"
+          products={spotlightData.products}
+          redirectTo={homeRedirectTo}
+          page={spotlightData.page}
+          totalPages={spotlightData.totalPages}
+          pageParam="spotlightPage"
+          searchParams={normalizedSearchParams}
+          compactPremiumRow
+        />
+      </section>
+      <HomeInstagramPromo block={homepageContent.instagram} />
+      <HomeNewsletterBlock />
+      <HomePromoTileGrid tiles={homepageContent.promoTiles} />
     </main>
   );
 }

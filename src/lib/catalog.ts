@@ -208,8 +208,8 @@ export const filterGroupDefinitions: Omit<FilterGroup, "options">[] = [
 
 export const homepagePlacementLabels: Record<HomepagePlacement, string> = {
   none: "Nincs kiemelés",
-  spotlight: "Fókusz szekció",
-  new_arrivals: "Újdonságok szekció",
+  spotlight: "Kezdőlapi Fókuszban / Újdonságok",
+  new_arrivals: "Régi újdonságok szekció",
 };
 
 export const tonePalettes: Record<string, [string, string, string]> = {

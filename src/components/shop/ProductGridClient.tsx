@@ -10,11 +10,17 @@ import type { Product } from "@/lib/catalog";
 type ProductGridClientProps = {
   products: Product[];
   redirectTo?: string;
+  className?: string;
+  showAddToCart?: boolean;
+  wishlistPlacement?: "inline" | "image";
 };
 
 export function ProductGridClient({
   products,
   redirectTo = "/",
+  className = "grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-3 xl:grid-cols-4",
+  showAddToCart = true,
+  wishlistPlacement = "inline",
 }: ProductGridClientProps) {
   const { status } = useSession();
   const router = useRouter();
@@ -109,7 +115,7 @@ export function ProductGridClient({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={className}>
       {products.map((product) => (
         <ProductCard
           key={product.id}
@@ -118,6 +124,8 @@ export function ProductGridClient({
           isFavouritePending={pendingIds.has(product.id)}
           onFavouriteToggle={handleFavouriteToggle}
           redirectTo={redirectTo}
+          showAddToCart={showAddToCart}
+          wishlistPlacement={wishlistPlacement}
         />
       ))}
     </div>

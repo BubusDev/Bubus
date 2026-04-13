@@ -15,6 +15,7 @@ import {
   Megaphone,
   Menu,
   Image,
+  LayoutTemplate,
   Settings,
   User,
   RotateCcw,
@@ -67,6 +68,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Tartalom",
     items: [
+      { label: "Kezdőlap", href: "/admin/content/homepage", icon: LayoutTemplate },
       { label: "Kövek", href: "/admin/content/stones", icon: Gem },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
       { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },

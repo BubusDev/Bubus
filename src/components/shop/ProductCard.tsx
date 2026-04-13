@@ -18,6 +18,8 @@ type ProductCardProps = {
   isFavouritePending?: boolean;
   onFavouriteToggle?: (productId: string, isFavourite: boolean) => Promise<void> | void;
   redirectTo?: string;
+  showAddToCart?: boolean;
+  wishlistPlacement?: "inline" | "image";
 };
 
 export function ProductCard({
@@ -26,6 +28,8 @@ export function ProductCard({
   isFavouritePending = false,
   onFavouriteToggle,
   redirectTo = "/",
+  showAddToCart = true,
+  wishlistPlacement = "inline",
 }: ProductCardProps) {
   const [isWishlistPending, startWishlistTransition] = useTransition();
   const coverImage = product.imageUrl;
@@ -40,6 +44,43 @@ export function ProductCard({
   const imageHoverClass = !isOutOfStock
     ? "group-hover:scale-[1.04] group-focus-within:scale-[1.04]"
     : "";
+  const wishlistButton = (
+    <form
+      action={() => {
+        startWishlistTransition(async () => {
+          await onFavouriteToggle?.(product.id, isFavourite);
+        });
+      }}
+    >
+      <button
+        type="submit"
+        aria-label={
+          isFavourite
+            ? `Eltávolítás a kedvencekből: ${product.name}`
+            : `Kedvencekhez adás: ${product.name}`
+        }
+        aria-pressed={isFavourite}
+        disabled={isHeartPending}
+        className={`inline-flex items-center justify-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
+          wishlistPlacement === "image"
+            ? "h-9 w-9 rounded-md border border-white/70 bg-white/92 text-[#2d2829] shadow-[0_10px_24px_rgba(20,20,20,0.08)] hover:bg-white"
+            : "h-5 w-5"
+        } ${
+          isFavourite
+            ? "text-[#c45a85]"
+            : wishlistPlacement === "image"
+              ? "hover:text-[#6f7f5c]"
+              : "text-[#888] hover:text-[#1a1a1a] sm:group-hover:text-[#555]"
+        } ${isHeartPending ? "opacity-60" : ""}`}
+      >
+        <Heart
+          className={`transition-all duration-200 ${
+            wishlistPlacement === "image" ? "h-4 w-4" : "h-4 w-4"
+          } ${isFavourite ? "fill-current" : ""}`}
+        />
+      </button>
+    </form>
+  );
 
   return (
     <article className="group flex flex-col">
@@ -88,6 +129,9 @@ export function ProductCard({
             </div>
           )}
         </Link>
+        {wishlistPlacement === "image" ? (
+          <div className="absolute right-3 top-3 z-10">{wishlistButton}</div>
+        ) : null}
       </div>
 
       {/* Info */}
@@ -102,48 +146,24 @@ export function ProductCard({
           {product.name}
         </Link>
         <p className="mt-1 text-sm text-[#444]">{formatPrice(product.price)}</p>
-        <div className="mt-2 flex items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
-          <form
-            action={() => {
-              startWishlistTransition(async () => {
-                await onFavouriteToggle?.(product.id, isFavourite);
-              });
-            }}
-          >
-            <button
-              type="submit"
-              aria-label={
-                isFavourite
-                  ? `Eltávolítás a kedvencekből: ${product.name}`
-                  : `Kedvencekhez adás: ${product.name}`
-              }
-              aria-pressed={isFavourite}
-              disabled={isHeartPending}
-              className={`inline-flex h-5 w-5 items-center justify-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
-                isFavourite ? "text-[#c45a85]" : "text-[#888] hover:text-[#1a1a1a] sm:group-hover:text-[#555]"
-              } ${isHeartPending ? "opacity-60" : ""}`}
-            >
-              <Heart
-                className={`h-4 w-4 transition-all duration-200 ${
-                  isFavourite ? "fill-current" : ""
-                }`}
-              />
-            </button>
-          </form>
+        <div className="mt-2 flex min-h-5 items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
+          {wishlistPlacement === "inline" ? wishlistButton : <span aria-hidden="true" />}
 
-          <AddToCartIconButton
-            productId={product.id}
-            quantity={1}
-            redirectTo={redirectTo}
-            disabled={isOutOfStock}
-            ariaLabel={`Kosárba: ${product.name}`}
-            soldOutAriaLabel={`${product.name} elfogyott`}
-            iconClassName="h-4 w-4"
-            baseClassName="inline-flex h-5 w-5 items-center justify-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
-            disabledClassName="cursor-not-allowed text-[#ccc]"
-            addedClassName="text-[#c45a85]"
-            idleClassName="text-[#888] hover:text-[#1a1a1a] sm:group-hover:text-[#555]"
-          />
+          {showAddToCart ? (
+            <AddToCartIconButton
+              productId={product.id}
+              quantity={1}
+              redirectTo={redirectTo}
+              disabled={isOutOfStock}
+              ariaLabel={`Kosárba: ${product.name}`}
+              soldOutAriaLabel={`${product.name} elfogyott`}
+              iconClassName="h-4 w-4"
+              baseClassName="inline-flex h-5 w-5 items-center justify-center transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85]"
+              disabledClassName="cursor-not-allowed text-[#ccc]"
+              addedClassName="text-[#c45a85]"
+              idleClassName="text-[#888] hover:text-[#1a1a1a] sm:group-hover:text-[#555]"
+            />
+          ) : null}
         </div>
       </div>
     </article>

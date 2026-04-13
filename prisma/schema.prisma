@@ -21,6 +21,11 @@ enum HomepagePlacement {
   NEW_ARRIVALS
 }
 
+enum HomepageContentBlockKey {
+  HERO
+  INSTAGRAM
+}
+
 enum ProductOptionType {
   CATEGORY
   STONE_TYPE
@@ -264,6 +269,39 @@ model AnnouncementBar {
   updatedAt DateTime            @updatedAt
 
   @@index([isActive, updatedAt])
+}
+
+model HomepageContentBlock {
+  id          String                  @id @default(cuid())
+  key         HomepageContentBlockKey @unique
+  title       String?
+  eyebrow     String?
+  body        String?
+  imageUrl    String?
+  imageAlt    String?
+  buttonText  String?
+  buttonHref  String?
+  isVisible   Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@index([isVisible, key])
+}
+
+model HomepagePromoTile {
+  id        String   @id @default(cuid())
+  slotIndex Int
+  title     String
+  subtitle  String?
+  href      String?
+  imageUrl  String?
+  imageAlt  String?
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slotIndex])
+  @@index([isVisible, slotIndex])
 }
 
 model Specialty {
