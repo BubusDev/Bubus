@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import {
@@ -100,8 +100,13 @@ export function Header({
   specialtyItems = [],
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSpecialtyMenuOpen, setIsSpecialtyMenuOpen] = useState(true);
+  const [isSpecialtyMenuOpen, setIsSpecialtyMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsSpecialtyMenuOpen(false);
+  }, [pathname]);
 
   const getNavLinkClassName = (href: string) =>
     `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${

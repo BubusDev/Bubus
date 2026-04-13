@@ -299,6 +299,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
         <div
           className="fixed inset-0 z-[70] lg:hidden"
           style={{ background: "rgba(42,18,30,.25)", backdropFilter: "blur(4px)" }}
+          onClick={() => setIsOpen(false)}
         >
           <div
             className="ml-auto h-full overflow-y-auto"
@@ -308,6 +309,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
               backdropFilter: "blur(20px)",
               boxShadow: "-16px 0 48px -8px rgba(196,90,133,.15)",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <FilterPanel {...props} onClose={() => setIsOpen(false)} />
           </div>
