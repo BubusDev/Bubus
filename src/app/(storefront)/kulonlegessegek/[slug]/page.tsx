@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { SpecialtySectionNav } from "@/components/shop/SpecialtySectionNav";
 import { getProductsForSpecialty, getSpecialtyBySlug } from "@/lib/products";
-import {
-  SPECIALTIES_BASE_PATH,
-  getVisibleSpecialties,
-} from "@/lib/specialty-navigation";
+import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 import { siteName } from "@/lib/site";
 
 type SpecialtyPageProps = {
@@ -56,12 +52,9 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
       />
       <main className="mx-auto max-w-[1450px] px-6 pb-24 pt-8 sm:px-8">
         <header className="mb-10 border-b border-[#eadce4] pb-8">
-          <Link
-            href={SPECIALTIES_BASE_PATH}
-            className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#8b7d84] transition hover:opacity-60"
-          >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#8b7d84]">
             Különlegességek
-          </Link>
+          </span>
           <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_auto] lg:items-end">
             <div>
               <h1 className="font-[family:var(--font-display)] text-4xl leading-tight text-[#1a1a1a] sm:text-5xl">

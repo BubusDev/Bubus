@@ -70,8 +70,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         />
       </section>
       <HomeInstagramPromo block={homepageContent.instagram} />
-      <HomeNewsletterBlock status={newsletterStatus} />
       <HomePromoTileGrid tiles={homepageContent.promoTiles} />
+      <HomeNewsletterBlock status={newsletterStatus} />
     </main>
   );
 }

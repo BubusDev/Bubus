@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { isBlobReadWriteTokenConfigured } from "@/lib/blob-upload";
+import {
+  browserSafeProductImageAccept,
+  getUnsafeProductImageMessage,
+  isUnsafeImagePath,
+} from "@/lib/image-safety";
 
 const MAX_PRODUCT_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -40,8 +45,12 @@ export async function POST(request: Request) {
           throw new Error("Érvénytelen feltöltési útvonal.");
         }
 
+        if (isUnsafeImagePath(pathname)) {
+          throw new Error(getUnsafeProductImageMessage(pathname));
+        }
+
         return {
-          allowedContentTypes: ["image/*"],
+          allowedContentTypes: browserSafeProductImageAccept.split(","),
           maximumSizeInBytes: MAX_PRODUCT_IMAGE_SIZE_BYTES,
           addRandomSuffix: false,
         };

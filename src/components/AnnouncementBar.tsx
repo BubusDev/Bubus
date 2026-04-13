@@ -24,7 +24,7 @@ export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
   }
 
   const content = (
-    <span className="mx-auto block max-w-[900px] truncate px-4 text-center text-[10px] font-medium uppercase tracking-[0.28em] sm:px-6">
+    <span className="mx-auto block max-w-[900px] px-4 text-center text-[10px] font-medium uppercase leading-5 tracking-[0.18em] sm:px-6 sm:tracking-[0.28em]">
       {announcement.text}
     </span>
   );
@@ -34,12 +34,12 @@ export function AnnouncementBar({ announcement }: AnnouncementBarProps) {
       {announcement.href ? (
         <Link
           href={announcement.href}
-          className="block py-2.5 transition-colors duration-200 hover:text-[#3f2734] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b7c4] focus-visible:ring-inset"
+          className="block py-2 transition-colors duration-200 hover:text-[#3f2734] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b7c4] focus-visible:ring-inset sm:py-2.5"
         >
           {content}
         </Link>
       ) : (
-        <div className="py-2.5">{content}</div>
+        <div className="py-2 sm:py-2.5">{content}</div>
       )}
     </div>
   );

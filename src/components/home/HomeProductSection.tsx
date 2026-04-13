@@ -45,7 +45,7 @@ export function HomeProductSection({
             {eyebrow}
           </p>
 
-          <h2 className="mt-3 font-[family:var(--font-display)] text-[2.6rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[3.4rem]">
+          <h2 className="mt-3 font-[family:var(--font-display)] text-[2.3rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.85rem] xl:text-[3.4rem]">
             {title}
           </h2>
 

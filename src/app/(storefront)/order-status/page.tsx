@@ -17,12 +17,12 @@ export default async function GuestOrderStatusPage() {
   const orders = await listAccessibleGuestOrders();
 
   return (
-    <main className="mx-auto max-w-[980px] px-4 pb-20 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-      <section className="rounded-[2.5rem] border border-white/70 bg-white/78 p-8 shadow-[0_24px_55px_rgba(198,129,167,0.12)] backdrop-blur-xl sm:p-10">
+    <main className="mx-auto max-w-[980px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 lg:px-8 lg:pt-10">
+      <section className="rounded-[1.6rem] border border-white/70 bg-white/78 p-5 shadow-[0_24px_55px_rgba(198,129,167,0.12)] backdrop-blur-xl sm:rounded-[2.5rem] sm:p-10">
         <p className="text-center text-[10px] uppercase tracking-[0.32em] text-[#b06b8e]">
           Vendég rendeléskövetés
         </p>
-        <h1 className="mt-3 text-center font-[family:var(--font-display)] text-[2.8rem] leading-none text-[#4d2741]">
+        <h1 className="mt-3 text-center font-[family:var(--font-display)] text-[2.2rem] leading-none text-[#4d2741] sm:text-[2.8rem]">
           Rendelési állapot
         </h1>
         <p className="mx-auto mt-4 max-w-[52ch] text-center text-sm leading-7 text-[#7a6070]">
@@ -36,22 +36,22 @@ export default async function GuestOrderStatusPage() {
               Jelenleg nincs elérhető vendég rendelés ezen az eszközön. A checkout után ide
               később is vissza tudsz térni ugyanarról a böngészőről.
             </p>
-            <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
               >
                 Tovább válogatok
               </Link>
               <Link
                 href="/order-status/recover"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
               >
                 Másik eszközről keresem
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
               >
                 Kapcsolat
               </Link>
@@ -59,10 +59,10 @@ export default async function GuestOrderStatusPage() {
           </div>
         ) : (
           <div className="mt-8 space-y-4">
-            <div className="flex justify-end">
+              <div className="flex sm:justify-end">
               <Link
                 href="/order-status/recover"
-                className="inline-flex h-10 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
               >
                 Másik eszközről nyitnám meg
               </Link>
@@ -80,7 +80,7 @@ export default async function GuestOrderStatusPage() {
               return (
                 <article
                   key={order.id}
-                  className="rounded-[1.8rem] border border-[#f0d8e5] bg-[#fff9fc] p-5"
+                    className="rounded-[1.4rem] border border-[#f0d8e5] bg-[#fff9fc] p-4 sm:rounded-[1.8rem] sm:p-5"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -127,7 +127,7 @@ export default async function GuestOrderStatusPage() {
                   <div className="mt-4">
                     <Link
                       href={`/order-status/${order.id}`}
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
                     >
                       Részletek megnyitása
                     </Link>

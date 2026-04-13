@@ -18,6 +18,7 @@ import {
 } from "@/lib/inventory";
 import { deleteProductImageFile } from "@/lib/product-images";
 import { parseProductFormData, slugifyOptionName } from "@/lib/products";
+import { assertBrowserSafeProductImageUrl } from "@/lib/image-safety";
 
 function revalidateCatalogPaths() {
   revalidatePath("/");
@@ -26,7 +27,6 @@ function revalidateCatalogPaths() {
   revalidatePath("/admin/products/archive");
   revalidatePath("/new-in");
   revalidatePath("/special-edition");
-  revalidatePath("/kulonlegessegek");
   revalidatePath("/kulonlegessegek/[slug]", "page");
   revalidatePath("/sale");
   revalidatePath("/", "layout");
@@ -142,6 +142,11 @@ function buildProductImageRecords(
     key: image.key,
     sortOrder: existingImageIds.length + index,
   }));
+
+  for (const image of uploadedImages) {
+    assertBrowserSafeProductImageUrl(image.url);
+  }
+
   const coverImageKey =
     typeof formData.get("coverImageKey") === "string" ? String(formData.get("coverImageKey")) : "";
 

@@ -34,14 +34,14 @@ export default async function GuestOrderStatusDetailPage({
   });
 
   return (
-    <main className="mx-auto max-w-[980px] px-4 pb-20 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-      <section className="rounded-[2.5rem] border border-white/70 bg-white/78 p-8 shadow-[0_24px_55px_rgba(198,129,167,0.12)] backdrop-blur-xl sm:p-10">
+    <main className="mx-auto max-w-[980px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 lg:px-8 lg:pt-10">
+      <section className="rounded-[1.6rem] border border-white/70 bg-white/78 p-5 shadow-[0_24px_55px_rgba(198,129,167,0.12)] backdrop-blur-xl sm:rounded-[2.5rem] sm:p-10">
         <div className="flex flex-col gap-4 border-b border-[#f0d8e5] pb-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
               {order.orderNumber}
             </p>
-            <h1 className="mt-3 font-[family:var(--font-display)] text-[2.6rem] text-[#4d2741]">
+            <h1 className="mt-3 font-[family:var(--font-display)] text-[2rem] leading-tight text-[#4d2741] sm:text-[2.6rem]">
               {customerStatus.label}
             </h1>
             <p className="mt-3 max-w-[54ch] text-sm leading-7 text-[#7a6070]">
@@ -119,23 +119,23 @@ export default async function GuestOrderStatusDetailPage({
             />
             <button
               type="submit"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
             >
               Kérelem elküldése
             </button>
           </form>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/order-status"
-            className="inline-flex h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
           >
             Összes elérhető rendelés
           </Link>
           <Link
             href="/contact"
-            className="inline-flex h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
           >
             Kapcsolat
           </Link>

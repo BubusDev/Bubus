@@ -28,7 +28,7 @@ function Tile({
         <p
           className={
             emphasis
-              ? "font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] sm:text-[2.8rem]"
+              ? "font-[family:var(--font-display)] text-[2rem] leading-none tracking-[-0.03em] sm:text-[2.5rem] xl:text-[2.8rem]"
               : "font-[family:var(--font-display)] text-[1.35rem] leading-none tracking-[-0.03em]"
           }
         >
@@ -70,18 +70,18 @@ export function HomePromoTileGrid({ tiles }: HomePromoTileGridProps) {
           <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
             Kollekciók
           </p>
-          <h2 className="mt-4 font-[family:var(--font-display)] text-[2.4rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[3.2rem]">
+          <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
             Saját tervezésű kollekciók
           </h2>
         </div>
 
-        <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,600px)_minmax(0,600px)] lg:items-center lg:gap-6">
-          <div className="min-h-[420px] lg:h-[650px]">
+        <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-6">
+          <div className="min-h-[360px] sm:min-h-[420px] lg:h-[560px] xl:h-[650px]">
             <Tile tile={emphasisTile} emphasis />
           </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(2,288px)] lg:grid-rows-[repeat(2,288px)] lg:gap-6">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-2 lg:grid-rows-2 lg:gap-6">
             {smallTiles.slice(0, 4).map((tile) => (
-              <div key={tile.slotIndex} className="aspect-square lg:aspect-auto lg:h-[288px]">
+              <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
                 <Tile tile={tile} />
               </div>
             ))}
@@ -89,7 +89,7 @@ export function HomePromoTileGrid({ tiles }: HomePromoTileGridProps) {
               ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
                   <div
                     key={`placeholder-${index}`}
-                    className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:aspect-auto lg:h-[288px]"
+                    className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
                   />
                 ))
               : null}

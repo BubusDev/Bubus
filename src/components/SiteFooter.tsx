@@ -8,7 +8,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
   return (
     <footer>
       {showCategoryDiscovery ? (
-        <div className="px-8 py-14" style={{ background: "#fdf2f5" }}>
+        <div className="px-4 py-12 sm:px-6 sm:py-14 lg:px-8" style={{ background: "#fdf2f5" }}>
           <div className="mx-auto max-w-[1200px]">
             <p className="mb-2 text-[10px] uppercase tracking-[0.38em] text-[#af7795]">
               Fedezd fel
@@ -20,8 +20,8 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               Vásároljon kategória szerint
             </h3>
 
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <Link href="/bracelets" className="group block overflow-hidden rounded-[1.6rem]">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              <Link href="/bracelets" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #fff0f7 0%, #f5c9e2 50%, #e8a8cc 100%)" }}
@@ -36,7 +36,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                 </div>
               </Link>
 
-              <Link href="/bracelets" className="group block overflow-hidden rounded-[1.6rem]">
+              <Link href="/bracelets" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #f4f0ff 0%, #ddd4f5 50%, #c4aee8 100%)" }}
@@ -51,7 +51,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                 </div>
               </Link>
 
-              <Link href="/necklaces" className="group block overflow-hidden rounded-[1.6rem]">
+              <Link href="/necklaces" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #f8f4ff 0%, #e8dff5 50%, #d4c4e8 100%)" }}
@@ -66,7 +66,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                 </div>
               </Link>
 
-              <Link href="/necklaces" className="group block overflow-hidden rounded-[1.6rem]">
+              <Link href="/necklaces" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #fffbf0 0%, #fdefd4 50%, #f5d8a8 100%)" }}
@@ -86,11 +86,11 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
       ) : null}
 
       {/* Main footer */}
-      <div style={{ background: "#1f1e1c" }} className="px-8 py-12">
+      <div style={{ background: "#1f1e1c" }} className="px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto max-w-[1200px]">
 
           {/* 4-column grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
+          <div className="mb-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
 
             {/* Customer service */}
             <div>
@@ -104,7 +104,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                   { label: "Szállítás", href: "/terms#szallitas" },
                 ].map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-[#aaa] hover:text-white transition">
+                    <Link href={link.href} className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white">
                       {link.label}
                     </Link>
                   </li>
@@ -127,7 +127,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="text-sm text-[#aaa] hover:text-white transition"
+                      className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -152,7 +152,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="text-sm text-[#aaa] hover:text-white transition"
+                      className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -173,7 +173,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                   { label: "Süti beállítások", href: "/cookies" },
                 ].map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-[#aaa] hover:text-white transition">
+                    <Link href={link.href} className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white">
                       {link.label}
                     </Link>
                   </li>
@@ -183,7 +183,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
           </div>
 
           {/* Bottom row */}
-          <div className="border-t border-[#2a2a28] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col items-start justify-between gap-3 border-t border-[#2a2a28] pt-6 text-left sm:flex-row sm:items-center">
             <span className="font-[family:var(--font-display)] text-sm text-[#555]">Chicks Jewelry</span>
             <p className="text-[11px] text-[#555]">
               © {new Date().getFullYear()} Chicks Jewelry. Minden jog fenntartva.

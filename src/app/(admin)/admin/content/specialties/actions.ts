@@ -36,7 +36,6 @@ function readSpecialtyFormData(formData: FormData) {
 
 function revalidateSpecialties() {
   revalidatePath("/admin/content/specialties");
-  revalidatePath("/kulonlegessegek");
   revalidatePath("/kulonlegessegek/[slug]", "page");
   revalidatePath("/", "layout");
 }

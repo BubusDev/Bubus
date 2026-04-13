@@ -18,7 +18,7 @@ export function HomeNewsletterBlock({ status }: HomeNewsletterBlockProps) {
         <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
           Hírlevél
         </p>
-        <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-tight tracking-[-0.03em] text-[#22231f] sm:text-[3rem]">
+        <h2 className="mt-4 font-[family:var(--font-display)] text-[2rem] leading-tight tracking-[-0.03em] text-[#22231f] sm:text-[2.55rem] xl:text-[3rem]">
           Iratkozz fel hírlevelünkre
         </h2>
         <p className="mx-auto mt-5 max-w-[68ch] text-sm leading-8 text-[#615f58]">

@@ -69,16 +69,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const resolvedSearchParams = await searchParams;
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-[1100px] px-6 py-16 sm:px-8 lg:px-10">
-      <section className="w-full max-w-[44rem] space-y-12">
+    <main className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-[1100px] px-4 py-10 sm:px-6 sm:py-14 lg:px-10 lg:py-16">
+      <section className="w-full max-w-[44rem] space-y-10 sm:space-y-12">
         <div>
           <p className="text-[11px] uppercase tracking-[0.34em] text-[#9b8978]">
             Account
           </p>
-          <h1 className="mt-6 font-[family:var(--font-display)] text-[3.4rem] leading-[0.94] tracking-[-0.05em] text-[#201a17] sm:text-[4.2rem]">
+          <h1 className="mt-4 font-[family:var(--font-display)] text-[2.6rem] leading-[0.98] tracking-[-0.04em] text-[#201a17] sm:mt-6 sm:text-[3.5rem] lg:text-[4rem]">
             Email and access.
           </h1>
-          <p className="mt-6 text-[15px] leading-8 text-[#655b54]">
+          <p className="mt-4 text-[15px] leading-8 text-[#655b54] sm:mt-6">
             Signed in as {user.email}. The rest of the account area stays protected, and
             verification-sensitive flows remain separate from the Auth.js session layer.
           </p>

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 function CartEmptyState() {
   return (
-    <section className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)] xl:gap-10">
+    <section className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-10">
       <aside className="px-2 py-2 lg:sticky lg:top-28">
         <div className="max-w-[360px] space-y-8">
           <div className="space-y-4">
@@ -26,10 +26,10 @@ function CartEmptyState() {
               Saját táskám
             </p>
             <div className="space-y-2">
-              <h1 className="font-sans text-[2.9rem] font-semibold leading-[0.9] tracking-[-0.06em] text-[#4f2348] sm:text-[3.5rem]">
+              <h1 className="font-sans text-[2.4rem] font-semibold leading-[0.95] tracking-[-0.05em] text-[#4f2348] sm:text-[3rem] xl:text-[3.5rem]">
                 Kosár
               </h1>
-              <p className="max-w-[16ch] font-serif text-[2rem] leading-[0.95] tracking-[-0.03em] text-[#4f2348] sm:text-[2.3rem]">
+              <p className="max-w-[16ch] font-serif text-[1.7rem] leading-[1] tracking-[-0.03em] text-[#4f2348] sm:text-[2rem] xl:text-[2.3rem]">
                 most még
                 <span className="relative ml-2 inline-block text-[#f77ff0]">
                   üres
@@ -78,8 +78,8 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
   const incrementDisabled = isOutOfStock || item.quantity >= item.availableToSell;
 
   return (
-    <article className="border-b border-[#f1dfe8] py-6 first:pt-0 last:border-b-0 last:pb-0 sm:py-8">
-      <div className="grid gap-5 sm:grid-cols-[140px_minmax(0,1fr)] lg:grid-cols-[160px_minmax(0,1fr)]">
+    <article className="border-b border-[#f1dfe8] py-5 first:pt-0 last:border-b-0 last:pb-0 sm:py-7">
+      <div className="grid gap-4 sm:grid-cols-[128px_minmax(0,1fr)] lg:grid-cols-[150px_minmax(0,1fr)] xl:grid-cols-[160px_minmax(0,1fr)]">
         <Link
           href={`/product/${item.slug}?redirectTo=/cart`}
           className="block overflow-hidden rounded-[1.5rem] bg-[#fff5fa]"
@@ -104,7 +104,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               </p>
               <Link
                 href={`/product/${item.slug}?redirectTo=/cart`}
-                className="block font-[family:var(--font-display)] text-[1.7rem] leading-[0.98] text-[#4d2741] transition hover:opacity-75"
+                className="block font-[family:var(--font-display)] text-[1.45rem] leading-[1.05] text-[#4d2741] transition hover:opacity-75 sm:text-[1.6rem] xl:text-[1.7rem]"
               >
                 {item.name}
               </Link>
@@ -126,7 +126,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
                 Összesen
               </p>
-              <p className="mt-2 text-[1.8rem] font-semibold tracking-[-0.03em] text-[#4d2741]">
+              <p className="mt-2 text-[1.45rem] font-semibold tracking-[-0.03em] text-[#4d2741] sm:text-[1.7rem] xl:text-[1.8rem]">
                 {formatPrice(item.lineTotal)}
               </p>
             </div>
@@ -141,7 +141,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                   name="quantity"
                   value={Math.max(1, item.quantity - 1)}
                   aria-label={`${item.name} mennyiségének csökkentése`}
-                  className="px-3.5 font-serif text-lg leading-none text-[#c0a0b4] transition hover:text-[#4d2741]"
+                  className="min-h-10 min-w-10 px-3.5 font-serif text-lg leading-none text-[#c0a0b4] transition hover:text-[#4d2741]"
                 >
                   −
                 </button>
@@ -154,7 +154,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                   value={item.quantity + 1}
                   aria-label={`${item.name} mennyiségének növelése`}
                   disabled={incrementDisabled}
-                  className={`px-3.5 font-serif text-lg leading-none transition ${
+                  className={`min-h-10 min-w-10 px-3.5 font-serif text-lg leading-none transition ${
                     incrementDisabled
                       ? "cursor-not-allowed text-[#d2c1cb]"
                       : "text-[#c0a0b4] hover:text-[#4d2741]"
@@ -170,7 +170,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               <button
                 type="submit"
                 aria-label={`${item.name} törlése`}
-                className="text-[#c0a0b4] transition hover:text-[#4d2741]"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#c0a0b4] transition hover:text-[#4d2741]"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -216,7 +216,7 @@ function CartSummary({
             <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
               Végösszeg
             </p>
-            <p className="mt-2 text-[2.2rem] font-semibold leading-none tracking-[-0.04em] text-[#4d2741]">
+            <p className="mt-2 text-[1.9rem] font-semibold leading-none tracking-[-0.04em] text-[#4d2741] sm:text-[2.2rem]">
               {formatPrice(total)}
             </p>
           </div>
@@ -310,16 +310,16 @@ function CartRecommendationCard({ product }: { product: Product }) {
 function CartRecommendations({ products }: { products: Product[] }) {
   return (
     <section className="mt-12 border-t border-[#f1dfe8] pt-8 sm:mt-14 sm:pt-10">
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
             Kurált ajánlás
           </p>
-          <h2 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none text-[#4d2741]">
+          <h2 className="mt-2 font-[family:var(--font-display)] text-[1.7rem] leading-none text-[#4d2741] sm:text-[2rem]">
             Ezek is tetszhetnek
           </h2>
         </div>
-        <p className="max-w-[28ch] text-right text-[12px] leading-5 text-[#8b7080]">
+        <p className="max-w-[34ch] text-left text-[12px] leading-5 text-[#8b7080] sm:max-w-[28ch] sm:text-right">
           Először az akciós darabokat, majd a limitált és új érkezéseket mutatjuk.
         </p>
       </div>
@@ -354,14 +354,14 @@ export default async function CartPage() {
           <CartEmptyState />
         ) : (
           <>
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-10">
               <section>
                 <div className="space-y-4">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.34em] text-[#b760aa]">
                       Saját táskám
                     </p>
-                    <h1 className="mt-3 font-sans text-[2.4rem] font-semibold leading-[0.95] tracking-[-0.05em] text-[#4f2348] sm:text-[2.9rem]">
+                    <h1 className="mt-3 font-sans text-[2.15rem] font-semibold leading-[0.98] tracking-[-0.05em] text-[#4f2348] sm:text-[2.6rem] xl:text-[2.9rem]">
                       Kosár
                     </h1>
                   </div>

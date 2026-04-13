@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 
 import { requireAdminUser } from "@/lib/auth";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminResponsiveShell } from "@/components/admin/AdminResponsiveShell";
 
 export const runtime = "nodejs";
 
@@ -14,12 +13,6 @@ export default async function AdminLayout({
   await requireAdminUser("/admin");
 
   return (
-    <div className="admin-shell-bg flex min-h-screen">
-      <AdminSidebar />
-      <div className="ml-56 flex min-h-screen flex-1 flex-col">
-        <AdminHeader />
-        <main className="flex-1">{children}</main>
-      </div>
-    </div>
+    <AdminResponsiveShell>{children}</AdminResponsiveShell>
   );
 }

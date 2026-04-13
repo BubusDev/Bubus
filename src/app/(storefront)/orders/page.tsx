@@ -47,7 +47,7 @@ export default async function OrdersPage() {
               });
 
               return (
-                <article key={order.id} className="px-6 py-6 sm:px-8 sm:py-7">
+                <article key={order.id} className="px-4 py-5 sm:px-8 sm:py-7">
                   <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2">
@@ -81,7 +81,7 @@ export default async function OrdersPage() {
                         {order.items.map((item: OrderPreviewItem) => (
                           <div
                             key={item.id}
-                            className="flex items-center gap-3 rounded-full border border-[#ebe4e8] bg-white px-3 py-2"
+                            className="flex min-w-0 items-center gap-3 rounded-full border border-[#ebe4e8] bg-white px-3 py-2"
                           >
                             {item.imageUrl ? (
                               <img
@@ -116,12 +116,12 @@ export default async function OrdersPage() {
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                         <form action={reorderAction}>
                           <input type="hidden" name="orderId" value={order.id} />
                           <button
                             type="submit"
-                            className="inline-flex h-10 items-center justify-center rounded-full bg-[#f183bc] px-4 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+                            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-4 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
                           >
                             Újrarendelés
                           </button>
@@ -129,7 +129,7 @@ export default async function OrdersPage() {
 
                         <Link
                           href={`/orders/${order.id}`}
-                          className="inline-flex h-10 items-center justify-center rounded-full border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
+                          className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
                         >
                           Részletek
                         </Link>

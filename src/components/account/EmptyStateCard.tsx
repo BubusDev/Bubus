@@ -20,7 +20,7 @@ export function EmptyStateCard({
   actionHref,
 }: EmptyStateCardProps) {
   return (
-    <section className="bg-white px-6 py-14 text-center sm:px-10">
+    <section className="bg-white px-4 py-10 text-center sm:px-10 sm:py-14">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#eee4e8] bg-[#fcfafb] text-[#9f7489]">
         <Icon className="h-7 w-7" />
       </div>
@@ -29,7 +29,7 @@ export function EmptyStateCard({
         {eyebrow}
       </p>
 
-      <h2 className="mt-3 font-[family:var(--font-display)] text-[1.95rem] leading-none text-[#3f2735] sm:text-[2.2rem]">
+      <h2 className="mt-3 font-[family:var(--font-display)] text-[1.7rem] leading-tight text-[#3f2735] sm:text-[2.2rem]">
         {title}
       </h2>
 

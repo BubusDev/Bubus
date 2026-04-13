@@ -70,7 +70,7 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
           key={`${chip.key}-${chip.value}`}
           type="button"
           onClick={() => clearChip(chip)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#f0d5e4] bg-white/92 px-3 py-1.5 text-[0.82rem] text-[#6d5260] shadow-[0_8px_20px_rgba(184,122,160,0.06)] transition hover:border-[#eab7d1] hover:bg-white"
+          className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#f0d5e4] bg-white/92 px-3 py-2 text-[0.82rem] text-[#6d5260] shadow-[0_8px_20px_rgba(184,122,160,0.06)] transition hover:border-[#eab7d1] hover:bg-white"
         >
           <span>{chip.label}</span>
           <X className="h-3.5 w-3.5" />

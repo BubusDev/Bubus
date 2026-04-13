@@ -79,12 +79,12 @@ export default async function AdminOrderDetailPage({
 
   return (
     <AdminShell title={`Rendelés — ${order.orderNumber}`}>
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         {/* Bal oszlop */}
         <div className="space-y-5">
           {/* Vevő adatok */}
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Vevő adatai</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Vevő adatai</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <p className="text-[11px] text-[#888]">Név</p>
@@ -112,9 +112,9 @@ export default async function AdminOrderDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-[10px] uppercase tracking-[.18em] text-[#888]">Visszaküldési kérelmek</h2>
+                <h2 className="text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Visszaküldési kérelmek</h2>
                 <p className="mt-2 text-sm text-[#555]">
                   Az ehhez a rendeléshez kapcsolódó kérelmek gyors áttekintése.
                 </p>
@@ -142,7 +142,7 @@ export default async function AdminOrderDetailPage({
                       href={`/admin/returns/${request.id}`}
                       className="block border border-[#f0eeec] bg-[#faf9f7] p-4 transition hover:border-[#dfc3d2] hover:bg-white"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-[11px] uppercase tracking-[.16em] text-[#888]">
                             {new Date(request.createdAt).toLocaleDateString("hu-HU")}
@@ -174,14 +174,14 @@ export default async function AdminOrderDetailPage({
 
           {/* Rendelt termékek */}
           <section className="border border-[#e8e5e0] bg-white">
-            <h2 className="border-b border-[#e8e5e0] px-5 py-3 text-[10px] uppercase tracking-[.18em] text-[#888]">
+            <h2 className="border-b border-[#e8e5e0] px-5 py-3 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">
               Rendelt termékek
             </h2>
             <div className="divide-y divide-[#f0eeec]">
               {order.items.map((item) => {
                 const coverImg = item.product.images[0];
                 return (
-                  <div key={item.id} className="flex items-center gap-4 px-5 py-4">
+                  <div key={item.id} className="flex items-center gap-4 px-4 py-4 sm:px-5">
                     <div className="h-14 w-14 flex-shrink-0 overflow-hidden bg-[#f5f3f0]">
                       {coverImg && (
                         <img
@@ -191,11 +191,11 @@ export default async function AdminOrderDetailPage({
                         />
                       )}
                     </div>
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-[#1a1a1a]">{item.productName}</p>
                       <p className="text-[12px] text-[#888]">×{item.quantity}</p>
                     </div>
-                    <p className="font-medium text-[#1a1a1a]">
+                    <p className="shrink-0 text-right font-medium text-[#1a1a1a]">
                       {formatPrice(item.unitPrice * item.quantity)}
                     </p>
                   </div>
@@ -210,7 +210,7 @@ export default async function AdminOrderDetailPage({
 
           {/* Belső megjegyzés */}
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#888]">Felelős kijelölése</h2>
+            <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Felelős kijelölése</h2>
             <form action={updateOrderAssignmentAction} className="space-y-3">
               <input type="hidden" name="orderId" value={order.id} />
               <label className="block">
@@ -230,7 +230,7 @@ export default async function AdminOrderDetailPage({
               </label>
               <button
                 type="submit"
-                className="bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#333]"
+                className="min-h-10 w-full bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#333] sm:w-auto"
               >
                 Felelős mentése
               </button>
@@ -238,7 +238,7 @@ export default async function AdminOrderDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-3 text-[10px] uppercase tracking-[.18em] text-[#888]">Belső megjegyzés</h2>
+            <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Belső megjegyzés</h2>
             <form action={updateOrderInternalStatusAction}>
               <input type="hidden" name="orderId" value={order.id} />
               <input type="hidden" name="internalStatus" value={order.internalStatus} />
@@ -253,7 +253,7 @@ export default async function AdminOrderDetailPage({
               />
               <button
                 type="submit"
-                className="mt-2 bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#333]"
+                className="mt-2 min-h-10 w-full bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#333] sm:w-auto"
               >
                 Megjegyzés mentése
               </button>
@@ -262,9 +262,9 @@ export default async function AdminOrderDetailPage({
 
           {/* Status update email preview */}
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-[10px] uppercase tracking-[.18em] text-[#888]">Státusz email műveletek</h2>
+                <h2 className="text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Státusz email műveletek</h2>
                 <p className="mt-2 text-sm text-[#555]">
                   Az aktuális customer-facing állapothoz tartozó email előnézete és küldési állapota.
                 </p>
@@ -274,7 +274,7 @@ export default async function AdminOrderDetailPage({
                 <button
                   type="submit"
                   disabled={!statusEmail?.projectedEmailUpdateKey || statusEmail.isSending}
-                  className="inline-flex h-10 items-center justify-center rounded-full bg-[#1a1a1a] px-4 text-[13px] font-medium text-white transition hover:bg-[#333] disabled:cursor-not-allowed disabled:bg-[#c8c3be]"
+                  className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-[#1a1a1a] px-4 text-[13px] font-medium text-white transition hover:bg-[#333] disabled:cursor-not-allowed disabled:bg-[#c8c3be] sm:w-auto"
                 >
                   Aktuális email újraküldése
                 </button>
@@ -335,7 +335,7 @@ export default async function AdminOrderDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Workflow előzmények</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Workflow előzmények</h2>
             {order.workflowHistory.length === 0 ? (
               <div className="border border-[#f0eeec] bg-[#faf9f7] p-4 text-sm text-[#666]">
                 Ehhez a rendeléshez még nincs rögzített workflow előzmény.
@@ -344,7 +344,7 @@ export default async function AdminOrderDetailPage({
               <div className="space-y-3">
                 {order.workflowHistory.map((entry) => (
                   <div key={entry.id} className="border border-[#f0eeec] bg-[#faf9f7] p-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         {entry.assignmentChanged ? (
                           <p className="text-sm font-medium text-[#1a1a1a]">
@@ -381,7 +381,7 @@ export default async function AdminOrderDetailPage({
         {/* Jobb oszlop — státusz kezelés */}
         <div className="space-y-5">
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Státusz kezelés</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Státusz kezelés</h2>
 
             {/* Aktuális státusz */}
             <div className="mb-4">
@@ -448,7 +448,7 @@ export default async function AdminOrderDetailPage({
 
           {/* Rendelés info */}
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Rendelés adatok</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Rendelés adatok</h2>
             <div className="space-y-2">
               {[
                 { label: "Rendelésszám", value: order.orderNumber },
@@ -469,7 +469,7 @@ export default async function AdminOrderDetailPage({
                 { label: "Fizetési mód", value: order.paymentMethod },
                 { label: "Összeg", value: formatPrice(order.total) },
               ].map((row) => (
-                <div key={row.label} className="flex justify-between gap-2 text-[13px]">
+                <div key={row.label} className="flex flex-wrap justify-between gap-2 text-[13px]">
                   <span className="text-[#888]">{row.label}</span>
                   <span className="font-medium text-[#1a1a1a]">{row.value}</span>
                 </div>

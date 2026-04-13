@@ -218,19 +218,19 @@ function FilterPanel({
         .fp-lh{display:flex;align-items:flex-start;justify-content:space-between;padding:15px 14px 11px;border-bottom:1px solid #f5e2eb;}
         .fp-eye{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;color:#c0517a;margin-bottom:3px;}
         .fp-htitle{font-size:1rem;font-weight:600;color:#2f1a27;line-height:1;}
-        .fp-xbtn{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:none;background:transparent;color:#b08898;cursor:pointer;transition:background .15s;}
+        .fp-xbtn{display:flex;align-items:center;justify-content:center;min-width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:#b08898;cursor:pointer;transition:background .15s;}
         .fp-xbtn:hover{background:#fdf0f5;color:#4d2741;}
 
         /* search */
         .fp-search{position:relative;padding:9px 11px;border-bottom:1px solid #f5e2eb;}
         .fp-search-ico{position:absolute;left:20px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:#c0a0b4;pointer-events:none;}
-        .fp-search-inp{width:100%;box-sizing:border-box;height:32px;border:1.5px solid #f0d4e0;border-radius:9px;background:rgba(255,255,255,.85);padding:0 10px 0 28px;font-size:12px;color:#2f1a27;outline:none;transition:border-color .2s;font-family:inherit;}
+        .fp-search-inp{width:100%;box-sizing:border-box;min-height:40px;border:1.5px solid #f0d4e0;border-radius:9px;background:rgba(255,255,255,.85);padding:0 10px 0 28px;font-size:12px;color:#2f1a27;outline:none;transition:border-color .2s;font-family:inherit;}
         .fp-search-inp::placeholder{color:#c4a0b4;}
         .fp-search-inp:focus{border-color:#c45a85;}
 
         /* nav */
         .fp-nav{flex:1;overflow-y:auto;padding:4px 0;}
-        .fp-ni{display:flex;align-items:center;width:100%;padding:8px 12px;border:none;border-left:2px solid transparent;background:transparent;cursor:pointer;text-align:left;transition:background .12s;font-family:inherit;gap:8px;}
+        .fp-ni{display:flex;align-items:center;width:100%;min-height:44px;padding:9px 12px;border:none;border-left:2px solid transparent;background:transparent;cursor:pointer;text-align:left;transition:background .12s;font-family:inherit;gap:8px;}
         .fp-ni:hover{background:rgba(253,240,245,.6);}
         .fp-ni-active{background:rgba(253,240,245,.9);border-left-color:#c45a85;}
         .fp-nl{flex:1;font-size:13px;font-weight:500;color:#5a3a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -241,7 +241,7 @@ function FilterPanel({
 
         /* left footer */
         .fp-lf{padding:9px 12px;border-top:1px solid #f5e2eb;}
-        .fp-clr{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#c0517a;text-decoration:none;transition:color .15s;}
+        .fp-clr{display:inline-flex;min-height:36px;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#c0517a;text-decoration:none;transition:color .15s;}
         .fp-clr:hover{color:#8f456d;}
 
         /* right */
@@ -252,7 +252,7 @@ function FilterPanel({
         .fp-rb{flex:1;overflow-y:auto;padding:10px 12px;}
         .fp-rl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.26em;color:#c0517a;margin-bottom:6px;}
         .fp-prange{font-size:14px;font-weight:600;color:#3a1f2d;margin-bottom:4px;}
-        .fp-ro{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:9px;font-size:13px;color:#7a5a6c;text-decoration:none;transition:background .12s,color .12s;margin-bottom:2px;}
+        .fp-ro{display:flex;min-height:44px;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:9px;font-size:13px;color:#7a5a6c;text-decoration:none;transition:background .12s,color .12s;margin-bottom:2px;}
         .fp-ro:hover{background:rgba(253,240,245,.7);color:#3a1f2d;}
         .fp-ro-active{background:rgba(196,90,133,.08);color:#c45a85;font-weight:500;}
         .fp-ro-active:hover{background:rgba(196,90,133,.13);}
@@ -276,7 +276,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-white/65 px-4 py-2 text-sm font-medium text-[#6b425a] backdrop-blur-sm transition hover:bg-white/80"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-rose-200/70 bg-white/65 px-4 py-2 text-sm font-medium text-[#6b425a] backdrop-blur-sm transition hover:bg-white/80"
           >
             <SlidersHorizontal className="h-3.5 w-3.5 text-rose-400" />
             Szűrők

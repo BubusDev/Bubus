@@ -40,7 +40,7 @@ const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Különleges kampányékszer",
     buttonText: "Lepődj meg!",
-    buttonHref: "/kulonlegessegek",
+    buttonHref: "/special-edition",
     isVisible: true,
   },
   INSTAGRAM: {
@@ -60,7 +60,7 @@ const defaultPromoTiles = [
     slotIndex: 4,
     title: "Holdfény",
     subtitle: "Finom fényű kövek",
-    href: "/kulonlegessegek",
+    href: "/special-edition",
     imageUrl: "/seed/opal-necklace.svg",
     imageAlt: "Holdfény kollekció",
     isVisible: true,

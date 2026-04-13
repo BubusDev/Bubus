@@ -87,10 +87,11 @@ export function AdminReturnsTableClient({
       <input type="hidden" name="currentFilter" value={currentFilter} />
       <input type="hidden" name="currentRefundFilter" value={currentRefundFilter} />
 
-      <div className="admin-panel-soft mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 text-sm text-[var(--admin-ink-700)]">
+      <div className="admin-panel-soft mb-4 flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          <label className="inline-flex min-h-10 items-center gap-2 text-sm text-[var(--admin-ink-700)]">
             <input
+              className="h-4 w-4"
               type="checkbox"
               checked={allSelected}
               onChange={(event) => {
@@ -102,12 +103,12 @@ export function AdminReturnsTableClient({
           <span className="text-sm text-[var(--admin-ink-500)]">{selectedIds.length} kiválasztva</span>
         </div>
 
-        <div className="admin-filter-row justify-end">
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] lg:min-w-[28rem]">
           <select
             name="bulkAction"
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value)}
-            className="admin-select admin-control-md"
+            className="admin-select admin-control-md min-w-0"
           >
             {bulkActionOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -123,14 +124,88 @@ export function AdminReturnsTableClient({
             Bulk művelet
           </button>
           {bulkAction === "reconcile_refunds" ? (
-            <p className="text-[12px] text-[var(--admin-ink-600)]">
+            <p className="text-[12px] leading-relaxed text-[var(--admin-ink-600)] sm:col-span-2">
               Csak a `pending` vagy `failed` refund státuszú, Stripe refund azonosítóval rendelkező kérelmek frissülnek.
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="admin-table-shell">
+      <div className="space-y-3 md:hidden">
+        {requests.length === 0 ? (
+          <div className="admin-panel-soft px-4 py-10 text-center text-sm text-[var(--admin-ink-500)]">
+            Nincs megjeleníthető kérelem.
+          </div>
+        ) : (
+          requests.map((request) => (
+            <article key={request.id} className="admin-panel-soft p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  className="mt-1 h-4 w-4 shrink-0"
+                  type="checkbox"
+                  name="requestIds"
+                  value={request.id}
+                  checked={selectedIds.includes(request.id)}
+                  onChange={(event) => {
+                    setSelectedIds((current) =>
+                      event.target.checked
+                        ? [...current, request.id]
+                        : current.filter((id) => id !== request.id),
+                    );
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[12px] text-[var(--admin-ink-600)]">
+                    {request.id.slice(0, 8)} · {request.createdAtLabel}
+                  </p>
+                  <p className="mt-1 text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
+                    {request.customerName}
+                  </p>
+                  <p className="mt-0.5 break-all text-xs text-[var(--admin-ink-500)]">
+                    {request.customerEmail}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <StatusBadge status={request.status} />
+                <RefundStatusBadge status={request.refundStatus} />
+                {request.bulkRefundReconcileResult ? (
+                  <span className="admin-status-note text-[12px] font-medium">
+                    {bulkRefundResultLabels[request.bulkRefundReconcileResult] ?? request.bulkRefundReconcileResult}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm text-[var(--admin-ink-700)]">
+                <div>
+                  <p className="text-[12px] font-medium text-[var(--admin-ink-500)]">Ok / összefoglaló</p>
+                  <p className="mt-1 font-medium text-[var(--admin-ink-900)]">{request.reasonSummary}</p>
+                  <p className="mt-1 line-clamp-3">{request.detailsSummary}</p>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-line-100)] pt-3">
+                  <div className="space-y-1 text-[12px] text-[var(--admin-ink-500)]">
+                    <p>
+                      Rendelés:{" "}
+                      <Link href={`/admin/orders/${request.orderId}`} className="admin-table-link font-medium hover:underline">
+                        {request.orderNumber}
+                      </Link>
+                    </p>
+                    <p>
+                      Felelős: <span className="font-medium text-[var(--admin-ink-700)]">{request.assignedOwnerLabel}</span>
+                    </p>
+                  </div>
+                  <Link href={`/admin/returns/${request.id}`} className="admin-table-action admin-table-action-link">
+                    Részletek
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="admin-table-shell hidden md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="admin-table-head">

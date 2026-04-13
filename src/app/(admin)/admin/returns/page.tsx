@@ -160,7 +160,7 @@ export default async function AdminReturnsPage({
       title="Visszaküldési kérelmek"
       description={`${requests.length} kérelem${activeStatus !== "all" ? ` — státusz: ${returnRequestStatusConfig[activeStatus]?.label ?? activeStatus}` : ""}${activeRefund !== "all" ? ` — refund: ${returnRefundQueueFilters.find((item) => item.value === activeRefund)?.label ?? activeRefund}` : ""}`}
       actions={
-        <div className="flex flex-col gap-2">
+        <div className="flex max-w-full flex-col gap-2">
           <div className="admin-filter-row">
             <Link
               href={buildReturnsFilterHref({ status: "all" })}

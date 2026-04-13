@@ -3,6 +3,11 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
+import {
+  getUnsafeProductImageMessage,
+  isBrowserSafeImageFile,
+} from "@/lib/image-safety";
+
 const uploadsDir = path.join(process.cwd(), "public", "uploads", "products");
 const specialEditionUploadsDir = path.join(
   process.cwd(),
@@ -77,6 +82,10 @@ export async function saveUploadedProductImages(files: File[]) {
         continue;
       }
 
+      if (!isBrowserSafeImageFile(file)) {
+        throw new Error(getUnsafeProductImageMessage(file.name));
+      }
+
       uploadedImages.push(await uploadImageToBlob("products", file));
     }
 
@@ -90,6 +99,10 @@ export async function saveUploadedProductImages(files: File[]) {
   for (const file of files) {
     if (!file || file.size === 0) {
       continue;
+    }
+
+    if (!isBrowserSafeImageFile(file)) {
+      throw new Error(getUnsafeProductImageMessage(file.name));
     }
 
     const fileName = sanitizeFileName(file.name);

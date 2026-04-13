@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import { isBrowserSafeImageUrl } from "@/lib/image-safety";
+
 type ProductImageFrameProps = {
   alt: string;
   imageUrl?: string | null;
@@ -34,6 +36,8 @@ export function ProductImageFrame({
   fallback,
   style,
 }: ProductImageFrameProps) {
+  const shouldRenderImage = isBrowserSafeImageUrl(imageUrl);
+
   return (
     <div
       className={className}
@@ -42,9 +46,9 @@ export function ProductImageFrame({
         ...style,
       }}
     >
-      {imageUrl ? (
+      {shouldRenderImage ? (
         <img
-          src={imageUrl}
+          src={imageUrl ?? ""}
           alt={alt}
           className={`${imageClassName} transition duration-700 ${
             soldOut
@@ -53,7 +57,11 @@ export function ProductImageFrame({
           }`}
         />
       ) : (
-        fallback
+        fallback ?? (
+          <div className="flex h-full w-full items-center justify-center px-4 text-center font-[family:var(--font-display)] text-lg text-[#6b5c64]/70">
+            {alt}
+          </div>
+        )
       )}
 
       {soldOut ? (

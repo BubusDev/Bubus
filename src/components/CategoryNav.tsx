@@ -1,24 +1,24 @@
 import Link from "next/link";
 
-import { getNavigationCategories } from "@/lib/products";
 import {
   getSpecialtyHref,
-  getVisibleSpecialties,
+  type SpecialtyView,
 } from "@/lib/specialty-navigation";
+import type { NavigationCategory } from "@/lib/catalog";
 
 const topLevelNavItemClassName =
   "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
 
-export async function CategoryNav() {
-  const [navigationCategories, specialtyItems] = await Promise.all([
-    getNavigationCategories(),
-    getVisibleSpecialties(),
-  ]);
+type CategoryNavProps = {
+  navigationCategories: NavigationCategory[];
+  specialtyItems: SpecialtyView[];
+};
 
+export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNavProps) {
   return (
     <nav
       aria-label="Category navigation"
-      className="group/category-nav relative z-40 border-b border-white/50 bg-white/20 backdrop-blur-sm transition-[background-color,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-white/70 hover:bg-[#a8346a]/88 hover:shadow-[0_18px_46px_rgba(120,35,75,0.22)] hover:backdrop-blur-2xl focus-within:border-white/70 focus-within:bg-[#a8346a]/88 focus-within:shadow-[0_18px_46px_rgba(120,35,75,0.22)] focus-within:backdrop-blur-2xl"
+      className="group/category-nav relative z-40 hidden border-b border-white/50 bg-white/20 backdrop-blur-sm transition-[background-color,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-white/70 hover:bg-[#a8346a]/88 hover:shadow-[0_18px_46px_rgba(120,35,75,0.22)] hover:backdrop-blur-2xl focus-within:border-white/70 focus-within:bg-[#a8346a]/88 focus-within:shadow-[0_18px_46px_rgba(120,35,75,0.22)] focus-within:backdrop-blur-2xl lg:block"
     >
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
         {navigationCategories.map((item) => (
@@ -43,7 +43,7 @@ export async function CategoryNav() {
                 ⌄
               </span>
             </Link>
-            <div className="invisible pointer-events-none absolute left-0 top-full z-40 w-[16rem] max-w-[calc(100vw-2rem)] origin-top -translate-y-2 pt-2 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] group-hover/specialty:pointer-events-auto group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:opacity-100 group-focus-within/specialty:pointer-events-auto group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:opacity-100 motion-reduce:duration-0">
+            <div className="invisible pointer-events-none absolute left-1/2 top-full z-40 w-[16rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 -translate-y-2 pt-2 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] group-hover/specialty:pointer-events-auto group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:opacity-100 group-focus-within/specialty:pointer-events-auto group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:opacity-100 motion-reduce:duration-0">
               <div
                 className="flex flex-col items-stretch gap-1 rounded-[1.25rem] border border-white/70 bg-[#fffafd]/95 p-2.5 shadow-[0_18px_42px_rgba(76,43,65,0.12)] backdrop-blur-xl"
                 role="menu"

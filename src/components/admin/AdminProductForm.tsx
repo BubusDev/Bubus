@@ -26,6 +26,12 @@ import {
   type ProductOptionGroup,
   type ProductOptionValue,
 } from "@/lib/products";
+import {
+  browserSafeProductImageAccept,
+  getUnsafeProductImageMessage,
+  isBrowserSafeImageFile,
+  productImageFormatHelpText,
+} from "@/lib/image-safety";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -320,7 +326,7 @@ const inputCls =
 const textareaCls =
   "w-full rounded-md border border-[var(--admin-line-200)] bg-white px-3.5 py-3 text-sm text-[var(--admin-ink-900)] outline-none transition-all resize-y placeholder:text-[var(--admin-ink-500)] focus:border-[var(--admin-blue-600)] focus:shadow-[0_0_0_3px_rgba(63,122,210,0.12)]";
 
-const eyebrowCls = "text-[9px] uppercase tracking-[0.28em] text-[var(--admin-ink-500)] font-medium";
+const eyebrowCls = "text-[10px] uppercase tracking-[0.18em] text-[var(--admin-ink-500)] font-medium";
 
 const ctaGradient = "#2a63b5";
 
@@ -336,7 +342,7 @@ function CardShell({
   title: string;
 }) {
   return (
-    <section className="border border-[var(--admin-line-100)] bg-white/70 p-6">
+    <section className="border border-[var(--admin-line-100)] bg-white/70 p-4 sm:p-6">
       <div className="mb-5">
         {eyebrow && <p className={`mb-1 ${eyebrowCls}`}>{eyebrow}</p>}
         <h2 className="text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
@@ -816,7 +822,16 @@ export function AdminProductForm({
     if (files.length === 0) return;
     setSubmitError(null);
 
-    const nextImages = files.map((file, i) => ({
+    const acceptedFiles = files.filter(isBrowserSafeImageFile);
+    const rejectedFiles = files.filter((file) => !isBrowserSafeImageFile(file));
+
+    if (rejectedFiles.length > 0) {
+      setSubmitError(getUnsafeProductImageMessage(rejectedFiles[0]?.name));
+    }
+
+    if (acceptedFiles.length === 0) return;
+
+    const nextImages = acceptedFiles.map((file, i) => ({
       id: `upload:${Date.now()}-${i}`,
       previewUrl: URL.createObjectURL(file),
       name: file.name,
@@ -830,7 +845,7 @@ export function AdminProductForm({
     await Promise.all(
       nextImages.map(async (img, i) => {
         try {
-          const blob = await uploadProductImage(files[i]);
+          const blob = await uploadProductImage(acceptedFiles[i]);
           setUploadedImages((cur) =>
             cur.map((ci) =>
               ci.id === img.id ? { ...ci, uploadedUrl: blob.url, status: "ready" } : ci,
@@ -864,7 +879,7 @@ export function AdminProductForm({
     event.preventDefault();
     setIsDragOver(false);
     const files = Array.from(event.dataTransfer.files).filter((f) =>
-      f.type.startsWith("image/"),
+      f.type.startsWith("image/") || isBrowserSafeImageFile(f),
     );
     void processFiles(files);
   }
@@ -986,7 +1001,7 @@ export function AdminProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-[var(--admin-blue-700)]" />
@@ -1001,7 +1016,7 @@ export function AdminProductForm({
           <button
             type="submit"
             disabled={hasUploadingImages || isSubmitting}
-            className="inline-flex items-center gap-2 rounded-md border border-[#295da8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60 sm:w-auto"
             style={{ background: ctaGradient }}
           >
             <Save className="h-4 w-4" />
@@ -1091,7 +1106,7 @@ export function AdminProductForm({
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-3 border text-center transition-all duration-200"
+                className="flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-3 border px-4 text-center transition-all duration-200 sm:min-h-[160px]"
                 style={{
                   borderStyle: "dashed",
                   borderColor: isDragOver ? "#2a63b5" : "var(--admin-line-200)",
@@ -1103,7 +1118,7 @@ export function AdminProductForm({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept={browserSafeProductImageAccept}
                   multiple
                   className="hidden"
                   onChange={handleImageSelection}
@@ -1117,7 +1132,7 @@ export function AdminProductForm({
                     {isDragOver ? "Engedd el a képeket" : "Húzd ide a képeket"}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--admin-ink-500)]">
-                    PNG, JPG, WEBP — Vercel Blob tárhelyre töltődik
+                    {productImageFormatHelpText}
                   </p>
                 </div>
               </div>
@@ -1431,7 +1446,7 @@ export function AdminProductForm({
               <button
                 type="submit"
                 disabled={hasUploadingImages || isSubmitting}
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
                 style={{ background: ctaGradient }}
               >
                 <Save className="h-4 w-4" />
@@ -1540,6 +1555,21 @@ export function AdminProductForm({
             </div>
           </CardShell>
         </div>
+      </div>
+      <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-[var(--admin-line-100)] bg-[rgba(247,249,252,0.96)] px-4 py-3 shadow-[0_-12px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
+        <button
+          type="submit"
+          disabled={hasUploadingImages || isSubmitting}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
+          style={{ background: ctaGradient }}
+        >
+          <Save className="h-4 w-4" />
+          {hasUploadingImages
+            ? "Képek feltöltése..."
+            : isSubmitting
+              ? "Mentés..."
+              : submitLabel}
+        </button>
       </div>
     </form>
   );

@@ -112,7 +112,7 @@ export default async function AdminReturnRequestDetailPage({
       title={`Visszaküldési kérelem — ${request.id.slice(0, 8)}`}
       description="A kérelem állapota, admin megjegyzése és lezárási információi."
       actions={
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Link
             href={`/admin/orders/${request.order.id}`}
             className="inline-flex h-10 items-center justify-center rounded-full border border-[#e8e5e0] px-4 text-sm font-medium text-[#1a1a1a] transition hover:bg-[#faf9f7]"
@@ -133,10 +133,10 @@ export default async function AdminReturnRequestDetailPage({
           {refundFeedback}
         </div>
       ) : null}
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Kérelem részletei</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Kérelem részletei</h2>
             <div className="space-y-3 text-sm text-[#1a1a1a]">
               <div>
                 <p className="text-[11px] text-[#888]">Rövid ok</p>
@@ -150,23 +150,23 @@ export default async function AdminReturnRequestDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Kapcsolódó rendelés</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Kapcsolódó rendelés</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Rendelésszám</span>
                 <Link href={`/admin/orders/${request.order.id}`} className="font-medium text-[#1a1a1a] hover:underline">
                   {request.order.orderNumber}
                 </Link>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Vásárló</span>
                 <span className="font-medium text-[#1a1a1a]">{request.order.shippingName}</span>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">E-mail</span>
                 <span className="font-medium text-[#1a1a1a]">{customerEmail}</span>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Stripe payment</span>
                 <span className="font-mono text-[12px] text-[#1a1a1a]">
                   {request.order.stripePaymentIntentId ?? "Nincs Stripe payment intent"}
@@ -178,7 +178,7 @@ export default async function AdminReturnRequestDetailPage({
 
         <div className="space-y-5">
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Visszatérítés / pénzügy</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Visszatérítés / pénzügy</h2>
             <div className="space-y-3">
               <div>
                 <p className="mb-1.5 text-[11px] text-[#888]">Refund státusz</p>
@@ -260,7 +260,7 @@ export default async function AdminReturnRequestDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Workflow kezelés</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Workflow kezelés</h2>
             <div className="mb-4">
               <p className="mb-1.5 text-[11px] text-[#888]">Jelenlegi státusz</p>
               <span
@@ -319,7 +319,7 @@ export default async function AdminReturnRequestDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Felelős kijelölése</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Felelős kijelölése</h2>
             <form action={updateReturnRequestAssignmentAction} className="space-y-3">
               <input type="hidden" name="requestId" value={request.id} />
               <label className="block">
@@ -347,19 +347,19 @@ export default async function AdminReturnRequestDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Meta</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Meta</h2>
             <div className="space-y-2 text-[13px]">
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Azonosító</span>
                 <span className="font-mono text-[#1a1a1a]">{request.id}</span>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Létrehozva</span>
                 <span className="font-medium text-[#1a1a1a]">
                   {new Date(request.createdAt).toLocaleString("hu-HU")}
                 </span>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3">
                 <span className="text-[#888]">Frissítve</span>
                 <span className="font-medium text-[#1a1a1a]">
                   {new Date(request.updatedAt).toLocaleString("hu-HU")}
@@ -375,7 +375,7 @@ export default async function AdminReturnRequestDetailPage({
           </section>
 
           <section className="border border-[#e8e5e0] bg-white p-5">
-            <h2 className="mb-4 text-[10px] uppercase tracking-[.18em] text-[#888]">Workflow előzmények</h2>
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Workflow előzmények</h2>
             {request.history.length === 0 ? (
               <div className="border border-[#f0eeec] bg-[#faf9f7] p-4 text-sm text-[#666]">
                 Ehhez a kérelemhez még nincs rögzített workflow előzmény.
@@ -384,7 +384,7 @@ export default async function AdminReturnRequestDetailPage({
               <div className="space-y-3">
                 {request.history.map((entry) => (
                   <div key={entry.id} className="border border-[#f0eeec] bg-[#faf9f7] p-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         {entry.assignmentChanged ? (
                           <p className="text-sm font-medium text-[#1a1a1a]">

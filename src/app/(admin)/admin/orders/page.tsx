@@ -77,7 +77,7 @@ export default async function AdminOrdersPage({
       title="Rendelések"
       description={`${orders.length} rendelés${activeFilter !== "all" ? ` — szűrve: ${adminOrderQueueFilters.find((item) => item.key === activeFilter)?.label ?? activeFilter}` : ""}`}
       actions={
-        <div className="admin-filter-row">
+        <div className="admin-filter-row max-w-full">
           {adminOrderQueueFilters.map((filter) => (
             <Link
               key={filter.key}

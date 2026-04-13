@@ -7,6 +7,8 @@ import { RouteAwareSiteFooter } from "@/components/RouteAwareSiteFooter";
 import { getHeaderCounts } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
+import { getNavigationCategories } from "@/lib/products";
+import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 
 export default async function StorefrontLayout({
   children,
@@ -14,9 +16,11 @@ export default async function StorefrontLayout({
   children: ReactNode;
 }>) {
   const user = await getHeaderUser();
-  const [counts, announcement] = await Promise.all([
+  const [counts, announcement, navigationCategories, specialtyItems] = await Promise.all([
     getHeaderCounts(user?.id),
     getActiveAnnouncementBar(),
+    getNavigationCategories(),
+    getVisibleSpecialties(),
   ]);
 
   return (
@@ -26,8 +30,10 @@ export default async function StorefrontLayout({
         user={user ?? undefined}
         favouritesCount={counts.favourites}
         cartCount={counts.cartItems}
+        navigationCategories={navigationCategories}
+        specialtyItems={specialtyItems}
       />
-      <CategoryNav />
+      <CategoryNav navigationCategories={navigationCategories} specialtyItems={specialtyItems} />
       {children}
       <RouteAwareSiteFooter />
     </>

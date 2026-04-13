@@ -64,10 +64,11 @@ export function AdminOrdersTableClient({
     <form action={bulkUpdateOrderInternalStatusAction}>
       <input type="hidden" name="currentFilter" value={currentFilter} />
 
-      <div className="admin-panel-soft mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 text-sm text-[var(--admin-ink-700)]">
+      <div className="admin-panel-soft mb-4 flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          <label className="inline-flex min-h-10 items-center gap-2 text-sm text-[var(--admin-ink-700)]">
             <input
+              className="h-4 w-4"
               type="checkbox"
               checked={allSelected}
               onChange={(event) => {
@@ -79,12 +80,12 @@ export function AdminOrdersTableClient({
           <span className="text-sm text-[var(--admin-ink-500)]">{selectedIds.length} kiválasztva</span>
         </div>
 
-        <div className="admin-filter-row justify-end">
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] lg:min-w-[28rem]">
           <select
             name="bulkAction"
             value={bulkAction}
             onChange={(event) => setBulkAction(event.target.value)}
-            className="admin-select admin-control-md"
+            className="admin-select admin-control-md min-w-0"
           >
             {bulkActionOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -102,7 +103,81 @@ export function AdminOrdersTableClient({
         </div>
       </div>
 
-      <div className="admin-table-shell">
+      <div className="space-y-3 md:hidden">
+        {orders.length === 0 ? (
+          <div className="admin-panel-soft px-4 py-10 text-center text-sm text-[var(--admin-ink-500)]">
+            Nincs rendelés
+          </div>
+        ) : (
+          orders.map((order) => (
+            <article key={order.id} className="admin-panel-soft p-4">
+              <div className="flex items-start justify-between gap-3">
+                <label className="flex min-w-0 items-start gap-3">
+                  <input
+                    className="mt-1 h-4 w-4 shrink-0"
+                    type="checkbox"
+                    name="orderIds"
+                    value={order.id}
+                    checked={selectedIds.includes(order.id)}
+                    onChange={(event) => {
+                      setSelectedIds((current) =>
+                        event.target.checked
+                          ? [...current, order.id]
+                          : current.filter((id) => id !== order.id),
+                      );
+                    }}
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-mono text-[12px] text-[var(--admin-ink-600)]">
+                      {order.orderNumber} · {order.createdAtLabel}
+                    </span>
+                    <span className="mt-1 block text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
+                      {order.shippingName}
+                    </span>
+                    <span className="mt-0.5 block break-all text-xs text-[var(--admin-ink-500)]">
+                      {order.customerEmail}
+                    </span>
+                  </span>
+                </label>
+                <p className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
+                  {order.totalLabel}
+                </p>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <StatusBadge status={order.internalStatus} />
+                {order.hasOpenReturnRequest ? (
+                  <span className="admin-status-note text-[12px] font-medium">Nyitott visszaküldés</span>
+                ) : null}
+                {order.paymentStatus === "STOCK_UNAVAILABLE" ? (
+                  <span className="admin-status-note text-[12px] font-medium">Készleteltérés</span>
+                ) : null}
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm text-[var(--admin-ink-700)]">
+                <div>
+                  <p className="text-[12px] font-medium text-[var(--admin-ink-500)]">Termékek</p>
+                  <div className="mt-1 space-y-1">
+                    {order.itemLines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--admin-line-100)] pt-3">
+                  <p className="text-[12px] text-[var(--admin-ink-500)]">
+                    Felelős: <span className="font-medium text-[var(--admin-ink-700)]">{order.assignedOwnerLabel}</span>
+                  </p>
+                  <Link href={`/admin/orders/${order.id}`} className="admin-table-action admin-table-action-link">
+                    Részletek
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="admin-table-shell hidden md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="admin-table-head">
