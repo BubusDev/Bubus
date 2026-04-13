@@ -45,6 +45,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const normalizedSearchParams = {
     spotlightPage: spotlightPage > 1 ? String(spotlightPage) : undefined,
   };
+  const newsletterStatusValue = resolvedSearchParams.newsletter;
+  const newsletterStatus = Array.isArray(newsletterStatusValue)
+    ? newsletterStatusValue[0]
+    : newsletterStatusValue;
   const homeRedirectTo = toQueryString(normalizedSearchParams);
 
   return (
@@ -66,7 +70,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         />
       </section>
       <HomeInstagramPromo block={homepageContent.instagram} />
-      <HomeNewsletterBlock />
+      <HomeNewsletterBlock status={newsletterStatus} />
       <HomePromoTileGrid tiles={homepageContent.promoTiles} />
     </main>
   );

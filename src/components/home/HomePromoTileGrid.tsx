@@ -7,7 +7,13 @@ type HomePromoTileGridProps = {
   tiles: HomepagePromoTileView[];
 };
 
-function Tile({ tile }: { tile: HomepagePromoTileView }) {
+function Tile({
+  emphasis = false,
+  tile,
+}: {
+  emphasis?: boolean;
+  tile: HomepagePromoTileView;
+}) {
   const content = (
     <>
       <Image
@@ -18,8 +24,14 @@ function Tile({ tile }: { tile: HomepagePromoTileView }) {
         unoptimized
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(22,24,20,0.02),rgba(22,24,20,0.58))]" />
-      <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6">
-        <p className="font-[family:var(--font-display)] text-[1.7rem] leading-none tracking-[-0.03em]">
+      <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6 lg:p-7">
+        <p
+          className={
+            emphasis
+              ? "font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] sm:text-[2.8rem]"
+              : "font-[family:var(--font-display)] text-[1.35rem] leading-none tracking-[-0.03em]"
+          }
+        >
           {tile.title}
         </p>
         {tile.subtitle ? (
@@ -30,7 +42,7 @@ function Tile({ tile }: { tile: HomepagePromoTileView }) {
   );
 
   const className =
-    "group relative block min-h-[260px] overflow-hidden rounded-md bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]";
+    "group relative block h-full overflow-hidden rounded-md bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]";
 
   if (!tile.href) {
     return <div className={className}>{content}</div>;
@@ -45,6 +57,7 @@ function Tile({ tile }: { tile: HomepagePromoTileView }) {
 
 export function HomePromoTileGrid({ tiles }: HomePromoTileGridProps) {
   const visibleTiles = tiles.filter((tile) => tile.isVisible);
+  const [emphasisTile, ...smallTiles] = visibleTiles;
 
   if (visibleTiles.length === 0) {
     return null;
@@ -62,19 +75,25 @@ export function HomePromoTileGrid({ tiles }: HomePromoTileGridProps) {
           </h2>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-6">
-          {visibleTiles.map((tile) => (
-            <div
-              key={tile.slotIndex}
-              className={
-                tile.slotIndex <= 6
-                  ? "md:col-span-2"
-                  : "md:col-span-3 md:px-[8%] lg:px-[11%]"
-              }
-            >
-              <Tile tile={tile} />
-            </div>
-          ))}
+        <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,600px)_minmax(0,600px)] lg:items-center lg:gap-6">
+          <div className="min-h-[420px] lg:h-[650px]">
+            <Tile tile={emphasisTile} emphasis />
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(2,288px)] lg:grid-rows-[repeat(2,288px)] lg:gap-6">
+            {smallTiles.slice(0, 4).map((tile) => (
+              <div key={tile.slotIndex} className="aspect-square lg:aspect-auto lg:h-[288px]">
+                <Tile tile={tile} />
+              </div>
+            ))}
+            {smallTiles.length < 4
+              ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
+                  <div
+                    key={`placeholder-${index}`}
+                    className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:aspect-auto lg:h-[288px]"
+                  />
+                ))
+              : null}
+          </div>
         </div>
       </div>
     </section>

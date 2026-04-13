@@ -10,6 +10,7 @@ const specialEditionUploadsDir = path.join(
   "uploads",
   "special-edition",
 );
+const homepageUploadsDir = path.join(process.cwd(), "public", "uploads", "homepage");
 const stonesUploadsDir = path.join(process.cwd(), "public", "uploads", "stones");
 
 function sanitizeFileName(fileName: string) {
@@ -43,7 +44,7 @@ function assertBlobConfigured() {
   }
 }
 
-async function uploadImageToBlob(folder: "products" | "special-edition", file: File) {
+async function uploadImageToBlob(folder: "products" | "special-edition" | "homepage", file: File) {
   assertBlobConfigured();
 
   const fileName = sanitizeFileName(file.name);
@@ -143,6 +144,29 @@ export async function saveUploadedSpecialEditionImages(files: File[]) {
   }
 
   return uploadedImages;
+}
+
+export async function saveUploadedHomepageImage(file: File | null) {
+  if (!file || file.size === 0) {
+    return null;
+  }
+
+  if (requiresRemoteStorage()) {
+    return uploadImageToBlob("homepage", file);
+  }
+
+  await mkdir(homepageUploadsDir, { recursive: true });
+
+  const fileName = sanitizeFileName(file.name);
+  const filePath = path.join(homepageUploadsDir, fileName);
+  const arrayBuffer = await file.arrayBuffer();
+
+  await writeFile(filePath, Buffer.from(arrayBuffer));
+
+  return {
+    url: `/uploads/homepage/${fileName}`,
+    alt: getImageAltText(file.name),
+  };
 }
 
 export async function deleteProductImageFile(url: string) {

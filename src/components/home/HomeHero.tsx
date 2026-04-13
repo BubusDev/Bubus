@@ -13,10 +13,10 @@ export function HomeHero({ block }: HomeHeroProps) {
   }
 
   return (
-    <section className="bg-[#fbfaf7] px-4 pt-5 sm:px-6 lg:px-8">
+    <section className="bg-[#fbfaf7] pt-5">
       <Link
         href={block.buttonHref}
-        className="group relative mx-auto block min-h-[520px] max-w-[1500px] overflow-hidden rounded-md bg-[#e7e5df] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566] focus-visible:ring-offset-4"
+        className="group relative block min-h-[520px] w-full overflow-hidden bg-[#e7e5df] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566] focus-visible:ring-offset-4"
       >
         <Image
           src={block.imageUrl}
@@ -28,7 +28,7 @@ export function HomeHero({ block }: HomeHeroProps) {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,22,17,0.62),rgba(20,22,17,0.22)_48%,rgba(20,22,17,0.02))]" />
 
-        <div className="relative flex min-h-[520px] items-end px-6 py-8 sm:px-10 sm:py-10 lg:px-16 lg:py-14">
+        <div className="relative mx-auto flex min-h-[520px] max-w-[1500px] items-end px-6 py-8 sm:px-10 sm:py-10 lg:px-16 lg:py-14">
           <div className="max-w-[560px] text-white">
             {block.eyebrow ? (
               <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.34em] text-white/78">

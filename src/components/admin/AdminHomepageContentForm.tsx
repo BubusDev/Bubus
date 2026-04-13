@@ -100,6 +100,23 @@ function ImagePreview({
   );
 }
 
+function ImageUploadField() {
+  return (
+    <label className="grid gap-2">
+      <span className="admin-eyebrow">Kép feltöltése</span>
+      <input
+        type="file"
+        name="imageFile"
+        accept="image/*"
+        className="admin-input min-h-11 px-3.5 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[var(--admin-ink-900)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+      />
+      <span className="text-xs leading-5 text-[var(--admin-ink-500)]">
+        Ha nem választasz új képet, a jelenlegi kép marad használatban.
+      </span>
+    </label>
+  );
+}
+
 function HomepageBlockForm({
   block,
   helper,
@@ -110,8 +127,9 @@ function HomepageBlockForm({
   title: string;
 }) {
   return (
-    <form action={saveHomepageBlockAction} className="admin-panel p-5">
+    <form action={saveHomepageBlockAction} className="admin-panel p-5" encType="multipart/form-data">
       <input type="hidden" name="key" value={block.key} />
+      <input type="hidden" name="imageUrl" value={block.imageUrl} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
         <div>
           <p className="admin-eyebrow">{block.key === "HERO" ? "Campaign" : "Social"}</p>
@@ -128,8 +146,8 @@ function HomepageBlockForm({
         <TextField name="title" label="Cím" defaultValue={block.title} />
         <TextField name="buttonText" label="Gomb szöveg" defaultValue={block.buttonText} />
         <TextField name="buttonHref" label="Gomb link" defaultValue={block.buttonHref} />
-        <TextField name="imageUrl" label="Kép URL" defaultValue={block.imageUrl} />
         <TextField name="imageAlt" label="Kép alt szöveg" defaultValue={block.imageAlt} />
+        <ImageUploadField />
       </div>
 
       <div className="mt-4">
@@ -148,8 +166,13 @@ function HomepageBlockForm({
 
 function PromoTileForm({ tile }: { tile: HomepagePromoTileView }) {
   return (
-    <form action={saveHomepagePromoTileAction} className="admin-panel-soft p-4">
+    <form
+      action={saveHomepagePromoTileAction}
+      className="admin-panel-soft p-4"
+      encType="multipart/form-data"
+    >
       <input type="hidden" name="slotIndex" value={tile.slotIndex} />
+      <input type="hidden" name="imageUrl" value={tile.imageUrl} />
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="admin-eyebrow">Slot {tile.slotIndex}</p>
@@ -166,8 +189,8 @@ function PromoTileForm({ tile }: { tile: HomepagePromoTileView }) {
         <TextField name="title" label="Cím" defaultValue={tile.title} />
         <TextField name="subtitle" label="Alcím" defaultValue={tile.subtitle} />
         <TextField name="href" label="Link" defaultValue={tile.href} />
-        <TextField name="imageUrl" label="Kép URL" defaultValue={tile.imageUrl} />
         <TextField name="imageAlt" label="Kép alt szöveg" defaultValue={tile.imageAlt} />
+        <ImageUploadField />
         <VisibilityField defaultChecked={tile.isVisible} />
       </div>
 
