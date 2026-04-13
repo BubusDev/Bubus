@@ -75,7 +75,7 @@ export function Header({
 
   return (
     <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
-      <div className="mx-auto grid min-h-[84px] w-full max-w-[1500px] grid-cols-[2.5rem_1fr_2.5rem] items-center gap-3 px-4 py-3 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
+      <div className="mx-auto grid min-h-[90px] w-full max-w-[1500px] grid-cols-[2.5rem_1fr_2.5rem] items-center gap-3 px-4 py-3 sm:px-6 md:grid-cols-[1fr_auto_1fr] lg:px-8">
         <span aria-hidden="true" className="h-10 w-10 md:hidden" />
 
         <nav
@@ -100,11 +100,11 @@ export function Header({
           className="flex min-w-0 items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
         >
           <div className="flex flex-col items-center leading-none">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#c0517a]">
+            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.34em] text-[#c0517a] sm:text-[0.72rem]">
               Boutique ékszer
             </span>
             <span
-              className="font-[family:var(--font-display)] text-[1.45rem] font-semibold tracking-[-0.02em]"
+              className="font-[family:var(--font-display)] text-[1.72rem] font-semibold tracking-[-0.02em] sm:text-[2.1rem] lg:text-[2.28rem]"
               style={{
                 background: "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
                 WebkitBackgroundClip: "text",

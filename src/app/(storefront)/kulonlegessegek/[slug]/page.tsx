@@ -3,8 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { SpecialtySectionNav } from "@/components/shop/SpecialtySectionNav";
 import { getProductsForSpecialty, getSpecialtyBySlug } from "@/lib/products";
-import { SPECIALTIES_BASE_PATH } from "@/lib/specialty-navigation";
+import {
+  SPECIALTIES_BASE_PATH,
+  getVisibleSpecialties,
+} from "@/lib/specialty-navigation";
 import { siteName } from "@/lib/site";
 
 type SpecialtyPageProps = {
@@ -34,9 +38,10 @@ export async function generateMetadata({
 
 export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
   const { slug } = await params;
-  const [specialty, products] = await Promise.all([
+  const [specialty, products, specialties] = await Promise.all([
     getSpecialtyBySlug(slug),
     getProductsForSpecialty(slug),
+    getVisibleSpecialties(),
   ]);
 
   if (!specialty) {
@@ -44,43 +49,52 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-[1450px] px-6 pb-24 pt-8 sm:px-8">
-      <header className="mb-10 border-b border-[#eadce4] pb-8">
-        <Link
-          href={SPECIALTIES_BASE_PATH}
-          className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#8b7d84] transition hover:opacity-60"
-        >
-          Különlegességek
-        </Link>
-        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_auto] lg:items-end">
-          <div>
-            <h1 className="font-[family:var(--font-display)] text-4xl leading-tight text-[#1a1a1a] sm:text-5xl">
-              {specialty.name}
-            </h1>
-            {specialty.shortDescription ? (
-              <p className="mt-4 max-w-[62ch] text-sm leading-7 text-[#6f666b]">
-                {specialty.shortDescription}
-              </p>
-            ) : null}
+    <>
+      <SpecialtySectionNav
+        specialties={specialties}
+        activeSlug={specialty.slug}
+      />
+      <main className="mx-auto max-w-[1450px] px-6 pb-24 pt-8 sm:px-8">
+        <header className="mb-10 border-b border-[#eadce4] pb-8">
+          <Link
+            href={SPECIALTIES_BASE_PATH}
+            className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#8b7d84] transition hover:opacity-60"
+          >
+            Különlegességek
+          </Link>
+          <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_auto] lg:items-end">
+            <div>
+              <h1 className="font-[family:var(--font-display)] text-4xl leading-tight text-[#1a1a1a] sm:text-5xl">
+                {specialty.name}
+              </h1>
+              {specialty.shortDescription ? (
+                <p className="mt-4 max-w-[62ch] text-sm leading-7 text-[#6f666b]">
+                  {specialty.shortDescription}
+                </p>
+              ) : null}
+            </div>
+            <p className="text-sm leading-5 text-[#6f666b]">
+              {products.length} termék
+            </p>
           </div>
-          <p className="text-sm leading-5 text-[#6f666b]">
-            {products.length} termék
-          </p>
-        </div>
-      </header>
+        </header>
 
-      {products.length > 0 ? (
-        <ProductGrid products={products} redirectTo={`/kulonlegessegek/${specialty.slug}`} />
-      ) : (
-        <div className="rounded-md border border-[#eadce4] bg-white px-5 py-10 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#888]">
-            Nincs termék
-          </p>
-          <h2 className="mt-3 font-[family:var(--font-display)] text-[2rem] text-[#1a1a1a]">
-            Ez a válogatás még üres
-          </h2>
-        </div>
-      )}
-    </main>
+        {products.length > 0 ? (
+          <ProductGrid
+            products={products}
+            redirectTo={`/kulonlegessegek/${specialty.slug}`}
+          />
+        ) : (
+          <div className="rounded-md border border-[#eadce4] bg-white px-5 py-10 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#888]">
+              Nincs termék
+            </p>
+            <h2 className="mt-3 font-[family:var(--font-display)] text-[2rem] text-[#1a1a1a]">
+              Ez a válogatás még üres
+            </h2>
+          </div>
+        )}
+      </main>
+    </>
   );
 }
