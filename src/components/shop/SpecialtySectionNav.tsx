@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import {
-  SPECIALTIES_BASE_PATH,
   type SpecialtyView,
   getSpecialtyHref,
 } from "@/lib/specialty-navigation";
@@ -32,21 +31,6 @@ export function SpecialtySectionNav({
           <span className="h-px flex-1 bg-[#eadce4]" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-3 overflow-x-auto">
-          <Link
-            href={SPECIALTIES_BASE_PATH}
-            aria-current={!activeSlug ? "page" : undefined}
-            className={`relative whitespace-nowrap rounded-full px-4 py-2 text-sm leading-5 tracking-[0.02em] transition ${
-              !activeSlug
-                ? "bg-[#f6e8ef] text-[#2b2228]"
-                : "text-[#6f5664] hover:bg-white hover:text-[#2b2228]"
-            }`}
-          >
-            Összes különlegesség
-            {!activeSlug ? (
-              <span className="absolute inset-x-4 -bottom-1 h-px bg-[#8a4867]" />
-            ) : null}
-          </Link>
-
           {specialties.map((specialty) => {
             const isActive = specialty.slug === activeSlug;
 

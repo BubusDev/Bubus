@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { getNavigationCategories } from "@/lib/products";
 import {
-  SPECIALTIES_BASE_PATH,
   getSpecialtyHref,
   getVisibleSpecialties,
 } from "@/lib/specialty-navigation";
@@ -35,7 +34,7 @@ export async function CategoryNav() {
         {specialtyItems.length > 0 ? (
           <div className="group/specialty relative inline-flex">
             <Link
-              href={SPECIALTIES_BASE_PATH}
+              href={getSpecialtyHref(specialtyItems[0])}
               className={`${topLevelNavItemClassName} inline-flex items-center gap-1`}
               aria-haspopup="menu"
             >
