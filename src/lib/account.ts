@@ -4,6 +4,10 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { clearGuestCartToken, getGuestCartToken } from "@/lib/cartToken";
 import { getAvailableToSell, isInStock } from "@/lib/inventory";
+import {
+  type AppliedPromo,
+  validatePromoCode,
+} from "@/lib/promo-codes";
 
 const productInclude = {
   images: {
@@ -49,6 +53,9 @@ export type CartSummary = {
   id: string;
   items: CartItemSummary[];
   subtotal: number;
+  shipping: number;
+  discount: number;
+  appliedPromo: AppliedPromo | null;
   total: number;
 };
 
@@ -83,6 +90,9 @@ function createEmptyCart(): CartSummary {
     id: "",
     items: [],
     subtotal: 0,
+    shipping: 0,
+    discount: 0,
+    appliedPromo: null,
     total: 0,
   };
 }
@@ -157,6 +167,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
   const cart = await db.cart.findUnique({
     where: getCartWhereUnique(owner),
     include: {
+      promoCode: true,
       items: {
         include: {
           product: {
@@ -194,12 +205,38 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
   });
 
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const shipping = 0;
+  let discount = 0;
+  let appliedPromo: AppliedPromo | null = null;
+
+  if (cart.promoCode) {
+    const validation = await db.$transaction((tx) =>
+      validatePromoCode(tx, {
+        code: cart.promoCode!.code,
+        subtotal,
+        identity: "userId" in owner ? { userId: owner.userId } : undefined,
+      }),
+    );
+
+    if (validation.ok) {
+      discount = validation.discountAmount;
+      appliedPromo = {
+        id: validation.promoCode.id,
+        code: validation.promoCode.code,
+        discountPercent: validation.promoCode.discountPercent,
+        discountAmount: validation.discountAmount,
+      };
+    }
+  }
 
   return {
     id: cart.id,
     items,
     subtotal,
-    total: subtotal,
+    shipping,
+    discount,
+    appliedPromo,
+    total: Math.max(0, subtotal + shipping - discount),
   } satisfies CartSummary;
 }
 

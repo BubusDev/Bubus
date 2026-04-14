@@ -15,8 +15,15 @@ import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
 import { ensureGuestCartToken } from "@/lib/cartToken";
+import { getCheckoutSession } from "@/lib/checkoutSession";
 import { db } from "@/lib/db";
 import { getAvailableToSell } from "@/lib/inventory";
+import {
+  normalizePromoCode,
+  promoValidationMessages,
+  validatePromoCode,
+  type PromoValidationErrorCode,
+} from "@/lib/promo-codes";
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -125,6 +132,85 @@ export async function removeCartItemAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/cart");
   revalidatePath("/", "layout");
+}
+
+export type PromoCodeActionState = {
+  status: "idle" | "success" | "error";
+  message: string;
+  code?: PromoValidationErrorCode;
+};
+
+export async function applyPromoCodeAction(
+  _previousState: PromoCodeActionState,
+  formData: FormData,
+): Promise<PromoCodeActionState> {
+  const code = normalizePromoCode(readString(formData, "promoCode"));
+  const [user, checkoutSession] = await Promise.all([
+    getCurrentUser(),
+    getCheckoutSession(),
+  ]);
+  const { owner, cart } = await resolveRequestCart(false);
+
+  if (!owner || !cart.id || cart.items.length === 0) {
+    return {
+      status: "error",
+      code: "invalid_code",
+      message: "A kód használatához előbb tegyél terméket a kosaradba.",
+    };
+  }
+
+  const result = await db.$transaction((tx) =>
+    validatePromoCode(tx, {
+      code,
+      subtotal: cart.subtotal,
+      identity: {
+        userId: user?.emailVerifiedAt ? user.id : null,
+        email: user?.emailVerifiedAt ? user.email : checkoutSession?.email,
+      },
+    }),
+  );
+
+  if (!result.ok) {
+    return {
+      status: "error",
+      code: result.error,
+      message: promoValidationMessages[result.error],
+    };
+  }
+
+  await db.cart.updateMany({
+    where: owner,
+    data: {
+      promoCodeId: result.promoCode.id,
+    },
+  });
+
+  revalidatePath("/cart");
+  revalidatePath("/checkout");
+
+  return {
+    status: "success",
+    message: `${result.promoCode.code} kód alkalmazva.`,
+  };
+}
+
+export async function removePromoCodeAction() {
+  const { owner, cart } = await resolveRequestCart(false);
+
+  if (!owner || !cart.id) {
+    revalidatePath("/cart");
+    return;
+  }
+
+  await db.cart.updateMany({
+    where: owner,
+    data: {
+      promoCodeId: null,
+    },
+  });
+
+  revalidatePath("/cart");
+  revalidatePath("/checkout");
 }
 
 export async function addFavouriteAction(formData: FormData) {

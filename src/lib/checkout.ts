@@ -29,6 +29,10 @@ import {
   hasCrossedIntoLowStock,
   InsufficientStockError,
 } from "@/lib/inventory";
+import {
+  finalizePromoRedemption,
+  validatePromoCode,
+} from "@/lib/promo-codes";
 import { getStripe } from "@/lib/stripe";
 
 type CheckoutCustomerInput = {
@@ -60,6 +64,10 @@ type CheckoutCartSnapshot = {
   cartId: string;
   items: CheckoutCartItem[];
   subtotal: number;
+  discountAmount: number;
+  promoCodeId: string | null;
+  promoCodeText: string | null;
+  promoDiscountPercent: number | null;
   total: number;
 };
 
@@ -116,6 +124,7 @@ async function getCheckoutCartSnapshot(
   const cart = await tx.cart.findUnique({
     where: actor.userId ? { userId: actor.userId } : { guestToken: actor.guestToken ?? "" },
     include: {
+      promoCode: true,
       items: {
         include: {
           product: {
@@ -159,12 +168,40 @@ async function getCheckoutCartSnapshot(
   const subtotal = normalizeCheckoutPrice(
     items.reduce((sum, item) => sum + item.price * item.quantity, 0),
   );
+  let discountAmount = 0;
+  let promoCodeId: string | null = null;
+  let promoCodeText: string | null = null;
+  let promoDiscountPercent: number | null = null;
+
+  if (cart.promoCode) {
+    const promoValidation = await validatePromoCode(tx, {
+      code: cart.promoCode.code,
+      subtotal,
+      identity: {
+        userId: actor.userId,
+        email: actor.email,
+      },
+    });
+
+    if (!promoValidation.ok) {
+      throw new Error(`PROMO_${promoValidation.error.toUpperCase()}`);
+    }
+
+    discountAmount = promoValidation.discountAmount;
+    promoCodeId = promoValidation.promoCode.id;
+    promoCodeText = promoValidation.promoCode.code;
+    promoDiscountPercent = promoValidation.promoCode.discountPercent;
+  }
 
   return {
     cartId: cart.id,
     items,
     subtotal,
-    total: subtotal,
+    discountAmount,
+    promoCodeId,
+    promoCodeText,
+    promoDiscountPercent,
+    total: Math.max(0, subtotal - discountAmount),
   };
 }
 
@@ -219,6 +256,9 @@ async function upsertPendingOrderRecord(
     status: "Fizetés folyamatban",
     paymentStatus: OrderPaymentStatus.PENDING,
     subtotal: cart.subtotal,
+    discountAmount: cart.discountAmount,
+    promoCodeText: cart.promoCodeText,
+    promoDiscountPercent: cart.promoDiscountPercent,
     total: cart.total,
     currency: "HUF",
     guestEmail: actor.userId ? null : email,
@@ -246,12 +286,18 @@ async function upsertPendingOrderRecord(
   const order = existingOrder
     ? await tx.order.update({
         where: { id: existingOrder.id },
-        data: orderData,
+        data: {
+          ...orderData,
+          promoCode: cart.promoCodeId
+            ? { connect: { id: cart.promoCodeId } }
+            : { disconnect: true },
+        },
       })
     : await tx.order.create({
         data: {
           userId: actor.userId ?? null,
           orderNumber: createOrderNumber(),
+          promoCodeId: cart.promoCodeId,
           ...orderData,
         },
       });
@@ -748,6 +794,11 @@ async function findOrderForFinalization(
   correlationId?: string,
 ) {
   const include = {
+    user: {
+      select: {
+        email: true,
+      },
+    },
     items: {
       include: {
         product: {
@@ -972,6 +1023,43 @@ export async function finalizePaidOrder({
       return { type: "amount_mismatch" as const, paths: getOrderPaths(order) };
     }
 
+    if (order.promoCodeId && order.discountAmount > 0) {
+      const promoCode = await tx.promoCode.findUnique({
+        where: { id: order.promoCodeId },
+        select: { code: true },
+      });
+      const promoValidation = promoCode
+        ? await validatePromoCode(tx, {
+            code: promoCode.code,
+            subtotal: order.subtotal,
+            identity: {
+              userId: order.userId,
+              email: order.user?.email ?? order.guestEmail,
+            },
+          })
+        : ({ ok: false, error: "invalid_code" } as const);
+
+      if (!promoValidation.ok) {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: OrderPaymentStatus.FAILED,
+            status: "Kupon nem érvényesíthető",
+          },
+        });
+
+        logCheckoutEvent("warn", "webhook_finalization_stopped", {
+          paymentIntentId,
+          orderId: order.id,
+          result: "promo_redemption_failed",
+          reason: `PROMO_${promoValidation.error.toUpperCase()}`,
+          durationMs: duration.elapsedMs(),
+        }, { correlationId });
+
+        return { type: "promo_redemption_failed" as const, paths: getOrderPaths(order) };
+      }
+    }
+
     try {
       lowStockAdjustments = await applyCompletedOrderInventory(tx, {
         orderId: order.id,
@@ -1004,6 +1092,17 @@ export async function finalizePaidOrder({
       throw error;
     }
 
+    if (order.promoCodeId && order.discountAmount > 0) {
+      await finalizePromoRedemption(tx, {
+        promoCodeId: order.promoCodeId,
+        orderId: order.id,
+        userId: order.userId,
+        email: order.user?.email ?? order.guestEmail,
+        subtotal: order.subtotal,
+        discountAmount: order.discountAmount,
+      });
+    }
+
     await tx.order.update({
       where: { id: order.id },
       data: {
@@ -1021,6 +1120,10 @@ export async function finalizePaidOrder({
       await tx.cartItem.deleteMany({
         where: { cartId },
       });
+      await tx.cart.updateMany({
+        where: { id: cartId },
+        data: { promoCodeId: null },
+      });
     } else if (order.userId) {
       await tx.cartItem.deleteMany({
         where: {
@@ -1028,6 +1131,10 @@ export async function finalizePaidOrder({
             userId: order.userId,
           },
         },
+      });
+      await tx.cart.updateMany({
+        where: { userId: order.userId },
+        data: { promoCodeId: null },
       });
     }
 

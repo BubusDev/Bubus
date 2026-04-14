@@ -86,6 +86,7 @@ model User {
   favourites             Favourite[]
   cart                   Cart?
   orders                 Order[]
+  promoCodeRedemptions   PromoCodeRedemption[]
   weeklySummaryDispatches WeeklySummaryDispatch[]
   orderWorkflowHistoryEntries OrderWorkflowHistory[] @relation("OrderWorkflowHistoryChangedBy")
   returnRequestHistoryEntries ReturnRequestHistory[] @relation("ReturnRequestHistoryChangedBy")
@@ -356,12 +357,15 @@ model Cart {
   id        String     @id @default(cuid())
   userId    String?    @unique
   guestToken String?   @unique
+  promoCodeId String?
   user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promoCode PromoCode? @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   @@index([guestToken])
+  @@index([promoCodeId])
 }
 
 model CartItem {
@@ -393,6 +397,10 @@ model Order {
   internalNote     String?
   statusUpdatedAt DateTime?
   subtotal        Int
+  discountAmount  Int         @default(0)
+  promoCodeId     String?
+  promoCodeText   String?
+  promoDiscountPercent Int?
   total           Int
   currency        String      @default("HUF")
   shippingName    String
@@ -414,15 +422,59 @@ model Order {
   accessTokens    GuestOrderAccessToken[]
   returnRequests  ReturnRequest[]
   workflowHistory OrderWorkflowHistory[]
+  promoCode       PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  promoCodeRedemption PromoCodeRedemption?
   user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedTo      User?       @relation("OrderAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([userId, createdAt])
+  @@index([promoCodeId])
   @@index([paymentStatus, createdAt])
   @@index([internalStatus, createdAt])
   @@index([assignedToId, createdAt])
+}
+
+model PromoCode {
+  id                 String                 @id @default(cuid())
+  code               String                 @unique
+  discountPercent    Int
+  validFrom          DateTime
+  validUntil         DateTime?
+  isActive           Boolean                @default(true)
+  oneTimeUse         Boolean                @default(false)
+  totalUsageLimit    Int?
+  perCustomerUsageLimit Int?
+  minimumOrderAmount Int?
+  redeemedCount      Int                    @default(0)
+  carts              Cart[]
+  orders             Order[]
+  redemptions        PromoCodeRedemption[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([isActive, validFrom, validUntil])
+  @@index([redeemedCount])
+}
+
+model PromoCodeRedemption {
+  id            String    @id @default(cuid())
+  promoCodeId   String
+  orderId       String    @unique
+  userId        String?
+  customerEmail String?
+  customerKey   String?
+  discountAmount Int
+  createdAt     DateTime  @default(now())
+  promoCode     PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([promoCodeId, customerKey])
+  @@index([promoCodeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([customerEmail, createdAt])
 }
 
 model GuestOrderAccessToken {

@@ -103,6 +103,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "CART_EMPTY" }, { status: 400 });
     }
 
+    if (error instanceof Error && error.message.startsWith("PROMO_")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     throw error;
   }
 }

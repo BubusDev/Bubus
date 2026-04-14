@@ -18,6 +18,8 @@ type CheckoutClientProps = {
   cart: {
     items: CheckoutItem[];
     subtotal: number;
+    shipping: number;
+    discount: number;
     total: number;
   };
   initialStep?: number;

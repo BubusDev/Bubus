@@ -20,6 +20,7 @@ import {
   User,
   RotateCcw,
   Activity,
+  TicketPercent,
   X,
 } from "lucide-react";
 
@@ -69,6 +70,12 @@ const navGroups: NavGroup[] = [
       { label: "Lezárva", href: "/admin/orders?status=closed", icon: ShoppingCart },
       { label: "Problémás", href: "/admin/orders?status=exceptions", icon: RotateCcw },
       { label: "Visszaküldések", href: "/admin/returns", icon: RotateCcw, exact: true },
+    ],
+  },
+  {
+    label: "Promóciók",
+    items: [
+      { label: "Kuponkódok", href: "/admin/promo-codes", icon: TicketPercent, exact: true },
     ],
   },
   {

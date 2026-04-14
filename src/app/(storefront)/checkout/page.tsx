@@ -112,7 +112,25 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
             </div>
 
             <div className="px-6 pb-6 pt-4">
-              <div className="flex items-center justify-between border-t border-[#e8e5e0] pt-4">
+              <div className="space-y-2 border-t border-[#e8e5e0] pt-4 text-sm text-[#555]">
+                <div className="flex items-center justify-between">
+                  <span>Részösszeg</span>
+                  <span className="font-medium text-[#1a1a1a]">{formatPrice(cart.subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Szállítás</span>
+                  <span className="font-medium text-[#1a1a1a]">
+                    {cart.shipping > 0 ? formatPrice(cart.shipping) : "Ingyenes"}
+                  </span>
+                </div>
+                {cart.discount > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span>Kedvezmény</span>
+                    <span className="font-medium text-[#7a4f67]">-{formatPrice(cart.discount)}</span>
+                  </div>
+                ) : null}
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-[#e8e5e0] pt-4">
                 <span className="text-sm text-[#555]">Végösszeg</span>
                 <span className="text-xl font-semibold text-[#1a1a1a]">
                   {formatPrice(cart.total)}

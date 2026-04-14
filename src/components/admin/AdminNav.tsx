@@ -7,11 +7,13 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  TicketPercent,
 } from "lucide-react";
 
 const mainNav = [
   { label: "Áttekintés", href: "/admin", icon: LayoutDashboard },
   { label: "Termékek", href: "/admin/products", icon: Package },
+  { label: "Promóciók", href: "/admin/promo-codes", icon: TicketPercent },
   { label: "Tartalom", href: "/admin/content", icon: FileText },
   { label: "Beállítások", href: "/admin/settings", icon: Settings },
 ];

@@ -50,6 +50,20 @@ function buildErrorMessage(
         ? `A rendelés végösszegének legalább ${formatPrice(min)} összegűnek kell lennie a Stripe fizetéshez.`
         : "A rendelés végösszege túl alacsony a Stripe fizetéshez.";
     }
+    case "PROMO_INVALID_CODE":
+      return "A kosárban lévő promóciós kód már nem található. Térj vissza a kosárhoz és távolítsd el.";
+    case "PROMO_INACTIVE_CODE":
+      return "A kosárban lévő promóciós kód már nem aktív.";
+    case "PROMO_EXPIRED_CODE":
+      return "A kosárban lévő promóciós kód lejárt.";
+    case "PROMO_NOT_YET_ACTIVE":
+      return "A kosárban lévő promóciós kód még nem aktív.";
+    case "PROMO_ALREADY_USED":
+      return "Ezt a promóciós kódot ezzel az e-mail-címmel már felhasználták.";
+    case "PROMO_USAGE_LIMIT_REACHED":
+      return "A kosárban lévő promóciós kód elérte a felhasználási limitet.";
+    case "PROMO_MINIMUM_ORDER_AMOUNT_NOT_MET":
+      return "A kosár értéke már nem éri el a promóciós kód minimum rendelési összegét.";
     default:
       return "A fizetés előkészítése nem sikerült. Próbáld meg újra.";
   }

@@ -6,11 +6,13 @@ import {
   removeCartItemAction,
   updateCartItemQuantityAction,
 } from "@/app/(storefront)/account/actions";
+import { PromoCodeForm } from "@/components/cart/PromoCodeForm";
 import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
 import { getCuratedProductRecommendations } from "@/lib/products";
+import type { AppliedPromo } from "@/lib/promo-codes";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -174,10 +176,16 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
 
 function CartSummary({
   subtotal,
+  shipping,
+  discount,
+  appliedPromo,
   total,
   hasUnavailableItems,
 }: {
   subtotal: number;
+  shipping: number;
+  discount: number;
+  appliedPromo: AppliedPromo | null;
   total: number;
   hasUnavailableItems: boolean;
 }) {
@@ -198,8 +206,16 @@ function CartSummary({
           </div>
           <div className="flex items-center justify-between">
             <span>Szállítás</span>
-            <span className="font-medium text-[#4d2741]">Ingyenes</span>
+            <span className="font-medium text-[#4d2741]">
+              {shipping > 0 ? formatPrice(shipping) : "Ingyenes"}
+            </span>
           </div>
+          {discount > 0 ? (
+            <div className="flex items-center justify-between">
+              <span>Kedvezmény</span>
+              <span className="font-medium text-[#7a4f67]">-{formatPrice(discount)}</span>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-5 flex items-end justify-between gap-4 border-t border-[#f1dfe8] pt-5">
@@ -229,7 +245,9 @@ function CartSummary({
         </p>
 
         <div className="mt-6 border-t border-[#f1dfe8] pt-5">
-          <h2 className="font-[family:var(--font-display)] text-[1.28rem] leading-[1.08] text-[#4d2741]">
+          <PromoCodeForm appliedPromo={appliedPromo} />
+
+          <h2 className="mt-5 font-[family:var(--font-display)] text-[1.28rem] leading-[1.08] text-[#4d2741]">
             Hogyan válthatom be a promóciós kódokat?
           </h2>
 
@@ -238,7 +256,7 @@ function CartSummary({
               <TicketPercent className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
             <p className="min-w-0">
-              A promóciós kódokat közvetlenül itt, a bevásárlókosár oldalon
+              A promóciós kódokat közvetlenül itt, a bevásárlókosár oldalon válthatod be.
             </p>
           </div>
 
@@ -384,6 +402,9 @@ export default async function CartPage() {
 
               <CartSummary
                 subtotal={cart.subtotal}
+                shipping={cart.shipping}
+                discount={cart.discount}
+                appliedPromo={cart.appliedPromo}
                 total={cart.total}
                 hasUnavailableItems={hasUnavailableItems}
               />
