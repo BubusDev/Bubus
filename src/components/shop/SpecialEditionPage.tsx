@@ -1,15 +1,34 @@
+import Image from "next/image";
+
 import { LimitedEditionFeature } from "@/components/shop/LimitedEditionDetailPage";
 import type { SpecialEditionEntryView } from "@/lib/products";
 
 type SpecialEditionPageProps = {
   entries: SpecialEditionEntryView[];
+  bannerImageUrl?: string;
+  bannerImageAlt?: string;
 };
 
 export async function SpecialEditionPage({
   entries,
+  bannerImageUrl,
+  bannerImageAlt,
 }: SpecialEditionPageProps) {
   return (
     <main>
+      {bannerImageUrl ? (
+        <section className="relative h-[42vh] min-h-[280px] w-full overflow-hidden bg-[#faf9f7] sm:h-[52vh] lg:min-h-[520px]">
+          <Image
+            src={bannerImageUrl}
+            alt={bannerImageAlt || "Special Edition banner"}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </section>
+      ) : null}
+
       {entries.length > 0 ? (
         entries.map((entry) => (
           <LimitedEditionFeature key={entry.id} entry={entry} />

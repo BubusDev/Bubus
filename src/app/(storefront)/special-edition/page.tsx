@@ -32,6 +32,8 @@ export default async function SpecialEditionRoutePage() {
   return (
     <SpecialEditionPage
       entries={specialEditionCampaign.entries}
+      bannerImageUrl={specialEditionCampaign.bannerImageUrl}
+      bannerImageAlt={specialEditionCampaign.bannerImageAlt}
     />
   );
 }
