@@ -77,7 +77,7 @@ function ProductEditorialCard({
   redirectTo: string;
 }) {
   const { product } = entry;
-  const productHref = `/product/${product.slug}`;
+  const productHref = `/limitalt-darabok/${product.slug}`;
   const coverImage = entry.productImageUrl;
   const [from, via, to] = product.imagePalette;
   const isOutOfStock = isProductOutOfStock(product);
