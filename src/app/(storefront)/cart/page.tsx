@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShoppingBag, Trash2 } from "lucide-react";
+import { Lightbulb, ShoppingBag, TicketPercent, Trash2 } from "lucide-react";
 
 import {
   removeCartItemAction,
@@ -227,6 +227,37 @@ function CartSummary({
         <p className="mt-4 text-xs leading-6 text-[#8b7080]">
           A rendelés következő lépésében megadhatod a szállítási és fizetési adatokat.
         </p>
+
+        <div className="mt-6 border-t border-[#f1dfe8] pt-5">
+          <h2 className="font-[family:var(--font-display)] text-[1.28rem] leading-[1.08] text-[#4d2741]">
+            Hogyan válthatom be a promóciós kódokat?
+          </h2>
+
+          <div className="mt-4 grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 text-sm leading-6 text-[#765a6a]">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#efdbe6] bg-[#fff7fa] text-[#c56da0]">
+              <TicketPercent className="h-[18px] w-[18px]" aria-hidden="true" />
+            </div>
+            <p className="min-w-0">
+              A promóciós kódokat közvetlenül itt, a bevásárlókosár oldalon
+            </p>
+          </div>
+
+          <div className="my-5 h-px bg-gradient-to-r from-transparent via-[#ead6e2] to-transparent shadow-[0_1px_0_rgba(255,255,255,0.75)]" />
+
+          <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#b06b8e]">
+            Hol tudsz hozzájutni kódjainkhoz?
+          </h3>
+
+          <div className="mt-4 grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 text-sm leading-6 text-[#765a6a]">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#efdbe6] bg-[#fff7fa] text-[#c56da0]">
+              <Lightbulb className="h-[18px] w-[18px]" aria-hidden="true" />
+            </div>
+            <p className="min-w-0">
+              Kövess Instagramon és iratkozz fel hírlevelünkre! Ott posztoljuk és
+              küldünk nektek rendszeresen kedvezményeket!
+            </p>
+          </div>
+        </div>
       </div>
     </aside>
   );
@@ -308,9 +339,6 @@ function CartRecommendations({ products }: { products: Product[] }) {
             Ezek is tetszhetnek
           </h2>
         </div>
-        <p className="max-w-[34ch] text-left text-[12px] leading-5 text-[#8b7080] sm:max-w-[28ch] sm:text-right">
-          Először az akciós darabokat, majd a limitált és új érkezéseket mutatjuk.
-        </p>
       </div>
 
       {products.length > 0 ? (
