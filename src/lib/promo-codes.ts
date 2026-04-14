@@ -1,4 +1,4 @@
-import type { Prisma, PromoCode } from "@prisma/client";
+import { PromoCodeEligibilityRule, type Prisma, type PromoCode } from "@prisma/client";
 
 import { normalizeStoredPrice } from "@/lib/catalog";
 
@@ -9,7 +9,9 @@ export type PromoValidationErrorCode =
   | "not_yet_active"
   | "already_used"
   | "usage_limit_reached"
-  | "minimum_order_amount_not_met";
+  | "minimum_order_amount_not_met"
+  | "login_required"
+  | "not_assigned";
 
 export type PromoIdentity = {
   userId?: string | null;
@@ -44,6 +46,13 @@ export const promoValidationMessages: Record<PromoValidationErrorCode, string> =
   already_used: "Ezt a promóciós kódot már felhasználtad.",
   usage_limit_reached: "Ez a promóciós kód elérte a felhasználási limitet.",
   minimum_order_amount_not_met: "A kosár értéke nem éri el a kód minimum rendelési összegét.",
+  login_required: "Ez a kód csak bejelentkezett vásárlóknak érhető el.",
+  not_assigned: "Ez a kupon nem érhető el a profilodhoz.",
+};
+
+export const promoEligibilityLabels: Record<PromoCodeEligibilityRule, string> = {
+  ALL_USERS: "Minden vásárló",
+  REGISTERED_USERS_ONLY: "Csak regisztrált vásárlók",
 };
 
 export function normalizePromoCode(code: string) {
@@ -93,6 +102,16 @@ export async function validatePromoCode(
 
   const promoCode = await tx.promoCode.findUnique({
     where: { code },
+    include: {
+      grants: {
+        where: { userId: input.identity?.userId ?? "__guest__" },
+        select: { id: true },
+        take: 1,
+      },
+      _count: {
+        select: { grants: true },
+      },
+    },
   });
 
   if (!promoCode) {
@@ -101,6 +120,21 @@ export async function validatePromoCode(
 
   if (!promoCode.isActive) {
     return { ok: false, error: "inactive_code" };
+  }
+
+  if (
+    promoCode.eligibilityRule === PromoCodeEligibilityRule.REGISTERED_USERS_ONLY &&
+    !input.identity?.userId
+  ) {
+    return { ok: false, error: "login_required" };
+  }
+
+  if (promoCode._count.grants > 0 && !input.identity?.userId) {
+    return { ok: false, error: "login_required" };
+  }
+
+  if (promoCode._count.grants > 0 && promoCode.grants.length === 0) {
+    return { ok: false, error: "not_assigned" };
   }
 
   if (promoCode.validFrom > now) {

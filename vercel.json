@@ -3,6 +3,10 @@
     {
       "path": "/api/internal/admin/weekly-summary",
       "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/internal/coupons/monthly-newsletter",
+      "schedule": "15 8 1 * *"
     }
   ]
 }

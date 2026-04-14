@@ -1,7 +1,9 @@
 import { CheckCircle2 } from "lucide-react";
 
+import { AccountCouponsSection } from "@/components/account/AccountCouponsSection";
 import { AccountShell } from "@/components/account/AccountShell";
 import { ProfileForm } from "@/components/account/ProfileForm";
+import { getCouponsForUser } from "@/lib/account";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -14,6 +16,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const user = await db.user.findUniqueOrThrow({
     where: { id: currentUser.id },
   });
+  const coupons = await getCouponsForUser(currentUser.id);
   const resolvedSearchParams = await searchParams;
 
   return (
@@ -38,6 +41,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           defaultShippingAddress: user.defaultShippingAddress,
         }}
       />
+      <AccountCouponsSection coupons={coupons} />
     </AccountShell>
   );
 }

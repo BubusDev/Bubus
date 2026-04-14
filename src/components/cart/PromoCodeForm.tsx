@@ -33,6 +33,12 @@ function ApplyButton() {
 
 export function PromoCodeForm({ appliedPromo }: { appliedPromo: AppliedPromo | null }) {
   const [state, formAction] = useActionState(applyPromoCodeAction, initialState);
+  const messageClassName =
+    state.status === "success"
+      ? "text-[#4f6f38]"
+      : state.status === "not_eligible"
+        ? "text-[#9a5b20]"
+        : "text-[#9b476f]";
 
   if (appliedPromo) {
     return (
@@ -82,9 +88,8 @@ export function PromoCodeForm({ appliedPromo }: { appliedPromo: AppliedPromo | n
       </div>
       {state.message ? (
         <p
-          className={`mt-2 text-xs leading-5 ${
-            state.status === "success" ? "text-[#6c8452]" : "text-[#9b476f]"
-          }`}
+          className={`mt-2 text-xs leading-5 ${messageClassName}`}
+          aria-live="polite"
         >
           {state.message}
         </p>

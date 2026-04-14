@@ -11,6 +11,7 @@ import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
+import { getHomepageContent } from "@/lib/homepage-content";
 import { getCuratedProductRecommendations } from "@/lib/products";
 import type { AppliedPromo } from "@/lib/promo-codes";
 
@@ -181,6 +182,7 @@ function CartSummary({
   appliedPromo,
   total,
   hasUnavailableItems,
+  instagramHref,
 }: {
   subtotal: number;
   shipping: number;
@@ -188,6 +190,7 @@ function CartSummary({
   appliedPromo: AppliedPromo | null;
   total: number;
   hasUnavailableItems: boolean;
+  instagramHref: string;
 }) {
   return (
     <aside className="lg:sticky lg:top-28 lg:h-fit">
@@ -263,7 +266,7 @@ function CartSummary({
           <div className="my-5 h-px bg-gradient-to-r from-transparent via-[#ead6e2] to-transparent shadow-[0_1px_0_rgba(255,255,255,0.75)]" />
 
           <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#b06b8e]">
-            Hol tudsz hozzájutni kódjainkhoz?
+            HOL TUDSZ HOZZÁJUTNI KÓDJAINKHOZ?
           </h3>
 
           <div className="mt-4 grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 text-sm leading-6 text-[#765a6a]">
@@ -271,8 +274,17 @@ function CartSummary({
               <Lightbulb className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
             <p className="min-w-0">
-              Kövess Instagramon és iratkozz fel hírlevelünkre! Ott posztoljuk és
-              küldünk nektek rendszeresen kedvezményeket!
+              Kövess{" "}
+              <a
+                href={instagramHref}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-[#4d2741] underline decoration-[#d7a1bd] underline-offset-4 transition hover:text-[#b7608f]"
+              >
+                Instagram
+              </a>
+              on és iratkozz fel hírlevelünkre! Ott posztoljuk és küldünk nektek
+              rendszeresen kedvezményeket!
             </p>
           </div>
         </div>
@@ -375,7 +387,10 @@ function CartRecommendations({ products }: { products: Product[] }) {
 }
 
 export default async function CartPage() {
-  const { cart } = await getRequestCart();
+  const [{ cart }, homepageContent] = await Promise.all([
+    getRequestCart(),
+    getHomepageContent(),
+  ]);
   const hasUnavailableItems = cart.items.some((item) => !item.isAvailable || item.exceedsStock);
   const recommendations = await getCuratedProductRecommendations(
     cart.items.map((item) => item.productId),
@@ -407,6 +422,7 @@ export default async function CartPage() {
                 appliedPromo={cart.appliedPromo}
                 total={cart.total}
                 hasUnavailableItems={hasUnavailableItems}
+                instagramHref={homepageContent.instagram.buttonHref}
               />
             </div>
 

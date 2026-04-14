@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { PromoCodeEligibilityRule, type Prisma } from "@prisma/client";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
@@ -57,6 +57,20 @@ export type CartSummary = {
   discount: number;
   appliedPromo: AppliedPromo | null;
   total: number;
+};
+
+export type AccountCouponStatus = "active" | "expired" | "used" | "upcoming";
+
+export type AccountCouponSummary = {
+  id: string;
+  code: string;
+  discountPercent: number;
+  validFrom: Date;
+  validUntil: Date | null;
+  minimumOrderAmount: number | null;
+  status: AccountCouponStatus;
+  currentlyUsable: boolean;
+  usedCount: number;
 };
 
 export type OrderPreviewItem = {
@@ -437,6 +451,97 @@ export async function getOrderForUser(userId: string, orderId: string) {
       items: true,
     },
   });
+}
+
+export async function getCouponsForUser(userId: string) {
+  const now = new Date();
+  const user = await db.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { email: true },
+  });
+  const normalizedEmail = user.email.trim().toLowerCase();
+
+  const coupons = await db.promoCode.findMany({
+    where: {
+      eligibilityRule: {
+        in: [
+          PromoCodeEligibilityRule.ALL_USERS,
+          PromoCodeEligibilityRule.REGISTERED_USERS_ONLY,
+        ],
+      },
+      AND: [
+        {
+          OR: [
+            { grants: { none: {} } },
+            { grants: { some: { userId } } },
+          ],
+        },
+        {
+          OR: [
+            { isActive: true },
+            {
+              redemptions: {
+                some: {
+                  OR: [{ userId }, { customerEmail: normalizedEmail }],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: {
+      redemptions: {
+        where: {
+          OR: [{ userId }, { customerEmail: normalizedEmail }],
+        },
+        select: { id: true },
+      },
+    },
+    orderBy: [{ validFrom: "asc" }, { createdAt: "desc" }],
+  });
+
+  return coupons
+    .map((coupon): AccountCouponSummary | null => {
+      const usedCount = coupon.redemptions.length;
+      const customerLimit = coupon.oneTimeUse ? 1 : coupon.perCustomerUsageLimit;
+      const customerLimitReached =
+        customerLimit != null && customerLimit > 0 && usedCount >= customerLimit;
+      const totalLimitReached =
+        coupon.totalUsageLimit != null && coupon.redeemedCount >= coupon.totalUsageLimit;
+
+      let status: AccountCouponStatus = "active";
+      if (customerLimitReached) {
+        status = "used";
+      } else if (coupon.validFrom > now) {
+        status = "upcoming";
+      } else if (coupon.validUntil && coupon.validUntil < now) {
+        status = "expired";
+      }
+
+      const currentlyUsable =
+        coupon.isActive &&
+        status === "active" &&
+        !totalLimitReached &&
+        !customerLimitReached;
+
+      if (!currentlyUsable && status === "active" && totalLimitReached && usedCount === 0) {
+        return null;
+      }
+
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        discountPercent: coupon.discountPercent,
+        validFrom: coupon.validFrom,
+        validUntil: coupon.validUntil,
+        minimumOrderAmount: coupon.minimumOrderAmount,
+        status,
+        currentlyUsable,
+        usedCount,
+      };
+    })
+    .filter((coupon): coupon is AccountCouponSummary => coupon !== null);
 }
 
 export async function addProductToCart(

@@ -64,6 +64,11 @@ enum GuestOrderAccessTokenKind {
   ACCESS
 }
 
+enum PromoCodeEligibilityRule {
+  ALL_USERS
+  REGISTERED_USERS_ONLY
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -87,6 +92,7 @@ model User {
   cart                   Cart?
   orders                 Order[]
   promoCodeRedemptions   PromoCodeRedemption[]
+  promoCodeGrants        PromoCodeGrant[]
   weeklySummaryDispatches WeeklySummaryDispatch[]
   orderWorkflowHistoryEntries OrderWorkflowHistory[] @relation("OrderWorkflowHistoryChangedBy")
   returnRequestHistoryEntries ReturnRequestHistory[] @relation("ReturnRequestHistoryChangedBy")
@@ -440,6 +446,7 @@ model PromoCode {
   id                 String                 @id @default(cuid())
   code               String                 @unique
   discountPercent    Int
+  eligibilityRule    PromoCodeEligibilityRule @default(ALL_USERS)
   validFrom          DateTime
   validUntil         DateTime?
   isActive           Boolean                @default(true)
@@ -451,11 +458,28 @@ model PromoCode {
   carts              Cart[]
   orders             Order[]
   redemptions        PromoCodeRedemption[]
+  grants             PromoCodeGrant[]
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
 
   @@index([isActive, validFrom, validUntil])
   @@index([redeemedCount])
+}
+
+model PromoCodeGrant {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  userId      String
+  source      String
+  cycle       String    @default("")
+  createdAt   DateTime  @default(now())
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([promoCodeId, userId])
+  @@unique([userId, source, cycle])
+  @@index([userId, createdAt])
+  @@index([source, cycle])
 }
 
 model PromoCodeRedemption {

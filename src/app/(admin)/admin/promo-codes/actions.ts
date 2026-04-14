@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Prisma } from "@prisma/client";
+import { Prisma, PromoCodeEligibilityRule } from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -44,6 +44,12 @@ function readPromoCodeInput(formData: FormData) {
   const totalUsageLimit = readOptionalInt(formData, "totalUsageLimit");
   const perCustomerUsageLimit = readOptionalInt(formData, "perCustomerUsageLimit");
   const minimumOrderAmount = readOptionalInt(formData, "minimumOrderAmount");
+  const eligibilityRuleInput = readString(formData, "eligibilityRule");
+  const eligibilityRule = Object.values(PromoCodeEligibilityRule).includes(
+    eligibilityRuleInput as PromoCodeEligibilityRule,
+  )
+    ? (eligibilityRuleInput as PromoCodeEligibilityRule)
+    : PromoCodeEligibilityRule.ALL_USERS;
 
   if (!code || discountPercent < 1 || discountPercent > 100 || !validFrom) {
     redirectWithStatus("invalid");
@@ -58,6 +64,7 @@ function readPromoCodeInput(formData: FormData) {
   return {
     code,
     discountPercent,
+    eligibilityRule,
     validFrom: startsAt,
     validUntil,
     isActive: formData.get("isActive") === "on",

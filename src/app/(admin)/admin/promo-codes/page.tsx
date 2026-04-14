@@ -10,6 +10,7 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/catalog";
+import { promoEligibilityLabels } from "@/lib/promo-codes";
 
 type PromoCodesPageProps = {
   searchParams: Promise<{ status?: string }>;
@@ -47,6 +48,7 @@ function PromoCodeFields({
     totalUsageLimit: number | null;
     perCustomerUsageLimit: number | null;
     minimumOrderAmount: number | null;
+    eligibilityRule: keyof typeof promoEligibilityLabels;
   };
 }) {
   return (
@@ -95,6 +97,18 @@ function PromoCodeFields({
           defaultValue={toDateTimeLocal(promoCode?.validUntil ?? null)}
           className="admin-input h-10 px-3 text-sm"
         />
+      </label>
+
+      <label className="grid gap-1.5">
+        <span className="text-xs font-medium text-[var(--admin-ink-700)]">Eligibility</span>
+        <select
+          name="eligibilityRule"
+          defaultValue={promoCode?.eligibilityRule ?? "ALL_USERS"}
+          className="admin-input h-10 px-3 text-sm"
+        >
+          <option value="ALL_USERS">Everyone</option>
+          <option value="REGISTERED_USERS_ONLY">Registered users only</option>
+        </select>
       </label>
 
       <label className="grid gap-1.5">
@@ -236,6 +250,9 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
                       {promoCode.oneTimeUse ? (
                         <span className="admin-filter-chip admin-control-sm">One-time-use</span>
                       ) : null}
+                      <span className="admin-filter-chip admin-control-sm">
+                        {promoEligibilityLabels[promoCode.eligibilityRule]}
+                      </span>
                     </div>
                     <p className="mt-1 text-xs text-[var(--admin-ink-600)]">
                       Used {promoCode.redeemedCount}

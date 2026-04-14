@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
+import { grantCurrentNewsletterCouponForUser } from "@/lib/coupon-grants";
 import { db } from "@/lib/db";
 
 function readString(formData: FormData, key: string) {
@@ -38,6 +39,7 @@ export async function subscribeNewsletterAction(formData: FormData) {
       where: { id: user.id },
       data: { newsletterSubscribed: true },
     });
+    await grantCurrentNewsletterCouponForUser(user.id);
   }
 
   revalidatePath("/");

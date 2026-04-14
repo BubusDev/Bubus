@@ -8,6 +8,7 @@ import {
   isValidPassword,
   normalizeEmail,
 } from "@/lib/auth/validation";
+import { grantWelcomeCouponForUser } from "@/lib/coupon-grants";
 
 export type RegisterUserInput = {
   email: string;
@@ -182,6 +183,8 @@ export async function registerUser(input: RegisterUserInput): Promise<RegisterUs
         expiresAt: createExpiryDate(24),
       },
     });
+
+    await grantWelcomeCouponForUser(tx, user.id);
 
     return user;
   });

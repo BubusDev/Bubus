@@ -16,6 +16,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
 import { ensureGuestCartToken } from "@/lib/cartToken";
 import { getCheckoutSession } from "@/lib/checkoutSession";
+import { grantCurrentNewsletterCouponForUser } from "@/lib/coupon-grants";
 import { db } from "@/lib/db";
 import { getAvailableToSell } from "@/lib/inventory";
 import {
@@ -135,7 +136,7 @@ export async function removeCartItemAction(formData: FormData) {
 }
 
 export type PromoCodeActionState = {
-  status: "idle" | "success" | "error";
+  status: "idle" | "success" | "invalid" | "not_eligible" | "error";
   message: string;
   code?: PromoValidationErrorCode;
 };
@@ -153,7 +154,7 @@ export async function applyPromoCodeAction(
 
   if (!owner || !cart.id || cart.items.length === 0) {
     return {
-      status: "error",
+      status: "invalid",
       code: "invalid_code",
       message: "A kód használatához előbb tegyél terméket a kosaradba.",
     };
@@ -171,8 +172,15 @@ export async function applyPromoCodeAction(
   );
 
   if (!result.ok) {
+    const status =
+      result.error === "login_required" || result.error === "not_assigned"
+        ? "not_eligible"
+        : result.error === "invalid_code"
+          ? "invalid"
+          : "error";
+
     return {
-      status: "error",
+      status,
       code: result.error,
       message: promoValidationMessages[result.error],
     };
@@ -353,15 +361,21 @@ export async function updatePasswordAction(formData: FormData) {
 
 export async function updateNewsletterAction(formData: FormData) {
   const user = await requireUser("/settings");
+  const subscribed = formData.get("newsletterSubscribed") === "on";
 
   await db.user.update({
     where: { id: user.id },
     data: {
-      newsletterSubscribed: formData.get("newsletterSubscribed") === "on",
+      newsletterSubscribed: subscribed,
     },
   });
 
+  if (subscribed) {
+    await grantCurrentNewsletterCouponForUser(user.id);
+  }
+
   revalidatePath("/settings");
+  revalidatePath("/profile");
   redirect("/settings?status=newsletter-saved");
 }
 
