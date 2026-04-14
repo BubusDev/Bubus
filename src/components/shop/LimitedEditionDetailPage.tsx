@@ -12,10 +12,11 @@ type Props = {
   entry: SpecialEditionEntryView;
 };
 
-export function LimitedEditionDetailPage({ entry }: Props) {
+export function LimitedEditionFeature({ entry }: Props) {
   const { product } = entry;
   const isOutOfStock = isProductOutOfStock(product);
   const redirectTo = `/limitalt-darabok/${product.slug}`;
+  const productDetailsHref = `/product/${product.slug}#details`;
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#faf9f7] lg:grid lg:grid-cols-2">
@@ -110,6 +111,12 @@ export function LimitedEditionDetailPage({ entry }: Props) {
               addedClassName="bg-black text-white"
               idleClassName="bg-black text-white hover:bg-[#222]"
             />
+            <Link
+              href={productDetailsHref}
+              className="mt-4 inline-flex min-h-10 items-center justify-center text-xs uppercase tracking-widest text-gray-400 transition hover:text-[#1a1a1a] hover:underline"
+            >
+              DETAILS
+            </Link>
           </div>
 
           <LimitedEditionTabs product={product} />
@@ -117,4 +124,8 @@ export function LimitedEditionDetailPage({ entry }: Props) {
       </div>
     </div>
   );
+}
+
+export function LimitedEditionDetailPage({ entry }: Props) {
+  return <LimitedEditionFeature entry={entry} />;
 }

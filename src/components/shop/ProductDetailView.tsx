@@ -174,7 +174,10 @@ export function ProductDetailView({
           </div>
 
           {/* 6. Leírás — accordion */}
-          <details className="group border-t border-[#e8e5e0] pt-4">
+          <details
+            id="details"
+            className="group scroll-mt-32 border-t border-[#e8e5e0] pt-4"
+          >
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium text-[#1a1a1a]">
               Termékleírás
               <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#888] transition-transform duration-200 group-open:rotate-180" />
