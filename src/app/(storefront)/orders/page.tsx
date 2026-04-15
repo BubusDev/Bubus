@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
-import { reorderAction } from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
 import {
@@ -121,16 +120,6 @@ export default async function OrdersPage() {
                       </div>
 
                       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                        <form action={reorderAction}>
-                          <input type="hidden" name="orderId" value={order.id} />
-                          <button
-                            type="submit"
-                            className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#1a1a1a] px-4 text-sm font-medium text-white transition hover:bg-[#333]"
-                          >
-                            Újrarendelés
-                          </button>
-                        </form>
-
                         <Link
                           href={`/orders/${order.id}`}
                           className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"

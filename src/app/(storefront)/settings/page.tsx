@@ -124,7 +124,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             description="Az e-mail cím módosítása külön megerősítéssel történik, hogy a fiókod biztonságban maradjon."
           />
 
-          <div className="max-w-[28rem] space-y-4">
+          <div className="max-w-[28rem] space-y-6">
             <FieldLabel label="Jelenlegi e-mail cím">
               <input type="email" value={user.email} readOnly className={inputClassName} />
             </FieldLabel>
@@ -186,7 +186,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             <div className="mt-5">
               <button
                 type="submit"
-                className="inline-flex h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-5 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
               >
                 Beállítás mentése
               </button>

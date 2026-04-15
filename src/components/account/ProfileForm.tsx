@@ -1,9 +1,6 @@
 // ProfileForm.tsx
 "use client";
 
-import { useRef, useState } from "react";
-import { Camera } from "lucide-react";
-
 import { saveProfileAction } from "@/app/(storefront)/account/actions";
 
 type ProfileFormProps = {
@@ -68,102 +65,14 @@ function ProfileBlock({
 }
 
 export function ProfileForm({ user }: ProfileFormProps) {
-  const [imageValue, setImageValue] = useState(user.profileImageUrl ?? "");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <form action={saveProfileAction} className="w-full">
+      <input type="hidden" name="profileImageUrl" value={user.profileImageUrl ?? ""} />
       <div className="grid gap-4 lg:grid-cols-12">
-        <ProfileBlock
-          title="Profilkép / megjelenés"
-          description="Opcionális kép a fiókodhoz. Üresen hagyva a monogramod jelenik meg."
-          className="lg:col-span-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="relative shrink-0">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#eee7ea] bg-[#faf9f8] text-base font-semibold text-[#6f3f59]">
-                {imageValue ? (
-                  <img
-                    src={imageValue}
-                    alt="Profilkép"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#1a1a1a] text-white transition hover:bg-[#333]"
-                aria-label="Profilkép módosítása"
-              >
-                <Camera className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[#2d1f28]">{user.name}</p>
-              <p className="mt-1 text-sm leading-6 text-[#756771]">
-                Feltölthetsz képet, vagy megadhatsz közvetlen képlinket.
-              </p>
-            </div>
-          </div>
-
-          <input type="hidden" name="profileImageUrl" value={imageValue} />
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-
-              const reader = new FileReader();
-              reader.onload = () => {
-                if (typeof reader.result === "string") {
-                  setImageValue(reader.result);
-                }
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
-
-          <details className="mt-5 rounded-md border border-[#eee7ea] bg-[#fbfaf9] px-4 py-3">
-            <summary className="cursor-pointer text-sm font-medium text-[#5f5059]">
-              Profilkép link megadása
-            </summary>
-            <div className="mt-4">
-              <InputLabel label="Kép URL">
-                <input
-                  type="url"
-                  value={imageValue}
-                  onChange={(event) => setImageValue(event.target.value)}
-                  placeholder="https://..."
-                  className={inputClassName}
-                />
-              </InputLabel>
-              <p className="mt-2 text-xs leading-6 text-[#7b6773]">
-                Haladó opció, ha nem feltöltött képet használsz.
-              </p>
-            </div>
-          </details>
-        </ProfileBlock>
-
         <ProfileBlock
           title="Személyes információk"
           description="A rendeléseknél és a fiókodban használt alapadatok."
-          className="lg:col-span-8"
+          className="lg:col-span-12"
         >
           <div className="grid max-w-[46rem] gap-x-4 gap-y-4 md:grid-cols-2">
             <InputLabel label="Teljes név">
