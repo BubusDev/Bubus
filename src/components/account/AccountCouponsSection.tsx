@@ -6,14 +6,14 @@ import type { AccountCouponSummary } from "@/lib/account";
 
 function getCouponLabel(coupon: AccountCouponSummary) {
   if (coupon.label) return coupon.label;
-  if (coupon.code === "UDVNALUNK") return "Welcome coupon";
-  if (coupon.code.startsWith("HIRLEVEL")) return "Newsletter coupon";
+  if (coupon.code === "UDVNALUNK") return "Személyes kupon";
+  if (coupon.code.startsWith("HIRLEVEL")) return "Hírlevél kupon";
   return "Személyes kupon";
 }
 
 export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSummary[] }) {
   return (
-    <section className="border-t border-[#f0e8eb] bg-white px-8 py-8 sm:px-10">
+    <section id="kuponjaim" className="scroll-mt-28 border-t border-[#f0e8eb] bg-[#fffdfb] px-8 py-8 sm:px-10">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-[0.32em] text-[#b691a4]">

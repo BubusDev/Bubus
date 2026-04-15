@@ -76,11 +76,11 @@ export type AccountCouponSummary = {
 
 function getAccountCouponLabel(code: string, source?: string) {
   if (source === "welcome" || code === "UDVNALUNK") {
-    return "Welcome coupon";
+    return "Személyes kupon";
   }
 
   if (source === "newsletter_monthly" || code.startsWith("HIRLEVEL")) {
-    return "Newsletter coupon";
+    return "Hírlevél kupon";
   }
 
   return "Személyes kupon";
