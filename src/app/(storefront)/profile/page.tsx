@@ -26,7 +26,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       currentPath="/profile"
     >
       {resolvedSearchParams.status === "saved" ? (
-        <div className="flex items-center gap-3 rounded-[1.4rem] border border-[#d8ebdf] bg-[#f5fbf7] px-4 py-3 text-sm text-[#35624b]">
+        <div className="flex items-center gap-3 rounded-md border border-[#d8ebdf] bg-[#f5fbf7] px-4 py-3 text-sm text-[#35624b]">
           <CheckCircle2 className="h-4 w-4" />
           A profiladataid elmentettük.
         </div>

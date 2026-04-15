@@ -24,22 +24,22 @@ function StatusBanner({ status }: { status?: string }) {
 
   const text =
     status === "password-saved"
-      ? "Your password has been updated."
+      ? "A jelszavad frissült."
       : status === "newsletter-saved"
-        ? "Your newsletter preference has been saved."
+        ? "A hírlevél-beállításaidat elmentettük."
         : status === "password-invalid"
-          ? "Your current password is not correct."
+          ? "A jelenlegi jelszó nem megfelelő."
           : status === "password-short"
-            ? "Your new password must be at least 8 characters."
+            ? "Az új jelszónak legalább 8 karakter hosszúnak kell lennie."
             : status === "delete-error"
-              ? "Type TÖRLÉS exactly to delete the account."
-              : "Check the form and try again.";
+              ? "A törléshez pontosan ezt írd be: TÖRLÉS."
+              : "Ellenőrizd az adatokat, és próbáld újra.";
 
   return (
     <div
-      className={`flex items-center gap-3 border-b px-8 py-4 text-sm sm:px-10 ${
+      className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm ${
         isSuccess
-          ? "border-[#e4eee8] bg-[#f8fbf9] text-[#355b48]"
+          ? "border-[#d8ebdf] bg-[#f5fbf7] text-[#35624b]"
           : "border-[#f1d8e3] bg-[#fff8fb] text-[#9b476f]"
       }`}
     >
@@ -64,7 +64,7 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-6">
-      <p className="text-[10px] uppercase tracking-[0.32em] text-[#b3a0aa]">
+      <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
         {eyebrow}
       </p>
       <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">{title}</h2>
@@ -91,7 +91,7 @@ function FieldLabel({
 }
 
 const inputClassName =
-  "h-12 w-full border border-[#e9e3e6] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#dcc6d0]";
+  "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const currentUser = await requireUser("/settings");
@@ -102,153 +102,113 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   return (
     <AccountShell
-      title="Settings"
-      description="Password, newsletter, and account deletion."
+      title="Beállítások"
+      description="Belépési adatok, hírlevél és fiókkezelés egy helyen."
       currentPath="/settings"
     >
-      <section className="w-full bg-white">
-        <div className="grid w-full lg:grid-cols-[290px_minmax(0,1fr)]">
-          <aside className="border-b border-[#eee7ea] bg-[#fffefe] lg:min-h-[980px] lg:border-b-0 lg:border-r">
-            <div className="px-10 py-10">
-              <p className="text-[10px] uppercase tracking-[0.34em] text-[#b3a0aa]">
-                Account
-              </p>
-              <h1 className="mt-4 font-[family:var(--font-display)] text-[2.4rem] leading-none text-[#2d1f28]">
-                Settings
-              </h1>
-              <p className="mt-5 max-w-[24ch] text-sm leading-7 text-[#756771]">
-                Practical account controls without mixing them into the auth verification domain.
-              </p>
-            </div>
+      <StatusBanner status={resolvedSearchParams.status} />
 
-            <nav aria-label="Settings navigation" className="space-y-1 px-6 pb-10">
-              <div className="flex min-h-12 w-full items-center rounded-2xl bg-[#f7f4f5] px-4 text-[15px] font-medium text-[#2d1f28]">
-                General settings
-              </div>
-            </nav>
-          </aside>
+      <section className="rounded-lg border border-[#e8e5e0] bg-white/84">
+        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+          <SectionHeading
+            eyebrow="E-mail"
+            title="Belépési e-mail cím"
+            description="Az e-mail cím módosítása külön megerősítéssel történik, hogy a fiókod biztonságban maradjon."
+          />
 
-          <div className="min-w-0 bg-white">
-            <StatusBanner status={resolvedSearchParams.status} />
+          <div className="max-w-[40rem] space-y-4">
+            <FieldLabel label="Jelenlegi e-mail cím">
+              <input type="email" value={user.email} readOnly className={inputClassName} />
+            </FieldLabel>
 
-            <div className="px-8 py-8 sm:px-10 sm:py-10">
-              <div className="border-b border-[#eee7ea] pb-10">
-                <SectionHeading
-                  eyebrow="Email"
-                  title="Login email"
-                  description="Email changes now use the dedicated pending-email verification flow on the account page."
-                />
-
-                <div className="max-w-[40rem] space-y-4">
-                  <FieldLabel label="Current email">
-                    <input
-                      type="email"
-                      value={user.email}
-                      readOnly
-                      className={inputClassName}
-                    />
-                  </FieldLabel>
-
-                  <p className="text-sm leading-7 text-[#756771]">
-                    Go to the account page to request an email change with your current password and
-                    confirm the new address before it replaces the current one.
-                  </p>
-
-                  <Link
-                    href="/account"
-                    className="inline-flex h-12 items-center justify-center rounded-full border border-[#e6dde1] bg-white px-6 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
-                  >
-                    Manage email on account page
-                  </Link>
-                </div>
-              </div>
-
-              <div className="border-b border-[#eee7ea] py-10">
-                <SectionHeading
-                  eyebrow="Password"
-                  title="Change password"
-                  description="Confirm your current password first, then set a new one."
-                />
-
-                <form action={updatePasswordAction} className="max-w-[46rem]">
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <FieldLabel label="Current password">
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        className={inputClassName}
-                      />
-                    </FieldLabel>
-
-                    <FieldLabel label="New password">
-                      <input type="password" name="newPassword" className={inputClassName} />
-                    </FieldLabel>
-                  </div>
-
-                  <div className="mt-6">
-                    <button
-                      type="submit"
-                      className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
-                    >
-                      Update password
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <div className="border-b border-[#eee7ea] py-10">
-                <SectionHeading
-                  eyebrow="Newsletter"
-                  title="Notifications"
-                  description="Choose whether to receive store updates and editorial mail."
-                />
-
-                <form action={updateNewsletterAction} className="max-w-[52rem]">
-                  <label className="flex items-start gap-3 text-sm leading-7 text-[#5f5059]">
-                    <input
-                      type="checkbox"
-                      name="newsletterSubscribed"
-                      defaultChecked={user.newsletterSubscribed}
-                      className="mt-1 h-4 w-4 border border-[#d8cfd4]"
-                    />
-                    <span>Send me new arrivals, editorial updates, and occasional offers.</span>
-                  </label>
-
-                  <div className="mt-6">
-                    <button
-                      type="submit"
-                      className="inline-flex h-12 items-center justify-center rounded-full border border-[#e6dde1] bg-white px-6 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
-                    >
-                      Save preference
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <div className="py-10">
-                <SectionHeading
-                  eyebrow="Delete account"
-                  title="Delete account permanently"
-                  description="This removes the account, favourites, cart, and order history."
-                />
-
-                <form action={deleteAccountAction} className="max-w-[40rem]">
-                  <FieldLabel label="Type: TÖRLÉS">
-                    <input type="text" name="confirmation" className={inputClassName} />
-                  </FieldLabel>
-
-                  <div className="mt-6">
-                    <button
-                      type="submit"
-                      className="inline-flex h-12 items-center justify-center rounded-full bg-[#c85d86] px-6 text-sm font-medium text-white transition hover:bg-[#b74b75]"
-                    >
-                      Delete account
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+            <Link
+              href="/account"
+              className="inline-flex h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-5 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
+            >
+              E-mail cím módosítása
+            </Link>
           </div>
+        </div>
+
+        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+          <SectionHeading
+            eyebrow="Jelszó"
+            title="Jelszó módosítása"
+            description="Add meg a jelenlegi jelszavadat, majd válassz egy újat."
+          />
+
+          <form action={updatePasswordAction} className="max-w-[46rem]">
+            <div className="grid gap-5 md:grid-cols-2">
+              <FieldLabel label="Jelenlegi jelszó">
+                <input type="password" name="currentPassword" className={inputClassName} />
+              </FieldLabel>
+
+              <FieldLabel label="Új jelszó">
+                <input type="password" name="newPassword" className={inputClassName} />
+              </FieldLabel>
+            </div>
+
+            <div className="mt-6">
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
+              >
+                Jelszó mentése
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+          <SectionHeading
+            eyebrow="Hírlevél"
+            title="Értesítések"
+            description="Itt állíthatod be, hogy kérsz-e újdonságokat és alkalmi ajánlatokat."
+          />
+
+          <form action={updateNewsletterAction} className="max-w-[52rem]">
+            <label className="flex items-start gap-3 text-sm leading-7 text-[#5f5059]">
+              <input
+                type="checkbox"
+                name="newsletterSubscribed"
+                defaultChecked={user.newsletterSubscribed}
+                className="mt-1 h-4 w-4 rounded border border-[#d8cfd4]"
+              />
+              <span>Kérek értesítést az új darabokról, válogatásokról és kedvezményekről.</span>
+            </label>
+
+            <div className="mt-6">
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-5 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
+              >
+                Beállítás mentése
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="px-5 py-6 sm:px-7">
+          <SectionHeading
+            eyebrow="Fiók törlése"
+            title="Fiók végleges törlése"
+            description="Ez törli a fiókodat, a kedvenceidet, a kosaradat és a rendelési előzményeidet."
+          />
+
+          <form action={deleteAccountAction} className="max-w-[40rem]">
+            <FieldLabel label="Megerősítés: TÖRLÉS">
+              <input type="text" name="confirmation" className={inputClassName} />
+            </FieldLabel>
+
+            <div className="mt-6">
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[#9b476f] px-5 text-sm font-medium text-white transition hover:bg-[#853a5d]"
+              >
+                Fiók törlése
+              </button>
+            </div>
+          </form>
         </div>
       </section>
     </AccountShell>

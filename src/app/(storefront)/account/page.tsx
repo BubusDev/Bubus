@@ -3,6 +3,7 @@ import {
   requestEmailChangeAction,
   resendVerificationAction,
 } from "@/app/(storefront)/account/actions";
+import { AccountShell } from "@/components/account/AccountShell";
 import { requireAuthenticatedUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -27,36 +28,36 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
 
   if (status === "invalid-password") {
     return (
-      <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
-        Your current password is not correct.
+      <p className="rounded-md border border-[#f1d8e3] bg-[#fff8fb] px-4 py-3 text-sm text-[#9b476f]">
+        A jelenlegi jelszó nem megfelelő.
       </p>
     );
   }
 
   if (status === "invalid-email") {
     return (
-      <p className="border border-[#e7dfd7] bg-[#faf6f1] px-4 py-3 text-sm text-[#6e5e52]">
-        Enter a valid new email address.
+      <p className="rounded-md border border-[#f1d8e3] bg-[#fff8fb] px-4 py-3 text-sm text-[#9b476f]">
+        Adj meg egy érvényes új e-mail címet.
       </p>
     );
   }
 
   if (status === "unchanged") {
     return (
-      <p className="border border-[#e7dfd7] bg-[#faf8f4] px-4 py-3 text-sm text-[#514740]">
-        Your email address is already set to that value.
+      <p className="rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+        Ez az e-mail cím már be van állítva a fiókodhoz.
       </p>
     );
   }
 
   return (
-    <div className="space-y-2 border border-[#e7dfd7] bg-[#faf8f4] px-4 py-4 text-sm text-[#514740]">
-      <p>If the new address can be used, we prepared a confirmation link for it.</p>
+    <div className="space-y-2 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-4 text-sm text-[#514740]">
+      <p>Ha az új cím használható, elküldtük rá a megerősítéshez szükséges hivatkozást.</p>
       {process.env.NODE_ENV !== "production" && preview ? (
         <p>
-          Development preview:{" "}
+          Fejlesztői előnézet:{" "}
           <a href={preview} className="underline underline-offset-4">
-            open confirmation link
+            megerősítő link megnyitása
           </a>
         </p>
       ) : null}
@@ -64,112 +65,111 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
   );
 }
 
+const inputClassName =
+  "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
+
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const user = await requireAuthenticatedUser("/account");
   const resolvedSearchParams = await searchParams;
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-[1100px] px-4 py-10 sm:px-6 sm:py-14 lg:px-10 lg:py-16">
-      <section className="w-full max-w-[44rem] space-y-10 sm:space-y-12">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.34em] text-[#9b8978]">
-            Account
+    <AccountShell
+      title="E-mail és hozzáférés"
+      description="Itt ellenőrizheted az e-mail címed állapotát, és biztonságosan kérhetsz e-mail cím módosítást."
+      currentPath="/settings"
+    >
+      <section className="rounded-lg border border-[#e8e5e0] bg-white/84">
+        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+            Ellenőrzés
           </p>
-          <h1 className="mt-4 font-[family:var(--font-display)] text-[2.6rem] leading-[0.98] tracking-[-0.04em] text-[#201a17] sm:mt-6 sm:text-[3.5rem] lg:text-[4rem]">
-            Email and access.
-          </h1>
-          <p className="mt-4 text-[15px] leading-8 text-[#655b54] sm:mt-6">
-            Signed in as {user.email}. The rest of the account area stays protected, and
-            verification-sensitive flows remain separate from the Auth.js session layer.
+          <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">
+            E-mail cím állapota
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-[#655b54]">
+            Bejelentkezve ezzel a címmel: <span className="font-medium text-[#2d1f28]">{user.email}</span>
           </p>
-        </div>
-
-        <section className="space-y-4 border-t border-[#e7dfd7] pt-8">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-            Verification status
-          </p>
-          <p className="text-sm leading-7 text-[#655b54]">
+          <p className="mt-2 text-sm leading-7 text-[#655b54]">
             {user.emailVerifiedAt
-              ? "Verified. Normal signed-in usage is enabled."
-              : "Unverified. Normal signed-in usage stays restricted until your email is confirmed."}
+              ? "Az e-mail címed megerősítve, a fiókod teljesen használható."
+              : "Az e-mail címed még nincs megerősítve. A teljes fiókhasználathoz erősítsd meg a címed."}
           </p>
 
           {!user.emailVerifiedAt ? (
-            <form action={resendVerificationAction} className="space-y-4">
+            <form action={resendVerificationAction} className="mt-5">
               <input type="hidden" name="email" value={user.email} />
               <input type="hidden" name="redirectTo" value="/account" />
               <button
                 type="submit"
-                className="inline-flex h-11 items-center bg-[#201a17] px-5 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
+                className="inline-flex h-11 items-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
               >
-                Resend verification
+                Megerősítő e-mail újraküldése
               </button>
             </form>
           ) : null}
 
           {resolvedSearchParams.status === "verification-sent" ? (
-            <div className="space-y-2 border border-[#e7dfd7] bg-[#faf8f4] px-4 py-4 text-sm text-[#514740]">
-              <p>
-                If there is an unverified account for that email, a fresh verification link has
-                been prepared.
-              </p>
-            </div>
+            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+              Ha ehhez a címhez tartozik megerősítésre váró fiók, elküldtük az új linket.
+            </p>
           ) : null}
 
           {resolvedSearchParams.status === "verification-cooldown" ? (
-            <p className="border border-[#e7dfd7] bg-[#faf8f4] px-4 py-3 text-sm text-[#514740]">
-              A recent verification link was already prepared. Please wait a few minutes before
-              trying again.
+            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+              Nemrég már kértél megerősítő linket. Kérjük, várj néhány percet az újraküldés előtt.
             </p>
           ) : null}
-        </section>
+        </div>
 
-        <section className="space-y-6 border-t border-[#e7dfd7] pt-8">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-[#9b8978]">
-              Change email
-            </p>
-            <p className="mt-3 text-sm leading-7 text-[#655b54]">
-              Confirm your current password first. Your active email stays unchanged until the new
-              address is verified.
-            </p>
+        <div className="px-5 py-6 sm:px-7">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+            Módosítás
+          </p>
+          <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">
+            E-mail cím módosítása
+          </h2>
+          <p className="mt-3 max-w-[62ch] text-sm leading-7 text-[#655b54]">
+            A jelenlegi jelszavad megadása után megerősítő linket küldünk az új címre.
+            A régi címed addig marad aktív, amíg az újat meg nem erősíted.
+          </p>
+
+          <div className="mt-6">
+            {renderEmailChangeStatus(
+              resolvedSearchParams.emailStatus,
+              resolvedSearchParams.emailPreview,
+            )}
           </div>
 
-          {renderEmailChangeStatus(
-            resolvedSearchParams.emailStatus,
-            resolvedSearchParams.emailPreview,
-          )}
-
-          <form action={requestEmailChangeAction} className="space-y-5">
-            <label className="block space-y-2">
-              <span className="text-sm text-[#201a17]">Current password</span>
+          <form action={requestEmailChangeAction} className="mt-6 max-w-[46rem] space-y-5">
+            <label className="block space-y-2.5">
+              <span className="text-sm font-medium text-[#4f3e48]">Jelenlegi jelszó</span>
               <input
                 type="password"
                 name="currentPassword"
                 required
-                className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
+                className={inputClassName}
               />
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-sm text-[#201a17]">New email</span>
+            <label className="block space-y-2.5">
+              <span className="text-sm font-medium text-[#4f3e48]">Új e-mail cím</span>
               <input
                 type="email"
                 name="newEmail"
                 required
-                className="h-12 w-full border border-[#d9d0c8] bg-transparent px-4 text-sm text-[#201a17] outline-none transition focus:border-[#201a17]"
+                className={inputClassName}
               />
             </label>
 
             <button
               type="submit"
-              className="inline-flex h-11 items-center bg-[#201a17] px-5 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
+              className="inline-flex h-11 items-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
             >
-              Request email change
+              Módosítás kérése
             </button>
           </form>
-        </section>
+        </div>
       </section>
-    </main>
+    </AccountShell>
   );
 }

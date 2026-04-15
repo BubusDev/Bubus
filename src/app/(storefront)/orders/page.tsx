@@ -35,7 +35,7 @@ export default async function OrdersPage() {
           actionLabel="Termékek böngészése"
         />
       ) : (
-        <section className="w-full bg-white">
+        <section className="w-full overflow-hidden rounded-lg border border-[#e8e5e0] bg-white/84">
           <div className="divide-y divide-[#eee7ea]">
             {orders.map((order: OrderSummary) => {
               const customerStatus = getCustomerOrderStatusView({
@@ -56,7 +56,7 @@ export default async function OrdersPage() {
                           {order.orderNumber}
                         </p>
 
-                        <span className="inline-flex w-fit items-center rounded-full bg-[#f7f4f5] px-3 py-1 text-xs font-medium text-[#5e4d57]">
+                        <span className="inline-flex w-fit items-center rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-3 py-1 text-xs font-medium text-[#5e4d57]">
                           {customerStatus.label}
                         </span>
 
@@ -85,7 +85,7 @@ export default async function OrdersPage() {
                           return (
                             <div
                               key={item.id}
-                              className="flex min-w-0 items-center gap-3 rounded-full border border-[#ebe4e8] bg-white px-3 py-2"
+                              className="flex min-w-0 items-center gap-3 rounded-md border border-[#ebe4e8] bg-white px-3 py-2"
                             >
                               {displayImageUrl ? (
                                 <img
@@ -126,7 +126,7 @@ export default async function OrdersPage() {
                           <input type="hidden" name="orderId" value={order.id} />
                           <button
                             type="submit"
-                            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-4 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+                            className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#1a1a1a] px-4 text-sm font-medium text-white transition hover:bg-[#333]"
                           >
                             Újrarendelés
                           </button>
@@ -134,7 +134,7 @@ export default async function OrdersPage() {
 
                         <Link
                           href={`/orders/${order.id}`}
-                          className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
+                          className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
                         >
                           Részletek
                         </Link>

@@ -47,25 +47,25 @@ export default async function FavouritesPage() {
           actionLabel="Kollekció böngészése"
         />
       ) : (
-        <section className="space-y-10 px-6 sm:px-10 lg:px-16">
+        <section className="space-y-8 rounded-lg border border-[#e8e5e0] bg-white/84 px-5 py-6 sm:px-7">
 
           {/* Header */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.32em] text-[#b06b8e]">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
                 Kedvencek
               </p>
               <h2 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none text-[#2d1f28]">
                 Elmentett darabok
               </h2>
             </div>
-            <span className="text-xs uppercase tracking-[0.16em] text-[#9a738c]">
+            <span className="text-xs uppercase tracking-[0.16em] text-[#8c7f86]">
               {favourites.length} mentett
             </span>
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-2 xl:grid-cols-4">
             {favourites.map((item: FavouriteProduct) => (
               <article key={item.productId} className="group flex flex-col">
                 {(() => {
@@ -89,7 +89,7 @@ export default async function FavouritesPage() {
                           <Heart className="h-4 w-4 fill-[#df6da8] text-[#df6da8]" />
                         </div>
                         {isOutOfStock ? (
-                          <div className="absolute inset-x-3 bottom-3 rounded-[1.1rem] border border-[#f0d8e5] bg-white/92 px-3 py-2 text-center text-[11px] font-medium text-[#8d4b6d] shadow-[0_10px_24px_rgba(77,39,65,0.12)] backdrop-blur-sm">
+                            <div className="absolute inset-x-3 bottom-3 rounded-md border border-[#f0d8e5] bg-white/92 px-3 py-2 text-center text-[11px] font-medium text-[#8d4b6d]">
                             Ez a termék jelenleg nem elérhető
                           </div>
                         ) : null}
@@ -157,15 +157,17 @@ export default async function FavouritesPage() {
 
       {/* Esetleg érdekelheti */}
       {recommended.length > 0 && (
-        <section className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8 bg-white border-t border-b border-[#e8e5e0] px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mx-auto max-w-[900px]">
+        <section className="rounded-lg border border-[#e8e5e0] bg-white/84 px-5 py-8 sm:px-7">
+          <div>
 
-            <div className="text-center mb-10">
-              <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-2">Ajánlott</p>
-              <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
+            <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+              <p className="mb-2 text-[10px] uppercase tracking-[.3em] text-[#8c7f86]">Ajánlott</p>
+              <h2 className="font-[family:var(--font-display)] text-2xl leading-none text-[#1a1a1a]">
                 Esetleg érdekelheti Önt
               </h2>
-              <p className="mt-2 text-sm text-[#666]">A kedvencei alapján válogatva</p>
+              </div>
+              <p className="text-sm text-[#655b54]">A kedvencei alapján válogatva</p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
@@ -175,7 +177,7 @@ export default async function FavouritesPage() {
                 return (
                   <article key={product.id} className="group text-center">
                     <Link href={`/product/${product.slug}?redirectTo=/favourites`}>
-                      <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3">
+                      <div className="relative mb-3 aspect-[3/4] overflow-hidden bg-[#f5f3f0]">
                         {displayImageUrl ? (
                           <Image
                             src={displayImageUrl}
@@ -189,16 +191,16 @@ export default async function FavouritesPage() {
                         )}
                       </div>
                     </Link>
-                    <p className="text-[10px] uppercase tracking-[.2em] text-[#888] mb-1">
+                    <p className="mb-1 text-[10px] uppercase tracking-[.2em] text-[#888]">
                       {product.collectionLabel}
                     </p>
                     <Link
                       href={`/product/${product.slug}`}
-                      className="text-sm text-[#1a1a1a] hover:text-[#555] transition line-clamp-1"
+                      className="line-clamp-1 text-sm text-[#1a1a1a] transition hover:text-[#555]"
                     >
                       {product.name}
                     </Link>
-                    <p className="text-sm font-medium text-[#1a1a1a] mt-0.5">
+                    <p className="mt-0.5 text-sm font-medium text-[#1a1a1a]">
                       {formatPrice(product.price)}
                     </p>
                   </article>
