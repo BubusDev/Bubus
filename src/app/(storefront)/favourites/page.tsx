@@ -35,7 +35,6 @@ export default async function FavouritesPage() {
     <AccountShell
       title="Kedvencek"
       description="Az elmentett darabok egyetlen letisztult nézetben."
-      currentPath="/favourites"
     >
       {favourites.length === 0 ? (
         <EmptyStateCard
@@ -47,12 +46,12 @@ export default async function FavouritesPage() {
           actionLabel="Kollekció böngészése"
         />
       ) : (
-        <section className="space-y-8 rounded-lg border border-[#e8e5e0] bg-white/84 px-5 py-6 sm:px-7">
+        <section className="space-y-8 rounded-lg border border-[#e8e5e0] bg-white px-5 py-6 sm:px-7">
 
           {/* Header */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+              <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
                 Kedvencek
               </p>
               <h2 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none text-[#2d1f28]">
@@ -157,7 +156,7 @@ export default async function FavouritesPage() {
 
       {/* Esetleg érdekelheti */}
       {recommended.length > 0 && (
-        <section className="rounded-lg border border-[#e8e5e0] bg-white/84 px-5 py-8 sm:px-7">
+        <section className="rounded-lg border border-[#e8e5e0] bg-white px-5 py-8 sm:px-7">
           <div>
 
             <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

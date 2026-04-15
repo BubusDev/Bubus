@@ -13,10 +13,10 @@ function getCouponLabel(coupon: AccountCouponSummary) {
 
 export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSummary[] }) {
   return (
-    <section id="kuponjaim" className="scroll-mt-28 rounded-lg border border-[#e8e5e0] bg-white/84 px-5 py-6 sm:px-7">
+    <section id="kuponjaim" className="scroll-mt-28 rounded-lg border border-[#e8e5e0] bg-white px-5 py-6 sm:px-7">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
             Kuponok
           </p>
           <h3 className="mt-3 font-[family:var(--font-display)] text-[1.55rem] leading-none text-[#2d1f28]">
@@ -29,7 +29,7 @@ export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSumma
       </div>
 
       {coupons.length === 0 ? (
-        <div className="rounded-md border border-[#eee7ea] bg-[#fffdfb] px-5 py-5 text-sm leading-7 text-[#7b6773]">
+        <div className="rounded-md border border-[#eee7ea] bg-white px-5 py-5 text-sm leading-7 text-[#7b6773]">
           Jelenleg nincs elérhető kupon a profilodhoz.
         </div>
       ) : (

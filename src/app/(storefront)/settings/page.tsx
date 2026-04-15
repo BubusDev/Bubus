@@ -40,7 +40,7 @@ function StatusBanner({ status }: { status?: string }) {
       className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm ${
         isSuccess
           ? "border-[#d8ebdf] bg-[#f5fbf7] text-[#35624b]"
-          : "border-[#f1d8e3] bg-[#fff8fb] text-[#9b476f]"
+          : "border-[#ead6df] bg-white text-[#8d3f64]"
       }`}
     >
       {isSuccess ? (
@@ -64,7 +64,7 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-6">
-      <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+      <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
         {eyebrow}
       </p>
       <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">{title}</h2>
@@ -104,11 +104,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     <AccountShell
       title="Beállítások"
       description="Belépési adatok, hírlevél és fiókkezelés egy helyen."
-      currentPath="/settings"
     >
       <StatusBanner status={resolvedSearchParams.status} />
 
-      <section className="rounded-lg border border-[#e8e5e0] bg-white/84">
+      <section className="rounded-lg border border-[#e8e5e0] bg-white">
         <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
           <SectionHeading
             eyebrow="E-mail"

@@ -20,12 +20,12 @@ export function EmptyStateCard({
   actionHref,
 }: EmptyStateCardProps) {
   return (
-    <section className="rounded-lg border border-[#e8e5e0] bg-white/82 px-4 py-10 text-center sm:px-10 sm:py-14">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md border border-[#eee4e8] bg-[#fff8fb] text-[#9f7489]">
+    <section className="rounded-lg border border-[#e8e5e0] bg-white px-4 py-10 text-center sm:px-10 sm:py-14">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md border border-[#eee4e8] bg-white text-[#7a4f61]">
         <Icon className="h-7 w-7" />
       </div>
 
-      <p className="mt-5 text-[10px] uppercase tracking-[0.32em] text-[#b691a4]">
+      <p className="mt-5 text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
         {eyebrow}
       </p>
 

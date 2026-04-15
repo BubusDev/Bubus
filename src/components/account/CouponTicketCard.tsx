@@ -28,7 +28,7 @@ const statusLabels: Record<CouponTicketStatus, string> = {
 };
 
 const statusTone: Record<CouponTicketStatus, string> = {
-  active: "border-[#d8c7cf] bg-[#fff8fb] text-[#6f3f59]",
+  active: "border-[#d8c7cf] bg-white text-[#6f3f59]",
   used: "border-[#ded6da] bg-[#faf8f9] text-[#756870]",
   expired: "border-[#ded6da] bg-[#f7f5f6] text-[#81777d]",
   upcoming: "border-[#e2d6c6] bg-[#fffdf7] text-[#7a5c38]",
@@ -92,7 +92,7 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
   return (
     <article
       className={cx(
-        "relative overflow-hidden rounded-lg border border-[#e8e5e0] bg-[#fffdfb]",
+        "relative overflow-hidden rounded-lg border border-[#e8e5e0] bg-white",
         "transition duration-200 hover:border-[#d8c7cf]",
         isMuted && "opacity-65",
       )}

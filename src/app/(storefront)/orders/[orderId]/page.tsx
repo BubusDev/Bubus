@@ -39,9 +39,8 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
     <AccountShell
       title="Rendelés részletei"
       description="Letisztult összegzés a státuszról, a címről, a fizetésről és a rendelt tételekről."
-      currentPath="/orders"
     >
-      <section className="rounded-lg border border-[#e8e5e0] bg-white/84 p-5 sm:p-6">
+      <section className="rounded-lg border border-[#e8e5e0] bg-white p-5 sm:p-6">
         <div className="flex flex-col gap-4 border-b border-[#e8e5e0] pb-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-[0.28em] text-[#8c7f86]">
@@ -74,13 +73,13 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-md border border-[#e8e5e0] bg-[#fffdfb] p-4">
+          <div className="rounded-md border border-[#e8e5e0] bg-white p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#8c7f86]">Szállítás</p>
             <p className="mt-3 text-sm font-medium text-[#4d2741]">{order.shippingName}</p>
             <p className="mt-1 text-sm text-[#7a6070]">{order.shippingPhone}</p>
             <p className="mt-2 text-sm leading-7 text-[#7a6070]">{order.shippingAddress}</p>
           </div>
-          <div className="rounded-md border border-[#e8e5e0] bg-[#fffdfb] p-4">
+          <div className="rounded-md border border-[#e8e5e0] bg-white p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#8c7f86]">Fizetés</p>
             <p className="mt-3 text-sm font-medium text-[#4d2741]">{order.paymentMethod}</p>
             <p className="mt-2 text-sm text-[#7a6070]">
@@ -95,7 +94,7 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
                       : "A fizetés visszaigazolására várunk."}
             </p>
           </div>
-          <div className="rounded-md border border-[#e8e5e0] bg-[#fffdfb] p-4">
+          <div className="rounded-md border border-[#e8e5e0] bg-white p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#8c7f86]">Összesen</p>
             <p className="mt-3 text-2xl font-semibold text-[#4d2741]">{formatPrice(order.total)}</p>
             <p className="mt-2 text-sm text-[#7a6070]">Részösszeg: {formatPrice(order.subtotal)}</p>

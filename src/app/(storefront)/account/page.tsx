@@ -28,7 +28,7 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
 
   if (status === "invalid-password") {
     return (
-      <p className="rounded-md border border-[#f1d8e3] bg-[#fff8fb] px-4 py-3 text-sm text-[#9b476f]">
+      <p className="rounded-md border border-[#ead6df] bg-white px-4 py-3 text-sm text-[#8d3f64]">
         A jelenlegi jelszó nem megfelelő.
       </p>
     );
@@ -36,7 +36,7 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
 
   if (status === "invalid-email") {
     return (
-      <p className="rounded-md border border-[#f1d8e3] bg-[#fff8fb] px-4 py-3 text-sm text-[#9b476f]">
+      <p className="rounded-md border border-[#ead6df] bg-white px-4 py-3 text-sm text-[#8d3f64]">
         Adj meg egy érvényes új e-mail címet.
       </p>
     );
@@ -44,14 +44,14 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
 
   if (status === "unchanged") {
     return (
-      <p className="rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+      <p className="rounded-md border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#514740]">
         Ez az e-mail cím már be van állítva a fiókodhoz.
       </p>
     );
   }
 
   return (
-    <div className="space-y-2 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-4 text-sm text-[#514740]">
+    <div className="space-y-2 rounded-md border border-[#e8e5e0] bg-white px-4 py-4 text-sm text-[#514740]">
       <p>Ha az új cím használható, elküldtük rá a megerősítéshez szükséges hivatkozást.</p>
       {process.env.NODE_ENV !== "production" && preview ? (
         <p>
@@ -76,11 +76,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     <AccountShell
       title="E-mail és hozzáférés"
       description="Itt ellenőrizheted az e-mail címed állapotát, és biztonságosan kérhetsz e-mail cím módosítást."
-      currentPath="/settings"
     >
-      <section className="rounded-lg border border-[#e8e5e0] bg-white/84">
+      <section className="rounded-lg border border-[#e8e5e0] bg-white">
         <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
             Ellenőrzés
           </p>
           <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">
@@ -109,20 +108,20 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           ) : null}
 
           {resolvedSearchParams.status === "verification-sent" ? (
-            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#514740]">
               Ha ehhez a címhez tartozik megerősítésre váró fiók, elküldtük az új linket.
             </p>
           ) : null}
 
           {resolvedSearchParams.status === "verification-cooldown" ? (
-            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-4 py-3 text-sm text-[#514740]">
+            <p className="mt-5 rounded-md border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#514740]">
               Nemrég már kértél megerősítő linket. Kérjük, várj néhány percet az újraküldés előtt.
             </p>
           ) : null}
         </div>
 
         <div className="px-5 py-6 sm:px-7">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8c7f86]">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
             Módosítás
           </p>
           <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">

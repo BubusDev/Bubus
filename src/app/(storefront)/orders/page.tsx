@@ -23,7 +23,6 @@ export default async function OrdersPage() {
     <AccountShell
       title="Rendeléseim"
       description="Minden korábbi rendelésed egy rendezett, könnyen átnézhető listában."
-      currentPath="/orders"
     >
       {orders.length === 0 ? (
         <EmptyStateCard
@@ -35,7 +34,7 @@ export default async function OrdersPage() {
           actionLabel="Termékek böngészése"
         />
       ) : (
-        <section className="w-full overflow-hidden rounded-lg border border-[#e8e5e0] bg-white/84">
+        <section className="w-full overflow-hidden rounded-lg border border-[#e8e5e0] bg-white">
           <div className="divide-y divide-[#eee7ea]">
             {orders.map((order: OrderSummary) => {
               const customerStatus = getCustomerOrderStatusView({
@@ -56,7 +55,7 @@ export default async function OrdersPage() {
                           {order.orderNumber}
                         </p>
 
-                        <span className="inline-flex w-fit items-center rounded-md border border-[#e8e5e0] bg-[#fffdfb] px-3 py-1 text-xs font-medium text-[#5e4d57]">
+                        <span className="inline-flex w-fit items-center rounded-md border border-[#e8e5e0] bg-white px-3 py-1 text-xs font-medium text-[#5e4d57]">
                           {customerStatus.label}
                         </span>
 

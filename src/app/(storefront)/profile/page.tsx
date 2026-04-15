@@ -23,7 +23,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     <AccountShell
       title="Profil"
       description="A személyes adataid és alapértelmezett szállítási címed."
-      currentPath="/profile"
     >
       {resolvedSearchParams.status === "saved" ? (
         <div className="flex items-center gap-3 rounded-md border border-[#d8ebdf] bg-[#f5fbf7] px-4 py-3 text-sm text-[#35624b]">
