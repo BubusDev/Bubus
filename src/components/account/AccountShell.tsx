@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { AccountNavigation } from "@/components/account/AccountNavigation";
+
 type AccountShellProps = {
   title: string;
   description?: string;
@@ -12,22 +14,13 @@ export function AccountShell({
   children,
 }: AccountShellProps) {
   return (
-    <main className="mx-auto w-full max-w-[1080px] px-4 pb-20 pt-10 sm:px-6 sm:pt-12 lg:px-8">
-      <header className="pb-7">
-        <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
-          Fiókom
-        </p>
-        <h1 className="mt-3 font-[family:var(--font-display)] text-[2.25rem] leading-none tracking-[-0.02em] text-[#1a1a1a] sm:text-[2.75rem]">
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-4 max-w-[62ch] text-sm leading-7 text-[#655b54]">
-            {description}
-          </p>
-        ) : null}
-      </header>
-
-      <section className="space-y-7">{children}</section>
+    <main className="w-full border-t border-[#efe8e3] bg-[#faf8f7]/88">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:px-8 lg:py-8 xl:grid-cols-[16rem_minmax(0,1fr)]">
+        <h1 className="sr-only">{title}</h1>
+        {description ? <p className="sr-only">{description}</p> : null}
+        <AccountNavigation />
+        <section className="min-w-0 space-y-5">{children}</section>
+      </div>
     </main>
   );
 }

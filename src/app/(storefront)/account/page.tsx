@@ -66,7 +66,23 @@ function renderEmailChangeStatus(status?: string, preview?: string) {
 }
 
 const inputClassName =
-  "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
+  "h-11 w-full rounded-md border border-[#e4ded9] bg-white px-3.5 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
+
+function AccountCard({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={`rounded-lg border border-[#e8e2dd] bg-white p-5 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:p-6 ${className ?? ""}`}
+    >
+      {children}
+    </section>
+  );
+}
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const user = await requireAccountUser("/account");
@@ -77,18 +93,15 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       title="E-mail és hozzáférés"
       description="Itt ellenőrizheted az e-mail címed állapotát, és biztonságosan kérhetsz e-mail cím módosítást."
     >
-      <section className="rounded-lg border border-[#e8e5e0] bg-white">
-        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
-            Ellenőrzés
-          </p>
-          <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">
+      <div className="grid gap-5 xl:grid-cols-12">
+        <AccountCard className="xl:col-span-5">
+          <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">
             E-mail cím állapota
           </h2>
-          <p className="mt-3 text-sm leading-7 text-[#655b54]">
+          <p className="mt-3 text-sm leading-6 text-[#655b54]">
             Bejelentkezve ezzel a címmel: <span className="font-medium text-[#2d1f28]">{user.email}</span>
           </p>
-          <p className="mt-2 text-sm leading-7 text-[#655b54]">
+          <p className="mt-2 text-sm leading-6 text-[#655b54]">
             {user.emailVerifiedAt
               ? "Az e-mail címed megerősítve, a fiókod teljesen használható."
               : "Az e-mail címed még nincs megerősítve. A teljes fiókhasználathoz erősítsd meg a címed."}
@@ -118,16 +131,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               Nemrég már kértél megerősítő linket. Kérjük, várj néhány percet az újraküldés előtt.
             </p>
           ) : null}
-        </div>
+        </AccountCard>
 
-        <div className="px-5 py-6 sm:px-7">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
-            Módosítás
-          </p>
-          <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">
+        <AccountCard className="xl:col-span-7">
+          <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">
             E-mail cím módosítása
           </h2>
-          <p className="mt-3 max-w-[62ch] text-sm leading-7 text-[#655b54]">
+          <p className="mt-3 max-w-[62ch] text-sm leading-6 text-[#655b54]">
             A jelenlegi jelszavad megadása után megerősítő linket küldünk az új címre.
             A régi címed addig marad aktív, amíg az újat meg nem erősíted.
           </p>
@@ -139,7 +149,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             )}
           </div>
 
-          <form action={requestEmailChangeAction} className="mt-6 max-w-[46rem] space-y-5">
+          <form action={requestEmailChangeAction} className="mt-6 max-w-[44rem]">
+            <div className="grid gap-4 md:grid-cols-2">
             <label className="block space-y-2.5">
               <span className="text-sm font-medium text-[#4f3e48]">Jelenlegi jelszó</span>
               <input
@@ -159,16 +170,19 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 className={inputClassName}
               />
             </label>
+            </div>
 
-            <button
-              type="submit"
-              className="inline-flex h-11 items-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
-            >
-              Módosítás kérése
-            </button>
+            <div className="mt-5">
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
+              >
+                Módosítás kérése
+              </button>
+            </div>
           </form>
-        </div>
-      </section>
+        </AccountCard>
+      </div>
     </AccountShell>
   );
 }

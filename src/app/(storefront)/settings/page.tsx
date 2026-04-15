@@ -54,24 +54,37 @@ function StatusBanner({ status }: { status?: string }) {
 }
 
 function SectionHeading({
-  eyebrow,
   title,
   description,
 }: {
-  eyebrow: string;
   title: string;
   description?: string;
 }) {
   return (
-    <div className="mb-6">
-      <p className="text-[10px] uppercase tracking-[0.24em] text-[#8c7f86]">
-        {eyebrow}
-      </p>
-      <h2 className="mt-3 text-[1.2rem] font-semibold text-[#2d1f28]">{title}</h2>
+    <div className="mb-5">
+      <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">{title}</h2>
       {description ? (
-        <p className="mt-3 max-w-[62ch] text-sm leading-7 text-[#756771]">{description}</p>
+        <p className="mt-2 max-w-[50rem] text-sm leading-6 text-[#756771]">
+          {description}
+        </p>
       ) : null}
     </div>
+  );
+}
+
+function SettingsCard({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={`rounded-lg border border-[#e8e2dd] bg-white p-5 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:p-6 ${className ?? ""}`}
+    >
+      {children}
+    </section>
   );
 }
 
@@ -83,7 +96,7 @@ function FieldLabel({
   children: React.ReactNode;
 }) {
   return (
-    <label className="space-y-2.5">
+    <label className="space-y-2">
       <span className="text-sm font-medium text-[#4f3e48]">{label}</span>
       {children}
     </label>
@@ -91,7 +104,7 @@ function FieldLabel({
 }
 
 const inputClassName =
-  "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
+  "h-11 w-full rounded-md border border-[#e4ded9] bg-white px-3.5 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const currentUser = await requireAccountUser("/settings");
@@ -101,21 +114,17 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const resolvedSearchParams = await searchParams;
 
   return (
-    <AccountShell
-      title="Beállítások"
-      description="Belépési adatok, hírlevél és fiókkezelés egy helyen."
-    >
+    <AccountShell title="Beállítások">
       <StatusBanner status={resolvedSearchParams.status} />
 
-      <section className="rounded-lg border border-[#e8e5e0] bg-white">
-        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+      <div className="grid gap-5 xl:grid-cols-12">
+        <SettingsCard className="xl:col-span-5">
           <SectionHeading
-            eyebrow="E-mail"
             title="Belépési e-mail cím"
             description="Az e-mail cím módosítása külön megerősítéssel történik, hogy a fiókod biztonságban maradjon."
           />
 
-          <div className="max-w-[40rem] space-y-4">
+          <div className="max-w-[28rem] space-y-4">
             <FieldLabel label="Jelenlegi e-mail cím">
               <input type="email" value={user.email} readOnly className={inputClassName} />
             </FieldLabel>
@@ -127,17 +136,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               E-mail cím módosítása
             </Link>
           </div>
-        </div>
+        </SettingsCard>
 
-        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+        <SettingsCard className="xl:col-span-7">
           <SectionHeading
-            eyebrow="Jelszó"
             title="Jelszó módosítása"
             description="Add meg a jelenlegi jelszavadat, majd válassz egy újat."
           />
 
-          <form action={updatePasswordAction} className="max-w-[46rem]">
-            <div className="grid gap-5 md:grid-cols-2">
+          <form action={updatePasswordAction} className="max-w-[44rem]">
+            <div className="grid gap-4 md:grid-cols-2">
               <FieldLabel label="Jelenlegi jelszó">
                 <input type="password" name="currentPassword" className={inputClassName} />
               </FieldLabel>
@@ -147,7 +155,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </FieldLabel>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-5">
               <button
                 type="submit"
                 className="inline-flex h-11 items-center justify-center rounded-md bg-[#1a1a1a] px-5 text-sm font-medium text-white transition hover:bg-[#333]"
@@ -156,16 +164,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </button>
             </div>
           </form>
-        </div>
+        </SettingsCard>
 
-        <div className="border-b border-[#e8e5e0] px-5 py-6 sm:px-7">
+        <SettingsCard className="xl:col-span-5">
           <SectionHeading
-            eyebrow="Hírlevél"
-            title="Értesítések"
+            title="Hírlevél / értesítések"
             description="Itt állíthatod be, hogy kérsz-e újdonságokat és alkalmi ajánlatokat."
           />
 
-          <form action={updateNewsletterAction} className="max-w-[52rem]">
+          <form action={updateNewsletterAction}>
             <label className="flex items-start gap-3 text-sm leading-7 text-[#5f5059]">
               <input
                 type="checkbox"
@@ -176,7 +183,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <span>Kérek értesítést az új darabokról, válogatásokról és kedvezményekről.</span>
             </label>
 
-            <div className="mt-6">
+            <div className="mt-5">
               <button
                 type="submit"
                 className="inline-flex h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-5 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
@@ -185,21 +192,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </button>
             </div>
           </form>
-        </div>
+        </SettingsCard>
 
-        <div className="px-5 py-6 sm:px-7">
+        <SettingsCard className="xl:col-span-7">
           <SectionHeading
-            eyebrow="Fiók törlése"
-            title="Fiók végleges törlése"
+            title="Fiók és biztonság"
             description="Ez törli a fiókodat, a kedvenceidet, a kosaradat és a rendelési előzményeidet."
           />
 
-          <form action={deleteAccountAction} className="max-w-[40rem]">
+          <form action={deleteAccountAction} className="max-w-[28rem]">
             <FieldLabel label="Megerősítés: TÖRLÉS">
               <input type="text" name="confirmation" className={inputClassName} />
             </FieldLabel>
 
-            <div className="mt-6">
+            <div className="mt-5">
               <button
                 type="submit"
                 className="inline-flex h-11 items-center justify-center rounded-md bg-[#9b476f] px-5 text-sm font-medium text-white transition hover:bg-[#853a5d]"
@@ -208,8 +214,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </button>
             </div>
           </form>
-        </div>
-      </section>
+        </SettingsCard>
+      </div>
     </AccountShell>
   );
 }

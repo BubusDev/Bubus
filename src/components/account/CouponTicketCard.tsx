@@ -97,7 +97,7 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
         isMuted && "opacity-65",
       )}
     >
-      <div className="flex min-h-[17rem] flex-col px-5 py-5 sm:px-6 sm:py-6">
+      <div className="flex min-h-[14rem] flex-col px-5 py-5">
         <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
           <div className="min-w-0 space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8c7f86]">
@@ -116,7 +116,7 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
           </span>
         </div>
 
-        <div className="my-5 border-t border-[#e8e5e0]" />
+        <div className="my-4 border-t border-[#e8e5e0]" />
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="min-w-0">
@@ -164,7 +164,7 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
           ) : null}
         </div>
 
-        <div className="my-5 border-t border-[#e8e5e0]" />
+        <div className="my-4 border-t border-[#e8e5e0]" />
 
         <div className="mt-auto">
           <dl className="grid gap-4 text-xs leading-5 text-[#766a70] sm:grid-cols-3">
