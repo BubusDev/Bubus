@@ -69,6 +69,12 @@ enum PromoCodeEligibilityRule {
   REGISTERED_USERS_ONLY
 }
 
+enum PromoCodeApplicabilityScope {
+  ALL_PRODUCTS
+  CATEGORIES
+  PRODUCTS
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -184,6 +190,7 @@ model Product {
   images            ProductImage[]
   favourites        Favourite[]
   cartItems         CartItem[]
+  promoCodes        PromoCodeProduct[]
   orderItems        OrderItem[]
   inventoryEvents   InventoryEvent[]
   specialEditionEntries SpecialEditionEntry[]
@@ -224,6 +231,7 @@ model ProductOption {
   productsAsOccasion   Product[]         @relation("ProductOccasion")
   productsAsAvailability Product[]       @relation("ProductAvailability")
   productsAsTone       Product[]         @relation("ProductTone")
+  promoCodesAsCategory PromoCodeCategory[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
@@ -447,6 +455,7 @@ model PromoCode {
   code               String                 @unique
   discountPercent    Int
   eligibilityRule    PromoCodeEligibilityRule @default(ALL_USERS)
+  applicabilityScope PromoCodeApplicabilityScope @default(ALL_PRODUCTS)
   validFrom          DateTime
   validUntil         DateTime?
   isActive           Boolean                @default(true)
@@ -459,11 +468,40 @@ model PromoCode {
   orders             Order[]
   redemptions        PromoCodeRedemption[]
   grants             PromoCodeGrant[]
+  applicableCategories PromoCodeCategory[]
+  applicableProducts   PromoCodeProduct[]
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
 
   @@index([isActive, validFrom, validUntil])
   @@index([redeemedCount])
+  @@index([applicabilityScope])
+}
+
+model PromoCodeCategory {
+  id          String        @id @default(cuid())
+  promoCodeId String
+  categoryId  String
+  promoCode   PromoCode     @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  category    ProductOption @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@unique([promoCodeId, categoryId])
+  @@index([categoryId])
+  @@index([promoCodeId])
+}
+
+model PromoCodeProduct {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  productId   String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([promoCodeId, productId])
+  @@index([productId])
+  @@index([promoCodeId])
 }
 
 model PromoCodeGrant {

@@ -1,4 +1,9 @@
-import { PromoCodeEligibilityRule, type Prisma, type PromoCode } from "@prisma/client";
+import {
+  PromoCodeApplicabilityScope,
+  PromoCodeEligibilityRule,
+  type Prisma,
+  type PromoCode,
+} from "@prisma/client";
 
 import { normalizeStoredPrice } from "@/lib/catalog";
 
@@ -10,6 +15,7 @@ export type PromoValidationErrorCode =
   | "already_used"
   | "usage_limit_reached"
   | "minimum_order_amount_not_met"
+  | "not_applicable_to_cart"
   | "login_required"
   | "not_assigned";
 
@@ -18,11 +24,18 @@ export type PromoIdentity = {
   email?: string | null;
 };
 
+export type PromoCartLine = {
+  productId: string;
+  categoryId: string;
+  lineTotal: number;
+};
+
 export type AppliedPromo = {
   id: string;
   code: string;
   discountPercent: number;
   discountAmount: number;
+  applicableSubtotal: number;
 };
 
 export type PromoValidationResult =
@@ -30,6 +43,7 @@ export type PromoValidationResult =
       ok: true;
       promoCode: PromoCode;
       discountAmount: number;
+      applicableSubtotal: number;
       total: number;
     }
   | {
@@ -45,7 +59,8 @@ export const promoValidationMessages: Record<PromoValidationErrorCode, string> =
   not_yet_active: "Ez a promóciós kód még nem aktív.",
   already_used: "Ezt a promóciós kódot már felhasználtad.",
   usage_limit_reached: "Ez a promóciós kód elérte a felhasználási limitet.",
-  minimum_order_amount_not_met: "A kosár értéke nem éri el a kód minimum rendelési összegét.",
+  minimum_order_amount_not_met: "A kedvezményre jogosult termékek értéke nem éri el a kód minimum rendelési összegét.",
+  not_applicable_to_cart: "Ez a kupon a kosaradban lévő termékekre nem érvényes.",
   login_required: "Ez a kód csak bejelentkezett vásárlóknak érhető el.",
   not_assigned: "Ez a kupon nem érhető el a profilodhoz.",
 };
@@ -82,11 +97,49 @@ function getPromoCustomerKey(input: PromoIdentity) {
   return email ? `email:${email}` : null;
 }
 
+function getApplicableSubtotal(
+  promoCode: Pick<PromoCode, "applicabilityScope"> & {
+    applicableCategories: { categoryId: string }[];
+    applicableProducts: { productId: string }[];
+  },
+  subtotal: number,
+  cartLines?: PromoCartLine[],
+) {
+  if (promoCode.applicabilityScope === PromoCodeApplicabilityScope.ALL_PRODUCTS) {
+    return subtotal;
+  }
+
+  if (!cartLines || cartLines.length === 0) {
+    return 0;
+  }
+
+  if (promoCode.applicabilityScope === PromoCodeApplicabilityScope.CATEGORIES) {
+    const categoryIds = new Set(
+      promoCode.applicableCategories.map((entry) => entry.categoryId),
+    );
+
+    return cartLines.reduce(
+      (sum, line) => sum + (categoryIds.has(line.categoryId) ? line.lineTotal : 0),
+      0,
+    );
+  }
+
+  const productIds = new Set(
+    promoCode.applicableProducts.map((entry) => entry.productId),
+  );
+
+  return cartLines.reduce(
+    (sum, line) => sum + (productIds.has(line.productId) ? line.lineTotal : 0),
+    0,
+  );
+}
+
 export async function validatePromoCode(
   tx: Prisma.TransactionClient,
   input: {
     code: string;
     subtotal: number;
+    cartLines?: PromoCartLine[];
     identity?: PromoIdentity;
     now?: Date;
   },
@@ -107,6 +160,12 @@ export async function validatePromoCode(
         where: { userId: input.identity?.userId ?? "__guest__" },
         select: { id: true },
         take: 1,
+      },
+      applicableCategories: {
+        select: { categoryId: true },
+      },
+      applicableProducts: {
+        select: { productId: true },
       },
       _count: {
         select: { grants: true },
@@ -152,9 +211,19 @@ export async function validatePromoCode(
     return { ok: false, error: "usage_limit_reached" };
   }
 
+  const applicableSubtotal = getApplicableSubtotal(
+    promoCode,
+    subtotal,
+    input.cartLines,
+  );
+
+  if (applicableSubtotal <= 0) {
+    return { ok: false, error: "not_applicable_to_cart" };
+  }
+
   if (
     promoCode.minimumOrderAmount != null &&
-    subtotal < promoCode.minimumOrderAmount
+    applicableSubtotal < promoCode.minimumOrderAmount
   ) {
     return {
       ok: false,
@@ -182,12 +251,16 @@ export async function validatePromoCode(
     }
   }
 
-  const discountAmount = calculatePromoDiscount(subtotal, promoCode.discountPercent);
+  const discountAmount = calculatePromoDiscount(
+    applicableSubtotal,
+    promoCode.discountPercent,
+  );
 
   return {
     ok: true,
     promoCode,
     discountAmount,
+    applicableSubtotal,
     total: Math.max(0, subtotal - discountAmount),
   };
 }
@@ -200,6 +273,7 @@ export async function finalizePromoRedemption(
     userId?: string | null;
     email?: string | null;
     subtotal: number;
+    cartLines?: PromoCartLine[];
     discountAmount: number;
   },
 ) {
@@ -214,6 +288,7 @@ export async function finalizePromoRedemption(
   const validation = await validatePromoCode(tx, {
     code: promoCode.code,
     subtotal: input.subtotal,
+    cartLines: input.cartLines,
     identity: { userId: input.userId, email: input.email },
   });
 

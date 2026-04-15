@@ -54,6 +54,14 @@ export function PromoCodeForm({ appliedPromo }: { appliedPromo: AppliedPromo | n
               <span className="font-medium text-[#4d2741]">
                 {formatPrice(appliedPromo.discountAmount)}
               </span>
+              {appliedPromo.applicableSubtotal > 0 ? (
+                <>
+                  {" "}
+                  <span className="text-[#9a7d8c]">
+                    ({formatPrice(appliedPromo.applicableSubtotal)} jogosult értékből)
+                  </span>
+                </>
+              ) : null}
             </p>
           </div>
           <form action={removePromoCodeAction}>

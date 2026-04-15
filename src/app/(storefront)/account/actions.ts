@@ -164,6 +164,11 @@ export async function applyPromoCodeAction(
     validatePromoCode(tx, {
       code,
       subtotal: cart.subtotal,
+      cartLines: cart.items.map((item) => ({
+        productId: item.productId,
+        categoryId: item.categoryId,
+        lineTotal: item.lineTotal,
+      })),
       identity: {
         userId: user?.emailVerifiedAt ? user.id : null,
         email: user?.emailVerifiedAt ? user.email : checkoutSession?.email,

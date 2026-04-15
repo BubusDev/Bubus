@@ -4,7 +4,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Header } from "@/components/Header";
 import { RouteAwareSiteFooter } from "@/components/RouteAwareSiteFooter";
-import { getHeaderCounts } from "@/lib/account";
+import { getHeaderCounts, getHeaderCouponDropdownPreview } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
 import { getNavigationCategories } from "@/lib/products";
@@ -16,8 +16,9 @@ export default async function StorefrontLayout({
   children: ReactNode;
 }>) {
   const user = await getHeaderUser();
-  const [counts, announcement, navigationCategories, specialtyItems] = await Promise.all([
+  const [counts, couponPreview, announcement, navigationCategories, specialtyItems] = await Promise.all([
     getHeaderCounts(user?.id),
+    getHeaderCouponDropdownPreview(user?.id),
     getActiveAnnouncementBar(),
     getNavigationCategories(),
     getVisibleSpecialties(),
@@ -30,6 +31,7 @@ export default async function StorefrontLayout({
         user={user ?? undefined}
         favouritesCount={counts.favourites}
         cartCount={counts.cartItems}
+        couponPreview={couponPreview}
         navigationCategories={navigationCategories}
         specialtyItems={specialtyItems}
       />

@@ -1,4 +1,5 @@
 import { TicketPercent } from "lucide-react";
+import { ProductOptionType } from "@prisma/client";
 
 import {
   createPromoCodeAction,
@@ -24,8 +25,20 @@ const statusMessages: Record<string, string> = {
   deleted: "Promóciós kód törölve.",
   duplicate: "Ez a kód már létezik.",
   invalid: "Ellenőrizd a kötelező mezőket és a százalék értékét.",
+  "invalid-applicability": "Válassz legalább egy kategóriát vagy terméket a kiválasztott érvényességi körhöz.",
   "invalid-interval": "A lejárati dátum nem lehet korábbi, mint a kezdő dátum.",
   "delete-blocked": "Ez a kód már kosárhoz, rendeléshez vagy beváltáshoz kapcsolódik, ezért nem törölhető.",
+};
+
+const promoApplicabilityLabels = {
+  ALL_PRODUCTS: "All products",
+  CATEGORIES: "Selected categories",
+  PRODUCTS: "Selected products",
+} as const;
+
+type ApplicabilityOption = {
+  id: string;
+  name: string;
 };
 
 function toDateTimeLocal(value: Date | null) {
@@ -36,6 +49,8 @@ function toDateTimeLocal(value: Date | null) {
 
 function PromoCodeFields({
   promoCode,
+  categories,
+  products,
 }: {
   promoCode?: {
     id: string;
@@ -49,8 +64,20 @@ function PromoCodeFields({
     perCustomerUsageLimit: number | null;
     minimumOrderAmount: number | null;
     eligibilityRule: keyof typeof promoEligibilityLabels;
+    applicabilityScope: keyof typeof promoApplicabilityLabels;
+    applicableCategories: { categoryId: string }[];
+    applicableProducts: { productId: string }[];
   };
+  categories: ApplicabilityOption[];
+  products: ApplicabilityOption[];
 }) {
+  const selectedCategoryIds = new Set(
+    promoCode?.applicableCategories.map((entry) => entry.categoryId) ?? [],
+  );
+  const selectedProductIds = new Set(
+    promoCode?.applicableProducts.map((entry) => entry.productId) ?? [],
+  );
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <label className="grid gap-1.5">
@@ -112,6 +139,19 @@ function PromoCodeFields({
       </label>
 
       <label className="grid gap-1.5">
+        <span className="text-xs font-medium text-[var(--admin-ink-700)]">Applicability</span>
+        <select
+          name="applicabilityScope"
+          defaultValue={promoCode?.applicabilityScope ?? "ALL_PRODUCTS"}
+          className="admin-input h-10 px-3 text-sm"
+        >
+          <option value="ALL_PRODUCTS">All products</option>
+          <option value="CATEGORIES">Selected categories</option>
+          <option value="PRODUCTS">Selected products</option>
+        </select>
+      </label>
+
+      <label className="grid gap-1.5">
         <span className="text-xs font-medium text-[var(--admin-ink-700)]">Total usage limit</span>
         <input
           name="totalUsageLimit"
@@ -167,15 +207,67 @@ function PromoCodeFields({
           One-time-use
         </label>
       </div>
+
+      <div className="grid gap-3 sm:col-span-2 xl:col-span-2">
+        <label className="grid gap-1.5">
+          <span className="text-xs font-medium text-[var(--admin-ink-700)]">
+            Categories for category-scoped coupons
+          </span>
+          <select
+            name="categoryIds"
+            multiple
+            defaultValue={Array.from(selectedCategoryIds)}
+            className="admin-input min-h-28 px-3 py-2 text-sm"
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px] text-[var(--admin-ink-500)]">
+            Used only when applicability is “Selected categories”.
+          </span>
+        </label>
+      </div>
+
+      <div className="grid gap-3 sm:col-span-2 xl:col-span-2">
+        <label className="grid gap-1.5">
+          <span className="text-xs font-medium text-[var(--admin-ink-700)]">
+            Products for product-scoped coupons
+          </span>
+          <select
+            name="productIds"
+            multiple
+            defaultValue={Array.from(selectedProductIds)}
+            className="admin-input min-h-28 px-3 py-2 text-sm"
+          >
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px] text-[var(--admin-ink-500)]">
+            Used only when applicability is “Selected products”.
+          </span>
+        </label>
+      </div>
     </div>
   );
 }
 
 export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPageProps) {
-  const [{ status }, promoCodes] = await Promise.all([
+  const [{ status }, promoCodes, categories, products] = await Promise.all([
     searchParams,
     db.promoCode.findMany({
       include: {
+        applicableCategories: {
+          select: { categoryId: true },
+        },
+        applicableProducts: {
+          select: { productId: true },
+        },
         _count: {
           select: {
             redemptions: true,
@@ -185,6 +277,16 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
         },
       },
       orderBy: [{ createdAt: "desc" }],
+    }),
+    db.productOption.findMany({
+      where: { type: ProductOptionType.CATEGORY },
+      select: { id: true, name: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    }),
+    db.product.findMany({
+      where: { archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: [{ name: "asc" }],
     }),
   ]);
 
@@ -212,7 +314,7 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
           </div>
         </div>
 
-        <PromoCodeFields />
+        <PromoCodeFields categories={categories} products={products} />
 
         <div className="mt-5">
           <AdminActionButton type="submit" variant="primary">
@@ -253,6 +355,9 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
                       <span className="admin-filter-chip admin-control-sm">
                         {promoEligibilityLabels[promoCode.eligibilityRule]}
                       </span>
+                      <span className="admin-filter-chip admin-control-sm">
+                        {promoApplicabilityLabels[promoCode.applicabilityScope]}
+                      </span>
                     </div>
                     <p className="mt-1 text-xs text-[var(--admin-ink-600)]">
                       Used {promoCode.redeemedCount}
@@ -287,7 +392,11 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
 
                 <form action={updatePromoCodeAction}>
                   <input type="hidden" name="id" value={promoCode.id} />
-                  <PromoCodeFields promoCode={promoCode} />
+                  <PromoCodeFields
+                    promoCode={promoCode}
+                    categories={categories}
+                    products={products}
+                  />
                   <div className="mt-5">
                     <AdminActionButton type="submit" variant="secondary">
                       Save changes

@@ -1,4 +1,8 @@
-import { PromoCodeEligibilityRule, type Prisma } from "@prisma/client";
+import {
+  PromoCodeApplicabilityScope,
+  PromoCodeEligibilityRule,
+  type Prisma,
+} from "@prisma/client";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
@@ -35,6 +39,7 @@ export type CartItemSummary = {
   id: string;
   productId: string;
   slug: string;
+  categoryId: string;
   category: string;
   name: string;
   price: number;
@@ -72,6 +77,28 @@ export type AccountCouponSummary = {
   status: AccountCouponStatus;
   currentlyUsable: boolean;
   usedCount: number;
+};
+
+export type HeaderCouponPreview = {
+  id: string;
+  code: string;
+  discountPercent: number;
+  validUntil: string | null;
+  daysRemaining: number | null;
+};
+
+export type HeaderCouponProductPreview = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  imageUrl?: string | null;
+};
+
+export type HeaderCouponDropdownPreview = {
+  activeCoupons: HeaderCouponPreview[];
+  eligibleProducts: HeaderCouponProductPreview[];
+  recommendationLabel: string | null;
 };
 
 function getAccountCouponLabel(code: string, source?: string) {
@@ -216,6 +243,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
       id: item.id,
       productId: item.productId,
       slug: item.product.slug,
+      categoryId: item.product.categoryId,
       category: item.product.category.slug,
       name: item.product.name,
       price: item.product.price,
@@ -241,6 +269,11 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
       validatePromoCode(tx, {
         code: cart.promoCode!.code,
         subtotal,
+        cartLines: items.map((item) => ({
+          productId: item.productId,
+          categoryId: item.categoryId,
+          lineTotal: item.lineTotal,
+        })),
         identity: "userId" in owner ? { userId: owner.userId } : undefined,
       }),
     );
@@ -252,6 +285,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
         code: validation.promoCode.code,
         discountPercent: validation.promoCode.discountPercent,
         discountAmount: validation.discountAmount,
+        applicableSubtotal: validation.applicableSubtotal,
       };
     }
   }
@@ -561,6 +595,116 @@ export async function getCouponsForUser(userId: string) {
       };
     })
     .filter((coupon): coupon is AccountCouponSummary => coupon !== null);
+}
+
+export async function getHeaderCouponDropdownPreview(
+  userId?: string | null,
+): Promise<HeaderCouponDropdownPreview> {
+  if (!userId) {
+    return { activeCoupons: [], eligibleProducts: [], recommendationLabel: null };
+  }
+
+  const now = Date.now();
+  const coupons = await getCouponsForUser(userId);
+  const activeCoupons = coupons
+    .filter((coupon) => coupon.currentlyUsable)
+    .slice(0, 5)
+    .map((coupon) => ({
+      id: coupon.id,
+      code: coupon.code,
+      discountPercent: coupon.discountPercent,
+      validUntil: coupon.validUntil?.toISOString() ?? null,
+      daysRemaining: coupon.validUntil
+        ? Math.max(0, Math.ceil((coupon.validUntil.getTime() - now) / 86400000))
+        : null,
+    }));
+
+  const scopedCoupons = activeCoupons.length
+    ? await db.promoCode.findMany({
+        where: { id: { in: activeCoupons.map((coupon) => coupon.id) } },
+        select: {
+          applicabilityScope: true,
+          applicableCategories: { select: { categoryId: true } },
+          applicableProducts: { select: { productId: true } },
+        },
+      })
+    : [];
+  const productIds = new Set<string>();
+  const categoryIds = new Set<string>();
+
+  for (const coupon of scopedCoupons) {
+    if (coupon.applicabilityScope === PromoCodeApplicabilityScope.PRODUCTS) {
+      for (const product of coupon.applicableProducts) {
+        productIds.add(product.productId);
+      }
+    }
+
+    if (coupon.applicabilityScope === PromoCodeApplicabilityScope.CATEGORIES) {
+      for (const category of coupon.applicableCategories) {
+        categoryIds.add(category.categoryId);
+      }
+    }
+  }
+
+  const productWhere: Prisma.ProductWhereInput | null =
+    productIds.size > 0
+      ? { id: { in: Array.from(productIds) } }
+      : categoryIds.size > 0
+        ? { categoryId: { in: Array.from(categoryIds) } }
+        : activeCoupons.length > 0
+          ? {}
+          : null;
+  const recommendationLabel =
+    productIds.size > 0
+      ? "Kuponnal érintett darabok"
+      : categoryIds.size > 0
+        ? "Ajánlott darabok ezekből a kategóriákból"
+        : activeCoupons.length > 0
+          ? "Ajánlott darabok ehhez a kuponhoz"
+          : null;
+  const products = productWhere
+    ? await db.product.findMany({
+        where: {
+          ...productWhere,
+          archivedAt: null,
+          stockQuantity: { gt: 0 },
+        },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          price: true,
+          imageUrl: true,
+          images: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            select: { url: true, isCover: true },
+            take: 4,
+          },
+        },
+        orderBy: [
+          { isOnSale: "desc" },
+          { isGiftable: "desc" },
+          { isNew: "desc" },
+          { updatedAt: "desc" },
+        ],
+        take: 3,
+      })
+    : [];
+
+  return {
+    activeCoupons,
+    eligibleProducts: products.map((product) => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      imageUrl:
+        product.images.find((image) => image.isCover)?.url ??
+        product.images[0]?.url ??
+        product.imageUrl,
+    })),
+    recommendationLabel,
+  };
 }
 
 export async function addProductToCart(

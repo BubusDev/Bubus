@@ -11,6 +11,7 @@ import {
   headerSecondaryNavItems,
   type HeaderUser,
 } from "@/lib/header-data";
+import type { HeaderCouponDropdownPreview } from "@/lib/account";
 import type { NavigationCategory } from "@/lib/catalog";
 import {
   getSpecialtyHref,
@@ -21,6 +22,7 @@ type HeaderProps = {
   user?: HeaderUser;
   favouritesCount?: number;
   cartCount?: number;
+  couponPreview?: HeaderCouponDropdownPreview;
   navigationCategories?: NavigationCategory[];
   specialtyItems?: SpecialtyView[];
 };
@@ -96,6 +98,7 @@ export function Header({
   user,
   favouritesCount = 0,
   cartCount = 0,
+  couponPreview,
   navigationCategories = [],
   specialtyItems = [],
 }: HeaderProps) {
@@ -177,7 +180,7 @@ export function Header({
           <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
 
           {user ? (
-            <ProfileDropdown user={user} />
+            <ProfileDropdown user={user} couponPreview={couponPreview} />
           ) : (
             <Link
               href="/sign-in"
@@ -323,7 +326,7 @@ export function Header({
 
             {user ? (
               <div className="rounded-2xl border border-white/70 bg-white/72 p-2 backdrop-blur-md">
-                <ProfileDropdown user={user} />
+                <ProfileDropdown user={user} couponPreview={couponPreview} />
               </div>
             ) : (
               <Link

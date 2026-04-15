@@ -53,6 +53,7 @@ type CheckoutActor = {
 type CheckoutCartItem = {
   productId: string;
   slug: string;
+  categoryId: string;
   category: string;
   name: string;
   price: number;
@@ -157,6 +158,7 @@ async function getCheckoutCartSnapshot(
     return {
       productId: item.productId,
       slug: item.product.slug,
+      categoryId: item.product.categoryId,
       category: item.product.category.slug,
       name: item.product.name,
       price: normalizeCheckoutPrice(item.product.price),
@@ -177,6 +179,11 @@ async function getCheckoutCartSnapshot(
     const promoValidation = await validatePromoCode(tx, {
       code: cart.promoCode.code,
       subtotal,
+      cartLines: items.map((item) => ({
+        productId: item.productId,
+        categoryId: item.categoryId,
+        lineTotal: item.price * item.quantity,
+      })),
       identity: {
         userId: actor.userId,
         email: actor.email,
@@ -1030,11 +1037,16 @@ export async function finalizePaidOrder({
       });
       const promoValidation = promoCode
         ? await validatePromoCode(tx, {
-            code: promoCode.code,
-            subtotal: order.subtotal,
-            identity: {
-              userId: order.userId,
-              email: order.user?.email ?? order.guestEmail,
+          code: promoCode.code,
+          subtotal: order.subtotal,
+          cartLines: order.items.map((item) => ({
+            productId: item.productId,
+            categoryId: item.product.categoryId,
+            lineTotal: item.unitPrice * item.quantity,
+          })),
+          identity: {
+            userId: order.userId,
+            email: order.user?.email ?? order.guestEmail,
             },
           })
         : ({ ok: false, error: "invalid_code" } as const);
@@ -1099,6 +1111,11 @@ export async function finalizePaidOrder({
         userId: order.userId,
         email: order.user?.email ?? order.guestEmail,
         subtotal: order.subtotal,
+        cartLines: order.items.map((item) => ({
+          productId: item.productId,
+          categoryId: item.product.categoryId,
+          lineTotal: item.unitPrice * item.quantity,
+        })),
         discountAmount: order.discountAmount,
       });
     }

@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Prisma, PromoCodeEligibilityRule } from "@prisma/client";
+import {
+  Prisma,
+  PromoCodeApplicabilityScope,
+  PromoCodeEligibilityRule,
+} from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -29,6 +33,14 @@ function readDate(formData: FormData, key: string) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function readStringList(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 function redirectWithStatus(status: string): never {
   revalidatePath("/admin/promo-codes");
   revalidatePath("/cart");
@@ -50,9 +62,24 @@ function readPromoCodeInput(formData: FormData) {
   )
     ? (eligibilityRuleInput as PromoCodeEligibilityRule)
     : PromoCodeEligibilityRule.ALL_USERS;
+  const applicabilityScopeInput = readString(formData, "applicabilityScope");
+  const applicabilityScope = Object.values(PromoCodeApplicabilityScope).includes(
+    applicabilityScopeInput as PromoCodeApplicabilityScope,
+  )
+    ? (applicabilityScopeInput as PromoCodeApplicabilityScope)
+    : PromoCodeApplicabilityScope.ALL_PRODUCTS;
+  const categoryIds = Array.from(new Set(readStringList(formData, "categoryIds")));
+  const productIds = Array.from(new Set(readStringList(formData, "productIds")));
 
   if (!code || discountPercent < 1 || discountPercent > 100 || !validFrom) {
     redirectWithStatus("invalid");
+  }
+
+  if (
+    (applicabilityScope === PromoCodeApplicabilityScope.CATEGORIES && categoryIds.length === 0) ||
+    (applicabilityScope === PromoCodeApplicabilityScope.PRODUCTS && productIds.length === 0)
+  ) {
+    redirectWithStatus("invalid-applicability");
   }
 
   const startsAt = validFrom;
@@ -65,6 +92,7 @@ function readPromoCodeInput(formData: FormData) {
     code,
     discountPercent,
     eligibilityRule,
+    applicabilityScope,
     validFrom: startsAt,
     validUntil,
     isActive: formData.get("isActive") === "on",
@@ -74,15 +102,53 @@ function readPromoCodeInput(formData: FormData) {
       perCustomerUsageLimit && perCustomerUsageLimit > 0 ? perCustomerUsageLimit : null,
     minimumOrderAmount:
       minimumOrderAmount && minimumOrderAmount > 0 ? minimumOrderAmount : null,
+    categoryIds:
+      applicabilityScope === PromoCodeApplicabilityScope.CATEGORIES ? categoryIds : [],
+    productIds:
+      applicabilityScope === PromoCodeApplicabilityScope.PRODUCTS ? productIds : [],
   };
+}
+
+async function replacePromoApplicability(
+  tx: Prisma.TransactionClient,
+  promoCodeId: string,
+  input: ReturnType<typeof readPromoCodeInput>,
+) {
+  await Promise.all([
+    tx.promoCodeCategory.deleteMany({ where: { promoCodeId } }),
+    tx.promoCodeProduct.deleteMany({ where: { promoCodeId } }),
+  ]);
+
+  if (input.categoryIds.length > 0) {
+    await tx.promoCodeCategory.createMany({
+      data: input.categoryIds.map((categoryId) => ({ promoCodeId, categoryId })),
+      skipDuplicates: true,
+    });
+  }
+
+  if (input.productIds.length > 0) {
+    await tx.promoCodeProduct.createMany({
+      data: input.productIds.map((productId) => ({ promoCodeId, productId })),
+      skipDuplicates: true,
+    });
+  }
+}
+
+function getPromoCodeData(input: ReturnType<typeof readPromoCodeInput>) {
+  const { categoryIds: _categoryIds, productIds: _productIds, ...data } = input;
+  return data;
 }
 
 export async function createPromoCodeAction(formData: FormData) {
   await requireAdminUser("/admin/promo-codes");
+  const input = readPromoCodeInput(formData);
 
   try {
-    await db.promoCode.create({
-      data: readPromoCodeInput(formData),
+    await db.$transaction(async (tx) => {
+      const promoCode = await tx.promoCode.create({
+        data: getPromoCodeData(input),
+      });
+      await replacePromoApplicability(tx, promoCode.id, input);
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -101,11 +167,15 @@ export async function updatePromoCodeAction(formData: FormData) {
   if (!id) {
     redirectWithStatus("invalid");
   }
+  const input = readPromoCodeInput(formData);
 
   try {
-    await db.promoCode.update({
-      where: { id },
-      data: readPromoCodeInput(formData),
+    await db.$transaction(async (tx) => {
+      await tx.promoCode.update({
+        where: { id },
+        data: getPromoCodeData(input),
+      });
+      await replacePromoApplicability(tx, id, input);
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
