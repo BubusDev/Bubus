@@ -2,6 +2,7 @@ import { ActiveFilterChips } from "@/components/shop/ActiveFilterChips";
 import { CollectionSort } from "@/components/shop/CollectionSort";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { AccountCouponPill } from "@/components/account/AccountCouponPill";
 import {
   type CatalogFilters,
   type CategoryDefinition,
@@ -9,6 +10,7 @@ import {
   type ParsedCollectionState,
   type Product,
 } from "@/lib/catalog";
+import type { HeaderCouponDropdownPreview } from "@/lib/account";
 
 type CollectionPageProps = {
   category: CategoryDefinition;
@@ -17,6 +19,7 @@ type CollectionPageProps = {
   filterGroups: FilterGroup[];
   state: ParsedCollectionState;
   redirectTo?: string;
+  couponPreview?: HeaderCouponDropdownPreview;
 };
 
 export function CollectionPage({
@@ -25,6 +28,7 @@ export function CollectionPage({
   filterGroups,
   state,
   redirectTo = "/",
+  couponPreview,
 }: CollectionPageProps) {
   return (
     <main className="mx-auto max-w-[1450px] pb-24">
@@ -46,6 +50,7 @@ export function CollectionPage({
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <span className="text-xs text-[#888]">{products.length} termék</span>
+              {couponPreview && <AccountCouponPill couponPreview={couponPreview} />}
               <CollectionSort currentSort={state.sort} />
             </div>
           </div>
