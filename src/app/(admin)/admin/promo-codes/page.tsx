@@ -9,6 +9,7 @@ import {
 } from "@/app/(admin)/admin/promo-codes/actions";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { ProductSelector } from "@/components/admin/ProductSelector";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/catalog";
 import { promoEligibilityLabels } from "@/lib/promo-codes";
@@ -226,32 +227,25 @@ function PromoCodeFields({
             ))}
           </select>
           <span className="text-[11px] text-[var(--admin-ink-500)]">
-            Used only when applicability is “Selected categories”.
+            Used only when applicability is "Selected categories".
           </span>
         </label>
       </div>
 
       <div className="grid gap-3 sm:col-span-2 xl:col-span-2">
-        <label className="grid gap-1.5">
+        <div className="grid gap-1.5">
           <span className="text-xs font-medium text-[var(--admin-ink-700)]">
             Products for product-scoped coupons
           </span>
-          <select
+          <ProductSelector
+            products={products}
+            initialSelectedIds={Array.from(selectedProductIds)}
             name="productIds"
-            multiple
-            defaultValue={Array.from(selectedProductIds)}
-            className="admin-input min-h-28 px-3 py-2 text-sm"
-          >
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name}
-              </option>
-            ))}
-          </select>
+          />
           <span className="text-[11px] text-[var(--admin-ink-500)]">
-            Used only when applicability is “Selected products”.
+            Used only when applicability is &quot;Selected products&quot;.
           </span>
-        </label>
+        </div>
       </div>
     </div>
   );
