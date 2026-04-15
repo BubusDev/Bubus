@@ -4,7 +4,7 @@ import {
   resendVerificationAction,
 } from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
-import { requireAuthenticatedUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   robots: {
@@ -69,7 +69,7 @@ const inputClassName =
   "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
-  const user = await requireAuthenticatedUser("/account");
+  const user = await requireAccountUser("/account");
   const resolvedSearchParams = await searchParams;
 
   return (

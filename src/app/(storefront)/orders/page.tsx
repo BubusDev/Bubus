@@ -10,13 +10,13 @@ import {
   type OrderPreviewItem,
   type OrderSummary,
 } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
 
 export default async function OrdersPage() {
-  const user = await requireUser("/orders");
+  const user = await requireAccountUser("/orders");
   const orders = await getOrdersForUser(user.id);
 
   return (

@@ -28,6 +28,10 @@ export async function requireAuthenticatedUser(nextPath = "/") {
   return user;
 }
 
+export async function requireAccountUser(nextPath = "/profile") {
+  return requireAuthenticatedUser(nextPath);
+}
+
 export async function getHeaderUser(): Promise<HeaderUser | null> {
   const user = await getCurrentUser();
 

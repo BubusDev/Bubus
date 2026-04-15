@@ -14,7 +14,7 @@ import {
   type FavouriteProduct,
   getFavouriteProducts,
 } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCuratedProductRecommendations } from "@/lib/products";
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FavouritesPage() {
-  const user = await requireUser("/favourites");
+  const user = await requireAccountUser("/favourites");
   const favourites = await getFavouriteProducts(user.id);
   const wishlistProductIds = favourites.map((f) => f.productId);
   const recommended = favourites.length > 0

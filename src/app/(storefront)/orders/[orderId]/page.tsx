@@ -6,7 +6,7 @@ import { reorderAction } from "@/app/(storefront)/account/actions";
 import { submitReturnRequestAction } from "@/app/(storefront)/order-status/actions";
 import { AccountShell } from "@/components/account/AccountShell";
 import { formatDate, getOrderForUser } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 import { formatPrice } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
@@ -17,7 +17,7 @@ type OrderDetailPageProps = {
 };
 
 export default async function OrderDetailPage({ params, searchParams }: OrderDetailPageProps) {
-  const user = await requireUser("/orders");
+  const user = await requireAccountUser("/orders");
   const { orderId } = await params;
   const resolvedSearchParams = await searchParams;
   const order = await getOrderForUser(user.id, orderId);

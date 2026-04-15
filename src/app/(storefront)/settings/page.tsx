@@ -7,7 +7,7 @@ import {
   updatePasswordAction,
 } from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
-import { requireUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 type SettingsPageProps = {
@@ -94,7 +94,7 @@ const inputClassName =
   "h-12 w-full rounded-md border border-[#e8e5e0] bg-white px-4 text-sm text-[#2d1f28] outline-none transition placeholder:text-[#b7abb2] focus:border-[#4d2741]";
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  const currentUser = await requireUser("/settings");
+  const currentUser = await requireAccountUser("/settings");
   const user = await db.user.findUniqueOrThrow({
     where: { id: currentUser.id },
   });

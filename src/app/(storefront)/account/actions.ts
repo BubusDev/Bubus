@@ -10,7 +10,7 @@ import {
   getOrCreateCart,
   resolveRequestCart,
 } from "@/lib/account";
-import { getCurrentUser, requireUser } from "@/lib/auth";
+import { getCurrentUser, requireAccountUser } from "@/lib/auth";
 import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
@@ -222,7 +222,7 @@ export async function removePromoCodeAction() {
 }
 
 export async function addFavouriteAction(formData: FormData) {
-  const user = await requireUser("/favourites");
+  const user = await requireAccountUser("/favourites");
   const productId = readString(formData, "productId");
   const redirectTo = readString(formData, "redirectTo") || "/favourites";
 
@@ -245,7 +245,7 @@ export async function addFavouriteAction(formData: FormData) {
 }
 
 export async function removeFavouriteAction(formData: FormData) {
-  const user = await requireUser("/favourites");
+  const user = await requireAccountUser("/favourites");
   const productId = readString(formData, "productId");
 
   await db.favourite.deleteMany({
@@ -260,7 +260,7 @@ export async function removeFavouriteAction(formData: FormData) {
 }
 
 export async function moveFavouriteToCartAction(formData: FormData) {
-  const user = await requireUser("/favourites");
+  const user = await requireAccountUser("/favourites");
   const productId = readString(formData, "productId");
 
   if (productId) {
@@ -273,7 +273,7 @@ export async function moveFavouriteToCartAction(formData: FormData) {
 }
 
 export async function saveProfileAction(formData: FormData) {
-  const user = await requireUser("/profile");
+  const user = await requireAccountUser("/profile");
   const name = readString(formData, "name");
 
   if (name.length < 2) {
@@ -315,7 +315,7 @@ export async function resendVerificationAction(formData: FormData) {
 }
 
 export async function requestEmailChangeAction(formData: FormData) {
-  const user = await requireUser("/account");
+  const user = await requireAccountUser("/account");
   const currentPassword = readString(formData, "currentPassword");
   const newEmail = readString(formData, "newEmail");
 
@@ -337,7 +337,7 @@ export async function requestEmailChangeAction(formData: FormData) {
 }
 
 export async function updatePasswordAction(formData: FormData) {
-  const user = await requireUser("/settings");
+  const user = await requireAccountUser("/settings");
   const currentPassword = readString(formData, "currentPassword");
   const newPassword = readString(formData, "newPassword");
 
@@ -360,7 +360,7 @@ export async function updatePasswordAction(formData: FormData) {
 }
 
 export async function updateNewsletterAction(formData: FormData) {
-  const user = await requireUser("/settings");
+  const user = await requireAccountUser("/settings");
   const subscribed = formData.get("newsletterSubscribed") === "on";
 
   await db.user.update({
@@ -380,7 +380,7 @@ export async function updateNewsletterAction(formData: FormData) {
 }
 
 export async function deleteAccountAction(formData: FormData) {
-  const user = await requireUser("/settings");
+  const user = await requireAccountUser("/settings");
   const confirmation = readString(formData, "confirmation");
 
   if (confirmation !== "T\u00d6RL\u00c9S") {
@@ -395,7 +395,7 @@ export async function deleteAccountAction(formData: FormData) {
 }
 
 export async function reorderAction(formData: FormData) {
-  const user = await requireUser("/orders");
+  const user = await requireAccountUser("/orders");
   const orderId = readString(formData, "orderId");
   const order = await getOrderForUser(user.id, orderId);
 

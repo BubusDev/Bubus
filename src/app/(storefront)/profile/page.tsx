@@ -4,7 +4,7 @@ import { AccountCouponsSection } from "@/components/account/AccountCouponsSectio
 import { AccountShell } from "@/components/account/AccountShell";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { getCouponsForUser } from "@/lib/account";
-import { requireUser } from "@/lib/auth";
+import { requireAccountUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 type ProfilePageProps = {
@@ -12,7 +12,7 @@ type ProfilePageProps = {
 };
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
-  const currentUser = await requireUser("/profile");
+  const currentUser = await requireAccountUser("/profile");
   const user = await db.user.findUniqueOrThrow({
     where: { id: currentUser.id },
   });

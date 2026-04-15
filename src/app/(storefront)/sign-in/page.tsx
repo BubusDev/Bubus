@@ -24,6 +24,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
 
   if (user?.emailVerifiedAt) redirect(nextPath);
+  if (user) redirect("/verify-email");
 
   return (
     <AuthLayout
