@@ -1,15 +1,40 @@
 import Link from "next/link";
 
-import { confirmEmailChangeToken } from "@/lib/auth/email-change";
+import type { ConfirmEmailChangeResult } from "@/lib/auth/email-change";
 
 type ConfirmEmailChangePageProps = {
   searchParams: Promise<{
+    status?: string;
     token?: string;
   }>;
 };
 
-function getContent(status: "success" | "invalid" | "expired" | "already-used" | "email-taken") {
+type ConfirmEmailChangePageStatus = "ready" | ConfirmEmailChangeResult;
+
+function readStatus(
+  status: string | undefined,
+  token: string | undefined,
+): ConfirmEmailChangePageStatus {
+  if (
+    status === "success" ||
+    status === "invalid" ||
+    status === "expired" ||
+    status === "already-used" ||
+    status === "email-taken"
+  ) {
+    return status;
+  }
+
+  return token ? "ready" : "invalid";
+}
+
+function getContent(status: ConfirmEmailChangePageStatus) {
   switch (status) {
+    case "ready":
+      return {
+        title: "Confirm email change.",
+        description: "Use the button below to finish changing your account email.",
+      };
     case "success":
       return {
         title: "Email updated.",
@@ -42,9 +67,7 @@ export default async function ConfirmEmailChangePage({
   searchParams,
 }: ConfirmEmailChangePageProps) {
   const resolvedSearchParams = await searchParams;
-  const status = resolvedSearchParams.token
-    ? await confirmEmailChangeToken(resolvedSearchParams.token)
-    : "invalid";
+  const status = readStatus(resolvedSearchParams.status, resolvedSearchParams.token);
   const content = getContent(status);
 
   return (
@@ -59,6 +82,18 @@ export default async function ConfirmEmailChangePage({
         <p className="mt-6 max-w-[34rem] text-[15px] leading-8 text-[#655b54]">
           {content.description}
         </p>
+
+        {status === "ready" ? (
+          <form action="/auth/confirm-email-change" method="post" className="mt-8">
+            <input type="hidden" name="token" value={resolvedSearchParams.token ?? ""} />
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center bg-[#201a17] px-5 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
+            >
+              Confirm email change
+            </button>
+          </form>
+        ) : null}
 
         <div className="mt-10 flex flex-wrap gap-4">
           <Link

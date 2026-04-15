@@ -32,12 +32,14 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
             </p>
             <p className="text-sm font-medium text-[#1a1a1a]">{userEmail}</p>
           </div>
-          <Link
-            href="/auth/logout"
-            className="text-xs text-[#888] transition hover:text-[#1a1a1a]"
-          >
-            Kijelentkezés
-          </Link>
+          <form action="/auth/logout" method="post">
+            <button
+              type="submit"
+              className="text-xs text-[#888] transition hover:text-[#1a1a1a]"
+            >
+              Kijelentkezés
+            </button>
+          </form>
         </div>
         <button
           type="button"

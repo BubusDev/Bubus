@@ -78,13 +78,15 @@ export function AccountShell({
             </Link>
           );
         })}
-        <Link
-          href="/auth/logout"
-          className="ml-auto inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-[#e8e5e0] bg-white/76 px-3.5 text-sm text-[#5f5059] transition hover:border-[#d8c7cf] hover:bg-white hover:text-[#2d1f28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4d2741]/20"
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          <span>Kijelentkezés</span>
-        </Link>
+        <form action="/auth/logout" method="post" className="ml-auto">
+          <button
+            type="submit"
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-[#e8e5e0] bg-white/76 px-3.5 text-sm text-[#5f5059] transition hover:border-[#d8c7cf] hover:bg-white hover:text-[#2d1f28] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4d2741]/20"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            <span>Kijelentkezés</span>
+          </button>
+        </form>
       </nav>
 
       <section className="mt-8 space-y-8">{children}</section>

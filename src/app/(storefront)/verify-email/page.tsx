@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getCurrentUser } from "@/lib/auth";
-import { verifyEmailToken } from "@/lib/auth/email-verification";
+import type { VerifyEmailResult } from "@/lib/auth/email-verification";
 
 export const metadata: Metadata = {
   robots: {
@@ -18,8 +18,28 @@ type VerifyEmailPageProps = {
   }>;
 };
 
-function getContent(status: "pending" | "success" | "invalid" | "expired" | "already-used") {
+type VerifyEmailPageStatus = "pending" | "ready" | VerifyEmailResult;
+
+function readStatus(status: string | undefined, token: string | undefined): VerifyEmailPageStatus {
+  if (
+    status === "success" ||
+    status === "invalid" ||
+    status === "expired" ||
+    status === "already-used"
+  ) {
+    return status;
+  }
+
+  return token ? "ready" : "pending";
+}
+
+function getContent(status: VerifyEmailPageStatus) {
   switch (status) {
+    case "ready":
+      return {
+        title: "Confirm your email.",
+        description: "Use the button below to finish setting up your account.",
+      };
     case "pending":
       return {
         title: "Check your email.",
@@ -53,9 +73,7 @@ export default async function VerifyEmailPage({
 }: VerifyEmailPageProps) {
   const resolvedSearchParams = await searchParams;
   const currentUser = await getCurrentUser();
-  const status = resolvedSearchParams.token
-    ? await verifyEmailToken(resolvedSearchParams.token)
-    : "pending";
+  const status = readStatus(resolvedSearchParams.status, resolvedSearchParams.token);
   const content = getContent(status);
 
   return (
@@ -89,7 +107,19 @@ export default async function VerifyEmailPage({
           </p>
         ) : null}
 
-        {status !== "success" ? (
+        {status === "ready" ? (
+          <form action="/auth/verify-email" method="post" className="space-y-4 border-t border-[#e7dfd7] pt-8">
+            <input type="hidden" name="token" value={resolvedSearchParams.token ?? ""} />
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center bg-[#201a17] px-5 text-sm text-[#fffdf9] transition hover:bg-[#3a2f29]"
+            >
+              Confirm email
+            </button>
+          </form>
+        ) : null}
+
+        {status !== "success" && status !== "ready" ? (
           <form action="/auth/resend-verification" method="post" className="space-y-4 border-t border-[#e7dfd7] pt-8">
             <input type="hidden" name="redirectTo" value="/verify-email" />
             <label className="block space-y-2">

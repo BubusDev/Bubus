@@ -96,20 +96,19 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
 
           <div className="my-2 h-px bg-[#eee7ea]" />
 
-          <button
-            type="button"
-            className="group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
-            onClick={() => {
-              window.location.href = "/auth/logout";
-            }}
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
-              <LogOut className="h-[0.9rem] w-[0.9rem]" />
-            </span>
-            <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
-              Kijelentkezés
-            </span>
-          </button>
+          <form action="/auth/logout" method="post">
+            <button
+              type="submit"
+              className="group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
+                <LogOut className="h-[0.9rem] w-[0.9rem]" />
+              </span>
+              <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
+                Kijelentkezés
+              </span>
+            </button>
+          </form>
         </div>
       ) : null}
     </div>

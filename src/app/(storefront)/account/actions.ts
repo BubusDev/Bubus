@@ -10,7 +10,7 @@ import {
   getOrCreateCart,
   resolveRequestCart,
 } from "@/lib/account";
-import { getCurrentUser, requireAccountUser } from "@/lib/auth";
+import { getCurrentUser, logoutAndRedirect, requireAccountUser } from "@/lib/auth";
 import { requestEmailChange } from "@/lib/auth/email-change";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { resendVerificationEmail } from "@/lib/auth/resend-verification";
@@ -391,7 +391,7 @@ export async function deleteAccountAction(formData: FormData) {
     where: { id: user.id },
   });
 
-  redirect("/auth/logout");
+  await logoutAndRedirect();
 }
 
 export async function reorderAction(formData: FormData) {
