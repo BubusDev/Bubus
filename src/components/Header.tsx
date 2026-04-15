@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ArrowRight,
   ChevronDown,
   ChevronRight,
   Heart,
@@ -15,7 +14,7 @@ import {
 import { useEffect, useState } from "react";
 
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 import {
   headerSecondaryNavItems,
   type HeaderUser,
@@ -84,69 +83,43 @@ export function Header({
   specialtyItems = [],
 }: HeaderProps) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [mobileCouponOpen, setMobileCouponOpen] = useState(false);
+  const [cartPath, setCartPath] = useState<string | null>(null);
 
-  // Close everything on navigation
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    setCartOpen(false);
-    setMobileCouponOpen(false);
-  }, [pathname]);
+  const mobileMenuOpen = mobileMenuPath === pathname;
+  const cartOpen = cartPath === pathname;
 
   // Scroll lock when any overlay is open
   useEffect(() => {
-    const anyOpen = mobileMenuOpen || cartOpen || mobileCouponOpen;
+    const anyOpen = mobileMenuOpen || cartOpen;
     document.body.style.overflow = anyOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileMenuOpen, cartOpen, mobileCouponOpen]);
-
-  const activeCoupons = couponPreview?.activeCoupons ?? [];
-  const eligibleProducts = couponPreview?.eligibleProducts ?? [];
-  const recommendationLabel = couponPreview?.recommendationLabel;
-
-  const getNavLinkClassName = (href: string) =>
-    `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
-      pathname === href
-        ? "bg-white/90 text-[#4d2741] shadow-[0_10px_28px_rgba(138,95,120,0.12)]"
-        : "text-[#6b425a] hover:bg-[#a8346a]/90 hover:text-white"
-    }`;
+  }, [mobileMenuOpen, cartOpen]);
 
   return (
     <>
       <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
         <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
 
-          {/* ── COL 1: mobile hamburger / desktop left nav ── */}
+          {/* ── COL 1: mobile hamburger / desktop spacer ── */}
           <div>
             {/* Mobile hamburger */}
             <button
               type="button"
               aria-expanded={mobileMenuOpen}
               aria-label={mobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
-              onClick={() => setMobileMenuOpen((o) => !o)}
+              onClick={() =>
+                setMobileMenuPath((currentPath) =>
+                  currentPath === pathname ? null : pathname,
+                )
+              }
               className="flex h-11 w-11 items-center justify-center rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
-
-            {/* Desktop left nav */}
-            <nav
-              aria-label="Fő navigáció"
-              className="hidden items-center justify-self-start lg:flex"
-            >
-              <div className="flex flex-wrap items-center justify-center gap-1">
-                {navigationCategories.map(({ href, label }) => (
-                  <Link key={href} href={href} className={getNavLinkClassName(href)}>
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            </nav>
           </div>
 
           {/* ── COL 2: logo (center) ── */}
@@ -177,31 +150,20 @@ export function Header({
           <div className="flex items-center justify-end gap-1">
             {/* Mobile: user icon + cart icon */}
             <div className="flex items-center gap-1.5 lg:hidden">
-              {/* User / coupon icon */}
-              {user ? (
-                <button
-                  type="button"
-                  aria-label="Kuponjaim"
-                  onClick={() => setMobileCouponOpen((o) => !o)}
-                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                >
-                  <User className="h-[1.1rem] w-[1.1rem]" />
-                </button>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  aria-label="Belépés"
-                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                >
-                  <User className="h-[1.1rem] w-[1.1rem]" />
-                </Link>
-              )}
+              {/* User icon → /account or /sign-in */}
+              <Link
+                href={user ? "/account" : "/sign-in"}
+                aria-label={user ? "Fiókom" : "Belépés"}
+                className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+              >
+                <User className="h-[1.1rem] w-[1.1rem]" />
+              </Link>
 
               {/* Cart icon → opens drawer */}
               <button
                 type="button"
                 aria-label="Kosár"
-                onClick={() => setCartOpen(true)}
+                onClick={() => setCartPath(pathname)}
                 className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
               >
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
@@ -258,7 +220,7 @@ export function Header({
           <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 py-4">
             <Link
               href="/"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => setMobileMenuPath(null)}
               className="flex flex-col leading-none"
             >
               <span className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-[#c0517a]">
@@ -280,7 +242,7 @@ export function Header({
             <button
               type="button"
               aria-label="Menü bezárása"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => setMobileMenuPath(null)}
             >
               <X className="h-5 w-5 text-[#1a1a1a]" strokeWidth={1.5} />
             </button>
@@ -292,7 +254,7 @@ export function Header({
               <Link
                 key={href}
                 href={href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
                 className="flex items-center justify-between border-b border-[#f5f4f2] py-4 text-base font-semibold text-[#1a1a1a]"
               >
                 {label}
@@ -319,7 +281,7 @@ export function Header({
                     <Link
                       key={item.id}
                       href={getSpecialtyHref(item)}
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() => setMobileMenuPath(null)}
                       className="flex items-center justify-between border-b border-[#f5f4f2] py-3 pl-4 text-sm text-[#555]"
                     >
                       {item.name}
@@ -339,7 +301,7 @@ export function Header({
               <Link
                 key={href}
                 href={href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
               >
                 {label}
@@ -348,7 +310,7 @@ export function Header({
             {user ? (
               <Link
                 href="/profile"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
               >
                 Profilom
@@ -356,7 +318,7 @@ export function Header({
             ) : (
               <Link
                 href="/sign-in"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
               >
                 Belépés
@@ -379,73 +341,10 @@ export function Header({
       {/* ── CART DRAWER ── */}
       <CartDrawer
         isOpen={cartOpen}
-        onClose={() => setCartOpen(false)}
+        onClose={() => setCartPath(null)}
         cartCount={cartCount}
       />
 
-      {/* ── MOBIL COUPON BOTTOM SHEET ── */}
-      {mobileCouponOpen && (
-        <div className="fixed inset-0 z-[300] lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileCouponOpen(false)}
-          />
-          <div className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-2xl bg-white animate-[slideInBottom_.25s_ease-out]">
-            {/* Handle bar */}
-            <div className="flex justify-center pb-2 pt-3">
-              <div className="h-1 w-10 rounded-full bg-[#e8e5e0]" />
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 pb-3">
-              <p className="text-sm font-semibold text-[#1a1a1a]">Kuponjaim</p>
-              <button
-                type="button"
-                onClick={() => setMobileCouponOpen(false)}
-              >
-                <X className="h-4 w-4 text-[#888]" />
-              </button>
-            </div>
-
-            {/* Coupon list */}
-            <div className="flex-1 overflow-y-auto px-5 py-3">
-              {activeCoupons.length === 0 ? (
-                <p className="py-6 text-center text-xs text-[#aaa]">
-                  Nincs aktív kuponod
-                </p>
-              ) : (
-                activeCoupons.map((coupon) => (
-                  <MiniCouponRow key={coupon.id} coupon={coupon} />
-                ))
-              )}
-
-              {eligibleProducts.length > 0 && (
-                <div className="mt-4 border-t border-[#f0ede8] pt-4">
-                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.18em] text-[#b08898]">
-                    {recommendationLabel ?? "Ezekre is érvényes"}
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {eligibleProducts.slice(0, 3).map((product) => (
-                      <MiniProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Link to all coupons */}
-            <div className="border-t border-[#f0ede8] px-5 py-4">
-              <Link
-                href="/profile#kuponjaim"
-                onClick={() => setMobileCouponOpen(false)}
-                className="flex items-center gap-1 text-xs text-[#888] transition hover:text-[#1a1a1a]"
-              >
-                Összes kupon <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

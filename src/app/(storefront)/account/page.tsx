@@ -4,7 +4,9 @@ import {
   resendVerificationAction,
 } from "@/app/(storefront)/account/actions";
 import { AccountShell } from "@/components/account/AccountShell";
+import { AccountCouponPill } from "@/components/account/AccountCouponPill";
 import { requireAccountUser } from "@/lib/auth";
+import { getHeaderCouponDropdownPreview } from "@/lib/account";
 
 export const metadata: Metadata = {
   robots: {
@@ -86,12 +88,16 @@ function AccountCard({
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const user = await requireAccountUser("/account");
-  const resolvedSearchParams = await searchParams;
+  const [resolvedSearchParams, couponPreview] = await Promise.all([
+    searchParams,
+    getHeaderCouponDropdownPreview(user.id),
+  ]);
 
   return (
     <AccountShell
       title="E-mail és hozzáférés"
       description="Itt ellenőrizheted az e-mail címed állapotát, és biztonságosan kérhetsz e-mail cím módosítást."
+      banner={<AccountCouponPill couponPreview={couponPreview} />}
     >
       <div className="grid gap-4 lg:grid-cols-12">
         <AccountCard className="lg:col-span-5">

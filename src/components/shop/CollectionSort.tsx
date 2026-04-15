@@ -1,13 +1,15 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowUpDown, X, Check } from "lucide-react";
 
-const sortOptions = [
-  { value: "featured", label: "Kiemelt" },
-  { value: "newest", label: "Újdonságok" },
-  { value: "price-asc", label: "Ár szerint növekvő" },
-  { value: "price-desc", label: "Ár szerint csökkenő" },
-  { value: "name", label: "Név szerint" },
+const SORT_OPTIONS = [
+  { value: "featured",   label: "Kiemelt" },
+  { value: "newest",     label: "Legújabb" },
+  { value: "price-asc",  label: "Ár: növekvő" },
+  { value: "price-desc", label: "Ár: csökkenő" },
 ];
 
 type CollectionSortProps = {
@@ -15,31 +17,67 @@ type CollectionSortProps = {
 };
 
 export function CollectionSort({ currentSort }: CollectionSortProps) {
-  const router = useRouter();
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  return (
-    <label className="inline-flex min-h-11 items-center gap-3 border-b border-[#eadce4] pb-2 text-sm text-[#6d5260]">
-      <span className="text-[10px] uppercase tracking-[0.28em] text-[#a97b94]">
-        Rendezés
-      </span>
+  const currentLabel = SORT_OPTIONS.find(o => o.value === currentSort)?.label ?? "Rendezés";
 
-      <select
-        value={currentSort}
-        onChange={(event) => {
-          const params = new URLSearchParams(searchParams.toString());
-          params.set("sort", event.target.value);
-          router.push(`${pathname}?${params.toString()}`);
-        }}
-        className="min-h-10 rounded-full border border-[#ead6e1] bg-[#fffafc] px-3 py-2 text-sm font-medium text-[#4d2741] shadow-[0_10px_24px_rgba(176,113,145,0.08)] outline-none transition focus:border-[#dca9c3]"
+  return (
+    <>
+      {/* Trigger gomb */}
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 text-sm text-[#1a1a1a] border border-[#e8e5e0] px-3 py-1.5 hover:border-[#1a1a1a] transition"
       >
-        {sortOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.5} />
+        {currentLabel}
+      </button>
+
+      {/* Overlay + panel */}
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-[150] bg-black/20"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="fixed top-0 right-0 bottom-0 z-[151] w-[260px] bg-white shadow-2xl flex flex-col"
+            style={{ animation: "slideInRight .22s ease-out" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0ede8]">
+              <p className="text-sm font-semibold text-[#1a1a1a]">Rendezés</p>
+              <button onClick={() => setOpen(false)}>
+                <X className="h-4 w-4 text-[#888]" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Opciók */}
+            <div className="flex-1 py-2">
+              {SORT_OPTIONS.map(option => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("sort", option.value);
+                const href = `${pathname}?${params.toString()}`;
+                const isActive = currentSort === option.value;
+
+                return (
+                  <Link
+                    key={option.value}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center justify-between px-5 py-3.5 text-sm border-b border-[#f5f4f2] transition
+                      ${isActive ? "text-[#1a1a1a] font-semibold" : "text-[#555] hover:text-[#1a1a1a]"}`}
+                  >
+                    {option.label}
+                    {isActive && <Check className="h-4 w-4 text-[#1a1a1a]" strokeWidth={2} />}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }
