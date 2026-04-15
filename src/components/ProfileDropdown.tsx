@@ -159,7 +159,7 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative inline-flex h-10 w-10 shrink-0" ref={containerRef}>
       <button
         type="button"
         aria-haspopup="menu"
@@ -177,7 +177,7 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
         <div
           role="menu"
           aria-label="Profil menü"
-          className="user-dropdown-wrap dropdown-reveal absolute right-0 top-[calc(100%+0.75rem)] z-50"
+          className="user-dropdown-wrap dropdown-reveal absolute right-0 top-full z-50 mt-3"
           onMouseLeave={() => setIsCouponPanelOpen(false)}
         >
           <div className="user-menu-left bg-white/96 p-2 backdrop-blur-xl">

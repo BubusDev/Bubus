@@ -12,11 +12,11 @@
 @keyframes dropdown-reveal {
   from {
     opacity: 0;
-    transform: translateY(-0.35rem) scale(0.985);
+    transform: scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
@@ -164,7 +164,6 @@ body {
 }
 
 .user-dropdown-wrap {
-  position: relative;
   display: flex;
 }
 
