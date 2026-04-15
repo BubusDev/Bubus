@@ -12,7 +12,7 @@ Copy `.env.example` and set these values before running checkout locally or in p
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 
-For local browser auth testing, keep `AUTH_URL=http://127.0.0.1:3000` so Auth.js uses the local origin instead of the deployed site.
+For local browser auth testing, keep `AUTH_URL=http://localhost:3000` and open the app at `http://localhost:3000` so Auth.js cookies stay on the same local host.
 
 ## Local Auth Test Accounts
 

@@ -1,4 +1,4 @@
-const LOCAL_DEV_URL = "http://127.0.0.1:3000";
+const LOCAL_DEV_URL = "http://localhost:3000";
 
 function normalizeUrl(url: string) {
   if (/^https?:\/\//i.test(url)) {
