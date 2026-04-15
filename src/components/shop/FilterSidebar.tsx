@@ -276,10 +276,10 @@ export function FilterSidebar(props: FilterSidebarProps) {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-rose-200/70 bg-white/65 px-4 py-2 text-sm font-medium text-[#6b425a] backdrop-blur-sm transition hover:bg-white/80"
+            className="inline-flex items-center gap-2 border border-[#1a1a1a] px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
           >
-            <SlidersHorizontal className="h-3.5 w-3.5 text-rose-400" />
-            Szűrők
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={1.5} />
+            Szűrő
           </button>
         </div>
       )}
@@ -302,12 +302,12 @@ export function FilterSidebar(props: FilterSidebarProps) {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="ml-auto h-full overflow-y-auto"
+            className="h-full overflow-y-auto animate-[slideInLeft_.2s_ease-out]"
             style={{
-              width: "min(460px, 100%)",
-              background: "rgba(255,255,255,.88)",
+              width: "min(320px, 100%)",
+              background: "rgba(255,255,255,.96)",
               backdropFilter: "blur(20px)",
-              boxShadow: "-16px 0 48px -8px rgba(196,90,133,.15)",
+              boxShadow: "16px 0 48px -8px rgba(196,90,133,.15)",
             }}
             onClick={(e) => e.stopPropagation()}
           >

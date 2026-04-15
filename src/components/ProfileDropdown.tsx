@@ -25,7 +25,7 @@ type ProfileDropdownProps = {
   couponPreview?: HeaderCouponDropdownPreview;
 };
 
-function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
+export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
   const [copied, setCopied] = useState(false);
   const daysRemaining = coupon.daysRemaining;
   const urgencyColor =
@@ -98,7 +98,7 @@ function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
   );
 }
 
-function MiniProductCard({ product }: { product: HeaderCouponProductPreview }) {
+export function MiniProductCard({ product }: { product: HeaderCouponProductPreview }) {
   return (
     <Link href={`/product/${product.slug}`} className="block no-underline">
       <div className="relative mb-1.5 aspect-[3/4] overflow-hidden rounded bg-[#f5f3f0]">

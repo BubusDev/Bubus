@@ -2,12 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
-
-import { ProfileDropdown } from "@/components/ProfileDropdown";
 import {
-  headerPrimaryNavItems,
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  Heart,
+  Menu,
+  ShoppingBag,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
+import {
   headerSecondaryNavItems,
   type HeaderUser,
 } from "@/lib/header-data";
@@ -31,7 +40,7 @@ type HeaderActionButtonProps = {
   href: string;
   label: string;
   badgeCount?: number;
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
 function HeaderActionButton({
@@ -66,34 +75,6 @@ function HeaderActionButton({
   );
 }
 
-function MobileUtilityLink({
-  href,
-  label,
-  badgeCount,
-  children,
-  onClick,
-}: HeaderActionButtonProps & { onClick?: () => void }) {
-  const hasBadge = typeof badgeCount === "number" && badgeCount > 0;
-  const isCartButton = href === "/cart";
-
-  return (
-    <Link
-      href={href}
-      data-cart-icon-target={isCartButton ? "cart" : undefined}
-      className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-[0.85rem] border border-white/70 bg-white/78 px-3 text-sm font-medium text-[#6b425a] transition hover:bg-white hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-      onClick={onClick}
-    >
-      {children}
-      <span>{label}</span>
-      {hasBadge ? (
-        <span className="ml-1 inline-flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-[#6e3d58] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
-          {badgeCount! > 9 ? "9+" : badgeCount}
-        </span>
-      ) : null}
-    </Link>
-  );
-}
-
 export function Header({
   user,
   favouritesCount = 0,
@@ -103,10 +84,30 @@ export function Header({
   specialtyItems = [],
 }: HeaderProps) {
   const pathname = usePathname();
-  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
-  const [specialtyMenuPath, setSpecialtyMenuPath] = useState<string | null>(null);
-  const isMobileMenuOpen = mobileMenuPath === pathname;
-  const isSpecialtyMenuOpen = specialtyMenuPath === pathname;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [specialtyOpen, setSpecialtyOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [mobileCouponOpen, setMobileCouponOpen] = useState(false);
+
+  // Close everything on navigation
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setCartOpen(false);
+    setMobileCouponOpen(false);
+  }, [pathname]);
+
+  // Scroll lock when any overlay is open
+  useEffect(() => {
+    const anyOpen = mobileMenuOpen || cartOpen || mobileCouponOpen;
+    document.body.style.overflow = anyOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen, cartOpen, mobileCouponOpen]);
+
+  const activeCoupons = couponPreview?.activeCoupons ?? [];
+  const eligibleProducts = couponPreview?.eligibleProducts ?? [];
+  const recommendationLabel = couponPreview?.recommendationLabel;
 
   const getNavLinkClassName = (href: string) =>
     `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
@@ -116,244 +117,335 @@ export function Header({
     }`;
 
   return (
-    <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
-      <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[2.75rem_1fr_2.75rem] items-center gap-3 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
-        <span aria-hidden="true" className="h-11 w-11 lg:hidden" />
+    <>
+      <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
+        <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
 
-        <nav
-          aria-label="Fő navigáció"
-          className="hidden items-center justify-self-start lg:flex"
-        >
-          <div className="flex flex-wrap items-center justify-center gap-1">
-            {headerPrimaryNavItems.map(({ href, label }) => (
+          {/* ── COL 1: mobile hamburger / desktop left nav ── */}
+          <div>
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              className="flex h-11 w-11 items-center justify-center rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Desktop left nav */}
+            <nav
+              aria-label="Fő navigáció"
+              className="hidden items-center justify-self-start lg:flex"
+            >
+              <div className="flex flex-wrap items-center justify-center gap-1">
+                {navigationCategories.map(({ href, label }) => (
+                  <Link key={href} href={href} className={getNavLinkClassName(href)}>
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          </div>
+
+          {/* ── COL 2: logo (center) ── */}
+          <Link
+            href="/"
+            className="flex min-w-0 items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+          >
+            <div className="flex flex-col items-center leading-none">
+              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.34em] text-[#c0517a] sm:text-[0.72rem]">
+                Boutique ékszer
+              </span>
+              <span
+                className="font-[family:var(--font-display)] text-[1.68rem] font-semibold tracking-[-0.02em] sm:text-[2.1rem] lg:text-[2.28rem]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Chicks Jewelry
+              </span>
+            </div>
+          </Link>
+
+          {/* ── COL 3: mobile icons / desktop right nav ── */}
+          <div className="flex items-center justify-end gap-1">
+            {/* Mobile: user icon + cart icon */}
+            <div className="flex items-center gap-1.5 lg:hidden">
+              {/* User / coupon icon */}
+              {user ? (
+                <button
+                  type="button"
+                  aria-label="Kuponjaim"
+                  onClick={() => setMobileCouponOpen((o) => !o)}
+                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                >
+                  <User className="h-[1.1rem] w-[1.1rem]" />
+                </button>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  aria-label="Belépés"
+                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                >
+                  <User className="h-[1.1rem] w-[1.1rem]" />
+                </Link>
+              )}
+
+              {/* Cart icon → opens drawer */}
+              <button
+                type="button"
+                aria-label="Kosár"
+                onClick={() => setCartOpen(true)}
+                className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+              >
+                <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
+                {cartCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[rgba(255,248,251,0.95)] bg-[#6e3d58] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
+                    {cartCount > 9 ? "9+" : cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Desktop icon nav */}
+            <nav
+              aria-label="Hasznos navigáció"
+              className="hidden items-center gap-1 lg:flex"
+            >
+              <HeaderActionButton
+                href="/favourites"
+                label="Kedvencek"
+                badgeCount={favouritesCount}
+              >
+                <Heart className="h-[1.1rem] w-[1.1rem]" />
+              </HeaderActionButton>
+
+              <HeaderActionButton href="/cart" label="Kosár" badgeCount={cartCount}>
+                <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
+              </HeaderActionButton>
+
+              <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
+
+              {user ? (
+                <ProfileDropdown user={user} couponPreview={couponPreview} />
+              ) : (
+                <Link
+                  href="/sign-in"
+                  aria-label="Belépés"
+                  className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                >
+                  <span className="transition-transform duration-200 group-hover:scale-105">
+                    <User className="h-[1.1rem] w-[1.1rem]" />
+                  </span>
+                  <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
+                </Link>
+              )}
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* ── FULL-SCREEN MOBILE MENU ── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-white lg:hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 py-4">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex flex-col leading-none"
+            >
+              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-[#c0517a]">
+                Boutique ékszer
+              </span>
+              <span
+                className="font-[family:var(--font-display)] text-xl font-semibold"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Chicks Jewelry
+              </span>
+            </Link>
+            <button
+              type="button"
+              aria-label="Menü bezárása"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <X className="h-5 w-5 text-[#1a1a1a]" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Primary nav links */}
+          <nav className="px-5 py-2">
+            {navigationCategories.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className={getNavLinkClassName(href)}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between border-b border-[#f5f4f2] py-4 text-base font-semibold text-[#1a1a1a]"
+              >
+                {label}
+                <ChevronRight className="h-4 w-4 text-[#ccc]" strokeWidth={1.5} />
+              </Link>
+            ))}
+
+            {/* Specialty items */}
+            {specialtyItems.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSpecialtyOpen((o) => !o)}
+                  className="flex w-full items-center justify-between border-b border-[#f5f4f2] py-4 text-base font-semibold text-[#1a1a1a]"
+                >
+                  Különlegességek
+                  <ChevronDown
+                    className={`h-4 w-4 text-[#ccc] transition-transform ${specialtyOpen ? "rotate-180" : ""}`}
+                    strokeWidth={1.5}
+                  />
+                </button>
+                {specialtyOpen &&
+                  specialtyItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={getSpecialtyHref(item)}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between border-b border-[#f5f4f2] py-3 pl-4 text-sm text-[#555]"
+                    >
+                      {item.name}
+                      <ChevronRight
+                        className="h-3.5 w-3.5 text-[#ccc]"
+                        strokeWidth={1.5}
+                      />
+                    </Link>
+                  ))}
+              </>
+            )}
+          </nav>
+
+          {/* Secondary links */}
+          <div className="mt-4 border-t border-[#f0ede8] px-5 pb-6 pt-2">
+            {headerSecondaryNavItems.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
               >
                 {label}
               </Link>
             ))}
-          </div>
-        </nav>
-
-        <Link
-          href="/"
-          className="flex min-w-0 items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-        >
-          <div className="flex flex-col items-center leading-none">
-            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.34em] text-[#c0517a] sm:text-[0.72rem]">
-              Boutique ékszer
-            </span>
-            <span
-              className="font-[family:var(--font-display)] text-[1.68rem] font-semibold tracking-[-0.02em] sm:text-[2.1rem] lg:text-[2.28rem]"
-              style={{
-                background: "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              Chicks Jewelry
-            </span>
-          </div>
-        </Link>
-
-        {/* Desktop icon nav — no background pill wrapper */}
-        <nav aria-label="Hasznos navigáció" className="hidden items-center gap-1 justify-self-end lg:flex">
-          <HeaderActionButton
-            href="/favourites"
-            label="Kedvencek"
-            badgeCount={favouritesCount}
-          >
-            <Heart className="h-[1.1rem] w-[1.1rem]" />
-          </HeaderActionButton>
-
-          <HeaderActionButton
-            href="/cart"
-            label="Kosár"
-            badgeCount={cartCount}
-          >
-            <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
-          </HeaderActionButton>
-
-          <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
-
-          {user ? (
-            <ProfileDropdown user={user} couponPreview={couponPreview} />
-          ) : (
-            <Link
-              href="/sign-in"
-              aria-label="Belépés"
-              className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-            >
-              <span className="transition-transform duration-200 group-hover:scale-105">
-                <User className="h-[1.1rem] w-[1.1rem]" />
-              </span>
-              <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
-            </Link>
-          )}
-        </nav>
-
-        <button
-          type="button"
-          aria-expanded={isMobileMenuOpen}
-          aria-controls="mobile-header-menu"
-          aria-label={isMobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
-          onClick={() => setMobileMenuPath((openPath) => (openPath === pathname ? null : pathname))}
-          className="flex h-11 w-11 items-center justify-center justify-self-end rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] lg:hidden"
-        >
-          {isMobileMenuOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
-        </button>
-      </div>
-
-      {isMobileMenuOpen ? (
-        <div
-          id="mobile-header-menu"
-          className="border-t border-white/40 px-4 pb-4 pt-3 lg:hidden"
-        >
-          <div className="space-y-3">
-            <div className="rounded-2xl border border-white/70 bg-white/70 p-3 backdrop-blur-md">
-              <label className="flex items-center gap-3 rounded-full bg-white/90 px-4 py-3 text-sm text-[#8d7382]">
-                <Search className="h-4 w-4 text-[#b484a6]" />
-                <input
-                  type="search"
-                  placeholder="Termékek keresése"
-                  className="w-full border-none bg-transparent text-[#4d2741] outline-none placeholder:text-[#b799ab]"
-                />
-              </label>
-            </div>
-
-            <nav
-              aria-label="Mobil vásárlási navigáció"
-              className="rounded-2xl border border-white/70 bg-white/72 p-3 backdrop-blur-md"
-            >
-              <p className="px-1 pb-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#ad7894]">
-                Vásárlás
-              </p>
-              <div className="grid gap-2">
-                {navigationCategories.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex min-h-11 items-center justify-between rounded-[0.85rem] px-3.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
-                      pathname === href
-                        ? "bg-[#fff1f7] text-[#4d2741]"
-                        : "text-[#6b425a] hover:bg-white hover:text-[#4d2741]"
-                    }`}
-                    onClick={() => setMobileMenuPath(null)}
-                  >
-                    {label}
-                  </Link>
-                ))}
-
-                {specialtyItems.length > 0 ? (
-                  <div className="border-t border-[#f1dce7] pt-2">
-                    <button
-                      type="button"
-                      className="flex min-h-11 w-full items-center justify-between rounded-[0.85rem] px-3.5 text-left text-sm font-medium text-[#6b425a] transition hover:bg-white hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                      aria-expanded={isSpecialtyMenuOpen}
-                      aria-controls="mobile-specialty-menu"
-                      onClick={() =>
-                        setSpecialtyMenuPath((openPath) =>
-                          openPath === pathname ? null : pathname,
-                        )
-                      }
-                    >
-                      <span>Különlegességek</span>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isSpecialtyMenuOpen ? "rotate-180" : ""}`}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    {isSpecialtyMenuOpen ? (
-                      <div id="mobile-specialty-menu" className="mt-1 grid gap-1 pl-2">
-                        {specialtyItems.map((item) => (
-                          <Link
-                            key={item.id}
-                            href={getSpecialtyHref(item)}
-                            className="flex min-h-10 items-center rounded-[0.75rem] px-3 text-sm text-[#8a6076] transition hover:bg-white hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                            onClick={() => setMobileMenuPath(null)}
-                          >
-                            {item.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            </nav>
-
-            {headerPrimaryNavItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                {headerPrimaryNavItems.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`${getNavLinkClassName(href)} inline-flex min-h-11 items-center justify-center`}
-                    onClick={() => setMobileMenuPath(null)}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-
-            <div className="grid grid-cols-2 gap-3">
-              <MobileUtilityLink
-                href="/favourites"
-                label="Kedvencek"
-                badgeCount={favouritesCount}
-                onClick={() => setMobileMenuPath(null)}
-              >
-                <Heart className="h-5 w-5" />
-              </MobileUtilityLink>
-
-              <MobileUtilityLink
-                href="/cart"
-                label="Kosár"
-                badgeCount={cartCount}
-                onClick={() => setMobileMenuPath(null)}
-              >
-                <ShoppingBag className="h-5 w-5" />
-              </MobileUtilityLink>
-            </div>
-
             {user ? (
-              <div className="rounded-2xl border border-white/70 bg-white/72 p-2 backdrop-blur-md">
-                <ProfileDropdown user={user} couponPreview={couponPreview} />
-              </div>
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
+              >
+                Profilom
+              </Link>
             ) : (
               <Link
                 href="/sign-in"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[0.85rem] border border-white/70 bg-white/80 px-4 text-sm font-medium text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                onClick={() => setMobileMenuPath(null)}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block border-b border-[#f5f4f2] py-3 text-sm text-[#888]"
               >
-                <User className="h-5 w-5" />
-                <span>Belépés</span>
+                Belépés
               </Link>
             )}
+          </div>
 
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/70 bg-white/72 p-3 text-xs text-[#8d7382] backdrop-blur-md">
-              {headerSecondaryNavItems.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="rounded-full px-3 py-1.5 transition hover:bg-white hover:text-[#4d2741]"
-                  onClick={() => setMobileMenuPath(null)}
-                >
-                  {label}
-                </Link>
-              ))}
+          {/* Instagram bar */}
+          <div className="mx-5 mb-8 border border-[#f0d4e0] bg-[#fdf5f8] p-4">
+            <p className="mb-0.5 text-xs font-semibold text-[#c45a85]">
+              @chicksjewelry
+            </p>
+            <p className="text-xs text-[#888]">
+              Kövess Instagramon az újdonságokért
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── CART DRAWER ── */}
+      <CartDrawer
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        cartCount={cartCount}
+      />
+
+      {/* ── MOBIL COUPON BOTTOM SHEET ── */}
+      {mobileCouponOpen && (
+        <div className="fixed inset-0 z-[300] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileCouponOpen(false)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-2xl bg-white animate-[slideInBottom_.25s_ease-out]">
+            {/* Handle bar */}
+            <div className="flex justify-center pb-2 pt-3">
+              <div className="h-1 w-10 rounded-full bg-[#e8e5e0]" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 pb-3">
+              <p className="text-sm font-semibold text-[#1a1a1a]">Kuponjaim</p>
+              <button
+                type="button"
+                onClick={() => setMobileCouponOpen(false)}
+              >
+                <X className="h-4 w-4 text-[#888]" />
+              </button>
+            </div>
+
+            {/* Coupon list */}
+            <div className="flex-1 overflow-y-auto px-5 py-3">
+              {activeCoupons.length === 0 ? (
+                <p className="py-6 text-center text-xs text-[#aaa]">
+                  Nincs aktív kuponod
+                </p>
+              ) : (
+                activeCoupons.map((coupon) => (
+                  <MiniCouponRow key={coupon.id} coupon={coupon} />
+                ))
+              )}
+
+              {eligibleProducts.length > 0 && (
+                <div className="mt-4 border-t border-[#f0ede8] pt-4">
+                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.18em] text-[#b08898]">
+                    {recommendationLabel ?? "Ezekre is érvényes"}
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {eligibleProducts.slice(0, 3).map((product) => (
+                      <MiniProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Link to all coupons */}
+            <div className="border-t border-[#f0ede8] px-5 py-4">
+              <Link
+                href="/profile#kuponjaim"
+                onClick={() => setMobileCouponOpen(false)}
+                className="flex items-center gap-1 text-xs text-[#888] transition hover:text-[#1a1a1a]"
+              >
+                Összes kupon <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
           </div>
         </div>
-      ) : null}
-    </header>
+      )}
+    </>
   );
 }

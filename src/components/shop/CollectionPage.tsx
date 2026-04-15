@@ -31,17 +31,24 @@ export function CollectionPage({
       <div className="px-6 pt-6 sm:px-8">
 
         {/* ── MOBILE: filter + sort ── */}
-        <section className="mb-6 flex flex-col gap-4 lg:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <FilterSidebar
-              availableFilters={availableFilters}
-              filterGroups={filterGroups}
-              state={state}
-              mode="mobile-trigger"
-            />
-            <CollectionSort currentSort={state.sort} />
+        <section className="mb-6 border-b border-[#e8e5e0] pb-3 lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <FilterSidebar
+                availableFilters={availableFilters}
+                filterGroups={filterGroups}
+                state={state}
+                mode="mobile-trigger"
+              />
+              <div className="min-w-0 flex-1">
+                <ActiveFilterChips filterGroups={filterGroups} state={state} />
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="text-xs text-[#888]">{products.length} termék</span>
+              <CollectionSort currentSort={state.sort} />
+            </div>
           </div>
-          <ActiveFilterChips filterGroups={filterGroups} state={state} />
         </section>
 
         {/* ── MAIN LAYOUT ── */}
