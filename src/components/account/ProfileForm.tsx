@@ -52,12 +52,12 @@ function ProfileBlock({
 }) {
   return (
     <section
-      className={`rounded-lg border border-[#e8e2dd] bg-white p-5 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:p-6 ${className ?? ""}`}
+      className={`rounded-lg border border-[#e8e2dd] bg-white p-4 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:p-5 ${className ?? ""}`}
     >
-      <div className="mb-5">
-        <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">{title}</h2>
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-[#2d1f28]">{title}</h2>
         {description ? (
-          <p className="mt-2 max-w-[48rem] text-sm leading-6 text-[#756771]">
+          <p className="mt-1 max-w-[48rem] text-xs leading-5 text-[#8a7a83]">
             {description}
           </p>
         ) : null}
@@ -80,15 +80,15 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
   return (
     <form action={saveProfileAction} className="w-full">
-      <div className="grid gap-5 xl:grid-cols-12">
+      <div className="grid gap-4 lg:grid-cols-12">
         <ProfileBlock
           title="Profilkép / megjelenés"
           description="Opcionális kép a fiókodhoz. Üresen hagyva a monogramod jelenik meg."
-          className="xl:col-span-4"
+          className="lg:col-span-4"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative shrink-0">
-              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[#eee7ea] bg-[#faf9f8] text-lg font-semibold text-[#6f3f59]">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#eee7ea] bg-[#faf9f8] text-base font-semibold text-[#6f3f59]">
                 {imageValue ? (
                   <img
                     src={imageValue}
@@ -163,7 +163,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <ProfileBlock
           title="Személyes információk"
           description="A rendeléseknél és a fiókodban használt alapadatok."
-          className="xl:col-span-8"
+          className="lg:col-span-8"
         >
           <div className="grid max-w-[46rem] gap-x-4 gap-y-4 md:grid-cols-2">
             <InputLabel label="Teljes név">
@@ -192,7 +192,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <ProfileBlock
           title="Kapcsolati adatok"
           description="A rendelésekkel kapcsolatos egyeztetéshez használjuk."
-          className="xl:col-span-4"
+          className="lg:col-span-4"
         >
           <InputLabel label="Telefonszám" className="block max-w-[22rem]">
             <input
@@ -208,7 +208,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <ProfileBlock
           title="Alapértelmezett szállítási cím"
           description="A checkoutnál ezt ajánljuk fel elsőként, de rendelésenként módosítható."
-          className="xl:col-span-8"
+          className="lg:col-span-8"
         >
           <InputLabel label="Szállítási cím" className="block max-w-[52rem]">
             <textarea
@@ -221,7 +221,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           </InputLabel>
         </ProfileBlock>
 
-        <div className="rounded-lg border border-[#e8e2dd] bg-white px-5 py-4 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:px-6 xl:col-span-12">
+        <div className="rounded-lg border border-[#e8e2dd] bg-white px-4 py-3 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:px-5 lg:col-span-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-[#7b6773]">
               A módosítások mentés után azonnal frissülnek.

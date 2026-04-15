@@ -14,17 +14,14 @@ function getCouponLabel(coupon: AccountCouponSummary) {
 export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSummary[] }) {
   return (
     <section
-      id="kuponjaim"
-      className="scroll-mt-28 rounded-lg border border-[#e8e2dd] bg-white px-5 py-6 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:px-6"
+      className="rounded-lg border border-[#e8e2dd] bg-white px-4 py-5 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:px-5"
     >
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-[1.02rem] font-semibold text-[#2d1f28]">
-            Elérhető kedvezményeid
-          </h3>
-        </div>
-        <p className="max-w-[34rem] text-sm leading-6 text-[#7b6773]">
-          Itt látod az aktív és korábban használt kedvezménykódjaidat.
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <h3 className="text-sm font-semibold text-[#2d1f28]">
+          Elérhető kedvezményeid
+        </h3>
+        <p className="text-xs leading-5 text-[#8a7a83]">
+          Aktív és korábban használt kedvezménykódjaid.
         </p>
       </div>
 

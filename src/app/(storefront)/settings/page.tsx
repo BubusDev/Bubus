@@ -61,10 +61,10 @@ function SectionHeading({
   description?: string;
 }) {
   return (
-    <div className="mb-5">
-      <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">{title}</h2>
+    <div className="mb-4">
+      <h2 className="text-sm font-semibold text-[#2d1f28]">{title}</h2>
       {description ? (
-        <p className="mt-2 max-w-[50rem] text-sm leading-6 text-[#756771]">
+        <p className="mt-1 max-w-[50rem] text-xs leading-5 text-[#8a7a83]">
           {description}
         </p>
       ) : null}
@@ -81,7 +81,7 @@ function SettingsCard({
 }) {
   return (
     <section
-      className={`rounded-lg border border-[#e8e2dd] bg-white p-5 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:p-6 ${className ?? ""}`}
+      className={`rounded-lg border border-[#e8e2dd] bg-white p-4 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:p-5 ${className ?? ""}`}
     >
       {children}
     </section>
@@ -117,8 +117,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     <AccountShell title="Beállítások">
       <StatusBanner status={resolvedSearchParams.status} />
 
-      <div className="grid gap-5 xl:grid-cols-12">
-        <SettingsCard className="xl:col-span-5">
+      <div className="grid gap-4 lg:grid-cols-12">
+        <SettingsCard className="lg:col-span-5">
           <SectionHeading
             title="Belépési e-mail cím"
             description="Az e-mail cím módosítása külön megerősítéssel történik, hogy a fiókod biztonságban maradjon."
@@ -138,7 +138,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
         </SettingsCard>
 
-        <SettingsCard className="xl:col-span-7">
+        <SettingsCard className="lg:col-span-7">
           <SectionHeading
             title="Jelszó módosítása"
             description="Add meg a jelenlegi jelszavadat, majd válassz egy újat."
@@ -166,7 +166,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </form>
         </SettingsCard>
 
-        <SettingsCard className="xl:col-span-5">
+        <SettingsCard className="lg:col-span-5">
           <SectionHeading
             title="Hírlevél / értesítések"
             description="Itt állíthatod be, hogy kérsz-e újdonságokat és alkalmi ajánlatokat."
@@ -194,7 +194,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </form>
         </SettingsCard>
 
-        <SettingsCard className="xl:col-span-7">
+        <SettingsCard className="lg:col-span-7">
           <SectionHeading
             title="Fiók és biztonság"
             description="Ez törli a fiókodat, a kedvenceidet, a kosaradat és a rendelési előzményeidet."

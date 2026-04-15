@@ -77,7 +77,7 @@ function AccountCard({
 }) {
   return (
     <section
-      className={`rounded-lg border border-[#e8e2dd] bg-white p-5 shadow-[0_16px_36px_rgba(45,31,40,0.04)] sm:p-6 ${className ?? ""}`}
+      className={`rounded-lg border border-[#e8e2dd] bg-white p-4 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:p-5 ${className ?? ""}`}
     >
       {children}
     </section>
@@ -93,8 +93,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       title="E-mail és hozzáférés"
       description="Itt ellenőrizheted az e-mail címed állapotát, és biztonságosan kérhetsz e-mail cím módosítást."
     >
-      <div className="grid gap-5 xl:grid-cols-12">
-        <AccountCard className="xl:col-span-5">
+      <div className="grid gap-4 lg:grid-cols-12">
+        <AccountCard className="lg:col-span-5">
           <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">
             E-mail cím állapota
           </h2>
@@ -133,7 +133,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           ) : null}
         </AccountCard>
 
-        <AccountCard className="xl:col-span-7">
+        <AccountCard className="lg:col-span-7">
           <h2 className="text-[1.02rem] font-semibold text-[#2d1f28]">
             E-mail cím módosítása
           </h2>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   Heart,
   LogOut,
@@ -41,9 +40,9 @@ const accountNavItems: AccountNavItem[] = [
   },
   {
     label: "Kuponjaim",
-    href: "/profile#kuponjaim",
+    href: "/coupons",
     icon: TicketPercent,
-    match: () => false,
+    match: (pathname) => pathname === "/coupons",
   },
   {
     label: "Beállítások",
@@ -55,16 +54,6 @@ const accountNavItems: AccountNavItem[] = [
 
 export function AccountNavigation() {
   const pathname = usePathname();
-  const [hash, setHash] = useState("");
-
-  useEffect(() => {
-    const syncHash = () => setHash(window.location.hash);
-
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, [pathname]);
 
   return (
     <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -74,12 +63,7 @@ export function AccountNavigation() {
       >
         <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
           {accountNavItems.map(({ href, icon: Icon, label, match }) => {
-            const isActive =
-              label === "Kuponjaim"
-                ? pathname === "/profile" && hash === "#kuponjaim"
-                : label === "Profil"
-                  ? pathname === "/profile" && hash !== "#kuponjaim"
-                  : match(pathname);
+            const isActive = match(pathname);
 
             return (
               <Link
