@@ -64,6 +64,7 @@ export type AccountCouponStatus = "active" | "expired" | "used" | "upcoming";
 export type AccountCouponSummary = {
   id: string;
   code: string;
+  label: string;
   discountPercent: number;
   validFrom: Date;
   validUntil: Date | null;
@@ -72,6 +73,18 @@ export type AccountCouponSummary = {
   currentlyUsable: boolean;
   usedCount: number;
 };
+
+function getAccountCouponLabel(code: string, source?: string) {
+  if (source === "welcome" || code === "UDVNALUNK") {
+    return "Welcome coupon";
+  }
+
+  if (source === "newsletter_monthly" || code.startsWith("HIRLEVEL")) {
+    return "Newsletter coupon";
+  }
+
+  return "Személyes kupon";
+}
 
 export type OrderPreviewItem = {
   id: string;
@@ -491,6 +504,11 @@ export async function getCouponsForUser(userId: string) {
       ],
     },
     include: {
+      grants: {
+        where: { userId },
+        select: { source: true },
+        take: 1,
+      },
       redemptions: {
         where: {
           OR: [{ userId }, { customerEmail: normalizedEmail }],
@@ -532,6 +550,7 @@ export async function getCouponsForUser(userId: string) {
       return {
         id: coupon.id,
         code: coupon.code,
+        label: getAccountCouponLabel(coupon.code, coupon.grants[0]?.source),
         discountPercent: coupon.discountPercent,
         validFrom: coupon.validFrom,
         validUntil: coupon.validUntil,

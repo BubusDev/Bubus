@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Gem } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Stone = {
   id: string;
@@ -21,6 +21,16 @@ type Stone = {
 type Props = {
   stones: Stone[];
 };
+
+function getInitialPageFromHash(stones: Stone[]) {
+  if (typeof window === "undefined") return 0;
+
+  const hash = window.location.hash.slice(1);
+  if (!hash) return 0;
+
+  const stoneIndex = stones.findIndex((stone) => stone.slug === hash);
+  return stoneIndex >= 0 ? Math.floor(stoneIndex / 2) : 0;
+}
 
 function StonePageLeft({ stone, pageNum }: { stone: Stone; pageNum: number }) {
   return (
@@ -143,15 +153,8 @@ export function StoneBook({ stones }: Props) {
     return acc;
   }, []);
 
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(() => getInitialPageFromHash(stones));
   const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (!hash) return;
-    const idx = stones.findIndex((s) => s.slug === hash);
-    if (idx >= 0) setCurrentPage(Math.floor(idx / 2));
-  }, [stones]);
 
   const handleTurn = (dir: "prev" | "next") => {
     if (isAnimating) return;

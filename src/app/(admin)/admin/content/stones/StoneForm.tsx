@@ -2,6 +2,7 @@
 
 import type { Stone } from "@prisma/client";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
@@ -308,12 +309,12 @@ export function StoneForm({ stone }: Props) {
         >
           {stone ? "Mentés" : "Létrehozás"}
         </button>
-        <a
+        <Link
           href="/admin/content/stones"
           className="inline-flex h-11 items-center justify-center rounded-xl border border-[#ecd3e3] bg-white px-6 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0]"
         >
           Mégse
-        </a>
+        </Link>
       </div>
     </form>
   );

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import {
@@ -99,14 +99,11 @@ export function Header({
   navigationCategories = [],
   specialtyItems = [],
 }: HeaderProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSpecialtyMenuOpen, setIsSpecialtyMenuOpen] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsSpecialtyMenuOpen(false);
-  }, [pathname]);
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
+  const [specialtyMenuPath, setSpecialtyMenuPath] = useState<string | null>(null);
+  const isMobileMenuOpen = mobileMenuPath === pathname;
+  const isSpecialtyMenuOpen = specialtyMenuPath === pathname;
 
   const getNavLinkClassName = (href: string) =>
     `rounded-full px-4 py-2 text-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
@@ -200,7 +197,7 @@ export function Header({
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-header-menu"
           aria-label={isMobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
-          onClick={() => setIsMobileMenuOpen((open) => !open)}
+          onClick={() => setMobileMenuPath((openPath) => (openPath === pathname ? null : pathname))}
           className="flex h-11 w-11 items-center justify-center justify-self-end rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] lg:hidden"
         >
           {isMobileMenuOpen ? (
@@ -245,7 +242,7 @@ export function Header({
                         ? "bg-[#fff1f7] text-[#4d2741]"
                         : "text-[#6b425a] hover:bg-white hover:text-[#4d2741]"
                     }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuPath(null)}
                   >
                     {label}
                   </Link>
@@ -258,7 +255,11 @@ export function Header({
                       className="flex min-h-11 w-full items-center justify-between rounded-[0.85rem] px-3.5 text-left text-sm font-medium text-[#6b425a] transition hover:bg-white hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
                       aria-expanded={isSpecialtyMenuOpen}
                       aria-controls="mobile-specialty-menu"
-                      onClick={() => setIsSpecialtyMenuOpen((open) => !open)}
+                      onClick={() =>
+                        setSpecialtyMenuPath((openPath) =>
+                          openPath === pathname ? null : pathname,
+                        )
+                      }
                     >
                       <span>Különlegességek</span>
                       <ChevronDown
@@ -273,7 +274,7 @@ export function Header({
                             key={item.id}
                             href={getSpecialtyHref(item)}
                             className="flex min-h-10 items-center rounded-[0.75rem] px-3 text-sm text-[#8a6076] transition hover:bg-white hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            onClick={() => setMobileMenuPath(null)}
                           >
                             {item.name}
                           </Link>
@@ -292,7 +293,7 @@ export function Header({
                     key={href}
                     href={href}
                     className={`${getNavLinkClassName(href)} inline-flex min-h-11 items-center justify-center`}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuPath(null)}
                   >
                     {label}
                   </Link>
@@ -305,7 +306,7 @@ export function Header({
                 href="/favourites"
                 label="Kedvencek"
                 badgeCount={favouritesCount}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
               >
                 <Heart className="h-5 w-5" />
               </MobileUtilityLink>
@@ -314,7 +315,7 @@ export function Header({
                 href="/cart"
                 label="Kosár"
                 badgeCount={cartCount}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
               >
                 <ShoppingBag className="h-5 w-5" />
               </MobileUtilityLink>
@@ -328,7 +329,7 @@ export function Header({
               <Link
                 href="/sign-in"
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[0.85rem] border border-white/70 bg-white/80 px-4 text-sm font-medium text-[#6d5260] backdrop-blur-md transition duration-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => setMobileMenuPath(null)}
               >
                 <User className="h-5 w-5" />
                 <span>Belépés</span>
@@ -341,7 +342,7 @@ export function Header({
                   key={href}
                   href={href}
                   className="rounded-full px-3 py-1.5 transition hover:bg-white hover:text-[#4d2741]"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => setMobileMenuPath(null)}
                 >
                   {label}
                 </Link>
