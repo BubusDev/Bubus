@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, X } from "lucide-react";
+import { Heart, ShoppingBag, X } from "lucide-react";
 
 import { formatPrice } from "@/lib/catalog";
-import type { CartItemSummary, CartSummary } from "@/lib/account";
+import type { CartItemSummary, CartSummary, FavouriteProduct } from "@/lib/account";
 
 type CartDrawerProps = {
   isOpen: boolean;
@@ -49,10 +49,44 @@ function CartDrawerItem({ item }: { item: CartItemSummary }) {
   );
 }
 
+function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
+  return (
+    <div className="flex gap-3 px-4 py-3.5">
+      <Link href={`/product/${item.slug}`} className="shrink-0">
+        <div className="relative h-16 w-12 overflow-hidden bg-[#f5f3f0]">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              fill
+              className="object-cover"
+              sizes="48px"
+            />
+          ) : null}
+        </div>
+      </Link>
+      <div className="min-w-0 flex-1">
+        <Link
+          href={`/product/${item.slug}`}
+          className="line-clamp-2 text-xs font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555]"
+        >
+          {item.name}
+        </Link>
+        <p className="mt-0.5 text-[10px] text-[#888]">{item.collectionLabel}</p>
+        <p className="mt-1 text-xs font-semibold text-[#1a1a1a]">
+          {formatPrice(item.price)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
   const [cartTab, setCartTab] = useState<"cart" | "wishlist">("cart");
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [wishlist, setWishlist] = useState<FavouriteProduct[] | null>(null);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -63,6 +97,17 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || cartTab !== "wishlist") return;
+    if (wishlist !== null) return;
+    setWishlistLoading(true);
+    fetch("/api/favourites")
+      .then((r) => r.json())
+      .then((data) => setWishlist(data as FavouriteProduct[]))
+      .catch(() => setWishlist([]))
+      .finally(() => setWishlistLoading(false));
+  }, [isOpen, cartTab, wishlist]);
 
   if (!isOpen) return null;
 
@@ -94,7 +139,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 : "text-[#aaa]"
             }`}
           >
-            Kívánságlista
+            Kedvenceim
           </button>
           <button type="button" onClick={onClose} className="shrink-0 px-4">
             <X className="h-5 w-5 text-[#1a1a1a]" strokeWidth={1.5} />
@@ -140,23 +185,53 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
           )}
 
           {cartTab === "wishlist" && (
-            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-              <p className="mb-1 font-semibold text-[#1a1a1a]">Kedvencek</p>
-              <p className="mb-6 text-sm text-[#888]">
-                Tekintsd meg az összes kedvenc termékedet.
-              </p>
-              <Link
-                href="/favourites"
-                onClick={onClose}
-                className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
-              >
-                Kedvencek megtekintése
-              </Link>
-            </div>
+            <>
+              {wishlistLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#1a1a1a] border-t-transparent" />
+                </div>
+              ) : !wishlist || wishlist.length === 0 ? (
+                <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                  <Heart className="mb-4 h-10 w-10 text-[#ddd]" strokeWidth={1} />
+                  <p className="mb-1 font-semibold text-[#1a1a1a]">
+                    {wishlist === null ? "Jelentkezz be a kedvencek megtekintéséhez" : "Még nincs kedvenc termék"}
+                  </p>
+                  <p className="mb-6 text-sm text-[#888]">
+                    {wishlist === null ? "A szív ikonra kattintva mentheted el a kedvelt ékszereket." : "A szív ikonra kattintva mentheted el a kedvelt ékszereket."}
+                  </p>
+                  <Link
+                    href="/"
+                    onClick={onClose}
+                    className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
+                  >
+                    Kollekció böngészése
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#f5f4f2]">
+                  {wishlist.map((item) => (
+                    <WishlistDrawerItem key={item.productId} item={item} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Footer */}
+        {/* Wishlist footer */}
+        {cartTab === "wishlist" && wishlist && wishlist.length > 0 && (
+          <div className="shrink-0 border-t border-[#e8e5e0] bg-white p-5">
+            <Link
+              href="/favourites"
+              onClick={onClose}
+              className="block w-full border border-[#1a1a1a] py-3 text-center text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
+            >
+              Összes kedvenc megtekintése
+            </Link>
+          </div>
+        )}
+
+        {/* Cart footer */}
         {cartTab === "cart" && cart && cart.items.length > 0 && (
           <div className="shrink-0 border-t border-[#e8e5e0] bg-white p-5">
             <div className="mb-1 flex justify-between text-sm">

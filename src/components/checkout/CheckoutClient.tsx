@@ -6,6 +6,7 @@ import { StepIndicator } from "@/components/checkout/StepIndicator";
 import { ContactStep } from "@/components/checkout/steps/ContactStep";
 import { ShippingStep, type ShippingData } from "@/components/checkout/steps/ShippingStep";
 import { PaymentStep } from "@/components/checkout/steps/PaymentStep";
+import type { AppliedPromo } from "@/lib/promo-codes";
 
 type CheckoutItem = {
   id: string;
@@ -20,6 +21,7 @@ type CheckoutClientProps = {
     subtotal: number;
     shipping: number;
     discount: number;
+    appliedPromo: AppliedPromo | null;
     total: number;
   };
   initialStep?: number;
@@ -122,6 +124,7 @@ export function CheckoutClient({
           {paymentStatusBanner}
           <PaymentStep
             cartTotal={cart.total}
+            appliedPromo={cart.appliedPromo}
             shippingName={shippingName}
             shippingPhone={shippingPhone}
             shippingAddress={shippingAddress}

@@ -6,10 +6,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import { LoaderCircle, ShieldCheck } from "lucide-react";
 
 import { StripeCheckoutForm } from "@/components/checkout/StripeCheckoutForm";
+import { PromoCodeForm } from "@/components/cart/PromoCodeForm";
 import { formatPrice } from "@/lib/catalog";
+import type { AppliedPromo } from "@/lib/promo-codes";
 
 type PaymentStepProps = {
   cartTotal: number;
+  appliedPromo: AppliedPromo | null;
   shippingName: string;
   shippingPhone: string;
   shippingAddress: string;
@@ -71,6 +74,7 @@ function buildErrorMessage(
 
 export function PaymentStep({
   cartTotal,
+  appliedPromo,
   shippingName,
   shippingPhone,
   shippingAddress,
@@ -178,6 +182,13 @@ export function PaymentStep({
       {!stripeConfigured && (
         <div className="border border-[#e8e5e0] bg-[#faf9f7] px-4 py-3 text-sm text-[#555] mb-4">
           A Stripe fizetés ebben a környezetben még nincs konfigurálva.
+        </div>
+      )}
+
+      {/* Promóciós kód */}
+      {!clientSecret && (
+        <div className="mb-5">
+          <PromoCodeForm appliedPromo={appliedPromo} />
         </div>
       )}
 
