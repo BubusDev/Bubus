@@ -154,7 +154,7 @@ export function ProductCard({
                     ? "delay-100 group-hover:opacity-0 group-focus-within:opacity-0"
                     : imageHoverClass
                 } ${imageStateClass}`}
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 33vw, 25vw"
                 onError={() => {
                   setBrokenImageUrls((current) => new Set(current).add(coverImage));
                 }}
@@ -165,7 +165,7 @@ export function ProductCard({
                   alt={secondaryImage?.alt ?? product.name}
                   fill
                   className={`object-cover opacity-0 transition-[opacity,transform,filter] delay-100 duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100 group-focus-within:scale-[1.03] group-focus-within:opacity-100 ${imageStateClass}`}
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes="(max-width: 640px) 25vw, (max-width: 1024px) 33vw, 25vw"
                   onError={() => {
                     setBrokenImageUrls((current) => new Set(current).add(secondaryImageUrl));
                   }}
@@ -189,23 +189,23 @@ export function ProductCard({
       </div>
 
       {/* Info */}
-      <div className="mt-2.5 flex-1">
-        <p className="mb-1 text-[9px] uppercase tracking-[.18em] text-[#888] sm:text-[10px] sm:tracking-[.22em]">
+      <div className="mt-1 flex-1 sm:mt-2.5">
+        <p className="mb-0.5 text-[7px] uppercase tracking-[.15em] text-[#888] sm:mb-1 sm:text-[10px] sm:tracking-[.22em]">
           {product.collectionLabel}
         </p>
         <Link
           href={productHref}
-          className="block text-[13px] font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] sm:text-sm"
+          className="block text-[10px] font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] sm:text-[13px] sm:text-sm"
         >
           {product.name}
         </Link>
         {differentiator ? (
-          <p className="mt-1 text-[11px] leading-snug text-[#7f7379]">
+          <p className="mt-0.5 text-[9px] leading-snug text-[#7f7379] sm:mt-1 sm:text-[11px]">
             {differentiator}
           </p>
         ) : null}
-        <p className="mt-1 text-[13px] font-semibold text-[#1a1a1a] sm:text-sm">{formatPrice(product.price)}</p>
-        <div className="mt-1.5 flex min-h-9 items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:min-h-10 sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
+        <p className="mt-0.5 text-[10px] font-semibold text-[#1a1a1a] sm:mt-1 sm:text-[13px] sm:text-sm">{formatPrice(product.price)}</p>
+        <div className="hidden sm:flex mt-1.5 min-h-9 items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:min-h-10 sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
           {wishlistPlacement === "inline" ? wishlistButton : <span aria-hidden="true" />}
 
           {showAddToCart ? (
