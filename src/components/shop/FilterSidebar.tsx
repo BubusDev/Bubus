@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   formatPrice,
@@ -270,8 +270,13 @@ export function FilterSidebar(props: FilterSidebarProps) {
   const compact = props.compact ?? false;
   const showTrigger = mode !== "desktop-sidebar";
   const showDesktopSidebar = mode !== "mobile-trigger" && mode !== "drawer";
-  // "drawer" mode: trigger + drawer visible on all screen sizes (not just mobile)
   const drawerAllScreens = mode === "drawer";
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   return (
     <>
@@ -305,17 +310,16 @@ export function FilterSidebar(props: FilterSidebarProps) {
 
       {showTrigger && isOpen && (
         <div
-          className={`fixed inset-0 z-[70]${drawerAllScreens ? "" : " lg:hidden"}`}
-          style={{ background: "rgba(42,18,30,.25)", backdropFilter: "blur(4px)" }}
+          className={`fixed inset-0 z-[200]${drawerAllScreens ? "" : " lg:hidden"}`}
+          style={{ background: "rgba(42,18,30,.4)" }}
           onClick={() => setIsOpen(false)}
         >
           <div
             className="h-full overflow-y-auto animate-[slideInLeft_.3s_ease-out]"
             style={{
-              width: "min(380px, 100%)",
-              background: "rgba(255,255,255,.97)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "16px 0 48px -8px rgba(196,90,133,.15)",
+              width: "min(380px, 92vw)",
+              background: "#fff",
+              boxShadow: "16px 0 48px -8px rgba(196,90,133,.18)",
             }}
             onClick={(e) => e.stopPropagation()}
           >

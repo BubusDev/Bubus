@@ -212,6 +212,22 @@ export function Header({
 
               <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
 
+              {user && couponPreview ? (
+                <Link
+                  href="/profile#kuponjaim"
+                  aria-label="Kuponjaim"
+                  className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                >
+                  <span className="transition-transform duration-200 group-hover:scale-105">
+                    <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
+                  </span>
+                  {couponPreview.activeCoupons.length > 0 && (
+                    <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
+                  )}
+                  <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
+                </Link>
+              ) : null}
+
               {user ? (
                 <ProfileDropdown user={user} couponPreview={couponPreview} />
               ) : (
