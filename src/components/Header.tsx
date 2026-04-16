@@ -105,7 +105,7 @@ export function Header({
   return (
     <>
       <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
-        <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
+        <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:px-8">
 
           {/* ── COL 1: mobile hamburger / desktop spacer ── */}
           <div>
@@ -365,19 +365,14 @@ export function Header({
 
       {/* ── MOBILE COUPON POPUP ── */}
       {mobileCouponOpen && couponPreview ? (
-        <div className="fixed inset-0 z-[200] flex items-end lg:hidden" onClick={() => setMobileCouponOpen(false)}>
+        <div className="fixed inset-0 z-[200] flex items-start lg:hidden" onClick={() => setMobileCouponOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div
-            className="relative w-full max-h-[85vh] overflow-hidden rounded-t-2xl border-t border-[#e8e5e0] bg-white shadow-2xl"
+            className="relative w-full max-h-[85vh] overflow-hidden rounded-b-2xl border-b border-[#e8e5e0] bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Handle bar */}
-            <div className="flex justify-center pb-1 pt-3">
-              <div className="h-1 w-10 rounded-full bg-[#e8e5e0]" />
-            </div>
-
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 pb-3 pt-1">
+            <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
                 Kuponjaim
               </p>

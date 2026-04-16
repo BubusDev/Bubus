@@ -86,25 +86,25 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
       ) : null}
 
       {/* Main footer */}
-      <div style={{ background: "#1f1e1c" }} className="px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div style={{ background: "#1f1e1c" }} className="px-4 py-7 sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto max-w-[1200px]">
 
           {/* 4-column grid */}
-          <div className="mb-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:mb-10 sm:gap-8 lg:grid-cols-4">
 
             {/* Customer service */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
                 Ügyfélszolgálat
               </p>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1 sm:space-y-2.5">
                 {[
                   { label: "Rendelési állapot", href: "/order-status" },
                   { label: "Kapcsolat", href: "/contact" },
                   { label: "Szállítás", href: "/terms#szallitas" },
                 ].map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white">
+                    <Link href={link.href} className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white">
                       {link.label}
                     </Link>
                   </li>
@@ -117,7 +117,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
                 Tagság
               </p>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1 sm:space-y-2.5">
                 {[
                   { label: "Instagram", href: "https://instagram.com/chicksjewelry", external: true },
                   { label: "Regisztráció", href: "/sign-up", external: false },
@@ -127,7 +127,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white"
+                      className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -141,7 +141,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
                 Rólunk
               </p>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1 sm:space-y-2.5">
                 {[
                   { label: "Kövek", href: "/stones", external: false },
                   { label: "GYIK", href: "/faq", external: false },
@@ -152,7 +152,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white"
+                      className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -166,14 +166,14 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
                 Jogi nyilatkozat
               </p>
-              <ul className="space-y-2.5">
+              <ul className="space-y-1 sm:space-y-2.5">
                 {[
                   { label: "Általános feltételek", href: "/terms" },
                   { label: "Adatvédelmi szabályzat", href: "/privacy" },
                   { label: "Süti beállítások", href: "/cookies" },
                 ].map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="inline-flex min-h-9 items-center text-sm text-[#aaa] transition hover:text-white">
+                    <Link href={link.href} className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white">
                       {link.label}
                     </Link>
                   </li>
