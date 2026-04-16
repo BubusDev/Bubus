@@ -34,10 +34,7 @@ function ContentCard({
 
 export default function AdminContentPage() {
   return (
-    <AdminShell
-      title="Tartalom"
-      description="A webshop szerkesztői tartalmainak kezelése — kövek, üzenetsáv és egyéb szöveges elemek."
-    >
+    <AdminShell title="Tartalom">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ContentCard
           href="/admin/content/stones"

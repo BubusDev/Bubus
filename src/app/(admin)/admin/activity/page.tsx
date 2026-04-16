@@ -48,7 +48,7 @@ export default async function AdminActivityPage({
   return (
     <AdminShell
       title="Legutóbbi aktivitás"
-      description={`A rendelések és visszaküldési kérelmek legfrissebb workflow módosításai egy helyen.${hasFilters ? ` Szűrt találatok: ${items.length}.` : ""}`}
+      description={hasFilters ? `Szűrt találatok: ${items.length}.` : undefined}
     >
       <div className="overflow-hidden border border-[#e8e5e0] bg-white">
         <AdminActivityFilters

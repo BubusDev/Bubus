@@ -48,6 +48,30 @@ function readProductId(formData: FormData) {
   return productId;
 }
 
+function readCategoryNavSettings(formData: FormData, defaults: { storefrontVisible: boolean }) {
+  const navSortOrderRaw =
+    typeof formData.get("navSortOrder") === "string"
+      ? String(formData.get("navSortOrder")).trim()
+      : "";
+  const navSortOrder = Number(navSortOrderRaw);
+  const navLabel =
+    typeof formData.get("navLabel") === "string"
+      ? String(formData.get("navLabel")).trim()
+      : "";
+
+  const storefrontValues = formData.getAll("isStorefrontVisible");
+  const navValues = formData.getAll("showInMainNav");
+
+  return {
+    isStorefrontVisible: formData.has("isStorefrontVisible")
+      ? storefrontValues.includes("on")
+      : defaults.storefrontVisible,
+    showInMainNav: navValues.includes("on"),
+    navSortOrder: Number.isFinite(navSortOrder) ? navSortOrder : 0,
+    navLabel: navLabel || null,
+  };
+}
+
 async function getExistingProductForAdminAction(productId: string) {
   const product = await db.product.findUnique({
     where: { id: productId },
@@ -509,6 +533,9 @@ export async function createProductOptionAction(formData: FormData) {
       slug,
       sortOrder: (lastOption?.sortOrder ?? -1) + 1,
       isActive: true,
+      ...((type as ProductOptionType) === "CATEGORY"
+        ? readCategoryNavSettings(formData, { storefrontVisible: true })
+        : {}),
     },
   });
 
@@ -520,6 +547,10 @@ export async function createProductOptionAction(formData: FormData) {
     name: option.name,
     slug: option.slug,
     isActive: option.isActive,
+    isStorefrontVisible: option.isStorefrontVisible,
+    showInMainNav: option.showInMainNav,
+    navSortOrder: option.navSortOrder,
+    navLabel: option.navLabel,
     sortOrder: option.sortOrder,
   };
 }
@@ -545,7 +576,7 @@ export async function updateProductOptionAction(formData: FormData) {
   const sortOrder = Number(sortOrderRaw);
   const existingOption = await db.productOption.findUnique({
     where: { id: optionId },
-    select: { id: true },
+    select: { id: true, type: true },
   });
 
   if (!existingOption) {
@@ -559,6 +590,9 @@ export async function updateProductOptionAction(formData: FormData) {
       slug: slugifyOptionName(slugInput || name),
       isActive: formData.get("isActive") === "on",
       sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
+      ...(existingOption.type === "CATEGORY"
+        ? readCategoryNavSettings(formData, { storefrontVisible: true })
+        : {}),
     },
   });
 

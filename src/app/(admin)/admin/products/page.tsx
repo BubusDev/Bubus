@@ -7,7 +7,6 @@ import {
   AdminActionButton,
   AdminActionLink,
 } from "@/components/admin/AdminActionButton";
-import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
 import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
@@ -22,9 +21,9 @@ export default async function AdminProductsPage() {
   return (
     <AdminShell
       title="Termékek"
-      description="Termékek létrehozása, szerkesztése és törlése egységes szűrési és kezdőlapi kihelyezési adatokkal."
     >
-      <div className="mb-5 flex sm:justify-end">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <OptionSummary groups={optionGroups} />
         <AdminActionLink href="/admin/products/new" variant="primary">
           Új termék
         </AdminActionLink>
@@ -222,11 +221,37 @@ export default async function AdminProductsPage() {
           </table>
         </div>
       </div>
-
-      <div className="mt-8">
-        <AdminOptionManager groups={optionGroups} />
-      </div>
     </AdminShell>
+  );
+}
+
+function OptionSummary({
+  groups,
+}: {
+  groups: Awaited<ReturnType<typeof getProductOptionGroups>>;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 text-xs text-[var(--admin-ink-600)]">
+      {groups.map((group) => {
+        const activeCount = group.options.filter((option) => option.isActive).length;
+        const navCount =
+          group.type === "CATEGORY"
+            ? group.options.filter(
+                (option) =>
+                  option.isActive &&
+                  option.isStorefrontVisible &&
+                  option.showInMainNav,
+              ).length
+            : null;
+
+        return (
+          <span key={group.type} className="admin-badge-neutral admin-pill">
+            {group.label}: {activeCount}
+            {navCount !== null ? ` / főmenü: ${navCount}` : ""}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 

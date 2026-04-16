@@ -258,6 +258,22 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             name: typeof formData.get("name") === "string" ? String(formData.get("name")).trim() : option.name,
             slug: typeof formData.get("slug") === "string" ? String(formData.get("slug")).trim() : option.slug,
             isActive: formData.get("isActive") === "on",
+            isStorefrontVisible:
+              type === "CATEGORY"
+                ? formData.getAll("isStorefrontVisible").includes("on")
+                : option.isStorefrontVisible,
+            showInMainNav:
+              type === "CATEGORY"
+                ? formData.getAll("showInMainNav").includes("on")
+                : option.showInMainNav,
+            navSortOrder:
+              type === "CATEGORY" && typeof formData.get("navSortOrder") === "string"
+                ? Number(formData.get("navSortOrder")) || 0
+                : option.navSortOrder,
+            navLabel:
+              type === "CATEGORY" && typeof formData.get("navLabel") === "string"
+                ? String(formData.get("navLabel")).trim() || null
+                : option.navLabel,
             sortOrder:
               typeof formData.get("sortOrder") === "string"
                 ? Number(formData.get("sortOrder")) || option.sortOrder
@@ -325,13 +341,15 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
               </div>
               <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink-900)]">{group.label}</h2>
               <p className="mt-1 text-xs text-[var(--admin-ink-600)]">
-                Húzással vagy nyilakkal rendezhető. A sorrend automatikusan mentődik.
+                {group.type === "CATEGORY"
+                  ? "A Boltoldal külön kategóriaoldalt engedélyez. A Főmenü csak külön bekapcsolva jelenik meg."
+                  : "Húzással vagy nyilakkal rendezhető. A sorrend automatikusan mentődik."}
               </p>
             </div>
           </div>
 
           <form
-            className="admin-panel-soft mb-3 grid gap-2 p-3 md:grid-cols-[minmax(160px,1fr)_minmax(140px,0.8fr)_auto]"
+            className="admin-panel-soft mb-3 grid gap-2 p-3"
             onSubmit={(event) => {
               event.preventDefault();
               handleCreate(group.type, new FormData(event.currentTarget));
@@ -339,24 +357,60 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             }}
           >
             <input type="hidden" name="type" value={group.type} />
-            <input
-              name="name"
-              placeholder={`Új ${group.label.toLowerCase()}`}
-              className="admin-input h-9 px-3 text-sm"
-            />
-            <input
-              name="slug"
-              placeholder="Slug"
-              className="admin-input h-9 px-3 text-sm"
-            />
-            <button
-              type="submit"
-              disabled={isPending && pendingCreateType === group.type}
-              className="admin-button-primary inline-flex h-9 items-center justify-center gap-1.5 px-3 text-xs"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Hozzáadás
-            </button>
+            <div className="grid gap-2 md:grid-cols-[minmax(160px,1fr)_minmax(140px,0.8fr)_auto]">
+              <input
+                name="name"
+                placeholder={`Új ${group.label.toLowerCase()}`}
+                className="admin-input h-9 px-3 text-sm"
+              />
+              <input
+                name="slug"
+                placeholder="Slug"
+                className="admin-input h-9 px-3 text-sm"
+              />
+              <button
+                type="submit"
+                disabled={isPending && pendingCreateType === group.type}
+                className="admin-button-primary inline-flex h-9 items-center justify-center gap-1.5 px-3 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Hozzáadás
+              </button>
+            </div>
+            {group.type === "CATEGORY" ? (
+              <div className="grid gap-2 border-t border-[var(--admin-line-100)] pt-2 md:grid-cols-[auto_auto_minmax(120px,0.5fr)_minmax(140px,0.8fr)] md:items-center">
+                <label className="admin-checkbox-pill flex h-8 items-center gap-2 px-2.5 text-xs">
+                  <input type="hidden" name="isStorefrontVisible" value="off" />
+                  <input
+                    type="checkbox"
+                    name="isStorefrontVisible"
+                    defaultChecked
+                    className="h-3.5 w-3.5 accent-[var(--admin-blue-600)]"
+                  />
+                  Boltoldal
+                </label>
+                <label className="admin-checkbox-pill flex h-8 items-center gap-2 px-2.5 text-xs">
+                  <input type="hidden" name="showInMainNav" value="off" />
+                  <input
+                    type="checkbox"
+                    name="showInMainNav"
+                    className="h-3.5 w-3.5 accent-[var(--admin-blue-600)]"
+                  />
+                  Főmenü
+                </label>
+                <input
+                  name="navSortOrder"
+                  inputMode="numeric"
+                  placeholder="Menü sorrend"
+                  className="admin-input h-8 px-2.5 text-xs"
+                />
+                <input
+                  name="navLabel"
+                  placeholder="Menücímke (opcionális)"
+                  className="admin-input h-8 px-2.5 text-xs"
+                />
+              </div>
+            ) : null}
           </form>
 
           <div className="space-y-2">
@@ -453,6 +507,45 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                       />
                     </div>
                   </div>
+
+                  {group.type === "CATEGORY" ? (
+                    <div className="grid gap-2 border-t border-[var(--admin-line-100)] pt-2 md:grid-cols-[auto_auto_minmax(110px,0.5fr)_minmax(140px,0.8fr)] md:items-center xl:border-t-0 xl:pt-0">
+                      <label className="admin-checkbox-pill flex h-8 items-center gap-2 px-2.5 text-xs">
+                        <input type="hidden" name="isStorefrontVisible" value="off" />
+                        <input
+                          type="checkbox"
+                          name="isStorefrontVisible"
+                          defaultChecked={option.isStorefrontVisible}
+                          className="h-3.5 w-3.5 accent-[var(--admin-blue-600)]"
+                        />
+                        Boltoldal
+                      </label>
+                      <label className="admin-checkbox-pill flex h-8 items-center gap-2 px-2.5 text-xs">
+                        <input type="hidden" name="showInMainNav" value="off" />
+                        <input
+                          type="checkbox"
+                          name="showInMainNav"
+                          defaultChecked={option.showInMainNav}
+                          className="h-3.5 w-3.5 accent-[var(--admin-blue-600)]"
+                        />
+                        Főmenü
+                      </label>
+                      <input
+                        name="navSortOrder"
+                        inputMode="numeric"
+                        defaultValue={option.navSortOrder}
+                        className="admin-input h-8 min-w-0 px-2.5 text-xs"
+                        aria-label={`${option.name} főmenü sorrend`}
+                      />
+                      <input
+                        name="navLabel"
+                        defaultValue={option.navLabel ?? ""}
+                        placeholder="Menücímke"
+                        className="admin-input h-8 min-w-0 px-2.5 text-xs"
+                        aria-label={`${option.name} főmenü címke`}
+                      />
+                    </div>
+                  ) : null}
 
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
                     <label

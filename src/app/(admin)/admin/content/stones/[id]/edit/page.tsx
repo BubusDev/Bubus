@@ -15,10 +15,7 @@ export default async function AdminEditStonePage({ params }: Props) {
   if (!stone) notFound();
 
   return (
-    <AdminShell
-      title={`Szerkesztés: ${stone.name}`}
-      description="Módosítsd a kő leírását, hatásait és megjelenési adatait."
-    >
+    <AdminShell title={`Szerkesztés: ${stone.name}`}>
       <div className="max-w-2xl">
         <StoneForm stone={stone} />
       </div>

@@ -187,16 +187,6 @@ export const mainNavigationDefinitions: MainNavigationItemDefinition[] = [
     label: "Akció",
     href: "/sale",
   },
-  {
-    slug: "necklaces",
-    label: "Nyakláncok",
-    href: "/necklaces",
-  },
-  {
-    slug: "bracelets",
-    label: "Karkötők",
-    href: "/bracelets",
-  },
 ] as const;
 
 export const filterGroupDefinitions: Omit<FilterGroup, "options">[] = [

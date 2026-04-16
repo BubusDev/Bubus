@@ -35,10 +35,7 @@ export default async function ArchivePage() {
   const products = await getArchivedProducts();
 
   return (
-    <AdminShell
-      title="Archivált termékek"
-      description="Visszaállíthatod a termékeket, ha újra van készlet, vagy véglegesen törölheted őket."
-    >
+    <AdminShell title="Archivált termékek">
       <ArchiveProductList
         products={products.map((p) => ({
           ...p,

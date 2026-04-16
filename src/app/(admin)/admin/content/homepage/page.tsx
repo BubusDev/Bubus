@@ -22,10 +22,7 @@ export default async function AdminHomepageContentPage({
         : "";
 
   return (
-    <AdminShell
-      title="Kezdőlap tartalom"
-      description="Hero, Instagram kampány és kollekció promó slotok kezelése kódmódosítás nélkül."
-    >
+    <AdminShell title="Kezdőlap tartalom">
       {savedMessage ? (
         <div className="admin-panel-muted mb-5 px-4 py-3 text-sm text-[var(--admin-ink-700)]">
           {savedMessage}

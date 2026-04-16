@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { updateProductAction } from "@/app/(admin)/admin/products/actions";
+import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductCouponSection } from "@/components/admin/ProductCouponSection";
@@ -67,10 +68,7 @@ export default async function EditAdminProductPage({
   }));
 
   return (
-    <AdminShell
-      title="Termék szerkesztése"
-      description="A termék adatainak, kezdőlapi kihelyezésének és szűrési mezőinek frissítése a publikus felület átírása nélkül."
-    >
+    <AdminShell title="Termék szerkesztése">
       <div className="grid gap-6">
         <AdminProductForm
           action={updateProductAction}
@@ -84,6 +82,7 @@ export default async function EditAdminProductPage({
           assignedCoupons={assignedCoupons}
           availableCoupons={allPromoCodes}
         />
+        <AdminOptionManager groups={optionGroups} />
       </div>
     </AdminShell>
   );

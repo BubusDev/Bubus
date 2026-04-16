@@ -32,10 +32,7 @@ export default async function AdminSpecialtiesPage({
   const errorMessage = getErrorMessage(resolvedSearchParams);
 
   return (
-    <AdminShell
-      title="Különlegességek navigáció"
-      description="A Különlegességek storefront szekció csoportjainak, sorrendjének és láthatóságának kezelése."
-    >
+    <AdminShell title="Különlegességek navigáció">
       <div className="space-y-6">
         {errorMessage ? (
           <div className="rounded-md border border-[#e3c7cf] bg-[#fff1f3] px-4 py-3 text-sm text-[#99283d]">

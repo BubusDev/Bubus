@@ -14,10 +14,7 @@ export default async function AdminSettingsPage() {
   const user = await requireAdminUser("/admin/settings");
 
   return (
-    <AdminShell
-      title="Beállítások"
-      description="Fiókod, bolt adataid és értesítési preferenciáid egy helyen."
-    >
+    <AdminShell title="Beállítások">
       <AdminSettingsClient
         user={{
           id: user.id,

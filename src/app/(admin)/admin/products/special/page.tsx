@@ -12,10 +12,7 @@ export default async function AdminSpecialEditionPage() {
   ]);
 
   return (
-    <AdminShell
-      title="Special Edition"
-      description="A limitált kampány kezelése — aktív állapot és termékenkénti képek beállítása."
-    >
+    <AdminShell title="Special Edition">
       <AdminSpecialEditionManager campaign={campaign} products={products} />
     </AdminShell>
   );

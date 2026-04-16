@@ -9,10 +9,7 @@ export default async function AdminStonesPage() {
   const stones = await db.stone.findMany({ orderBy: { sortOrder: "asc" } });
 
   return (
-    <AdminShell
-      title="Kövek szerkesztő"
-      description="A féldrágakövek leírásainak kezelése — ezek jelennek meg a termékmodálban és a /stones oldalon."
-    >
+    <AdminShell title="Kövek szerkesztő">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <p className="text-sm text-[var(--admin-ink-600)]">{stones.length} kő az adatbázisban</p>

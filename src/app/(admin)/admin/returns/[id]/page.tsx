@@ -110,7 +110,6 @@ export default async function AdminReturnRequestDetailPage({
   return (
     <AdminShell
       title={`Visszaküldési kérelem — ${request.id.slice(0, 8)}`}
-      description="A kérelem állapota, admin megjegyzése és lezárási információi."
       actions={
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link

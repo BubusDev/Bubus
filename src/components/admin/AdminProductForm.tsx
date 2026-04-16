@@ -681,6 +681,11 @@ function InlineOptionCreate({
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
+      {optionType === "CATEGORY" ? (
+        <p className="mb-3 text-xs leading-5 text-[var(--admin-ink-600)]">
+          Az új kategória boltoldalt kap, de a főmenübe csak külön bekapcsolva kerül.
+        </p>
+      ) : null}
 
       <div className="grid gap-2 sm:grid-cols-2">
         <input

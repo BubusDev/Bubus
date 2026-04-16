@@ -24,10 +24,17 @@ type SeedProduct = Omit<
   gallery: { url: string; alt: string; isCover?: boolean }[];
 };
 
-const optionSeeds = {
+type SeedOption = {
+  name: string;
+  slug: string;
+  showInMainNav?: boolean;
+  navSortOrder?: number;
+};
+
+const optionSeeds: Record<ProductOptionType, SeedOption[]> = {
   CATEGORY: [
-    { name: "Nyakl\u00e1ncok", slug: "necklaces" },
-    { name: "Kark\u00f6t\u0151k", slug: "bracelets" },
+    { name: "Nyakl\u00e1ncok", slug: "necklaces", showInMainNav: true, navSortOrder: 30 },
+    { name: "Kark\u00f6t\u0151k", slug: "bracelets", showInMainNav: true, navSortOrder: 40 },
     { name: "Anklets", slug: "anklets" },
     { name: "Earrings", slug: "earrings" },
   ],
@@ -69,7 +76,7 @@ const optionSeeds = {
     { name: "Blush", slug: "blush" },
     { name: "Pearl", slug: "pearl" },
   ],
-} satisfies Record<ProductOptionType, { name: string; slug: string }[]>;
+};
 
 async function seedOptions() {
   const allOptions = Object.entries(optionSeeds).flatMap(([type, options]) =>
@@ -79,6 +86,9 @@ async function seedOptions() {
       slug: option.slug,
       sortOrder: index,
       isActive: true,
+      isStorefrontVisible: true,
+      showInMainNav: option.showInMainNav ?? false,
+      navSortOrder: option.navSortOrder ?? 0,
     })),
   );
 

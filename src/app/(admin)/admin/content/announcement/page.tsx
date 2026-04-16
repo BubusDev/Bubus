@@ -6,10 +6,7 @@ export default async function AdminAnnouncementPage() {
   const announcement = await getAdminAnnouncementBar();
 
   return (
-    <AdminShell
-      title="Üzenetsáv"
-      description="Az üzlet fejlécében megjelenő szerkesztői csík kezelése."
-    >
+    <AdminShell title="Üzenetsáv">
       <AdminAnnouncementBarForm announcement={announcement} />
     </AdminShell>
   );

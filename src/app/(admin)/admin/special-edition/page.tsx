@@ -18,10 +18,7 @@ export default async function AdminSpecialEditionPage({
   ]);
 
   return (
-    <AdminShell
-      title="Special Edition"
-      description="A limitált kampány kezelése — aktív állapot és termékenkénti képek beállítása."
-    >
+    <AdminShell title="Special Edition">
       {error && (
         <div className="mb-5 border border-[#fca5a5] bg-[#fef2f2] px-4 py-3 text-[13px] text-[#b91c1c]">
           {decodeURIComponent(error)}

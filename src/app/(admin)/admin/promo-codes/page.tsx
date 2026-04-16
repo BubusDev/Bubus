@@ -286,10 +286,7 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
   ]);
 
   return (
-    <AdminShell
-      title="Promo codes"
-      description="Create and manage percentage discount codes for the storefront cart and checkout."
-    >
+    <AdminShell title="Promo codes">
       {status && statusMessages[status] ? (
         <div className="admin-panel-muted mb-5 px-4 py-3 text-sm text-[var(--admin-ink-700)]">
           {statusMessages[status]}

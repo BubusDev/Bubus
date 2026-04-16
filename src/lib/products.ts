@@ -58,6 +58,10 @@ export type ProductOptionValue = {
   name: string;
   slug: string;
   isActive: boolean;
+  isStorefrontVisible: boolean;
+  showInMainNav: boolean;
+  navSortOrder: number;
+  navLabel: string | null;
   sortOrder: number;
 };
 
@@ -145,6 +149,10 @@ function mapOption(option: ProductOption): ProductOptionValue {
     name: option.name,
     slug: option.slug,
     isActive: option.isActive,
+    isStorefrontVisible: option.isStorefrontVisible,
+    showInMainNav: option.showInMainNav,
+    navSortOrder: option.navSortOrder,
+    navLabel: option.navLabel,
     sortOrder: option.sortOrder,
   };
 }
@@ -635,15 +643,41 @@ export async function getProductOptionGroups(includeInactive = false): Promise<P
 }
 
 export async function getNavigationCategories(): Promise<NavigationCategory[]> {
-  const specialEditionCampaign = await getSpecialEditionCampaign();
+  const [specialEditionCampaign, dynamicCategories] = await Promise.all([
+    getSpecialEditionCampaign(),
+    db.productOption.findMany({
+      where: {
+        type: "CATEGORY",
+        isActive: true,
+        isStorefrontVisible: true,
+        showInMainNav: true,
+      },
+      orderBy: [{ navSortOrder: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
+    }),
+  ]);
 
-  return mainNavigationDefinitions
+  const editorialItems = mainNavigationDefinitions
     .filter((item) => !item.requiresSpecialEdition || specialEditionCampaign?.isActive)
     .map(({ slug, label, href }) => ({
       slug,
       label,
       href,
     }));
+
+  const existingSlugs = new Set(editorialItems.map((item) => item.slug));
+  const dynamicItems = dynamicCategories
+    .map((category) => {
+      const slug = normalizeCategorySlug(category.slug);
+
+      return {
+        slug,
+        label: category.navLabel?.trim() || category.name,
+        href: `/${slug}`,
+      };
+    })
+    .filter((item) => !existingSlugs.has(item.slug));
+
+  return [...editorialItems, ...dynamicItems];
 }
 
 export async function getCategoryDefinition(slug: string): Promise<CategoryDefinition | null> {
@@ -662,7 +696,12 @@ export async function getCategoryDefinition(slug: string): Promise<CategoryDefin
   }
 
   const category = await db.productOption.findFirst({
-    where: { type: "CATEGORY", slug: { in: getCategorySlugAliases(canonicalSlug) }, isActive: true },
+    where: {
+      type: "CATEGORY",
+      slug: { in: getCategorySlugAliases(canonicalSlug) },
+      isActive: true,
+      isStorefrontVisible: true,
+    },
   });
 
   if (!category) {
@@ -679,7 +718,7 @@ export async function getCategoryDefinition(slug: string): Promise<CategoryDefin
 
 export async function getCategorySlugs() {
   const dynamicSlugs = await db.productOption.findMany({
-    where: { type: "CATEGORY", isActive: true },
+    where: { type: "CATEGORY", isActive: true, isStorefrontVisible: true },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: { slug: true },
   });

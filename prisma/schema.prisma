@@ -242,6 +242,10 @@ model ProductOption {
   name                 String
   slug                 String
   isActive             Boolean           @default(true)
+  isStorefrontVisible  Boolean           @default(true)
+  showInMainNav        Boolean           @default(false)
+  navSortOrder         Int               @default(0)
+  navLabel             String?
   sortOrder            Int               @default(0)
   productsAsCategory   Product[]         @relation("ProductCategory")
   productsAsStoneType  Product[]         @relation("ProductStoneType")
@@ -257,6 +261,7 @@ model ProductOption {
   @@unique([type, slug])
   @@unique([type, name])
   @@index([type, isActive, sortOrder])
+  @@index([type, isActive, isStorefrontVisible, showInMainNav, navSortOrder])
 }
 
 model ProductImage {
