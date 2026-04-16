@@ -17,6 +17,7 @@ type FilterSidebarProps = {
   filterGroups: FilterGroup[];
   state: ParsedCollectionState;
   mode?: "both" | "mobile-trigger" | "desktop-sidebar" | "drawer";
+  compact?: boolean;
 };
 
 type AccordionGroupKey = FilterGroup["key"] | "price";
@@ -266,6 +267,7 @@ function FilterPanel({
 export function FilterSidebar(props: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const mode = props.mode ?? "both";
+  const compact = props.compact ?? false;
   const showTrigger = mode !== "desktop-sidebar";
   const showDesktopSidebar = mode !== "mobile-trigger" && mode !== "drawer";
   // "drawer" mode: trigger + drawer visible on all screen sizes (not just mobile)
@@ -278,10 +280,14 @@ export function FilterSidebar(props: FilterSidebarProps) {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-[#d4a0b8] bg-white px-4 py-2 text-sm font-medium text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
+            className={
+              compact
+                ? "inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#d4a0b8] bg-white text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
+                : "inline-flex items-center gap-2 rounded-full border border-[#d4a0b8] bg-white px-4 py-2 text-sm font-medium text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
+            }
           >
             <SlidersHorizontal className="h-4 w-4" strokeWidth={1.5} />
-            Szűrők
+            {!compact && "Szűrők"}
           </button>
         </div>
       )}

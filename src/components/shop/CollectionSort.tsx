@@ -14,9 +14,10 @@ const SORT_OPTIONS = [
 
 type CollectionSortProps = {
   currentSort: string;
+  compact?: boolean;
 };
 
-export function CollectionSort({ currentSort }: CollectionSortProps) {
+export function CollectionSort({ currentSort, compact }: CollectionSortProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -28,10 +29,14 @@ export function CollectionSort({ currentSort }: CollectionSortProps) {
       {/* Trigger gomb */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm text-[#1a1a1a] border border-[#e8e5e0] px-3 py-1.5 hover:border-[#1a1a1a] transition"
+        className={
+          compact
+            ? "inline-flex h-9 w-9 items-center justify-center border border-[#e8e5e0] bg-white text-[#1a1a1a] transition hover:border-[#1a1a1a]"
+            : "flex items-center gap-1.5 text-sm text-[#1a1a1a] border border-[#e8e5e0] px-3 py-1.5 hover:border-[#1a1a1a] transition"
+        }
       >
         <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.5} />
-        {currentLabel}
+        {!compact && currentLabel}
       </button>
 
       {/* Overlay + panel */}

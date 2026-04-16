@@ -34,25 +34,30 @@ export function CollectionPage({
     <main className="mx-auto max-w-[1450px] pb-24">
       <div className="px-6 pt-6 sm:px-8">
 
-        {/* ── MOBILE: filter + sort ── */}
-        <section className="mb-6 border-b border-[#e8e5e0] pb-3 lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <FilterSidebar
-                availableFilters={availableFilters}
-                filterGroups={filterGroups}
-                state={state}
-                mode="mobile-trigger"
-              />
-              <div className="min-w-0 flex-1">
-                <ActiveFilterChips filterGroups={filterGroups} state={state} />
-              </div>
+        {/* ── MOBILE: kupon banner (teljes szélességű sáv a toolbar felett) ── */}
+        {couponPreview && (
+          <div className="-mx-6 mb-3 sm:-mx-8 lg:hidden">
+            <AccountCouponPill couponPreview={couponPreview} compact />
+          </div>
+        )}
+
+        {/* ── MOBILE: filter ikon | chip-ek | rendezés ikon ── */}
+        <section className="mb-6 lg:hidden">
+          <div className="flex items-center gap-3">
+            <FilterSidebar
+              availableFilters={availableFilters}
+              filterGroups={filterGroups}
+              state={state}
+              mode="mobile-trigger"
+              compact
+            />
+            <div className="min-w-0 flex-1">
+              <ActiveFilterChips filterGroups={filterGroups} state={state} />
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <span className="text-xs text-[#888]">{products.length} termék</span>
-              {couponPreview && <AccountCouponPill couponPreview={couponPreview} />}
-              <CollectionSort currentSort={state.sort} />
-            </div>
+            <CollectionSort currentSort={state.sort} compact />
+          </div>
+          <div className="mt-2 border-b border-[#e8e5e0] pb-3">
+            <span className="text-xs text-[#aaa]">{products.length} termék</span>
           </div>
         </section>
 

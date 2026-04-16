@@ -9,8 +9,10 @@ import type { HeaderCouponDropdownPreview } from "@/lib/account";
 
 export function AccountCouponPill({
   couponPreview,
+  compact = false,
 }: {
   couponPreview: HeaderCouponDropdownPreview;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -28,7 +30,9 @@ export function AccountCouponPill({
         <div className="flex items-center gap-2.5">
           <div className="h-2 w-2 rounded-full bg-[#c45a85] animate-pulse" />
           <span className="text-sm font-medium text-[#c45a85]">
-            {activeCoupons.length} aktív kuponod van
+            {compact
+              ? `${activeCoupons.length} kupon aktív`
+              : `${activeCoupons.length} aktív kuponod van`}
           </span>
         </div>
         <div className="flex items-center gap-1 text-xs text-[#c45a85]">

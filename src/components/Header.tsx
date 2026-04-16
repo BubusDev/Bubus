@@ -172,7 +172,7 @@ export function Header({
                 >
                   <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                   {couponPreview.activeCoupons.length > 0 && (
-                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
+                    <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
                   )}
                 </button>
               ) : null}
