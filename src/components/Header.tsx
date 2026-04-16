@@ -3,18 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowRight,
   ChevronDown,
   ChevronRight,
   Heart,
   Menu,
   ShoppingBag,
+  TicketPercent,
   User,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
 import {
   headerSecondaryNavItems,
   type HeaderUser,
@@ -86,18 +88,19 @@ export function Header({
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [cartPath, setCartPath] = useState<string | null>(null);
+  const [mobileCouponOpen, setMobileCouponOpen] = useState(false);
 
   const mobileMenuOpen = mobileMenuPath === pathname;
   const cartOpen = cartPath === pathname;
 
   // Scroll lock when any overlay is open
   useEffect(() => {
-    const anyOpen = mobileMenuOpen || cartOpen;
+    const anyOpen = mobileMenuOpen || cartOpen || mobileCouponOpen;
     document.body.style.overflow = anyOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileMenuOpen, cartOpen]);
+  }, [mobileMenuOpen, cartOpen, mobileCouponOpen]);
 
   return (
     <>
@@ -148,7 +151,7 @@ export function Header({
 
           {/* ── COL 3: mobile icons / desktop right nav ── */}
           <div className="flex items-center justify-end gap-1">
-            {/* Mobile: user icon + cart icon */}
+            {/* Mobile: user icon + coupon icon + cart icon */}
             <div className="flex items-center gap-1.5 lg:hidden">
               {/* User icon → /account or /sign-in */}
               <Link
@@ -158,6 +161,21 @@ export function Header({
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
+
+              {/* Coupon icon → opens coupon popup (only for logged-in users with coupons) */}
+              {user && couponPreview ? (
+                <button
+                  type="button"
+                  aria-label="Kuponjaim"
+                  onClick={() => setMobileCouponOpen(true)}
+                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                >
+                  <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
+                  {couponPreview.activeCoupons.length > 0 && (
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
+                  )}
+                </button>
+              ) : null}
 
               {/* Cart icon → opens drawer */}
               <button
@@ -344,6 +362,76 @@ export function Header({
         onClose={() => setCartPath(null)}
         cartCount={cartCount}
       />
+
+      {/* ── MOBILE COUPON POPUP ── */}
+      {mobileCouponOpen && couponPreview ? (
+        <div className="fixed inset-0 z-[200] flex items-end lg:hidden" onClick={() => setMobileCouponOpen(false)}>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-h-[85vh] overflow-hidden rounded-t-2xl border-t border-[#e8e5e0] bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="flex justify-center pb-1 pt-3">
+              <div className="h-1 w-10 rounded-full bg-[#e8e5e0]" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 pb-3 pt-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
+                Kuponjaim
+              </p>
+              <button
+                type="button"
+                aria-label="Bezárás"
+                onClick={() => setMobileCouponOpen(false)}
+              >
+                <X className="h-4 w-4 text-[#1a1a1a]" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Coupons list */}
+            <div className="overflow-y-auto" style={{ maxHeight: "calc(85vh - 100px)" }}>
+              <div className="py-2.5">
+                {couponPreview.activeCoupons.length === 0 ? (
+                  <p className="px-5 py-8 text-center text-sm text-[#aaa]">
+                    Nincs aktív kuponod
+                  </p>
+                ) : (
+                  couponPreview.activeCoupons.map((coupon) => (
+                    <MiniCouponRow key={coupon.id} coupon={coupon} />
+                  ))
+                )}
+              </div>
+
+              {couponPreview.eligibleProducts.length > 0 ? (
+                <>
+                  <div className="border-t border-[#f0ede8] px-5 pb-2 pt-2.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b08898]">
+                      {couponPreview.recommendationLabel}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 px-5 pb-4">
+                    {couponPreview.eligibleProducts.slice(0, 3).map((product) => (
+                      <MiniProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </>
+              ) : null}
+
+              <div className="border-t border-[#f0ede8] px-5 py-3">
+                <Link
+                  href="/profile#kuponjaim"
+                  className="flex items-center gap-1 text-[11px] text-[#888] no-underline transition hover:text-[#1a1a1a]"
+                  onClick={() => setMobileCouponOpen(false)}
+                >
+                  Összes kupon megtekintése <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
     </>
   );
