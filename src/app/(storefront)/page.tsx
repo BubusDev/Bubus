@@ -7,49 +7,20 @@ import { ValueStrip } from "@/components/home/ValueStrip";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getHomepageProducts } from "@/lib/products";
 
-function toQueryString(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value) {
-      params.set(key, value);
-    }
-  }
-
-  const query = params.toString();
-  return query ? `/?${query}` : "/";
-}
-
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function readPageParam(
-  searchParams: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const raw = searchParams[key];
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  const page = Number(value);
-
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-}
-
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
-  const spotlightPage = readPageParam(resolvedSearchParams, "spotlightPage");
   const [homepageContent, spotlightData] = await Promise.all([
     getHomepageContent(),
-    getHomepageProducts("spotlight", spotlightPage),
+    getHomepageProducts("spotlight", 1, 20),
   ]);
-  const normalizedSearchParams = {
-    spotlightPage: spotlightPage > 1 ? String(spotlightPage) : undefined,
-  };
   const newsletterStatusValue = resolvedSearchParams.newsletter;
   const newsletterStatus = Array.isArray(newsletterStatusValue)
     ? newsletterStatusValue[0]
     : newsletterStatusValue;
-  const homeRedirectTo = toQueryString(normalizedSearchParams);
 
   return (
     <main className="min-h-screen bg-[#fbfaf7]">
@@ -61,11 +32,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           title="Újdonságok"
           href="/new-in"
           products={spotlightData.products}
-          redirectTo={homeRedirectTo}
-          page={spotlightData.page}
-          totalPages={spotlightData.totalPages}
-          pageParam="spotlightPage"
-          searchParams={normalizedSearchParams}
+          redirectTo="/"
           compactPremiumRow
         />
       </section>

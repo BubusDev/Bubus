@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HomeProductCarousel } from "@/components/home/HomeProductCarousel";
 import { HomeSectionPager } from "@/components/home/HomeSectionPager";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import type { Product } from "@/lib/catalog";
@@ -66,23 +67,24 @@ export function HomeProductSection({
         ) : null}
       </div>
 
-      <ProductGrid
-        products={products}
-        redirectTo={redirectTo}
-        showAddToCart={!compactPremiumRow}
-        wishlistPlacement={compactPremiumRow ? "image" : "inline"}
-        className={
-          compactPremiumRow
-            ? "flex snap-x gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:w-[72vw] [&>*]:max-w-[320px] [&>*]:shrink-0 [&>*]:snap-start sm:[&>*]:w-[44vw] lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:[&>*]:w-auto lg:[&>*]:max-w-none"
-            : undefined
-        }
-      />
-      <HomeSectionPager
-        page={page}
-        totalPages={totalPages}
-        pageParam={pageParam}
-        searchParams={searchParams}
-      />
+      {compactPremiumRow ? (
+        <HomeProductCarousel products={products} redirectTo={redirectTo} />
+      ) : (
+        <>
+          <ProductGrid
+            products={products}
+            redirectTo={redirectTo}
+            showAddToCart
+            wishlistPlacement="inline"
+          />
+          <HomeSectionPager
+            page={page}
+            totalPages={totalPages}
+            pageParam={pageParam}
+            searchParams={searchParams}
+          />
+        </>
+      )}
     </section>
   );
 }
