@@ -28,10 +28,11 @@ import {
   type ProductOptionValue,
 } from "@/lib/products";
 import {
-  browserSafeProductImageAccept,
   getUnsafeProductImageMessage,
-  isBrowserSafeImageFile,
+  isHeicImageFile,
+  isUploadAcceptedImageFile,
   productImageFormatHelpText,
+  productImageInputAccept,
 } from "@/lib/image-safety";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -295,7 +296,29 @@ async function loadImageForCanvas(file: File) {
   }
 }
 
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch("/api/admin/product-images/convert-heic", {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? "A HEIC konvertálása nem sikerült.");
+  }
+  const jpegBlob = await response.blob();
+  return new File([jpegBlob], getOptimizedImageFileName(file.name), {
+    type: "image/jpeg",
+    lastModified: file.lastModified,
+  });
+}
+
 async function optimizeProductImageForUpload(file: File) {
+  if (isHeicImageFile(file)) {
+    file = await convertHeicToJpeg(file);
+  }
+
   if (file.type === "image/gif") {
     return file;
   }
@@ -1065,8 +1088,8 @@ export function AdminProductForm({
     if (files.length === 0) return;
     setSubmitError(null);
 
-    const acceptedFiles = files.filter(isBrowserSafeImageFile);
-    const rejectedFiles = files.filter((file) => !isBrowserSafeImageFile(file));
+    const acceptedFiles = files.filter(isUploadAcceptedImageFile);
+    const rejectedFiles = files.filter((file) => !isUploadAcceptedImageFile(file));
 
     if (rejectedFiles.length > 0) {
       setSubmitError(getUnsafeProductImageMessage(rejectedFiles[0]?.name));
@@ -1122,7 +1145,7 @@ export function AdminProductForm({
     event.preventDefault();
     setIsDragOver(false);
     const files = Array.from(event.dataTransfer.files).filter((f) =>
-      f.type.startsWith("image/") || isBrowserSafeImageFile(f),
+      f.type.startsWith("image/") || isUploadAcceptedImageFile(f),
     );
     void processFiles(files);
   }
@@ -1452,7 +1475,7 @@ export function AdminProductForm({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept={browserSafeProductImageAccept}
+                  accept={productImageInputAccept}
                   multiple
                   className="hidden"
                   onChange={handleImageSelection}

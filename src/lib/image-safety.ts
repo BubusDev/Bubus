@@ -9,9 +9,16 @@ const BROWSER_SAFE_IMAGE_CONTENT_TYPES = new Set([
 const UNSAFE_IMAGE_EXTENSIONS = new Set([".heic", ".heif"]);
 const UNSAFE_IMAGE_CONTENT_TYPES = new Set(["image/heic", "image/heif", "image/heic-sequence", "image/heif-sequence"]);
 
-export const browserSafeProductImageAccept = Array.from(BROWSER_SAFE_IMAGE_CONTENT_TYPES).join(",");
+const HEIC_IMAGE_EXTENSIONS = UNSAFE_IMAGE_EXTENSIONS;
+const HEIC_IMAGE_CONTENT_TYPES = UNSAFE_IMAGE_CONTENT_TYPES;
 
-export const productImageFormatHelpText = "JPG, PNG, WEBP vagy AVIF. A nagy képeket feltöltés előtt optimalizáljuk.";
+export const browserSafeProductImageAccept = Array.from(BROWSER_SAFE_IMAGE_CONTENT_TYPES).join(",");
+export const productImageInputAccept = [
+  ...Array.from(BROWSER_SAFE_IMAGE_CONTENT_TYPES),
+  ...Array.from(HEIC_IMAGE_CONTENT_TYPES),
+].join(",");
+
+export const productImageFormatHelpText = "JPG, PNG, WEBP, AVIF vagy HEIC. A nagy képeket feltöltés előtt optimalizáljuk.";
 
 export function getPathExtension(value: string) {
   const pathname = (() => {
@@ -73,9 +80,18 @@ export function isBrowserSafeImageFile(file: Pick<File, "name" | "type">) {
   return extension.length > 0 && BROWSER_SAFE_IMAGE_EXTENSIONS.has(extension);
 }
 
+export function isHeicImageFile(file: Pick<File, "name" | "type">) {
+  if (file.type) return HEIC_IMAGE_CONTENT_TYPES.has(file.type.toLowerCase());
+  return HEIC_IMAGE_EXTENSIONS.has(getPathExtension(file.name));
+}
+
+export function isUploadAcceptedImageFile(file: Pick<File, "name" | "type">) {
+  return isBrowserSafeImageFile(file) || isHeicImageFile(file);
+}
+
 export function getUnsafeProductImageMessage(fileName?: string) {
   const prefix = fileName ? `${fileName}: ` : "";
-  return `${prefix}HEIC/HEIF nem tölthető fel. Exportáld JPG, PNG, WEBP vagy AVIF formátumba.`;
+  return `${prefix}Nem támogatott képformátum. Töltsd fel JPG, PNG, WEBP, AVIF vagy HEIC formátumban.`;
 }
 
 export function assertBrowserSafeProductImageUrl(url: string) {
