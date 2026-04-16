@@ -10,6 +10,7 @@ import {
 import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
+import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 import { getAdminProducts, getProductOptionGroups } from "@/lib/products";
 
 export default async function AdminProductsPage() {
@@ -32,6 +33,31 @@ export default async function AdminProductsPage() {
       <div className="space-y-3 md:hidden">
         {products.map((product) => (
           <article key={product.id} className="admin-panel-soft p-4">
+            {(() => {
+              const snapshot = getProductAvailabilitySnapshot(product);
+              const statusLabel =
+                snapshot.lifecycleStatus === "active"
+                  ? "Aktív"
+                  : snapshot.lifecycleStatus === "draft"
+                    ? "Draft"
+                  : snapshot.lifecycleStatus === "sold_out"
+                    ? "Elfogyott"
+                    : "Hiányos";
+
+              return (
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="admin-badge-neutral admin-pill">{statusLabel}</span>
+                  <span className="text-xs text-[var(--admin-ink-500)]">
+                    Készlet: {product.stockQuantity} db
+                  </span>
+                  {snapshot.readinessIssues.length > 0 ? (
+                    <span className="text-xs text-[#9b476f]">
+                      {snapshot.readinessIssues[0]?.message}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            })()}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
@@ -99,13 +125,25 @@ export default async function AdminProductsPage() {
                 <th className="px-5 py-4">Termék</th>
                 <th className="px-5 py-4">Kategória</th>
                 <th className="px-5 py-4">Ár</th>
+                <th className="px-5 py-4">Állapot</th>
                 <th className="px-5 py-4">Kihelyezés</th>
                 <th className="px-5 py-4">Jelölések</th>
                 <th className="px-5 py-4">Műveletek</th>
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {products.map((product) => {
+                const snapshot = getProductAvailabilitySnapshot(product);
+                const statusLabel =
+                  snapshot.lifecycleStatus === "active"
+                    ? "Aktív"
+                    : snapshot.lifecycleStatus === "draft"
+                      ? "Draft"
+                    : snapshot.lifecycleStatus === "sold_out"
+                      ? "Elfogyott"
+                      : "Hiányos";
+
+                return (
                 <tr key={product.id} className="admin-table-row last:border-b-0">
                   <td className="px-5 py-4">
                     <p className="font-semibold text-[var(--admin-ink-900)]">{product.name}</p>
@@ -116,6 +154,19 @@ export default async function AdminProductsPage() {
                   </td>
                   <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {formatPrice(product.price)}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium text-[var(--admin-ink-900)]">{statusLabel}</span>
+                      <span className="text-xs text-[var(--admin-ink-500)]">
+                        {product.stockQuantity} db készlet
+                      </span>
+                      {snapshot.readinessIssues.length > 0 ? (
+                        <span className="text-xs text-[#9b476f]">
+                          {snapshot.readinessIssues[0]?.message}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {
@@ -165,7 +216,8 @@ export default async function AdminProductsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

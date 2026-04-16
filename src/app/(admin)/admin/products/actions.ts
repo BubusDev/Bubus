@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { type ProductOptionType } from "@prisma/client";
+import { ProductStatus, type ProductOptionType } from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
 import {
@@ -16,8 +16,14 @@ import {
   hasBecomeOutOfStock,
   hasCrossedIntoLowStock,
 } from "@/lib/inventory";
+import { assertProductPublishReady } from "@/lib/product-lifecycle";
 import { deleteProductImageFile } from "@/lib/product-images";
-import { parseProductFormData, slugifyOptionName } from "@/lib/products";
+import {
+  assertProductSlugAvailable,
+  parseProductFormData,
+  recordProductSlugChange,
+  slugifyOptionName,
+} from "@/lib/products";
 import { assertBrowserSafeProductImageUrl } from "@/lib/image-safety";
 
 function revalidateCatalogPaths() {
@@ -48,6 +54,7 @@ async function getExistingProductForAdminAction(productId: string) {
     select: {
       id: true,
       slug: true,
+      status: true,
       isNew: true,
       isGiftable: true,
       isOnSale: true,
@@ -160,10 +167,19 @@ export async function createProductAction(formData: FormData) {
   await requireAdminUser("/admin/products/new");
   const { data, specialtyIds } = await parseProductFormData(formData);
   const { uploadedImages, coverImageKey } = buildProductImageRecords(formData, data.name);
+  await assertProductSlugAvailable(data.slug);
 
   const coverUrl =
     uploadedImages.find((image) => image.key === coverImageKey)?.url ?? uploadedImages[0]?.url ?? null;
   const nextStockQuantity = data.stockQuantity ?? 0;
+  if (data.status === ProductStatus.ACTIVE) {
+    assertProductPublishReady({
+      ...data,
+      imageUrl: coverUrl,
+      images: uploadedImages,
+      archivedAt: null,
+    });
+  }
 
   const product = await (async () => {
     try {
@@ -240,6 +256,7 @@ export async function updateProductAction(formData: FormData) {
   );
 
   const { data, specialtyIds } = await parseProductFormData(formData);
+  await assertProductSlugAvailable(data.slug, productId);
   const { uploadedImages, coverImageKey } = buildProductImageRecords(
     formData,
     data.name,
@@ -257,6 +274,17 @@ export async function updateProductAction(formData: FormData) {
     uploadedImages[0]?.url ??
     null;
   const nextStockQuantity = data.stockQuantity ?? 0;
+  if (data.status === ProductStatus.ACTIVE) {
+    assertProductPublishReady({
+      ...data,
+      imageUrl: nextImageUrl,
+      images: [
+        ...retainedImages.map((image) => ({ url: image.url })),
+        ...uploadedImages.map((image) => ({ url: image.url })),
+      ],
+      archivedAt: existingProduct.archivedAt,
+    });
+  }
   const shouldTriggerLowStockNotification = hasCrossedIntoLowStock(
     existingProduct.stockQuantity,
     nextStockQuantity,
@@ -268,41 +296,51 @@ export async function updateProductAction(formData: FormData) {
   let updatedProduct: Awaited<ReturnType<typeof db.product.update>> | null = null;
 
   try {
-    updatedProduct = await db.product.update({
-      where: { id: productId },
-      data: {
-        ...data,
-        soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, nextStockQuantity),
-        lowStockAlertSentAt:
-          nextStockQuantity >= 3
-            ? null
-            : existingProduct.lowStockAlertSentAt,
-        imageUrl: nextImageUrl,
-        images: {
-          deleteMany: {
-            id: {
-              notIn: retainedImageIds.length > 0 ? retainedImageIds : ["__none__"],
+    updatedProduct = await db.$transaction(async (tx) => {
+      if (existingProduct.slug !== data.slug) {
+        await recordProductSlugChange(tx, {
+          productId,
+          previousSlug: existingProduct.slug,
+          nextSlug: data.slug,
+        });
+      }
+
+      return tx.product.update({
+        where: { id: productId },
+        data: {
+          ...data,
+          soldOutAt: getSoldOutTimestamp(existingProduct.soldOutAt, nextStockQuantity),
+          lowStockAlertSentAt:
+            nextStockQuantity >= 3
+              ? null
+              : existingProduct.lowStockAlertSentAt,
+          imageUrl: nextImageUrl,
+          images: {
+            deleteMany: {
+              id: {
+                notIn: retainedImageIds.length > 0 ? retainedImageIds : ["__none__"],
+              },
             },
+            updateMany: retainedImages.map((image, index) => ({
+              where: { id: image.id },
+              data: {
+                sortOrder: index,
+                isCover: image.id === coverImageKey,
+              },
+            })),
+            create: uploadedImages.map((image, index) => ({
+              url: image.url,
+              alt: image.alt,
+              sortOrder: retainedImages.length + index,
+              isCover: coverImageKey === image.key,
+            })),
           },
-          updateMany: retainedImages.map((image, index) => ({
-            where: { id: image.id },
-            data: {
-              sortOrder: index,
-              isCover: image.id === coverImageKey,
-            },
-          })),
-          create: uploadedImages.map((image, index) => ({
-            url: image.url,
-            alt: image.alt,
-            sortOrder: retainedImages.length + index,
-            isCover: coverImageKey === image.key,
-          })),
+          specialties: {
+            deleteMany: {},
+            create: specialtyIds.map((specialtyId) => ({ specialtyId })),
+          },
         },
-        specialties: {
-          deleteMany: {},
-          create: specialtyIds.map((specialtyId) => ({ specialtyId })),
-        },
-      },
+      });
     });
 
     const stockDelta = updatedProduct.stockQuantity - existingProduct.stockQuantity;
@@ -410,22 +448,34 @@ export async function toggleProductArchiveAction(formData: FormData) {
       ? archiveReasonInput.trim()
       : "DISCONTINUED";
 
-  await db.product.update({
-    where: { id: productId },
-    data: nextArchived
-      ? {
-          archivedAt: new Date(),
-          archiveReason,
-          homepagePlacement: "NONE",
-        }
-      : {
-          archivedAt: null,
-          archiveReason: null,
-        },
+  await db.$transaction(async (tx) => {
+    await tx.product.update({
+      where: { id: productId },
+      data: nextArchived
+        ? {
+            archivedAt: new Date(),
+            archiveReason,
+            status: ProductStatus.ARCHIVED,
+            homepagePlacement: "NONE",
+          }
+        : {
+            archivedAt: null,
+            archiveReason: null,
+            status: ProductStatus.DRAFT,
+          },
+    });
+
+    if (nextArchived) {
+      await tx.cartItem.deleteMany({
+        where: { productId },
+      });
+    }
   });
 
   revalidateCatalogPaths();
   revalidatePath(`/product/${product.slug}`);
+  revalidatePath("/cart");
+  revalidatePath("/checkout");
 }
 
 export async function createProductOptionAction(formData: FormData) {

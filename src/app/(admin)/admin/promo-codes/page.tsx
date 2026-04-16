@@ -12,6 +12,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductSelector } from "@/components/admin/ProductSelector";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/catalog";
+import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { promoEligibilityLabels } from "@/lib/promo-codes";
 
 type PromoCodesPageProps = {
@@ -227,7 +228,7 @@ function PromoCodeFields({
             ))}
           </select>
           <span className="text-[11px] text-[var(--admin-ink-500)]">
-            Used only when applicability is "Selected categories".
+            Used only when applicability is &quot;Selected categories&quot;.
           </span>
         </label>
       </div>
@@ -278,7 +279,7 @@ export default async function AdminPromoCodesPage({ searchParams }: PromoCodesPa
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     }),
     db.product.findMany({
-      where: { archivedAt: null },
+      where: storefrontProductWhere,
       select: { id: true, name: true },
       orderBy: [{ name: "asc" }],
     }),

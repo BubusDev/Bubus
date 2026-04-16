@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { ProductStatus, type Prisma } from "@prisma/client";
 
 export const LOW_STOCK_THRESHOLD = 3;
 
@@ -11,10 +11,23 @@ export class InsufficientStockError extends Error {
   }
 }
 
+export class ProductUnavailableError extends Error {
+  readonly code = "PRODUCT_UNAVAILABLE";
+  readonly productId: string;
+
+  constructor(productId: string, message = "Product is no longer purchasable.") {
+    super(message);
+    this.name = "ProductUnavailableError";
+    this.productId = productId;
+  }
+}
+
 type InventoryLike = {
   stockQuantity: number;
   reservedQuantity?: number | null;
   soldOutAt?: Date | null;
+  archivedAt?: Date | null;
+  status?: ProductStatus | null;
 };
 
 export function getReservedQuantity(product: Pick<InventoryLike, "reservedQuantity">) {
@@ -22,11 +35,37 @@ export function getReservedQuantity(product: Pick<InventoryLike, "reservedQuanti
 }
 
 export function getAvailableToSell(product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity">) {
-  return Math.max(0, product.stockQuantity);
+  return Math.max(0, product.stockQuantity - getReservedQuantity(product));
 }
 
-export function isInStock(product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity">) {
-  return product.stockQuantity > 0;
+export function isProductArchived(product: Partial<Pick<InventoryLike, "archivedAt" | "status">>) {
+  return product.status === ProductStatus.ARCHIVED || product.archivedAt != null;
+}
+
+export function isInStock(
+  product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity"> & Partial<Pick<InventoryLike, "archivedAt" | "status">>,
+) {
+  return !isProductArchived(product) && product.stockQuantity > 0;
+}
+
+export function isProductPurchasable(
+  product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity"> & Partial<Pick<InventoryLike, "archivedAt" | "status">>,
+) {
+  return !isProductArchived(product) && getAvailableToSell(product) > 0;
+}
+
+export function getProductUnavailableReason(
+  product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity"> & Partial<Pick<InventoryLike, "archivedAt" | "status">>,
+) {
+  if (isProductArchived(product)) {
+    return "archived" as const;
+  }
+
+  if (getAvailableToSell(product) <= 0) {
+    return "out_of_stock" as const;
+  }
+
+  return null;
 }
 
 export function getSoldOutTimestamp(
@@ -72,9 +111,29 @@ export async function applyCompletedOrderInventory(
   }[] = [];
 
   for (const item of items) {
+    const currentProduct = await tx.product.findUnique({
+      where: { id: item.productId },
+      select: {
+        id: true,
+        status: true,
+        archivedAt: true,
+        stockQuantity: true,
+        reservedQuantity: true,
+      },
+    });
+
+    if (!currentProduct || isProductArchived(currentProduct)) {
+      throw new ProductUnavailableError(item.productId);
+    }
+
+    if (getAvailableToSell(currentProduct) < item.quantity) {
+      throw new InsufficientStockError();
+    }
+
     const updated = await tx.product.updateMany({
       where: {
         id: item.productId,
+        archivedAt: null,
         stockQuantity: { gte: item.quantity },
       },
       data: {

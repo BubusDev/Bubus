@@ -18,7 +18,7 @@ import { ensureGuestCartToken } from "@/lib/cartToken";
 import { getCheckoutSession } from "@/lib/checkoutSession";
 import { grantCurrentNewsletterCouponForUser } from "@/lib/coupon-grants";
 import { db } from "@/lib/db";
-import { getAvailableToSell } from "@/lib/inventory";
+import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 import {
   normalizePromoCode,
   promoValidationMessages,
@@ -85,7 +85,23 @@ export async function updateCartItemQuantityAction(formData: FormData) {
     where: { id: itemId, cartId: persistedCart.id },
     include: {
       product: {
-        select: { stockQuantity: true, reservedQuantity: true },
+        select: {
+          archivedAt: true,
+          status: true,
+          name: true,
+          slug: true,
+          price: true,
+          compareAtPrice: true,
+          shortDescription: true,
+          description: true,
+          badge: true,
+          collectionLabel: true,
+          stockQuantity: true,
+          reservedQuantity: true,
+          imageUrl: true,
+          images: { select: { url: true } },
+          isOnSale: true,
+        },
       },
     },
   });
@@ -95,9 +111,9 @@ export async function updateCartItemQuantityAction(formData: FormData) {
     return;
   }
 
-  const availableToSell = getAvailableToSell(cartItem.product);
+  const availability = getProductAvailabilitySnapshot(cartItem.product);
 
-  if (availableToSell <= 0) {
+  if (!availability.isPurchasable) {
     await db.cartItem.delete({
       where: { id: cartItem.id },
     });
@@ -108,7 +124,7 @@ export async function updateCartItemQuantityAction(formData: FormData) {
 
   await db.cartItem.updateMany({
     where: { id: itemId, cartId: persistedCart.id },
-    data: { quantity: Math.min(quantity, availableToSell) },
+    data: { quantity: Math.min(quantity, availability.availableToSell) },
   });
 
   revalidatePath("/cart");

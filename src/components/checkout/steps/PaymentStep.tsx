@@ -40,6 +40,8 @@ function buildErrorMessage(
       return "Kérjük, tölts ki minden szükséges szállítási mezőt a fizetés indításához.";
     case "INSUFFICIENT_STOCK":
       return "Az egyik termék időközben elfogyott vagy már nincs elegendő készleten.";
+    case "UNAVAILABLE_CART_ITEMS":
+      return "A kosárban lévő egyik termék már nem elérhető. Térj vissza a kosárhoz és távolítsd el.";
     case "CART_EMPTY":
       return "A kosár kiürült. Ellenőrizd a kosarat, mielőtt újra fizetést indítasz.";
     case "CHECKOUT_EMAIL_REQUIRED":
@@ -175,7 +177,7 @@ export function PaymentStep({
 
       {hasUnavailableItems && (
         <div className="border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f] mb-4">
-          A kosárban jelenleg van nem elérhető tétel vagy túl magas mennyiség.
+          A kosárban jelenleg van már nem elérhető tétel vagy túl magas mennyiség. Távolítsd el vagy módosítsd a fizetés előtt.
         </div>
       )}
 

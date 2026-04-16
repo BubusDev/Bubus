@@ -103,9 +103,16 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                   <span className="flex h-5 min-w-[1.25rem] items-center justify-center bg-[#f0eeec] px-1.5 text-[11px] font-medium text-[#555]">
                     {item.quantity}×
                   </span>
-                  <span className="flex-1 truncate text-sm text-[#333]">{item.name}</span>
+                  <span className="flex-1 truncate text-sm text-[#333]">
+                    {item.name}
+                    {item.unavailableReason === "archived" ? (
+                      <span className="ml-2 text-xs font-medium text-[#9b476f]">
+                        Már nem elérhető
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="shrink-0 text-sm font-medium text-[#1a1a1a]">
-                    {formatPrice(item.lineTotal)}
+                    {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
                   </span>
                 </div>
               ))}
@@ -136,6 +143,11 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                   {formatPrice(cart.total)}
                 </span>
               </div>
+              {hasUnavailableItems ? (
+                <div className="mt-4 border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
+                  A fizetés nem indítható, amíg már nem elérhető termék van a kosárban.
+                </div>
+              ) : null}
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#aaa]">
                 <Lock className="h-3.5 w-3.5" />
                 Biztonságos fizetés · Stripe

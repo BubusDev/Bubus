@@ -21,6 +21,12 @@ enum HomepagePlacement {
   NEW_ARRIVALS
 }
 
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
 enum HomepageContentBlockKey {
   HERO
   INSTAGRAM
@@ -158,6 +164,7 @@ model EmailChangeToken {
 model Product {
   id                String             @id @default(cuid())
   slug              String             @unique
+  status            ProductStatus      @default(ACTIVE)
   name              String
   categoryId        String
   category          ProductOption      @relation("ProductCategory", fields: [categoryId], references: [id])
@@ -188,6 +195,7 @@ model Product {
   tone              ProductOption      @relation("ProductTone", fields: [toneId], references: [id])
   imageUrl          String?
   images            ProductImage[]
+  slugHistory       ProductSlugHistory[]
   favourites        Favourite[]
   cartItems         CartItem[]
   promoCodes        PromoCodeProduct[]
@@ -210,11 +218,22 @@ model Product {
   @@index([availabilityId])
   @@index([toneId])
   @@index([homepagePlacement])
+  @@index([status])
   @@index([isNew])
   @@index([isGiftable])
   @@index([isOnSale])
   @@index([specialtyKey])
   @@index([stockQuantity, reservedQuantity])
+}
+
+model ProductSlugHistory {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 model ProductOption {

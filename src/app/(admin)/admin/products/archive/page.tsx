@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ProductStatus } from "@prisma/client";
 
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ArchiveProductList } from "@/components/admin/ArchiveProductList";
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
 
 async function getArchivedProducts() {
   return db.product.findMany({
-    where: { archivedAt: { not: null } },
+    where: {
+      OR: [{ status: ProductStatus.ARCHIVED }, { archivedAt: { not: null } }],
+    },
     select: {
       id: true,
       name: true,

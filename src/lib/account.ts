@@ -4,10 +4,12 @@ import {
   type Prisma,
 } from "@prisma/client";
 
-import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { clearGuestCartToken, getGuestCartToken } from "@/lib/cartToken";
-import { getAvailableToSell, isInStock } from "@/lib/inventory";
+import {
+  isInStock,
+} from "@/lib/inventory";
+import { getProductAvailabilitySnapshot, storefrontProductWhere } from "@/lib/product-lifecycle";
 import {
   type AppliedPromo,
   validatePromoCode,
@@ -46,6 +48,8 @@ export type CartItemSummary = {
   quantity: number;
   stockQuantity: number;
   reservedQuantity: number;
+  archivedAt?: Date | null;
+  unavailableReason: "archived" | "incomplete" | "out_of_stock" | null;
   soldOutAt?: Date | null;
   availableToSell: number;
   isAvailable: boolean;
@@ -239,6 +243,16 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
 
   const items = cart.items.map((item): CartItemSummary => {
     const coverImage = getCoverImage(item.product);
+    const availability = getProductAvailabilitySnapshot(item.product);
+    const unavailableReason =
+      availability.lifecycleStatus === "archived"
+        ? "archived"
+        : availability.lifecycleStatus === "draft" || availability.lifecycleStatus === "incomplete"
+          ? "incomplete"
+          : availability.lifecycleStatus === "sold_out"
+            ? "out_of_stock"
+            : null;
+    const isAvailable = availability.isPurchasable;
     return {
       id: item.id,
       productId: item.productId,
@@ -250,12 +264,14 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
       quantity: item.quantity,
       stockQuantity: item.product.stockQuantity,
       reservedQuantity: item.product.reservedQuantity,
+      archivedAt: item.product.archivedAt,
+      unavailableReason,
       soldOutAt: item.product.soldOutAt,
-      availableToSell: getAvailableToSell(item.product),
-      isAvailable: isInStock(item.product),
-      exceedsStock: item.quantity > getAvailableToSell(item.product),
+      availableToSell: availability.availableToSell,
+      isAvailable,
+      exceedsStock: unavailableReason !== "archived" && item.quantity > availability.availableToSell,
       imageUrl: coverImage?.url ?? item.product.imageUrl,
-      lineTotal: item.product.price * item.quantity,
+      lineTotal: isAvailable ? item.product.price * item.quantity : 0,
     };
   });
 
@@ -272,7 +288,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
         cartLines: items.map((item) => ({
           productId: item.productId,
           categoryId: item.categoryId,
-          lineTotal: item.lineTotal,
+          lineTotal: item.isAvailable && !item.exceedsStock ? item.lineTotal : 0,
         })),
         identity: "userId" in owner ? { userId: owner.userId } : undefined,
       }),
@@ -379,18 +395,34 @@ export async function mergeGuestCartIntoUserCart(userId: string, guestToken: str
     for (const guestItem of guestCart.items) {
       const product = await tx.product.findUnique({
         where: { id: guestItem.productId },
-        select: { stockQuantity: true, reservedQuantity: true },
+        select: {
+          archivedAt: true,
+          status: true,
+          name: true,
+          slug: true,
+          price: true,
+          compareAtPrice: true,
+          shortDescription: true,
+          description: true,
+          badge: true,
+          collectionLabel: true,
+          stockQuantity: true,
+          reservedQuantity: true,
+          imageUrl: true,
+          images: { select: { url: true } },
+          isOnSale: true,
+        },
       });
 
-      const availableToSell = product ? getAvailableToSell(product) : 0;
+      const availability = product ? getProductAvailabilitySnapshot(product) : null;
 
-      if (availableToSell <= 0) {
+      if (!product || !availability?.isPurchasable) {
         continue;
       }
 
       const existingUserItem = userCartItemsByProductId.get(guestItem.productId);
       const mergedQuantity = Math.min(
-        availableToSell,
+        availability.availableToSell,
         (existingUserItem?.quantity ?? 0) + guestItem.quantity,
       );
 
@@ -453,6 +485,7 @@ export async function resolveCart(
 }
 
 export async function resolveRequestCart(createIfMissing = false) {
+  const { getCurrentUser } = await import("@/lib/auth/current-user");
   const currentUser = await getCurrentUser();
   const guestToken = currentUser ? null : await getGuestCartToken();
 
@@ -665,9 +698,7 @@ export async function getHeaderCouponDropdownPreview(
   const products = productWhere
     ? await db.product.findMany({
         where: {
-          ...productWhere,
-          archivedAt: null,
-          stockQuantity: { gt: 0 },
+          AND: [storefrontProductWhere, productWhere, { stockQuantity: { gt: 0 } }],
         },
         select: {
           id: true,
@@ -716,12 +747,28 @@ export async function addProductToCart(
   return db.$transaction(async (tx) => {
     const product = await tx.product.findUnique({
       where: { id: productId },
-      select: { stockQuantity: true, reservedQuantity: true },
+      select: {
+        archivedAt: true,
+        status: true,
+        name: true,
+        slug: true,
+        price: true,
+        compareAtPrice: true,
+        shortDescription: true,
+        description: true,
+        badge: true,
+        collectionLabel: true,
+        stockQuantity: true,
+        reservedQuantity: true,
+        imageUrl: true,
+        images: { select: { url: true } },
+        isOnSale: true,
+      },
     });
 
-    const availableToSell = product ? getAvailableToSell(product) : 0;
+    const availability = product ? getProductAvailabilitySnapshot(product) : null;
 
-    if (!product || availableToSell <= 0) {
+    if (!product || !availability?.isPurchasable) {
       return false;
     }
 
@@ -735,7 +782,7 @@ export async function addProductToCart(
     });
 
     const nextQuantity = Math.min(
-      availableToSell,
+      availability.availableToSell,
       (existing?.quantity ?? 0) + Math.max(1, Math.floor(quantity)),
     );
 
@@ -767,12 +814,28 @@ export async function addProductToResolvedCart(
   return db.$transaction(async (tx) => {
     const product = await tx.product.findUnique({
       where: { id: productId },
-      select: { stockQuantity: true, reservedQuantity: true },
+      select: {
+        archivedAt: true,
+        status: true,
+        name: true,
+        slug: true,
+        price: true,
+        compareAtPrice: true,
+        shortDescription: true,
+        description: true,
+        badge: true,
+        collectionLabel: true,
+        stockQuantity: true,
+        reservedQuantity: true,
+        imageUrl: true,
+        images: { select: { url: true } },
+        isOnSale: true,
+      },
     });
 
-    const availableToSell = product ? getAvailableToSell(product) : 0;
+    const availability = product ? getProductAvailabilitySnapshot(product) : null;
 
-    if (!product || availableToSell <= 0) {
+    if (!product || !availability?.isPurchasable) {
       return false;
     }
 
@@ -786,7 +849,7 @@ export async function addProductToResolvedCart(
     });
 
     const nextQuantity = Math.min(
-      availableToSell,
+      availability.availableToSell,
       (existing?.quantity ?? 0) + Math.max(1, Math.floor(quantity)),
     );
 

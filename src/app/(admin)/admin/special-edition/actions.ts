@@ -9,6 +9,7 @@ import {
   deleteProductImageFile,
   deleteSpecialEditionImageFile,
 } from "@/lib/product-images";
+import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { getOrCreateSpecialEditionCampaign } from "@/lib/products";
 
 // Re-export check for Next.js redirect errors so we can re-throw them properly
@@ -110,7 +111,7 @@ export async function createSpecialEditionEntryAction(formData: FormData) {
     }
 
     const product = await db.product.findFirst({
-      where: { id: productId, archivedAt: null },
+      where: { AND: [storefrontProductWhere, { id: productId }] },
       select: { id: true, name: true },
     });
 
@@ -172,7 +173,7 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
         select: { id: true, promoImageUrl: true, productImageUrl: true },
       }),
       db.product.findFirst({
-        where: { id: productId, archivedAt: null },
+        where: { AND: [storefrontProductWhere, { id: productId }] },
         select: { id: true, name: true },
       }),
     ]);

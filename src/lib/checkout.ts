@@ -28,7 +28,9 @@ import {
   hasBecomeOutOfStock,
   hasCrossedIntoLowStock,
   InsufficientStockError,
+  ProductUnavailableError,
 } from "@/lib/inventory";
+import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 import {
   finalizePromoRedemption,
   validatePromoCode,
@@ -100,6 +102,17 @@ export class CheckoutAmountTooLowError extends Error {
   }
 }
 
+export class CheckoutUnavailableProductsError extends Error {
+  readonly code = "UNAVAILABLE_CART_ITEMS";
+  readonly items: { productId: string; name: string; reason: "archived" | "incomplete" }[];
+
+  constructor(items: { productId: string; name: string; reason: "archived" | "incomplete" }[]) {
+    super("Checkout cart contains unavailable products.");
+    this.name = "CheckoutUnavailableProductsError";
+    this.items = items;
+  }
+}
+
 function createOrderNumber() {
   return `CJ-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Math.floor(
     1000 + Math.random() * 9000,
@@ -118,7 +131,7 @@ function normalizeCheckoutPrice(amount: number) {
   return normalizeStoredPrice(amount);
 }
 
-async function getCheckoutCartSnapshot(
+export async function getCheckoutCartSnapshot(
   tx: Prisma.TransactionClient,
   actor: CheckoutActor,
 ): Promise<CheckoutCartSnapshot> {
@@ -146,8 +159,30 @@ async function getCheckoutCartSnapshot(
     throw new Error("CART_EMPTY");
   }
 
+  const unavailableItems = cart.items
+    .map((item) => ({
+      item,
+      availability: getProductAvailabilitySnapshot(item.product),
+    }))
+    .filter(
+      ({ availability }) =>
+        availability.lifecycleStatus === "archived" ||
+        availability.lifecycleStatus === "draft" ||
+        availability.lifecycleStatus === "incomplete",
+    )
+    .map(({ item, availability }) => ({
+      productId: item.productId,
+      name: item.product.name,
+      reason: availability.lifecycleStatus === "archived" ? "archived" as const : "incomplete" as const,
+    }));
+
+  if (unavailableItems.length > 0) {
+    throw new CheckoutUnavailableProductsError(unavailableItems);
+  }
+
   const items = cart.items.map((item) => {
-    const availableToSell = getAvailableToSell(item.product);
+    const availability = getProductAvailabilitySnapshot(item.product);
+    const availableToSell = availability.availableToSell;
     if (availableToSell <= 0 || item.quantity > availableToSell) {
       throw new InsufficientStockError();
     }
@@ -1081,12 +1116,12 @@ export async function finalizePaidOrder({
         })),
       });
     } catch (error) {
-      if (error instanceof InsufficientStockError) {
+      if (error instanceof InsufficientStockError || error instanceof ProductUnavailableError) {
         await tx.order.update({
           where: { id: order.id },
           data: {
             paymentStatus: OrderPaymentStatus.STOCK_UNAVAILABLE,
-            status: "Készlethiány",
+            status: error instanceof ProductUnavailableError ? "Termék nem elérhető" : "Készlethiány",
           },
         });
 
@@ -1094,7 +1129,8 @@ export async function finalizePaidOrder({
           paymentIntentId,
           orderId: order.id,
           result: "stock_unavailable",
-          reason: "stock_unavailable",
+          reason: error instanceof ProductUnavailableError ? "product_unavailable" : "stock_unavailable",
+          productId: error instanceof ProductUnavailableError ? error.productId : null,
           durationMs: duration.elapsedMs(),
         }, { correlationId });
 

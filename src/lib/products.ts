@@ -1,3 +1,4 @@
+import { ProductStatus } from "@prisma/client";
 import type {
   HomepagePlacement as DbHomepagePlacement,
   Prisma,
@@ -8,7 +9,12 @@ import type {
 } from "@prisma/client";
 
 import { db } from "@/lib/db";
-import { getAvailableToSell, isInStock } from "@/lib/inventory";
+import { isInStock } from "@/lib/inventory";
+import {
+  getProductAvailabilitySnapshot,
+  isProductPublishReady,
+  storefrontProductWhere,
+} from "@/lib/product-lifecycle";
 import {
   editorialCategoryDefinitions,
   editorialCategoryOrder,
@@ -101,6 +107,12 @@ function withActiveProducts(where: Prisma.ProductWhereInput = {}): Prisma.Produc
   };
 }
 
+function withStorefrontProducts(where: Prisma.ProductWhereInput = {}): Prisma.ProductWhereInput {
+  return {
+    AND: [storefrontProductWhere, where],
+  };
+}
+
 const canonicalCategorySlugByAlias: Record<string, string> = {
   necklaces: "necklaces",
   nyaklancok: "necklaces",
@@ -145,6 +157,56 @@ export function slugifyOptionName(input: string) {
     .replace(/^-+|-+$/g, "");
 
   return canonicalCategorySlugByAlias[normalized] ?? normalized;
+}
+
+export function normalizeProductSlug(input: string) {
+  return slugifyOptionName(input);
+}
+
+export async function assertProductSlugAvailable(slug: string, productId?: string) {
+  const [currentProduct, historicalSlug] = await Promise.all([
+    db.product.findUnique({
+      where: { slug },
+      select: { id: true },
+    }),
+    db.productSlugHistory.findUnique({
+      where: { slug },
+      select: { productId: true },
+    }),
+  ]);
+
+  if (currentProduct && currentProduct.id !== productId) {
+    throw new Error("Ez a slug már egy másik termék canonical URL-je.");
+  }
+
+  if (historicalSlug && historicalSlug.productId !== productId) {
+    throw new Error("Ez a slug már egy másik termék korábbi URL-je.");
+  }
+}
+
+export async function recordProductSlugChange(
+  tx: Prisma.TransactionClient,
+  input: { productId: string; previousSlug: string; nextSlug: string },
+) {
+  if (input.previousSlug === input.nextSlug) {
+    return;
+  }
+
+  await tx.productSlugHistory.deleteMany({
+    where: {
+      productId: input.productId,
+      slug: input.nextSlug,
+    },
+  });
+
+  await tx.productSlugHistory.upsert({
+    where: { slug: input.previousSlug },
+    create: {
+      productId: input.productId,
+      slug: input.previousSlug,
+    },
+    update: {},
+  });
 }
 
 function mapImage(image: DbProductImage) {
@@ -249,9 +311,12 @@ function mapProduct(product: DbProductWithRelations): Product {
     "A termék leírása hamarosan érkezik.",
   );
 
+  const availabilitySnapshot = getProductAvailabilitySnapshot(product);
+
   return {
     id: product.id,
     slug: product.slug,
+    status: product.status,
     name: getSafeString(product.name, "Névtelen termék"),
     category: normalizeCategorySlug(category.slug),
     price: product.price,
@@ -263,8 +328,9 @@ function mapProduct(product: DbProductWithRelations): Product {
     stockQuantity: product.stockQuantity,
     reservedQuantity: product.reservedQuantity,
     soldOutAt: product.soldOutAt,
+    archivedAt: product.archivedAt,
     inStock: isInStock(product),
-    availableToSell: getAvailableToSell(product),
+    availableToSell: availabilitySnapshot.availableToSell,
     stoneType: stoneType.slug,
     color: color.slug,
     style: style.slug,
@@ -291,6 +357,10 @@ function mapProduct(product: DbProductWithRelations): Product {
   };
 }
 
+function mapStorefrontProducts(products: DbProductWithRelations[]) {
+  return products.filter(isProductPublishReady).map(mapProduct);
+}
+
 function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereInput {
   switch (categorySlug) {
     case "new-in":
@@ -311,7 +381,7 @@ function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereIn
 
 export async function getAllProductSlugs() {
   const products = await db.product.findMany({
-    where: withActiveProducts(),
+    where: withStorefrontProducts(),
     select: { slug: true },
   });
 
@@ -324,7 +394,7 @@ export async function getHomepageProducts(
   perPage = 4,
 ) {
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-  const where = withActiveProducts({
+  const where = withStorefrontProducts({
     homepagePlacement: reverseHomepagePlacementMap[placement],
   });
 
@@ -340,7 +410,7 @@ export async function getHomepageProducts(
   ]);
 
   return {
-    products: products.map(mapProduct),
+    products: mapStorefrontProducts(products),
     page: safePage,
     total,
     totalPages: Math.max(1, Math.ceil(total / perPage)),
@@ -349,12 +419,12 @@ export async function getHomepageProducts(
 
 export async function getProductsForCategory(categorySlug: CategorySlug) {
   const products = await db.product.findMany({
-    where: withActiveProducts(baseWhereForCategory(categorySlug)),
+    where: withStorefrontProducts(baseWhereForCategory(categorySlug)),
     include: productWithImagesAndOptions,
     orderBy: [{ updatedAt: "desc" }],
   });
 
-  return products.map(mapProduct);
+  return mapStorefrontProducts(products);
 }
 
 export async function getSpecialtyBySlug(slug: string, visibleOnly = true) {
@@ -394,9 +464,7 @@ export async function getProductsForSpecialty(slug: string) {
         slug,
         isVisible: true,
       },
-      product: {
-        archivedAt: null,
-      },
+      product: storefrontProductWhere,
     },
     include: {
       product: {
@@ -406,7 +474,7 @@ export async function getProductsForSpecialty(slug: string) {
     orderBy: [{ product: { updatedAt: "desc" } }],
   });
 
-  return productSpecialties.map((entry) => mapProduct(entry.product));
+  return mapStorefrontProducts(productSpecialties.map((entry) => entry.product));
 }
 
 export async function getFilterOptionsForCategory(categorySlug: CategorySlug) {
@@ -416,16 +484,55 @@ export async function getFilterOptionsForCategory(categorySlug: CategorySlug) {
 
 export async function getProductBySlug(slug: string) {
   const product = await db.product.findFirst({
-    where: withActiveProducts({ slug }),
+    where: withStorefrontProducts({ slug }),
     include: productWithImagesAndOptions,
   });
 
-  return product ? mapProduct(product) : null;
+  return product && isProductPublishReady(product) ? mapProduct(product) : null;
+}
+
+export async function resolveProductBySlug(slug: string) {
+  const currentProduct = await db.product.findFirst({
+    where: withStorefrontProducts({ slug }),
+    include: productWithImagesAndOptions,
+  });
+
+  if (currentProduct && isProductPublishReady(currentProduct)) {
+    return {
+      product: mapProduct(currentProduct),
+      redirectToSlug: null,
+    };
+  }
+
+  const historicalSlug = await db.productSlugHistory.findUnique({
+    where: { slug },
+    include: {
+      product: {
+        include: productWithImagesAndOptions,
+      },
+    },
+  });
+
+  if (!historicalSlug) {
+    return null;
+  }
+
+  const product = historicalSlug.product;
+  const availability = getProductAvailabilitySnapshot(product);
+
+  if (!availability.isPdpAvailable || !isProductPublishReady(product)) {
+    return null;
+  }
+
+  return {
+    product: mapProduct(product),
+    redirectToSlug: product.slug === slug ? null : product.slug,
+  };
 }
 
 export async function getRelatedProducts(product: Product, limit = 4) {
   const products = await db.product.findMany({
-    where: withActiveProducts({
+    where: withStorefrontProducts({
       slug: { not: product.slug },
       OR: [
         { category: { slug: { in: getCategorySlugAliases(product.category) } } },
@@ -437,7 +544,7 @@ export async function getRelatedProducts(product: Product, limit = 4) {
     take: limit,
   });
 
-  return products.map(mapProduct);
+  return mapStorefrontProducts(products);
 }
 
 export async function getCuratedProductRecommendations(
@@ -462,7 +569,7 @@ export async function getCuratedProductRecommendations(
     }
 
     const bucket = await db.product.findMany({
-      where: withActiveProducts({
+      where: withStorefrontProducts({
         ...bucketWhere,
         id: { notIn: Array.from(selectedIds) },
       }),
@@ -477,7 +584,7 @@ export async function getCuratedProductRecommendations(
       take: Math.max(limit * 2, 6),
     });
 
-    for (const candidate of bucket.map(mapProduct)) {
+    for (const candidate of mapStorefrontProducts(bucket)) {
       if (selectedIds.has(candidate.id) || !candidate.inStock) {
         continue;
       }
@@ -651,6 +758,7 @@ export type AdminProductImageValue = {
 export type AdminProductFormValues = {
   id: string;
   slug: string;
+  status: ProductStatus;
   name: string;
   category: string;
   price: number;
@@ -676,6 +784,7 @@ export type AdminProductFormValues = {
 };
 
 export type AdminProductFormOptions = {
+  statuses: ProductStatus[];
   categories: ProductOptionValue[];
   stoneTypes: ProductOptionValue[];
   colors: ProductOptionValue[];
@@ -752,6 +861,7 @@ export async function getAdminProductFormOptions(): Promise<AdminProductFormOpti
   const byField = new Map(groups.map((group) => [group.fieldName, group.options]));
 
   return {
+    statuses: [ProductStatus.DRAFT, ProductStatus.ACTIVE],
     categories: byField.get("category") ?? [],
     stoneTypes: byField.get("stoneType") ?? [],
     colors: byField.get("color") ?? [],
@@ -772,6 +882,7 @@ export function toAdminProductFormValues(
     return {
       id: "",
       slug: "",
+      status: ProductStatus.ACTIVE,
       name: "",
       category: options.categories[0]?.id ?? "",
       price: 0,
@@ -807,6 +918,7 @@ export function toAdminProductFormValues(
   return {
     id: product.id,
     slug: product.slug,
+    status: product.status,
     name: product.name,
     category: product.categoryId,
     price: product.price,
@@ -875,20 +987,17 @@ async function readProductSpecialtyIds(formData: FormData) {
 export async function parseProductFormData(
   formData: FormData,
 ): Promise<{ data: Prisma.ProductUncheckedCreateInput; specialtyIds: string[] }> {
-  const slug = requireNonEmptyString(formData, "slug", "A slug kötelező.");
+  const slug = normalizeProductSlug(requireNonEmptyString(formData, "slug", "A slug kötelező."));
   const name = requireNonEmptyString(formData, "name", "A termék neve kötelező.");
-  const badge = requireNonEmptyString(formData, "badge", "A címke kötelező.");
-  const collectionLabel = requireNonEmptyString(
-    formData,
-    "collectionLabel",
-    "A kollekciócímke kötelező.",
-  );
-  const shortDescription = requireNonEmptyString(
-    formData,
-    "shortDescription",
-    "A rövid leírás kötelező.",
-  );
-  const description = requireNonEmptyString(formData, "description", "A leírás kötelező.");
+  const statusInput = readString(formData, "status");
+  const status =
+    statusInput === ProductStatus.DRAFT || statusInput === ProductStatus.ACTIVE
+      ? statusInput
+      : ProductStatus.ACTIVE;
+  const badge = readString(formData, "badge");
+  const collectionLabel = readString(formData, "collectionLabel");
+  const shortDescription = readString(formData, "shortDescription");
+  const description = readString(formData, "description");
   const price = readNumber(formData, "price");
   const stockQuantity = readNumber(formData, "stockQuantity");
   const compareAtPrice = readString(formData, "compareAtPrice");
@@ -898,8 +1007,16 @@ export async function parseProductFormData(
     "A kezdőlapi kihelyezés kötelező.",
   );
 
-  if (!Number.isInteger(price) || price < 0) {
-    throw new Error("Az árnak érvényes, nem negatív egész Ft összegnek kell lennie.");
+  if (!slug) {
+    throw new Error("A slug kötelező.");
+  }
+
+  if (!Number.isInteger(price) || price < 0 || (status === ProductStatus.ACTIVE && price <= 0)) {
+    throw new Error(
+      status === ProductStatus.ACTIVE
+        ? "Az aktív termék ára legyen pozitív egész Ft összeg."
+        : "Az ár legyen nem negatív egész Ft összeg.",
+    );
   }
 
   if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
@@ -915,9 +1032,9 @@ export async function parseProductFormData(
 
   if (
     typeof compareAtPriceNumber === "number" &&
-    (!Number.isInteger(compareAtPriceNumber) || compareAtPriceNumber < 0)
+    (!Number.isInteger(compareAtPriceNumber) || compareAtPriceNumber <= price)
   ) {
-    throw new Error("Az eredeti ár mező legyen üres vagy érvényes, nem negatív egész Ft összeg.");
+    throw new Error("Az eredeti ár mező legyen üres vagy a termékárnál magasabb egész Ft összeg.");
   }
 
   const [
@@ -943,6 +1060,7 @@ export async function parseProductFormData(
   return {
     data: {
       slug,
+      status,
       name,
       categoryId,
       price,
@@ -1095,7 +1213,7 @@ export async function getAdminSpecialEditionCampaign(): Promise<AdminSpecialEdit
 
 export async function getAdminSelectableProducts() {
   return db.product.findMany({
-    where: withActiveProducts(),
+    where: withStorefrontProducts(),
     select: {
       id: true,
       name: true,

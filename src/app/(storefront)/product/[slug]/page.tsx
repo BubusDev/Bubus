@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { ProductDetailView } from "@/components/shop/ProductDetailView";
 import {
   getAllProductSlugs,
   getCategoryDefinition,
-  getProductBySlug,
   getRelatedProducts,
+  resolveProductBySlug,
 } from "@/lib/products";
 import { getAbsoluteUrl, siteName } from "@/lib/site";
 
@@ -32,7 +32,8 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const resolvedProduct = await resolveProductBySlug(slug);
+  const product = resolvedProduct?.product;
 
   if (!product) {
     return {};
@@ -92,10 +93,15 @@ function formatCategoryLabel(category: string) {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const resolvedProduct = await resolveProductBySlug(slug);
+  const product = resolvedProduct?.product;
 
   if (!product) {
     notFound();
+  }
+
+  if (resolvedProduct.redirectToSlug) {
+    permanentRedirect(`/product/${resolvedProduct.redirectToSlug}`);
   }
 
   const [relatedProducts, categoryDefinition] = await Promise.all([

@@ -4,6 +4,7 @@ import { AdminRecentActivityList } from "@/components/admin/AdminRecentActivityL
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getRecentAdminActivity } from "@/lib/admin-activity";
 import { db } from "@/lib/db";
+import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { formatPrice } from "@/lib/catalog";
 
 const statusConfig: Record<string, { label: string; bg: string; color: string; border: string }> = {
@@ -43,7 +44,7 @@ export default async function AdminPage() {
     recentOrders,
     recentActivity,
   ] = await Promise.all([
-    db.product.count({ where: { archivedAt: null } }),
+    db.product.count({ where: storefrontProductWhere }),
     db.order.count({
       where: { paymentStatus: "PAID", createdAt: { gte: todayStart } },
     }),

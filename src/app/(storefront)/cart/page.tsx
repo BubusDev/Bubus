@@ -60,7 +60,8 @@ function CartPageHeading() {
 
 function CartItemRow({ item }: { item: CartItemSummary }) {
   const isOutOfStock = isProductOutOfStock(item);
-  const incrementDisabled = isOutOfStock || item.quantity >= item.availableToSell;
+  const isArchived = item.unavailableReason === "archived";
+  const incrementDisabled = !item.isAvailable || item.quantity >= item.availableToSell;
 
   return (
     <article className="rounded-lg border border-[#eadce3] bg-white/80 p-3.5 sm:p-4">
@@ -96,7 +97,11 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               <p className="text-[13px] text-[#7a6070]">Egységár: {formatPrice(item.price)}</p>
             </div>
             <div className="min-h-5">
-              {isOutOfStock ? (
+              {isArchived ? (
+                <p className="text-xs uppercase tracking-[0.22em] text-[#9b476f]">
+                  Már nem elérhető
+                </p>
+              ) : isOutOfStock ? (
                 <p className="text-xs uppercase tracking-[0.22em] text-[#8f6c7d]">
                   Elfogyott
                 </p>
@@ -165,7 +170,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                 Összesen
               </p>
               <p className="mt-1 text-[1.32rem] font-semibold tracking-[-0.03em] text-[#4d2741] sm:text-[1.48rem]">
-                {formatPrice(item.lineTotal)}
+                {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
               </p>
             </div>
           </div>
@@ -232,7 +237,7 @@ function CartSummary({
 
         {hasUnavailableItems ? (
           <div className="mt-6 rounded-lg border border-[#f0d7e4] bg-[#fff7fa] px-4 py-3 text-sm text-[#8c6077]">
-            Egy vagy több termék már nem elérhető a jelenlegi mennyiségben. Frissítsd a kosarat a pénztár előtt.
+            Egy vagy több termék már nem elérhető. Távolítsd el ezeket a kosárból a pénztár előtt.
           </div>
         ) : (
           <Link

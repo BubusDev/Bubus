@@ -15,6 +15,8 @@ type CartDrawerProps = {
 };
 
 function CartDrawerItem({ item }: { item: CartItemSummary }) {
+  const isArchived = item.unavailableReason === "archived";
+
   return (
     <div className="flex gap-3 px-4 py-3.5">
       <Link href={`/product/${item.slug}`} className="shrink-0">
@@ -41,9 +43,18 @@ function CartDrawerItem({ item }: { item: CartItemSummary }) {
         <div className="mt-1.5 flex items-center justify-between">
           <p className="text-xs text-[#888]">× {item.quantity}</p>
           <p className="text-xs font-semibold text-[#1a1a1a]">
-            {formatPrice(item.lineTotal)}
+            {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
           </p>
         </div>
+        {isArchived ? (
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b476f]">
+            Már nem elérhető
+          </p>
+        ) : !item.isAvailable || item.exceedsStock ? (
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b476f]">
+            Nem elérhető
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -84,32 +95,31 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
 export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
   const [cartTab, setCartTab] = useState<"cart" | "wishlist">("cart");
   const [cart, setCart] = useState<CartSummary | null>(null);
-  const [loading, setLoading] = useState(false);
   const [wishlist, setWishlist] = useState<FavouriteProduct[] | null>(null);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
     fetch("/api/cart")
       .then((r) => r.json())
       .then((data) => setCart(data as CartSummary))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || cartTab !== "wishlist") return;
     if (wishlist !== null) return;
-    setWishlistLoading(true);
     fetch("/api/favourites")
       .then((r) => r.json())
       .then((data) => setWishlist(data as FavouriteProduct[]))
-      .catch(() => setWishlist([]))
-      .finally(() => setWishlistLoading(false));
+      .catch(() => setWishlist([]));
   }, [isOpen, cartTab, wishlist]);
 
   if (!isOpen) return null;
+
+  const hasUnavailableItems =
+    cart?.items.some((item) => !item.isAvailable || item.exceedsStock) ?? false;
+  const loading = cart === null;
+  const wishlistLoading = cartTab === "wishlist" && wishlist === null;
 
   return (
     <div className="fixed inset-0 z-[200] lg:hidden">
@@ -246,13 +256,19 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 {cart.shipping > 0 ? formatPrice(cart.shipping) : "Ingyenes"}
               </span>
             </div>
-            <Link
-              href="/checkout"
-              onClick={onClose}
-              className="block w-full bg-[#1a1a1a] py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#333]"
-            >
-              Tovább a fizetéshez
-            </Link>
+            {hasUnavailableItems ? (
+              <div className="mt-4 border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-xs leading-5 text-[#9b476f]">
+                Távolítsd el a már nem elérhető tételeket a fizetés előtt.
+              </div>
+            ) : (
+              <Link
+                href="/checkout"
+                onClick={onClose}
+                className="block w-full bg-[#1a1a1a] py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#333]"
+              >
+                Tovább a fizetéshez
+              </Link>
+            )}
             <Link
               href="/cart"
               onClick={onClose}

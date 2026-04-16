@@ -7,6 +7,7 @@ import { getCheckoutSession } from "@/lib/checkoutSession";
 import {
   CheckoutAmountTooLowError,
   CheckoutConfigurationError,
+  CheckoutUnavailableProductsError,
   initializeStripeCheckout,
 } from "@/lib/checkout";
 import { logCheckoutEvent, resolveRequestCorrelationId } from "@/lib/checkout-observability";
@@ -78,6 +79,16 @@ export async function POST(request: Request) {
 
     if (error instanceof InsufficientStockError) {
       return NextResponse.json({ error: "INSUFFICIENT_STOCK" }, { status: 409 });
+    }
+
+    if (error instanceof CheckoutUnavailableProductsError) {
+      return NextResponse.json(
+        {
+          error: error.code,
+          items: error.items,
+        },
+        { status: 409 },
+      );
     }
 
     if (error instanceof CheckoutAmountTooLowError) {

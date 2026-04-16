@@ -38,6 +38,7 @@ export type ProductOptionLabels = {
 export type Product = {
   id: string;
   slug: string;
+  status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   name: string;
   category: ProductBaseCategory;
   price: number;
@@ -48,6 +49,7 @@ export type Product = {
   collectionLabel: string;
   stockQuantity: number;
   reservedQuantity: number;
+  archivedAt?: Date | null;
   soldOutAt?: Date | null;
   inStock: boolean;
   availableToSell: number;
@@ -74,19 +76,19 @@ export type Product = {
 };
 
 export function isProductOutOfStock(
-  product: Pick<Product, "stockQuantity" | "reservedQuantity">,
+  product: Pick<Product, "stockQuantity" | "reservedQuantity"> & Partial<Pick<Product, "archivedAt">>,
 ) {
   return !isInStock(product);
 }
 
 export function getProductAvailabilityLabel(
-  product: Pick<Product, "labels" | "stockQuantity" | "reservedQuantity">,
+  product: Pick<Product, "labels" | "stockQuantity" | "reservedQuantity"> & Partial<Pick<Product, "archivedAt">>,
 ) {
   return isProductOutOfStock(product) ? "Elfogyott" : product.labels.availability;
 }
 
 export function getProductAvailableToSell(
-  product: Pick<Product, "stockQuantity" | "reservedQuantity">,
+  product: Pick<Product, "stockQuantity" | "reservedQuantity"> & Partial<Pick<Product, "archivedAt">>,
 ) {
   return getAvailableToSell(product);
 }
