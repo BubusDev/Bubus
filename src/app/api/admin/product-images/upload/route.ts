@@ -9,7 +9,7 @@ import {
   isUnsafeImagePath,
 } from "@/lib/image-safety";
 
-const MAX_PRODUCT_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_PRODUCT_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();

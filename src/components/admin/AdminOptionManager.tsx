@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, GripVertical } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, GripVertical, Plus, Trash2 } from "lucide-react";
 
 import {
   createProductOptionAction,
@@ -173,7 +173,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
         updateGroupOptions(type, previousOptions);
         setGroupError(
           type,
-          getErrorMessage(actionError, "Nem sikerult elmenteni a sorrendet."),
+          getErrorMessage(actionError, "Nem sikerült menteni a sorrendet."),
         );
       }
     });
@@ -309,26 +309,29 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {localGroups.map((group) => (
         <section
           key={group.type}
-          className="admin-panel p-6"
+          className="admin-panel p-4"
         >
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="mb-3 flex items-center justify-between gap-4">
             <div>
-              <p className="admin-eyebrow">
-                Opciókészlet
-              </p>
-              <h2 className="mt-2 text-xl font-semibold text-[var(--admin-ink-900)]">{group.label}</h2>
-              <p className="mt-2 text-sm text-[var(--admin-ink-600)]">
-                Húzd a fogantyút az elemek átrendezéséhez. A sorrend automatikusan mentődik.
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="admin-eyebrow">Opciókészlet</p>
+                <span className="admin-badge-neutral admin-pill text-[10px]">
+                  {group.options.length} opció
+                </span>
+              </div>
+              <h2 className="mt-1 text-lg font-semibold text-[var(--admin-ink-900)]">{group.label}</h2>
+              <p className="mt-1 text-xs text-[var(--admin-ink-600)]">
+                Húzással vagy nyilakkal rendezhető. A sorrend automatikusan mentődik.
               </p>
             </div>
           </div>
 
           <form
-            className="admin-panel-soft mb-5 grid gap-3 p-4 md:grid-cols-[1fr_1fr_auto]"
+            className="admin-panel-soft mb-3 grid gap-2 p-3 md:grid-cols-[minmax(160px,1fr)_minmax(140px,0.8fr)_auto]"
             onSubmit={(event) => {
               event.preventDefault();
               handleCreate(group.type, new FormData(event.currentTarget));
@@ -338,24 +341,25 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
             <input type="hidden" name="type" value={group.type} />
             <input
               name="name"
-              placeholder={`Új ${group.label.toLowerCase()} neve`}
-              className="admin-input h-11 px-4 text-sm"
+              placeholder={`Új ${group.label.toLowerCase()}`}
+              className="admin-input h-9 px-3 text-sm"
             />
             <input
               name="slug"
-              placeholder="Slug (opcionális)"
-              className="admin-input h-11 px-4 text-sm"
+              placeholder="Slug"
+              className="admin-input h-9 px-3 text-sm"
             />
             <button
               type="submit"
               disabled={isPending && pendingCreateType === group.type}
-              className="admin-button-primary inline-flex h-11 items-center justify-center px-5 text-sm"
+              className="admin-button-primary inline-flex h-9 items-center justify-center gap-1.5 px-3 text-xs"
             >
-              Opció hozzáadása
+              <Plus className="h-3.5 w-3.5" />
+              Hozzáadás
             </button>
           </form>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {group.options.map((option, index) => {
               const isPendingSave = isPending && pendingSaveId === option.clientId;
               const isPendingDelete = isPending && pendingDeleteId === option.clientId;
@@ -363,7 +367,7 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
               return (
                 <form
                   key={option.clientId}
-                  className={`flex flex-col gap-3 border bg-white p-4 transition xl:flex-row xl:items-end xl:justify-between ${
+                  className={`grid gap-2 border bg-white p-2.5 transition xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center ${
                     draggedOptionId === option.clientId
                       ? "border-[#bfd0ea] bg-[var(--admin-blue-050)]"
                       : "border-[var(--admin-line-100)]"
@@ -392,8 +396,8 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                   />
                   <input type="hidden" name="sortOrder" value={option.sortOrder} />
 
-                  <div className="flex flex-1 gap-3">
-                    <div className="flex shrink-0 items-start gap-2 pt-1">
+                  <div className="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+                    <div className="flex shrink-0 items-center gap-1.5">
                       <button
                         type="button"
                         draggable
@@ -403,20 +407,21 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           setDraggedOptionId(option.clientId);
                         }}
                         onDragEnd={() => setDraggedOptionId(null)}
-                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)]"
+                        className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-600)]"
                         aria-label={`${option.name} átrendezése`}
                         title="Húzd az elem átrendezéséhez"
                       >
                         <GripVertical className="h-4 w-4" />
                       </button>
 
-                      <div className="flex flex-col gap-2 sm:hidden">
+                      <div className="flex gap-1 sm:hidden">
                         <button
                           type="button"
                           onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                           disabled={isPending || index === 0}
-                          className="admin-button-secondary inline-flex h-9 w-9 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
+                          className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                           aria-label={`${option.name} mozgatása felfelé`}
+                          title="Fel"
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </button>
@@ -424,71 +429,84 @@ export function AdminOptionManager({ groups }: AdminOptionManagerProps) {
                           type="button"
                           onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                           disabled={isPending || index === group.options.length - 1}
-                          className="admin-button-secondary inline-flex h-9 w-9 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
+                          className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                           aria-label={`${option.name} mozgatása lefelé`}
+                          title="Le"
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="grid flex-1 gap-3 md:grid-cols-2">
+                    <div className="grid min-w-0 gap-2 md:grid-cols-[minmax(180px,1fr)_minmax(140px,0.85fr)]">
                       <input
                         name="name"
                         defaultValue={option.name}
-                        className="admin-input h-11 min-w-0 px-4 text-sm"
+                        className="admin-input h-9 min-w-0 px-3 text-sm"
+                        aria-label={`${option.name} neve`}
                       />
                       <input
                         name="slug"
                         defaultValue={option.slug}
-                        className="admin-input h-11 min-w-0 px-4 text-sm"
+                        className="admin-input h-9 min-w-0 px-3 text-sm"
+                        aria-label={`${option.name} slug`}
                       />
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-[auto_auto_auto_auto] sm:items-end sm:justify-end xl:flex xl:flex-none xl:items-end">
-                    <label className="admin-checkbox-pill flex h-11 items-center gap-2 px-4 text-sm">
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
+                    <label
+                      className="admin-checkbox-pill flex h-8 items-center gap-2 px-2.5 text-xs"
+                      title={option.isActive ? "Aktív opció" : "Inaktív opció"}
+                    >
                       <input
                         type="checkbox"
                         name="isActive"
                         defaultChecked={option.isActive}
-                        className="h-4 w-4 accent-[var(--admin-blue-600)]"
+                        className="h-3.5 w-3.5 accent-[var(--admin-blue-600)]"
+                        aria-label={`${option.name} aktív`}
                       />
                       Aktív
                     </label>
                     <button
                       type="submit"
                       disabled={isPendingSave || isPendingDelete}
-                      className="admin-button-secondary inline-flex h-11 items-center justify-center px-4 text-sm disabled:opacity-60"
+                      className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-700)] disabled:opacity-60"
+                      aria-label={`${option.name} mentése`}
+                      title="Mentés"
                     >
-                      Mentés
+                      <Check className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
                       disabled={isPendingSave || isPendingDelete}
                       onClick={() => handleDelete(group.type, option)}
-                      className="admin-button-danger inline-flex h-11 items-center justify-center px-4 text-sm disabled:opacity-60"
+                      className="admin-button-danger inline-flex h-8 w-8 items-center justify-center disabled:opacity-60"
+                      aria-label={`${option.name} törlése`}
+                      title="Törlés"
                     >
-                      Törlés
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                    <div className="hidden gap-2 sm:flex">
+                    <div className="hidden gap-1.5 sm:flex">
                       <button
                         type="button"
                         onClick={() => handleMoveByStep(group.type, option.clientId, -1)}
                         disabled={isPending || index === 0}
-                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
+                        className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                         aria-label={`${option.name} mozgatása felfelé`}
+                        title="Fel"
                       >
-                        <ArrowUp className="h-4 w-4" />
+                        <ArrowUp className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleMoveByStep(group.type, option.clientId, 1)}
                         disabled={isPending || index === group.options.length - 1}
-                        className="admin-button-secondary inline-flex h-11 w-11 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
+                        className="admin-button-secondary inline-flex h-8 w-8 items-center justify-center text-[var(--admin-ink-600)] disabled:opacity-40"
                         aria-label={`${option.name} mozgatása lefelé`}
+                        title="Le"
                       >
-                        <ArrowDown className="h-4 w-4" />
+                        <ArrowDown className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>

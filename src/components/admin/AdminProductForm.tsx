@@ -142,7 +142,7 @@ const requiredFieldMessages: Partial<Record<FormFieldName, string>> = {
 };
 
 const statusLabels: Record<AdminProductFormValues["status"], string> = {
-  DRAFT: "Draft",
+  DRAFT: "Vázlat",
   ACTIVE: "Aktív",
   ARCHIVED: "Archivált",
 };
@@ -158,6 +158,9 @@ const optionListKeyByField: Record<ProductOptionGroup["fieldName"], OptionListKe
 };
 
 const textEncoder = new TextEncoder();
+const PRODUCT_IMAGE_DIRECT_UPLOAD_LIMIT_BYTES = 8 * 1024 * 1024;
+const PRODUCT_IMAGE_TARGET_MAX_EDGE = 2400;
+const PRODUCT_IMAGE_ENCODE_QUALITY = 0.86;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -239,6 +242,107 @@ function inspectSubmissionFormData(formData: FormData): SubmissionInspection {
     hasInlineDataImage,
     hasBase64DataUri,
   };
+}
+
+function getOptimizedImageFileName(fileName: string) {
+  const dotIndex = fileName.lastIndexOf(".");
+  const baseName = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
+  return `${baseName || "product-image"}.jpg`;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        reject(new Error("A kép optimalizálása nem sikerült."));
+      },
+      type,
+      quality,
+    );
+  });
+}
+
+async function loadImageForCanvas(file: File) {
+  if (typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    return {
+      height: bitmap.height,
+      image: bitmap,
+      release: () => bitmap.close(),
+      width: bitmap.width,
+    };
+  }
+
+  const previewUrl = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = previewUrl;
+    await image.decode();
+    return {
+      height: image.naturalHeight,
+      image,
+      release: () => URL.revokeObjectURL(previewUrl),
+      width: image.naturalWidth,
+    };
+  } catch (error) {
+    URL.revokeObjectURL(previewUrl);
+    throw error;
+  }
+}
+
+async function optimizeProductImageForUpload(file: File) {
+  if (file.type === "image/gif") {
+    return file;
+  }
+
+  const source = await loadImageForCanvas(file);
+  try {
+    const maxEdge = Math.max(source.width, source.height);
+    const shouldOptimize =
+      file.size > PRODUCT_IMAGE_DIRECT_UPLOAD_LIMIT_BYTES || maxEdge > PRODUCT_IMAGE_TARGET_MAX_EDGE;
+
+    if (!shouldOptimize) {
+      return file;
+    }
+
+    const scale = Math.min(1, PRODUCT_IMAGE_TARGET_MAX_EDGE / maxEdge);
+    const targetWidth = Math.max(1, Math.round(source.width * scale));
+    const targetHeight = Math.max(1, Math.round(source.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) {
+      return file;
+    }
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(source.image, 0, 0, targetWidth, targetHeight);
+
+    const optimizedBlob = await canvasToBlob(
+      canvas,
+      "image/jpeg",
+      PRODUCT_IMAGE_ENCODE_QUALITY,
+    );
+
+    if (optimizedBlob.size >= file.size && file.size <= PRODUCT_IMAGE_DIRECT_UPLOAD_LIMIT_BYTES) {
+      return file;
+    }
+
+    return new File([optimizedBlob], getOptimizedImageFileName(file.name), {
+      lastModified: file.lastModified,
+      type: "image/jpeg",
+    });
+  } finally {
+    source.release();
+  }
 }
 
 function buildInitialFormState(values: AdminProductFormValues): ProductFormState {
@@ -332,9 +436,11 @@ function validateFormState(
 }
 
 async function uploadProductImage(file: File) {
-  return upload(createProductImageUploadPathname(file.name), file, {
+  const uploadFile = await optimizeProductImageForUpload(file);
+
+  return upload(createProductImageUploadPathname(uploadFile.name), uploadFile, {
     access: "public",
-    contentType: file.type || undefined,
+    contentType: uploadFile.type || undefined,
     handleUploadUrl: "/api/admin/product-images/upload",
   });
 }
@@ -833,21 +939,21 @@ export function AdminProductForm({
   const hasValidSaleLogic = !formValues.isOnSale || (hasValidCompareAtPrice && formValues.compareAtPrice.trim().length > 0);
   const hasValidStock = Number.isInteger(stockValue) && stockValue >= 0;
   const readinessItems = [
-    { key: "identity", label: "Alapadatok", ok: Boolean(formValues.name.trim() && formValues.slug.trim()), message: "Terméknév és slug szükséges." },
-    { key: "pricing", label: "Árazás", ok: hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic, message: "Ár vagy akciós ár logika javítása szükséges." },
-    { key: "media", label: "Média", ok: readyImageCount > 0, message: "Legalább egy storefront-kész kép szükséges." },
+    { key: "identity", label: "Alapadatok", ok: Boolean(formValues.name.trim() && formValues.slug.trim()), message: "Adj meg nevet és slugot." },
+    { key: "pricing", label: "Árazás", ok: hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic, message: "Ellenőrizd az árat és az akciós árat." },
+    { key: "media", label: "Média", ok: readyImageCount > 0, message: "Tölts fel legalább egy képet." },
     {
       key: "content",
-      label: "Storefront tartalom",
+      label: "Bolti tartalom",
       ok: Boolean(
         formValues.shortDescription.trim() &&
           formValues.description.trim() &&
           formValues.badge.trim() &&
           formValues.collectionLabel.trim(),
       ),
-      message: "Leírás, badge és kollekció label szükséges.",
+      message: "Adj meg leírást, badge-et és kollekciónevet.",
     },
-    { key: "stock", label: "Készlet", ok: hasValidStock, message: "A készlet legyen nem negatív egész szám." },
+    { key: "stock", label: "Készlet", ok: hasValidStock, message: "Ellenőrizd a készletet." },
   ];
   const readinessBlockers = readinessItems.filter((item) => !item.ok);
   const isReadinessReady = readinessBlockers.length === 0;
@@ -875,7 +981,7 @@ export function AdminProductForm({
           ? "Aktív termék mentése"
           : formValues.status === "ARCHIVED"
             ? "Archivált termék mentése"
-            : "Draft mentése";
+            : "Vázlat mentése";
 
   const effectiveCoverImageKey = useMemo(() => {
     if (allImages.some((img) => img.id === coverImageKey && img.status === "ready")) {
@@ -1073,12 +1179,12 @@ export function AdminProductForm({
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      setSubmitError("Kérjük javítsd a hibás mezőket mentés előtt.");
+      setSubmitError("Javítsd a hibás mezőket mentés előtt.");
       return;
     }
 
     if (formValues.status === "ACTIVE" && allImages.filter((image) => image.status === "ready").length === 0) {
-      setSubmitError("Legalább egy termékkép kötelező az aktív storefront megjelenéshez.");
+      setSubmitError("Aktív termékhez legalább egy kép kell.");
       return;
     }
 
@@ -1188,9 +1294,9 @@ export function AdminProductForm({
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
         <div className="space-y-5">
           <CardShell
-            eyebrow="Alapinformációk"
-            title="Termék identitás"
-            subtitle="A név és a canonical URL a termék elsődleges azonosítói. Slug módosításkor a régi URL átirányít az új címre."
+            eyebrow="Alapadatok"
+            title="Termék azonosítók"
+            subtitle="A név és a slug adja a termék URL-jét. Slug váltáskor a régi link átirányít az újra."
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
               <FieldWrap label="Terméknév" error={errors.name} required>
@@ -1207,7 +1313,7 @@ export function AdminProductForm({
                 label="Slug"
                 error={errors.slug}
                 required
-                helper={slugChanged ? "A korábbi terméklinkek átirányítanak az új canonical URL-re." : "Canonical termék URL."}
+                helper={slugChanged ? "A régi link átirányít az új URL-re." : "A termék publikus URL-je."}
               >
                 <input
                   name="slug"
@@ -1225,7 +1331,7 @@ export function AdminProductForm({
             <div className="mt-4 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
               Canonical URL: <span className="font-mono text-[var(--admin-ink-900)]">{canonicalUrl}</span>
               {slugChanged ? (
-                <span className="ml-2 text-[#765b18]">Korábbi URL megőrizve redirectként.</span>
+                <span className="ml-2 text-[#765b18]">A régi URL átirányít.</span>
               ) : null}
             </div>
           </CardShell>
@@ -1234,7 +1340,7 @@ export function AdminProductForm({
             <CardShell
               eyebrow="Árazás"
               title="Ár és akció"
-              subtitle="Az aktív termékhez pozitív ár kell. Az eredeti ár csak akkor érvényes, ha magasabb az aktuális árnál."
+              subtitle="Aktív terméknél pozitív ár kell. Az eredeti ár legyen magasabb az aktuálisnál."
             >
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
                 <FieldWrap label="Aktuális ár" error={errors.price} required={formValues.status === "ACTIVE"}>
@@ -1291,7 +1397,7 @@ export function AdminProductForm({
             <CardShell
               eyebrow="Készlet"
               title="Készlet és elérhetőség"
-              subtitle="Nulla készlettel az aktív és kész termék látható maradhat, de nem megvásárolható."
+              subtitle="Nulla készlettel a termék látható marad, de nem vásárolható."
             >
               <FieldWrap label="Raktárkészlet" error={errors.stockQuantity} required>
                 <input
@@ -1307,11 +1413,11 @@ export function AdminProductForm({
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="border border-[var(--admin-line-100)] bg-white px-3 py-3">
-                  <p className={eyebrowCls}>Stock state</p>
+                  <p className={eyebrowCls}>Készletállapot</p>
                   <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">{stockState}</p>
                 </div>
                 <div className="border border-[var(--admin-line-100)] bg-white px-3 py-3">
-                  <p className={eyebrowCls}>Available</p>
+                  <p className={eyebrowCls}>Elérhető</p>
                   <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
                     {hasValidStock ? `${Math.max(0, stockValue)} db` : "Hibás"}
                   </p>
@@ -1323,7 +1429,7 @@ export function AdminProductForm({
           <CardShell
             eyebrow="Média"
             title="Termékképek"
-            subtitle="Legalább egy storefront-kész kép szükséges az aktív publikáláshoz. A csillag jelöli a borítóképet."
+            subtitle="Aktív termékhez legalább egy kép kell. A csillag jelöli a borítót."
           >
             <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
               <div
@@ -1451,7 +1557,7 @@ export function AdminProductForm({
           <CardShell
             eyebrow="Storefront megjelenés"
             title="Kártya, címkék és leírások"
-            subtitle="Ezek a mezők adják a termék publikus megjelenésének alapját a listákban és a PDP-n."
+            subtitle="Ezek jelennek meg a termékkártyán és a termékoldalon."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <FieldWrap label="Termék badge" error={errors.badge} required={formValues.status === "ACTIVE"}>
@@ -1481,7 +1587,7 @@ export function AdminProductForm({
                   name="shortDescription"
                   value={formValues.shortDescription}
                   onChange={(e) => handleFieldChange("shortDescription", e.target.value)}
-                  placeholder="Rövid termékleírás a kártyákhoz és SEO snippethez..."
+                  placeholder="Rövid leírás a kártyákhoz..."
                   rows={4}
                   className={textareaCls}
                 />
@@ -1492,7 +1598,7 @@ export function AdminProductForm({
                   name="description"
                   value={formValues.description}
                   onChange={(e) => handleFieldChange("description", e.target.value)}
-                  placeholder="Anyagok, méret, gondozás, viselési kontextus..."
+                  placeholder="Anyagok, méret, gondozás, viselési ötletek..."
                   rows={4}
                   className={textareaCls}
                 />
@@ -1500,7 +1606,7 @@ export function AdminProductForm({
             </div>
           </CardShell>
 
-          <CardShell eyebrow="SEO / URL" title="Canonical URL és előnézet">
+          <CardShell eyebrow="SEO / URL" title="URL és előnézet">
             <button
               type="button"
               onClick={() => setSeoOpen((o) => !o)}
@@ -1527,7 +1633,7 @@ export function AdminProductForm({
                   {formValues.shortDescription || "A rövid leírás itt jelenik meg a keresési előnézetben."}
                 </p>
                 <p className="mt-3 text-xs leading-5 text-[var(--admin-ink-500)]">
-                  Slug módosításkor a régi product URL történetként megmarad és a canonical URL-re irányít.
+                  Slug váltáskor a régi URL átirányít az új terméklinkre.
                 </p>
               </div>
             ) : null}
@@ -1535,11 +1641,11 @@ export function AdminProductForm({
         </div>
 
         <div className="space-y-4 xl:sticky xl:top-28">
-          <CardShell eyebrow="Termékállapot" title="Lifecycle összefoglaló">
+          <CardShell eyebrow="Állapot" title="Publikálási összefoglaló">
             <div className="space-y-1">
-              <SummaryRow label="Lifecycle status" value={statusLabels[formValues.status]} tone={lifecycleTone} />
-              <SummaryRow label="Readiness" value={isReadinessReady ? "Kész" : "Hiányos"} tone={isReadinessReady ? "good" : "danger"} />
-              <SummaryRow label="Storefront" value={isStorefrontVisible ? "Látható" : "Nem látható"} tone={isStorefrontVisible ? "good" : "warn"} />
+              <SummaryRow label="Státusz" value={statusLabels[formValues.status]} tone={lifecycleTone} />
+              <SummaryRow label="Kitöltés" value={isReadinessReady ? "Kész" : "Hiányos"} tone={isReadinessReady ? "good" : "danger"} />
+              <SummaryRow label="Bolt" value={isStorefrontVisible ? "Látható" : "Nem látható"} tone={isStorefrontVisible ? "good" : "warn"} />
               <SummaryRow label="Vásárolhatóság" value={isPurchasable ? "Megvásárolható" : "Nem megvásárolható"} tone={isPurchasable ? "good" : "warn"} />
               <SummaryRow label="Készlet" value={stockState} tone={stockTone} />
             </div>
@@ -1547,7 +1653,7 @@ export function AdminProductForm({
             {readinessBlockers.length > 0 ? (
               <div className="mt-4 border border-[#e8c7d2] bg-[#fff8fb] p-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b476f]">
-                  Publikálási blokkolók
+                  Még hiányzik
                 </p>
                 <ul className="mt-2 space-y-1.5 text-xs leading-5 text-[#7a3d58]">
                   {readinessBlockers.map((item) => (
@@ -1557,7 +1663,7 @@ export function AdminProductForm({
               </div>
             ) : (
               <div className="mt-4 border border-[#bdd7c8] bg-[#f2faf5] p-3 text-xs leading-5 text-[#24533a]">
-                A termék aktív státusszal storefront-kész. Készlet nélkül látható marad, de nem vásárolható.
+                A termék aktív státusszal publikálható. Készlet nélkül látható marad, de nem vásárolható.
               </div>
             )}
 
@@ -1578,8 +1684,8 @@ export function AdminProductForm({
             </button>
           </CardShell>
 
-          <CardShell eyebrow="Termékállapot" title="Publikálási vezérlés">
-            <FieldWrap label="Lifecycle státusz" error={errors.status}>
+          <CardShell eyebrow="Állapot" title="Publikálás">
+            <FieldWrap label="Termékstátusz" error={errors.status}>
               <select
                 name="status"
                 value={formValues.status}
@@ -1599,7 +1705,7 @@ export function AdminProductForm({
               </select>
             </FieldWrap>
 
-            <FieldWrap label="Kezdőlapi kihelyezés" error={errors.homepagePlacement} helper="Csak aktív és kész terméknél jelenik meg.">
+            <FieldWrap label="Kezdőlapi kihelyezés" error={errors.homepagePlacement} helper="Csak kész, aktív terméknél látszik.">
               <select
                 name="homepagePlacement"
                 value={formValues.homepagePlacement}
@@ -1772,8 +1878,8 @@ export function AdminProductForm({
             <CardShell eyebrow="Veszélyzóna" title={isPersistedArchived ? "Visszaállítás" : "Archiválás"}>
               <p className="text-xs leading-5 text-[var(--admin-ink-600)]">
                 {isPersistedArchived
-                  ? "Visszaállításkor a termék draftként tér vissza, így publikálás előtt újra ellenőrizhető."
-                  : "Archiválás után a termék nem látható, nem kosarazható és nem checkoutolható. Visszaállításkor draftként tér vissza."}
+                  ? "Visszaállítás után a termék draft lesz, így publikálás előtt újra ellenőrizhető."
+                  : "Archiválás után a termék nem látszik és nem vásárolható. Visszaállításkor draftként tér vissza."}
               </p>
               <button
                 type="button"

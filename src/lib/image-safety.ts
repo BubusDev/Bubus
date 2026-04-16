@@ -11,7 +11,7 @@ const UNSAFE_IMAGE_CONTENT_TYPES = new Set(["image/heic", "image/heif", "image/h
 
 export const browserSafeProductImageAccept = Array.from(BROWSER_SAFE_IMAGE_CONTENT_TYPES).join(",");
 
-export const productImageFormatHelpText = "PNG, JPG, WEBP vagy AVIF formatum. HEIC/HEIF nem toltheto fel.";
+export const productImageFormatHelpText = "JPG, PNG, WEBP vagy AVIF. A nagy képeket feltöltés előtt optimalizáljuk.";
 
 export function getPathExtension(value: string) {
   const pathname = (() => {
@@ -75,7 +75,7 @@ export function isBrowserSafeImageFile(file: Pick<File, "name" | "type">) {
 
 export function getUnsafeProductImageMessage(fileName?: string) {
   const prefix = fileName ? `${fileName}: ` : "";
-  return `${prefix}HEIC/HEIF kepek nem tolthetok fel. Exportald JPG, PNG, WEBP vagy AVIF formatumba, majd toltsd fel ujra.`;
+  return `${prefix}HEIC/HEIF nem tölthető fel. Exportáld JPG, PNG, WEBP vagy AVIF formátumba.`;
 }
 
 export function assertBrowserSafeProductImageUrl(url: string) {
