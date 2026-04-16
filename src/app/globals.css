@@ -114,10 +114,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(247, 158, 205, 0.25), transparent 24%),
-    radial-gradient(circle at right 18%, rgba(255, 234, 245, 0.9), transparent 22%),
-    linear-gradient(180deg, #fffafc 0%, #fff5fa 40%, #fbeef5 100%);
+  background: #FDF8F6;
   color: #31192d;
   font-family: var(--font-body);
 }

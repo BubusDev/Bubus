@@ -16,7 +16,7 @@ type FilterSidebarProps = {
   availableFilters: CatalogFilters;
   filterGroups: FilterGroup[];
   state: ParsedCollectionState;
-  mode?: "both" | "mobile-trigger" | "desktop-sidebar";
+  mode?: "both" | "mobile-trigger" | "desktop-sidebar" | "drawer";
 };
 
 type AccordionGroupKey = FilterGroup["key"] | "price";
@@ -266,20 +266,22 @@ function FilterPanel({
 export function FilterSidebar(props: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const mode = props.mode ?? "both";
-  const showMobileTrigger = mode !== "desktop-sidebar";
-  const showDesktopSidebar = mode !== "mobile-trigger";
+  const showTrigger = mode !== "desktop-sidebar";
+  const showDesktopSidebar = mode !== "mobile-trigger" && mode !== "drawer";
+  // "drawer" mode: trigger + drawer visible on all screen sizes (not just mobile)
+  const drawerAllScreens = mode === "drawer";
 
   return (
     <>
-      {showMobileTrigger && (
-        <div className="lg:hidden">
+      {showTrigger && (
+        <div className={drawerAllScreens ? undefined : "lg:hidden"}>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex items-center gap-2 border border-[#1a1a1a] px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[#d4a0b8] bg-white px-4 py-2 text-sm font-medium text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
           >
             <SlidersHorizontal className="h-4 w-4" strokeWidth={1.5} />
-            Szűrő
+            Szűrők
           </button>
         </div>
       )}
@@ -295,17 +297,17 @@ export function FilterSidebar(props: FilterSidebarProps) {
         </aside>
       )}
 
-      {showMobileTrigger && isOpen && (
+      {showTrigger && isOpen && (
         <div
-          className="fixed inset-0 z-[70] lg:hidden"
+          className={`fixed inset-0 z-[70]${drawerAllScreens ? "" : " lg:hidden"}`}
           style={{ background: "rgba(42,18,30,.25)", backdropFilter: "blur(4px)" }}
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="h-full overflow-y-auto animate-[slideInLeft_.2s_ease-out]"
+            className="h-full overflow-y-auto animate-[slideInLeft_.3s_ease-out]"
             style={{
-              width: "min(320px, 100%)",
-              background: "rgba(255,255,255,.96)",
+              width: "min(380px, 100%)",
+              background: "rgba(255,255,255,.97)",
               backdropFilter: "blur(20px)",
               boxShadow: "16px 0 48px -8px rgba(196,90,133,.15)",
             }}

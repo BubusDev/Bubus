@@ -56,50 +56,43 @@ export function CollectionPage({
           </div>
         </section>
 
-        {/* ── MAIN LAYOUT ── */}
-        <section className="flex gap-8 xl:gap-10">
-
-          {/* Sidebar */}
-          <FilterSidebar
-            availableFilters={availableFilters}
-            filterGroups={filterGroups}
-            state={state}
-            mode="desktop-sidebar"
-          />
-
-          {/* Content */}
-          <div className="min-w-0 flex-1">
-
-            {/* Desktop: sort + active filters */}
-            <div className="mb-6 hidden items-center justify-between gap-4 lg:flex">
-              <div className="flex items-center gap-3">
-                <ActiveFilterChips filterGroups={filterGroups} state={state} />
-                <span className="text-[12px] text-[#888]">
-                  {products.length} termék
-                </span>
-              </div>
-              <CollectionSort currentSort={state.sort} />
-            </div>
-
-            {/* Product grid or empty state */}
-            {products.length > 0 ? (
-              <ProductGrid products={products} redirectTo={redirectTo} />
-            ) : (
-              <div className="py-20 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-[.3em] text-[#888]">
-                  Nincs találat
-                </p>
-                <h2 className="mt-3 font-[family:var(--font-display)] text-[2rem] text-[#1a1a1a]">
-                  Finomíts a szűrésen
-                </h2>
-                <p className="mx-auto mt-3 max-w-[38ch] text-sm leading-7 text-[#888]">
-                  A jelenlegi beállításokkal nem találtunk megfelelő darabot.
-                  Törölj néhány szűrőt, és a kollekció azonnal frissül.
-                </p>
-              </div>
-            )}
+        {/* ── DESKTOP: filter drawer trigger + sort ── */}
+        <div className="mb-6 hidden items-center justify-between gap-4 lg:flex">
+          <div className="flex items-center gap-3">
+            <FilterSidebar
+              availableFilters={availableFilters}
+              filterGroups={filterGroups}
+              state={state}
+              mode="drawer"
+            />
+            <ActiveFilterChips filterGroups={filterGroups} state={state} />
+            <span className="text-[12px] text-[#888]">
+              {products.length} termék
+            </span>
           </div>
-        </section>
+          <div className="flex items-center gap-3">
+            {couponPreview && <AccountCouponPill couponPreview={couponPreview} />}
+            <CollectionSort currentSort={state.sort} />
+          </div>
+        </div>
+
+        {/* ── PRODUCT GRID (full-width) ── */}
+        {products.length > 0 ? (
+          <ProductGrid products={products} redirectTo={redirectTo} />
+        ) : (
+          <div className="py-20 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[.3em] text-[#888]">
+              Nincs találat
+            </p>
+            <h2 className="mt-3 font-[family:var(--font-display)] text-[2rem] text-[#1a1a1a]">
+              Finomíts a szűrésen
+            </h2>
+            <p className="mx-auto mt-3 max-w-[38ch] text-sm leading-7 text-[#888]">
+              A jelenlegi beállításokkal nem találtunk megfelelő darabot.
+              Törölj néhány szűrőt, és a kollekció azonnal frissül.
+            </p>
+          </div>
+        )}
       </div>
     </main>
   );
