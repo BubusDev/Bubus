@@ -1112,11 +1112,17 @@ export function AdminProductForm({
       nextImages.map(async (img, i) => {
         try {
           const blob = await uploadProductImage(acceptedFiles[i]);
+          const originalBlobUrl = img.previewUrl;
           setUploadedImages((cur) =>
             cur.map((ci) =>
-              ci.id === img.id ? { ...ci, uploadedUrl: blob.url, status: "ready" } : ci,
+              ci.id === img.id
+                ? { ...ci, previewUrl: blob.url, uploadedUrl: blob.url, status: "ready" }
+                : ci,
             ),
           );
+          if (originalBlobUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(originalBlobUrl);
+          }
         } catch (err) {
           setUploadedImages((cur) =>
             cur.map((ci) =>
