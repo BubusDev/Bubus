@@ -14,9 +14,9 @@ function getCouponLabel(coupon: AccountCouponSummary) {
 export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSummary[] }) {
   return (
     <section
-      className="rounded-lg border border-[#e8e2dd] bg-white px-4 py-5 shadow-[0_12px_28px_rgba(45,31,40,0.04)] sm:px-5"
+      className="rounded-lg border border-[#e8e2dd] bg-white shadow-[0_12px_28px_rgba(45,31,40,0.04)]"
     >
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-1.5 border-b border-[#eee8eb] px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
         <h3 className="text-sm font-semibold text-[#2d1f28]">
           Elérhető kedvezményeid
         </h3>
@@ -26,11 +26,11 @@ export function AccountCouponsSection({ coupons }: { coupons: AccountCouponSumma
       </div>
 
       {coupons.length === 0 ? (
-        <div className="rounded-md border border-[#eee7ea] bg-white px-5 py-5 text-sm leading-7 text-[#7b6773]">
+        <div className="px-4 py-5 text-sm leading-7 text-[#7b6773] sm:px-5">
           Jelenleg nincs elérhető kupon a profilodhoz.
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div>
           {coupons.map((coupon) => {
             const ticket: CouponTicketData = {
               ...coupon,

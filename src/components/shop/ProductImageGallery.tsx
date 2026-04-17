@@ -133,8 +133,8 @@ export function ProductImageGallery({
           </div>
         )}
         {soldOut && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="bg-white/90 px-4 py-1.5 text-[11px] uppercase tracking-[.2em] text-[#555]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-start bg-gradient-to-t from-white/55 via-white/18 to-transparent p-3 sm:p-4">
+            <span className="rounded-md border border-white/70 bg-white/72 px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#6f666b] shadow-[0_8px_18px_rgba(82,73,79,0.08)] backdrop-blur-sm sm:text-[11px]">
               Elfogyott
             </span>
           </div>

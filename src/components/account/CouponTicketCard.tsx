@@ -76,6 +76,7 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
   const validityText = getValidityText(coupon);
   const isMuted = coupon.status === "used" || coupon.status === "expired";
   const daysRemaining = getDaysRemaining(coupon);
+  const remainingText = getRemainingText(daysRemaining);
 
   function handleCopy() {
     startTransition(async () => {
@@ -92,108 +93,74 @@ export function CouponTicketCard({ coupon }: { coupon: CouponTicketData }) {
   return (
     <article
       className={cx(
-        "relative overflow-hidden rounded-lg border border-[#e8e5e0] bg-white",
-        "transition duration-200 hover:border-[#d8c7cf]",
+        "grid gap-3 border-b border-[#eee8eb] bg-white px-4 py-4 transition duration-200 last:border-b-0",
+        "hover:bg-[#fffdfd] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:px-5",
         isMuted && "opacity-65",
       )}
     >
-      <div className="flex min-h-[14rem] flex-col px-5 py-5">
-        <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
-          <div className="min-w-0 space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8c7f86]">
-              KUPON
-            </p>
-            <p className="text-sm font-semibold leading-5 text-[#33242b]">{coupon.label}</p>
-          </div>
-
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p
+            className={cx(
+              "break-all font-mono text-base font-semibold leading-6 tracking-normal text-[#20191d] sm:text-lg",
+              coupon.status === "expired" && "text-[#777075]",
+            )}
+          >
+            {coupon.code}
+          </p>
           <span
             className={cx(
-              "inline-flex w-fit items-center rounded-md border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
+              "inline-flex shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em]",
               statusTone[coupon.status],
             )}
           >
-            {isMuted ? statusLabels[coupon.status] : getRemainingText(daysRemaining)}
+            {statusLabels[coupon.status]}
           </span>
         </div>
 
-        <div className="my-4 border-t border-[#e8e5e0]" />
-
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-          <div className="min-w-0">
-            <p
-              className={cx(
-                "break-words font-mono text-[1.65rem] font-semibold leading-tight tracking-normal text-[#20191d] sm:text-[1.9rem]",
-                coupon.status === "expired" && "text-[#777075]",
-              )}
-            >
-              {coupon.code}
-            </p>
-
-            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-              <p className="text-lg font-semibold leading-none text-[#6f3f59]">
-                -{coupon.discountPercent}% kedvezmény
-              </p>
-              {coupon.minimumOrderAmount ? (
-                <p className="w-full text-xs leading-5 text-[#7b6773]">
-                  Minimum rendelés:{" "}
-                  <span className="font-medium text-[#3f2735]">
-                    {formatPrice(coupon.minimumOrderAmount)}
-                  </span>
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          {!isMuted ? (
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={isPending}
-              className={cx(
-                "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20191d]/25 disabled:opacity-60 sm:w-auto",
-                copied
-                  ? "border-[#20191d] bg-[#20191d] text-white"
-                  : "border-[#20191d] bg-[#fffefe] text-[#20191d] hover:bg-[#f7f3ee]",
-              )}
-              aria-label={`${coupon.code} kuponkód másolása`}
-            >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copied ? "Másolva" : "Kód másolása"}</span>
-            </button>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-5 text-[#7b6773]">
+          <span className="font-semibold text-[#6f3f59]">
+            -{coupon.discountPercent}% kedvezmény
+          </span>
+          <span>{isMuted ? validityText : remainingText}</span>
+          {coupon.minimumOrderAmount ? (
+            <span>
+              Minimum:{" "}
+              <span className="font-medium text-[#3f2735]">
+                {formatPrice(coupon.minimumOrderAmount)}
+              </span>
+            </span>
           ) : null}
+          {coupon.usedCount > 0 ? <span>Már felhasználva</span> : null}
         </div>
 
-        <div className="my-4 border-t border-[#e8e5e0]" />
-
-        <div className="mt-auto">
-          <dl className="grid gap-4 text-xs leading-5 text-[#766a70] sm:grid-cols-3">
-            <div>
-              <dt className="font-semibold uppercase tracking-[0.18em] text-[#7a4f61]">Érvényes</dt>
-              <dd className="mt-2 font-semibold text-[#3f2735]">{validityText}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold uppercase tracking-[0.18em] text-[#7a4f61]">Használat</dt>
-              <dd className="mt-2 font-semibold text-[#3f2735]">
-                {coupon.usedCount > 0 ? "Már felhasználva" : "Még nem használt"}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold uppercase tracking-[0.18em] text-[#7a4f61]">Állapot</dt>
-              <dd className="mt-2">
-                <span
-                  className={cx(
-                    "inline-flex rounded-md border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]",
-                    statusTone[coupon.status],
-                  )}
-                >
-                  {statusLabels[coupon.status]}
-                </span>
-              </dd>
-            </div>
-          </dl>
-        </div>
+        <p className="mt-1 truncate text-[11px] leading-5 text-[#9a8d94]">
+          {coupon.label}
+          {!isMuted && coupon.validUntil ? (
+            <>
+              {" · "}
+              Érvényes: {validityText}
+            </>
+          ) : null}
+        </p>
       </div>
+
+      <button
+        type="button"
+        onClick={handleCopy}
+        disabled={isPending}
+        className={cx(
+          "inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border px-3 text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20191d]/25 disabled:opacity-60 sm:w-auto",
+          copied
+            ? "border-[#20191d] bg-[#20191d] text-white"
+            : "border-[#d8c7cf] bg-white text-[#4d2d3e] hover:border-[#20191d] hover:text-[#20191d]",
+        )}
+        aria-label={`${coupon.code} kuponkód másolása`}
+      >
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        <span>{copied ? "Másolva" : "Másolás"}</span>
+      </button>
     </article>
   );
 }

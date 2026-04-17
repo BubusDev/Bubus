@@ -15,8 +15,6 @@ import {
   getProductsForCategory,
 } from "@/lib/products";
 import { siteName } from "@/lib/site";
-import { getHeaderCouponDropdownPreview } from "@/lib/account";
-import { getHeaderUser } from "@/lib/auth";
 
 type CategoryPageProps = {
   params: Promise<{ category: string }>;
@@ -75,11 +73,9 @@ export default async function CategoryPage({
   }
 
   const state = parseCollectionSearchParams(resolvedSearchParams);
-  const user = await getHeaderUser();
-  const [baseProducts, availableFilters, couponPreview] = await Promise.all([
+  const [baseProducts, availableFilters] = await Promise.all([
     getProductsForCategory(categorySlug),
     getFilterOptionsForCategory(categorySlug),
-    getHeaderCouponDropdownPreview(user?.id),
   ]);
   const filteredProducts = filterProducts(baseProducts, state);
   const sortedProducts = sortProducts(filteredProducts, state.sort);
@@ -87,13 +83,11 @@ export default async function CategoryPage({
 
   return (
     <CollectionPage
-      category={categoryDefinition}
       products={sortedProducts}
       availableFilters={availableFilters}
       filterGroups={filterGroups}
       state={state}
       redirectTo={redirectTo}
-      couponPreview={couponPreview}
     />
   );
 }

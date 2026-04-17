@@ -52,7 +52,7 @@ export function ProductImageFrame({
           alt={alt}
           className={`${imageClassName} transition duration-700 ${
             soldOut
-              ? "scale-[1.015] blur-[3px] saturate-[0.5] brightness-[0.9]"
+              ? "scale-[1.008] saturate-[0.76] brightness-[0.96]"
               : ""
           }`}
         />
@@ -66,10 +66,9 @@ export function ProductImageFrame({
 
       {soldOut ? (
         <>
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,244,245,0.18),rgba(233,228,231,0.58))]" />
-          <div className="absolute inset-0 bg-[rgba(123,112,120,0.12)]" />
-          <div className="absolute inset-0 flex items-center justify-center p-5">
-            <span className="inline-flex items-center rounded-full border border-white/70 bg-[rgba(237,233,235,0.88)] px-5 py-2 text-[11px] font-medium uppercase tracking-[0.34em] text-[#5e565b] shadow-[0_14px_30px_rgba(82,73,79,0.16)] backdrop-blur-md">
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/58 via-white/20 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-start p-3">
+            <span className="inline-flex items-center rounded-md border border-white/70 bg-white/72 px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#6f666b] shadow-[0_8px_18px_rgba(82,73,79,0.08)] backdrop-blur-sm">
               {overlayLabel}
             </span>
           </div>

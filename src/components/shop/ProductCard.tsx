@@ -80,7 +80,7 @@ export function ProductCard({
   const isHeartPending = isFavouritePending || isWishlistPending;
   const differentiator = getProductCardDifferentiator(product);
   const imageStateClass = isOutOfStock
-    ? "saturate-[0.6] brightness-[0.9]"
+    ? "saturate-[0.78] brightness-[0.96]"
     : "";
   const imageHoverClass = !isOutOfStock
     ? "group-hover:scale-[1.04] group-focus-within:scale-[1.04]"
@@ -176,8 +176,8 @@ export function ProductCard({
             imageFallback
           )}
           {isOutOfStock && (
-            <div className="absolute inset-0 flex items-end p-3">
-              <span className="bg-white/90 px-2.5 py-1 text-[10px] uppercase tracking-[.18em] text-[#555]">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-start bg-gradient-to-t from-white/55 via-white/18 to-transparent p-2.5 sm:p-3">
+              <span className="rounded-md border border-white/70 bg-white/72 px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#6f666b] shadow-[0_8px_18px_rgba(82,73,79,0.08)] backdrop-blur-sm">
                 Elfogyott
               </span>
             </div>

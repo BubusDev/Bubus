@@ -2,24 +2,19 @@ import { ActiveFilterChips } from "@/components/shop/ActiveFilterChips";
 import { CollectionSort } from "@/components/shop/CollectionSort";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
 import { ProductGrid } from "@/components/shop/ProductGrid";
-import { AccountCouponPill } from "@/components/account/AccountCouponPill";
 import {
   type CatalogFilters,
-  type CategoryDefinition,
   type FilterGroup,
   type ParsedCollectionState,
   type Product,
 } from "@/lib/catalog";
-import type { HeaderCouponDropdownPreview } from "@/lib/account";
 
 type CollectionPageProps = {
-  category: CategoryDefinition;
   products: Product[];
   availableFilters: CatalogFilters;
   filterGroups: FilterGroup[];
   state: ParsedCollectionState;
   redirectTo?: string;
-  couponPreview?: HeaderCouponDropdownPreview;
 };
 
 export function CollectionPage({
@@ -28,19 +23,10 @@ export function CollectionPage({
   filterGroups,
   state,
   redirectTo = "/",
-  couponPreview,
 }: CollectionPageProps) {
   return (
     <main className="mx-auto max-w-[1450px] pb-24">
       <div className="px-6 pt-6 sm:px-8">
-
-        {/* ── MOBILE: kupon banner (teljes szélességű sáv a toolbar felett) ── */}
-        {couponPreview && (
-          <div className="-mx-6 mb-3 sm:-mx-8 lg:hidden">
-            <AccountCouponPill couponPreview={couponPreview} compact />
-          </div>
-        )}
-
         {/* ── MOBILE: filter ikon | chip-ek | rendezés ikon ── */}
         <section className="mb-6 lg:hidden">
           <div className="flex items-center gap-3">
@@ -76,7 +62,6 @@ export function CollectionPage({
             </span>
           </div>
           <div className="flex items-center gap-3">
-            {couponPreview && <AccountCouponPill couponPreview={couponPreview} />}
             <CollectionSort currentSort={state.sort} />
           </div>
         </div>
