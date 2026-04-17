@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useRef } from "react";
+
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
 import {
@@ -89,6 +91,8 @@ export function Header({
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [cartPath, setCartPath] = useState<string | null>(null);
   const [mobileCouponOpen, setMobileCouponOpen] = useState(false);
+  const [desktopCouponOpen, setDesktopCouponOpen] = useState(false);
+  const desktopCouponRef = useRef<HTMLDivElement>(null);
 
   const mobileMenuOpen = mobileMenuPath === pathname;
   const cartOpen = cartPath === pathname;
@@ -101,6 +105,25 @@ export function Header({
       document.body.style.overflow = "";
     };
   }, [mobileMenuOpen, cartOpen, mobileCouponOpen]);
+
+  // Close desktop coupon dropdown on outside click or Escape
+  useEffect(() => {
+    if (!desktopCouponOpen) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (!desktopCouponRef.current?.contains(e.target as Node)) {
+        setDesktopCouponOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setDesktopCouponOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [desktopCouponOpen]);
 
   return (
     <>
@@ -213,23 +236,74 @@ export function Header({
               <div className="mx-1 h-5 w-px bg-[#ead9e1]" />
 
               {user && couponPreview ? (
-                <Link
-                  href="/profile#kuponjaim"
-                  aria-label="Kuponjaim"
-                  className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
-                >
-                  <span className="transition-transform duration-200 group-hover:scale-105">
-                    <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
-                  </span>
-                  {couponPreview.activeCoupons.length > 0 && (
-                    <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
-                  )}
-                  <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
-                </Link>
+                <div className="relative" ref={desktopCouponRef}>
+                  <button
+                    type="button"
+                    aria-label="Kuponjaim"
+                    aria-expanded={desktopCouponOpen}
+                    onClick={() => setDesktopCouponOpen((o) => !o)}
+                    className={`nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition-colors duration-200 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${desktopCouponOpen ? "text-[#2f2230]" : ""}`}
+                  >
+                    <span className="transition-transform duration-200 group-hover:scale-105">
+                      <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
+                    </span>
+                    {couponPreview.activeCoupons.length > 0 && (
+                      <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
+                    )}
+                    <span className="absolute -bottom-1 left-1/2 h-[1.5px] w-0 -translate-x-1/2 bg-[#c45a85] transition-all duration-200 group-hover:w-full" />
+                  </button>
+
+                  {desktopCouponOpen ? (
+                    <div className="dropdown-reveal absolute right-0 top-full z-50 mt-3 w-72 overflow-hidden rounded-xl border border-[#e8e5e0] bg-white shadow-xl">
+                      <div className="border-b border-[#f0ede8] px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
+                          Kuponjaim
+                        </p>
+                      </div>
+
+                      <div className="max-h-[260px] overflow-y-auto py-2.5">
+                        {couponPreview.activeCoupons.length === 0 ? (
+                          <p className="px-5 py-5 text-center text-xs text-[#aaa]">
+                            Nincs aktív kuponod
+                          </p>
+                        ) : (
+                          couponPreview.activeCoupons.map((coupon) => (
+                            <MiniCouponRow key={coupon.id} coupon={coupon} />
+                          ))
+                        )}
+                      </div>
+
+                      {couponPreview.eligibleProducts.length > 0 ? (
+                        <>
+                          <div className="border-t border-[#f0ede8] px-4 pb-2 pt-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b08898]">
+                              {couponPreview.recommendationLabel}
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 px-4 pb-4">
+                            {couponPreview.eligibleProducts.slice(0, 3).map((product) => (
+                              <MiniProductCard key={product.id} product={product} />
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+
+                      <div className="border-t border-[#f0ede8] px-4 py-2.5">
+                        <Link
+                          href="/profile#kuponjaim"
+                          className="flex items-center gap-1 text-[11px] text-[#888] no-underline transition hover:text-[#1a1a1a]"
+                          onClick={() => setDesktopCouponOpen(false)}
+                        >
+                          Összes kupon megtekintése <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
 
               {user ? (
-                <ProfileDropdown user={user} couponPreview={couponPreview} />
+                <ProfileDropdown user={user} />
               ) : (
                 <Link
                   href="/sign-in"

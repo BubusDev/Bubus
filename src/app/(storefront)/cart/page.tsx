@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Lightbulb, ShoppingBag, TicketPercent, Trash2 } from "lucide-react";
+import { AlertTriangle, Lightbulb, ShoppingBag, TicketPercent, Trash2 } from "lucide-react";
 
 import {
   removeCartItemAction,
@@ -61,48 +61,54 @@ function CartPageHeading() {
 function CartItemRow({ item }: { item: CartItemSummary }) {
   const isOutOfStock = isProductOutOfStock(item);
   const isArchived = item.unavailableReason === "archived";
-  const incrementDisabled = !item.isAvailable || item.quantity >= item.availableToSell;
+  const isUnavailable = isArchived || !item.isAvailable;
+  const incrementDisabled = isUnavailable || item.quantity >= item.availableToSell;
+  const decrementDisabled = isUnavailable;
 
   return (
-    <article className="rounded-lg border border-[#eadce3] bg-white/80 p-3.5 sm:p-4">
+    <article className={`rounded-lg border p-3.5 sm:p-4 ${isUnavailable ? "border-[#e0d8d8] bg-[#faf8f8]" : "border-[#eadce3] bg-white/80"}`}>
       <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-4 sm:grid-cols-[116px_minmax(0,1fr)] lg:grid-cols-[128px_minmax(0,1fr)]">
         <Link
           href={`/product/${item.slug}?redirectTo=/cart`}
-          className="block overflow-hidden rounded-lg bg-[#fff5fa]"
+          className={`block overflow-hidden rounded-lg bg-[#fff5fa] ${isUnavailable ? "opacity-50" : ""}`}
         >
           <ProductImageFrame
             alt={item.name}
             imageUrl={item.imageUrl}
-            soldOut={isOutOfStock}
+            soldOut={isOutOfStock || isArchived}
             className="relative aspect-square h-full w-full overflow-hidden bg-[#fff5fa]"
             imageClassName={`aspect-square h-full w-full object-cover transition duration-500 ${
-              isOutOfStock ? "" : "hover:scale-[1.02]"
+              isOutOfStock || isArchived ? "" : "hover:scale-[1.02]"
             }`}
             palette={["#fff8fb", "#f8edf3", "#f3e3ec"]}
           />
         </Link>
 
         <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_150px_140px] lg:items-center">
-          <div className="min-w-0 space-y-2">
+          <div className={`min-w-0 space-y-2 ${isUnavailable ? "opacity-60" : ""}`}>
             <p className="text-[10px] uppercase tracking-[0.24em] text-[#b06b8e]">
               {item.category}
             </p>
             <div className="space-y-1">
               <Link
                 href={`/product/${item.slug}?redirectTo=/cart`}
-                className="block font-[family:var(--font-display)] text-[1.25rem] leading-[1.08] text-[#4d2741] transition hover:opacity-75 sm:text-[1.42rem]"
+                className={`block font-[family:var(--font-display)] text-[1.25rem] leading-[1.08] transition hover:opacity-75 sm:text-[1.42rem] ${isUnavailable ? "text-[#999]" : "text-[#4d2741]"}`}
               >
                 {item.name}
               </Link>
-              <p className="text-[13px] text-[#7a6070]">Egységár: {formatPrice(item.price)}</p>
+              <p className={`text-[13px] ${isUnavailable ? "text-[#aaa]" : "text-[#7a6070]"}`}>
+                Egységár: {formatPrice(item.price)}
+              </p>
             </div>
             <div className="min-h-5">
               {isArchived ? (
-                <p className="text-xs uppercase tracking-[0.22em] text-[#9b476f]">
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#cc4444]">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   Már nem elérhető
                 </p>
               ) : isOutOfStock ? (
-                <p className="text-xs uppercase tracking-[0.22em] text-[#8f6c7d]">
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#cc4444]">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   Elfogyott
                 </p>
               ) : item.exceedsStock ? (
@@ -114,7 +120,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[auto_auto] sm:items-end sm:justify-between lg:grid-cols-1 lg:items-stretch lg:justify-normal">
-            <div>
+            <div className={isUnavailable ? "opacity-50" : ""}>
               <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-[#b06b8e]">
                 Mennyiség
               </p>
@@ -126,7 +132,12 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                     name="quantity"
                     value={Math.max(1, item.quantity - 1)}
                     aria-label={`${item.name} mennyiségének csökkentése`}
-                    className="flex h-10 w-10 items-center justify-center text-lg leading-none text-[#8d6f80] transition hover:bg-[#f8eef4] hover:text-[#4d2741]"
+                    disabled={decrementDisabled}
+                    className={`flex h-10 w-10 items-center justify-center text-lg leading-none transition ${
+                      decrementDisabled
+                        ? "cursor-not-allowed bg-[#f7f0f4] text-[#d2c1cb]"
+                        : "text-[#8d6f80] hover:bg-[#f8eef4] hover:text-[#4d2741]"
+                    }`}
                   >
                     −
                   </button>
@@ -151,27 +162,44 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
               </form>
             </div>
 
-            <form action={removeCartItemAction} className="sm:justify-self-end lg:justify-self-start">
-              <input type="hidden" name="itemId" value={item.id} />
-              <button
-                type="submit"
-                aria-label={`${item.name} törlése`}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#eadce3] px-3 text-[12px] font-medium text-[#7a6070] transition hover:border-[#d7becb] hover:bg-[#fff7fa] hover:text-[#4d2741]"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Eltávolítás
-              </button>
-            </form>
+            <div className="sm:justify-self-end lg:justify-self-start">
+              <form action={removeCartItemAction}>
+                <input type="hidden" name="itemId" value={item.id} />
+                <button
+                  type="submit"
+                  aria-label={`${item.name} törlése`}
+                  className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-[12px] font-medium transition ${
+                    isUnavailable
+                      ? "border-[#c45a85] bg-[#fff4f8] text-[#c45a85] hover:bg-[#ffeaf3] hover:text-[#a03d68]"
+                      : "border-[#eadce3] text-[#7a6070] hover:border-[#d7becb] hover:bg-[#fff7fa] hover:text-[#4d2741]"
+                  }`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Eltávolítás
+                </button>
+              </form>
+              {isUnavailable && (
+                <p className="mt-1.5 text-[11px] leading-4 text-[#aaa]">
+                  Távolítsd el a rendelés folytatásához
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="border-t border-[#f1dfe8] pt-3 sm:flex sm:items-end sm:justify-between sm:gap-4 lg:block lg:border-t-0 lg:pt-0 lg:text-right">
+          <div className={`border-t border-[#f1dfe8] pt-3 sm:flex sm:items-end sm:justify-between sm:gap-4 lg:block lg:border-t-0 lg:pt-0 lg:text-right ${isUnavailable ? "opacity-50" : ""}`}>
             <div>
               <p className="text-[10px] uppercase tracking-[0.24em] text-[#b06b8e]">
                 Összesen
               </p>
-              <p className="mt-1 text-[1.32rem] font-semibold tracking-[-0.03em] text-[#4d2741] sm:text-[1.48rem]">
-                {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
-              </p>
+              {isUnavailable ? (
+                <p className="mt-1 text-[1.32rem] font-semibold tracking-[-0.03em] text-[#bbb] line-through sm:text-[1.48rem]">
+                  {formatPrice(item.lineTotal)}
+                </p>
+              ) : (
+                <p className="mt-1 text-[1.32rem] font-semibold tracking-[-0.03em] text-[#4d2741] sm:text-[1.48rem]">
+                  {formatPrice(item.lineTotal)}
+                </p>
+              )}
             </div>
           </div>
         </div>

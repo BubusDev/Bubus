@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
 import { updateProductAction } from "@/app/(admin)/admin/products/actions";
-import { AdminOptionManager } from "@/components/admin/AdminOptionManager";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductCouponSection } from "@/components/admin/ProductCouponSection";
@@ -9,7 +8,6 @@ import { db } from "@/lib/db";
 import {
   getAdminProductById,
   getAdminProductFormOptions,
-  getProductOptionGroups,
   toAdminProductFormValues,
 } from "@/lib/products";
 
@@ -21,10 +19,9 @@ export default async function EditAdminProductPage({
   params,
 }: EditAdminProductPageProps) {
   const { id } = await params;
-  const [product, options, optionGroups, assignedCouponRows, allPromoCodes] = await Promise.all([
+  const [product, options, assignedCouponRows, allPromoCodes] = await Promise.all([
     getAdminProductById(id),
     getAdminProductFormOptions(),
-    getProductOptionGroups(true),
     db.promoCodeProduct.findMany({
       where: { productId: id },
       include: {
@@ -73,7 +70,6 @@ export default async function EditAdminProductPage({
         <AdminProductForm
           action={updateProductAction}
           options={options}
-          optionGroups={optionGroups}
           submitLabel="Módosítások mentése"
           values={toAdminProductFormValues(product, options)}
         />
@@ -82,7 +78,6 @@ export default async function EditAdminProductPage({
           assignedCoupons={assignedCoupons}
           availableCoupons={allPromoCodes}
         />
-        <AdminOptionManager groups={optionGroups} />
       </div>
     </AdminShell>
   );

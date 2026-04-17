@@ -12,11 +12,10 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Archive, ChevronDown, ImagePlus, Plus, Save, Sparkles, Star, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { Archive, ChevronDown, ImagePlus, Save, Sparkles, Star, Trash2 } from "lucide-react";
 
 import {
-  createProductOptionAction,
-  deleteProductOptionAction,
   toggleProductArchiveAction,
 } from "@/app/(admin)/admin/products/actions";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
@@ -24,8 +23,6 @@ import { homepagePlacementLabels } from "@/lib/catalog";
 import {
   type AdminProductFormOptions,
   type AdminProductFormValues,
-  type ProductOptionGroup,
-  type ProductOptionValue,
 } from "@/lib/products";
 import {
   getUnsafeProductImageMessage,
@@ -40,7 +37,6 @@ import {
 type AdminProductFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   options: AdminProductFormOptions;
-  optionGroups: ProductOptionGroup[];
   submitLabel: string;
   values: AdminProductFormValues;
 };
@@ -84,19 +80,6 @@ type ProductFormState = {
 type FormFieldName = keyof ProductFormState;
 type FormErrorState = Partial<Record<FormFieldName, string>>;
 type OptionListKey = Exclude<keyof AdminProductFormOptions, "homepagePlacements" | "specialties" | "statuses">;
-
-type SelectFieldProps = {
-  error?: string;
-  fieldName: ProductOptionGroup["fieldName"];
-  label: string;
-  onChange: (nextValue: string) => void;
-  onOptionCreated: (type: ProductOptionGroup["type"], option: ProductOptionValue) => void;
-  onOptionDeleted: (fieldName: ProductOptionGroup["fieldName"], option: ProductOptionValue) => void;
-  onOptionRestored: (fieldName: ProductOptionGroup["fieldName"], option: ProductOptionValue) => void;
-  optionType: ProductOptionGroup["type"];
-  options: ProductOptionValue[];
-  selectedValue: string;
-};
 
 type UploadedImagePayload = {
   key: string;
@@ -148,7 +131,7 @@ const statusLabels: Record<AdminProductFormValues["status"], string> = {
   ARCHIVED: "Archivált",
 };
 
-const optionListKeyByField: Record<ProductOptionGroup["fieldName"], OptionListKey> = {
+const optionListKeyByField: Partial<Record<FormFieldName, OptionListKey>> = {
   category: "categories",
   stoneType: "stoneTypes",
   color: "colors",
@@ -444,9 +427,7 @@ function validateFormState(
     errors.homepagePlacement = "Érvénytelen kezdőlapi kihelyezés.";
   }
 
-  const optionFields = Object.entries(optionListKeyByField) as Array<
-    [ProductOptionGroup["fieldName"], OptionListKey]
-  >;
+  const optionFields = Object.entries(optionListKeyByField) as Array<[FormFieldName, OptionListKey]>;
   for (const [fieldName, optionsKey] of optionFields) {
     const selectedOptionId = formValues[fieldName];
     const hasMatch = availableOptions[optionsKey].some((option) => option.id === selectedOptionId);
@@ -612,278 +593,48 @@ function ToggleSwitch({
   );
 }
 
-function PillChip({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-sm px-2.5 py-1.5 text-[11px] font-medium transition-all duration-150"
-      style={
-        active
-          ? { background: "#eef3fb", color: "#1f4f96", border: "1px solid rgba(42,99,181,0.24)" }
-          : { background: "rgba(255,255,255,0.88)", color: "#42516a", border: "1px solid #d7dfeb" }
-      }
-    >
-      {children}
-    </button>
-  );
-}
-
-function InlineOptionCreate({
-  label,
-  onCreated,
-  optionType,
-}: {
-  optionType: ProductOptionGroup["type"];
-  label: string;
-  onCreated: (option: ProductOptionValue) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-
-  function reset() {
-    setIsOpen(false);
-    setError(null);
-    setName("");
-    setSlug("");
-  }
-
-  async function handleCreate() {
-    setError(null);
-    const formData = new FormData();
-    formData.append("type", optionType);
-    formData.append("name", name);
-    formData.append("slug", slug);
-
-    startTransition(async () => {
-      try {
-        const created = await createProductOptionAction(formData);
-        onCreated(created);
-        reset();
-      } catch (actionError) {
-        setError(
-          actionError instanceof Error ? actionError.message : "Nem sikerült létrehozni az opciót.",
-        );
-      }
-    });
-  }
-
-  if (!isOpen) {
-    return (
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-[var(--admin-line-200)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--admin-blue-700)] transition hover:bg-[var(--admin-blue-050)]"
-      >
-        <Plus className="h-3 w-3" />
-        Új hozzáadása
-      </button>
-    );
-  }
-
-  return (
-    <div className="mt-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-medium text-[var(--admin-ink-900)]">Új {label.toLowerCase()} hozzáadása</p>
-        <button
-          type="button"
-          onClick={reset}
-          className="flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-surface-100)]"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      </div>
-      {optionType === "CATEGORY" ? (
-        <p className="mb-3 text-xs leading-5 text-[var(--admin-ink-600)]">
-          Az új kategória boltoldalt kap, de a főmenübe csak külön bekapcsolva kerül.
-        </p>
-      ) : null}
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Megnevezés"
-          className={inputCls}
-        />
-        <input
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          placeholder="Slug (opcionális)"
-          className={inputCls}
-        />
-      </div>
-
-      {error && <p className="mt-2 text-xs text-[#9b476f]">{error}</p>}
-
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          disabled={isPending || !name.trim()}
-          onClick={handleCreate}
-          className="inline-flex h-9 items-center rounded-sm border border-[#295da8] px-4 text-xs font-medium text-white transition disabled:opacity-70"
-          style={{ background: ctaGradient }}
-        >
-          {isPending ? "Mentés..." : "Létrehozás"}
-        </button>
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex h-9 items-center rounded-sm border border-[var(--admin-line-200)] bg-white px-4 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-surface-100)]"
-        >
-          Mégse
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PillSelectField({
+function SimpleOptionSelect({
   error,
-  fieldName,
   label,
   onChange,
-  onOptionCreated,
-  onOptionDeleted,
-  onOptionRestored,
-  optionType,
   options,
+  required,
   selectedValue,
-}: SelectFieldProps) {
-  const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isDeletePending, startDeleteTransition] = useTransition();
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
-  function handleDelete(option: ProductOptionValue) {
-    if (option.id === selectedValue) {
-      setDeleteError("A kiválasztott érték nem törölhető.");
-      return;
-    }
-    setDeleteError(null);
-    onOptionDeleted(fieldName, option);
-    const formData = new FormData();
-    formData.append("optionId", option.id);
-    setPendingDeleteId(option.id);
-
-    startDeleteTransition(async () => {
-      try {
-        await deleteProductOptionAction(formData);
-      } catch (actionError) {
-        onOptionRestored(fieldName, option);
-        setDeleteError(
-          actionError instanceof Error ? actionError.message : "Nem sikerült törölni az opciót.",
-        );
-      } finally {
-        setPendingDeleteId(null);
-      }
-    });
-  }
-
+}: {
+  error?: string;
+  label: string;
+  onChange: (nextValue: string) => void;
+  options: { id: string; name: string }[];
+  required?: boolean;
+  selectedValue: string;
+}) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className={eyebrowCls}>{label}</span>
-        <button
-          type="button"
-          onClick={() => setIsManagerOpen(true)}
-          className="inline-flex items-center gap-1 rounded-sm border border-[var(--admin-line-200)] bg-white px-2.5 py-1 text-[10px] font-medium text-[var(--admin-blue-700)] transition hover:bg-[var(--admin-blue-050)]"
+        <span className={eyebrowCls}>
+          {label}
+          {required ? <span className="ml-1 text-[#9b476f]">*</span> : null}
+        </span>
+        <Link
+          href="/admin/options"
+          className="text-[10px] font-medium text-[var(--admin-blue-700)] transition hover:underline"
         >
-          <Plus className="h-3 w-3" />
-          Kezelés
-        </button>
+          Opciók kezelése →
+        </Link>
       </div>
-
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <PillChip
-            key={option.id}
-            active={selectedValue === option.id}
-            onClick={() => onChange(option.id)}
-          >
-            {option.name}
-          </PillChip>
+      <select
+        value={selectedValue}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+      >
+        <option value="">Válassz...</option>
+        {options.map((opt) => (
+          <option key={opt.id} value={opt.id}>
+            {opt.name}
+          </option>
         ))}
-        {options.length === 0 && (
-          <p className="text-xs text-[#a08090]">Nincs elérhető opció.</p>
-        )}
-      </div>
-
+      </select>
       {error && <p className="mt-1.5 text-xs text-[#9b476f]">{error}</p>}
-
-      {isManagerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.16)] p-4 backdrop-blur-[2px]"
-          onClick={() => setIsManagerOpen(false)}
-        >
-          <div
-            className="w-full max-w-lg border border-[var(--admin-line-100)] bg-white p-6 shadow-[0_18px_36px_rgba(21,33,61,0.08)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className={eyebrowCls}>Opciókezelés</p>
-                <h3 className="mt-1 text-lg font-semibold text-[var(--admin-ink-900)]">
-                  {label}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsManagerOpen(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-surface-100)]"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="max-h-64 overflow-y-auto border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-2">
-              {options.map((option) => {
-                const isSelected = option.id === selectedValue;
-                const isPendingDelete = isDeletePending && pendingDeleteId === option.id;
-                return (
-                  <div
-                    key={option.id}
-                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-[var(--admin-ink-700)] transition hover:bg-white"
-                  >
-                    <span className="truncate">
-                      {option.name}
-                      {isSelected ? " ✓" : ""}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={isSelected || isPendingDelete}
-                      onClick={() => handleDelete(option)}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-600)] transition hover:border-[#e3c7cf] hover:bg-[#fbf5f6] disabled:cursor-not-allowed disabled:opacity-50"
-                      title={isSelected ? "A kiválasztott érték nem törölhető" : "Opció törlése"}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {deleteError && <p className="mt-3 text-sm text-[#9b476f]">{deleteError}</p>}
-
-            <InlineOptionCreate
-              optionType={optionType}
-              label={label}
-              onCreated={(option) => onOptionCreated(optionType, option)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -893,7 +644,6 @@ function PillSelectField({
 export function AdminProductForm({
   action,
   options,
-  optionGroups,
   values,
 }: AdminProductFormProps) {
   const initialFormState = useMemo(() => buildInitialFormState(values), [values]);
@@ -914,7 +664,6 @@ export function AdminProductForm({
     [values],
   );
 
-  const [dynamicOptions, setDynamicOptions] = useState(options);
   const [formValues, setFormValues] = useState<ProductFormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrorState>({});
   const [existingImages, setExistingImages] = useState<PendingImage[]>(initialExistingImages);
@@ -1047,43 +796,6 @@ export function AdminProductForm({
     }
   };
 
-  const handleOptionCreated = (
-    type: ProductOptionGroup["type"],
-    option: ProductOptionValue,
-  ) => {
-    setDynamicOptions((cur) => {
-      const fn = optionGroups.find((g) => g.type === type)?.fieldName;
-      if (!fn) return cur;
-      const key = optionListKeyByField[fn];
-      if (cur[key].some((item) => item.id === option.id)) return cur;
-      return { ...cur, [key]: [...cur[key], option] };
-    });
-    const fn = optionGroups.find((g) => g.type === type)?.fieldName;
-    if (fn) handleFieldChange(fn, option.id);
-  };
-
-  const handleOptionDeleted = (
-    fieldName: ProductOptionGroup["fieldName"],
-    option: ProductOptionValue,
-  ) => {
-    const key = optionListKeyByField[fieldName];
-    setDynamicOptions((cur) => ({ ...cur, [key]: cur[key].filter((item) => item.id !== option.id) }));
-  };
-
-  const handleOptionRestored = (
-    fieldName: ProductOptionGroup["fieldName"],
-    option: ProductOptionValue,
-  ) => {
-    const key = optionListKeyByField[fieldName];
-    setDynamicOptions((cur) => {
-      if (cur[key].some((item) => item.id === option.id)) return cur;
-      return {
-        ...cur,
-        [key]: [...cur[key], option].sort((a, b) => a.sortOrder - b.sortOrder),
-      };
-    });
-  };
-
   async function processFiles(files: File[]) {
     if (files.length === 0) return;
     setSubmitError(null);
@@ -1209,7 +921,7 @@ export function AdminProductForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validateFormState(formValues, dynamicOptions);
+    const nextErrors = validateFormState(formValues, options);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -1731,7 +1443,7 @@ export function AdminProductForm({
                 }
                 className={inputCls}
               >
-                {dynamicOptions.statuses.map((status) => (
+                {options.statuses.map((status) => (
                   <option key={status} value={status}>
                     {statusLabels[status]}
                   </option>
@@ -1752,7 +1464,7 @@ export function AdminProductForm({
                 className={inputCls}
               >
                 <option value="">Válassz kihelyezést...</option>
-                {dynamicOptions.homepagePlacements.map((placement) => (
+                {options.homepagePlacements.map((placement) => (
                   <option key={placement} value={placement}>
                     {homepagePlacementLabels[placement]}
                   </option>
@@ -1776,97 +1488,69 @@ export function AdminProductForm({
 
           <CardShell eyebrow="Besorolás" title="Kategóriák és attribútumok">
             <div className="space-y-5">
-              <PillSelectField
-                fieldName="category"
+              <SimpleOptionSelect
                 label="Kategória"
                 selectedValue={formValues.category}
-                options={dynamicOptions.categories}
-                optionType="CATEGORY"
+                options={options.categories}
                 onChange={(v) => handleFieldChange("category", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.category}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="stoneType"
+              <SimpleOptionSelect
                 label="Kőtípus"
                 selectedValue={formValues.stoneType}
-                options={dynamicOptions.stoneTypes}
-                optionType="STONE_TYPE"
+                options={options.stoneTypes}
                 onChange={(v) => handleFieldChange("stoneType", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.stoneType}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="color"
+              <SimpleOptionSelect
                 label="Szín / Fém"
                 selectedValue={formValues.color}
-                options={dynamicOptions.colors}
-                optionType="COLOR"
+                options={options.colors}
                 onChange={(v) => handleFieldChange("color", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.color}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="style"
+              <SimpleOptionSelect
                 label="Stílus"
                 selectedValue={formValues.style}
-                options={dynamicOptions.styles}
-                optionType="STYLE"
+                options={options.styles}
                 onChange={(v) => handleFieldChange("style", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.style}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="occasion"
+              <SimpleOptionSelect
                 label="Alkalom"
                 selectedValue={formValues.occasion}
-                options={dynamicOptions.occasions}
-                optionType="OCCASION"
+                options={options.occasions}
                 onChange={(v) => handleFieldChange("occasion", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.occasion}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="availability"
+              <SimpleOptionSelect
                 label="Elérhetőség"
                 selectedValue={formValues.availability}
-                options={dynamicOptions.availability}
-                optionType="AVAILABILITY"
+                options={options.availability}
                 onChange={(v) => handleFieldChange("availability", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.availability}
+                required={formValues.status === "ACTIVE"}
               />
-              <PillSelectField
-                fieldName="tone"
+              <SimpleOptionSelect
                 label="Vizuális tónus"
                 selectedValue={formValues.tone}
-                options={dynamicOptions.tones}
-                optionType="VISUAL_TONE"
+                options={options.tones}
                 onChange={(v) => handleFieldChange("tone", v)}
-                onOptionDeleted={handleOptionDeleted}
-                onOptionRestored={handleOptionRestored}
-                onOptionCreated={handleOptionCreated}
                 error={errors.tone}
+                required={formValues.status === "ACTIVE"}
               />
             </div>
           </CardShell>
 
           <CardShell eyebrow="Különlegességek" title="Kollekció kapcsolatok">
-            {dynamicOptions.specialties.length > 0 ? (
+            {options.specialties.length > 0 ? (
               <div className="space-y-2">
-                {dynamicOptions.specialties.map((specialty) => {
+                {options.specialties.map((specialty) => {
                   const checked = formValues.specialtyIds.includes(specialty.id);
 
                   return (

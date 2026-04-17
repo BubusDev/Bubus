@@ -5,7 +5,6 @@ import {
   type LucideIcon,
   Settings,
   ShoppingBag,
-  TicketPercent,
   User,
 } from "lucide-react";
 
@@ -44,14 +43,12 @@ export const guestMenuItems: ProfileMenuItem[] = [
 export const profileMenuByRole: Record<UserRole, ProfileMenuItem[]> = {
   user: [
     { label: "Profil", href: "/profile", icon: User },
-    { label: "Kuponjaim", href: "/profile#kuponjaim", icon: TicketPercent },
     { label: "Beállítások", href: "/settings", icon: Settings },
     { label: "Rendeléseim", href: "/orders", icon: ShoppingBag },
     { label: "Kedvencek", href: "/favourites", icon: Heart },
   ],
   admin: [
     { label: "Profil", href: "/profile", icon: User },
-    { label: "Kuponjaim", href: "/profile#kuponjaim", icon: TicketPercent },
     { label: "Beállítások", href: "/settings", icon: Settings },
     { label: "Admin felület", href: "/admin", icon: LayoutDashboard },
   ],

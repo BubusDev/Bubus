@@ -4,9 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
   Check,
-  ChevronRight,
   Copy,
   LogOut,
   User,
@@ -15,14 +13,12 @@ import {
 import { type HeaderUser, profileMenuByRole } from "@/lib/header-data";
 import { formatPrice } from "@/lib/catalog";
 import type {
-  HeaderCouponDropdownPreview,
   HeaderCouponPreview,
   HeaderCouponProductPreview,
 } from "@/lib/account";
 
 type ProfileDropdownProps = {
   user: HeaderUser;
-  couponPreview?: HeaderCouponDropdownPreview;
 };
 
 export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
@@ -120,26 +116,20 @@ export function MiniProductCard({ product }: { product: HeaderCouponProductPrevi
   );
 }
 
-export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
+export function ProfileDropdown({ user }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isCouponPanelOpen, setIsCouponPanelOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const activeCoupons = couponPreview?.activeCoupons ?? [];
-  const eligibleProducts = couponPreview?.eligibleProducts ?? [];
-  const recommendationLabel = couponPreview?.recommendationLabel;
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (!containerRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
-        setIsCouponPanelOpen(false);
       }
     }
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
-        setIsCouponPanelOpen(false);
       }
     }
 
@@ -155,7 +145,6 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
   const menuItems = profileMenuByRole[user.role];
   const closeMenu = () => {
     setIsOpen(false);
-    setIsCouponPanelOpen(false);
   };
 
   return (
@@ -178,7 +167,6 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
           role="menu"
           aria-label="Profil menü"
           className="user-dropdown-wrap dropdown-reveal absolute right-0 top-full z-50 mt-3"
-          onMouseLeave={() => setIsCouponPanelOpen(false)}
         >
           <div className="user-menu-left bg-white/96 p-2 backdrop-blur-xl">
             <div className="rounded-md border border-[#eee7ea] bg-[#fffdfb] px-4 py-3.5">
@@ -199,34 +187,22 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
             <div className="my-2 h-px bg-[#eee7ea]" />
 
             <div className="space-y-0.5">
-              {menuItems.map(({ href, icon: Icon, label }) => {
-                const isCouponItem = label === "Kuponjaim";
-
-                return (
-                  <Link
-                    key={label}
-                    href={href}
-                    role="menuitem"
-                    className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
-                    onClick={closeMenu}
-                    onMouseEnter={() => {
-                      if (isCouponItem) {
-                        setIsCouponPanelOpen(true);
-                      }
-                    }}
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
-                      <Icon className="h-[0.9rem] w-[0.9rem]" />
-                    </span>
-                    <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
-                      {label}
-                    </span>
-                    {isCouponItem ? (
-                      <ChevronRight className="ml-auto h-3.5 w-3.5 text-[#ccc]" />
-                    ) : null}
-                  </Link>
-                );
-              })}
+              {menuItems.map(({ href, icon: Icon, label }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  role="menuitem"
+                  className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+                  onClick={closeMenu}
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
+                    <Icon className="h-[0.9rem] w-[0.9rem]" />
+                  </span>
+                  <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
+                    {label}
+                  </span>
+                </Link>
+              ))}
             </div>
 
             <div className="my-2 h-px bg-[#eee7ea]" />
@@ -246,55 +222,6 @@ export function ProfileDropdown({ user, couponPreview }: ProfileDropdownProps) {
             </form>
           </div>
 
-          {isCouponPanelOpen ? (
-            <>
-              <span className="coupon-panel-bridge" aria-hidden="true" />
-              <div className="coupon-side-panel">
-                <div className="border-b border-[#f0ede8] px-[18px] pb-3 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
-                    Kuponjaim
-                  </p>
-                </div>
-
-                <div className="max-h-[260px] overflow-y-auto py-2.5">
-                  {activeCoupons.length === 0 ? (
-                    <p className="px-[18px] py-5 text-center text-xs text-[#aaa]">
-                      Nincs aktív kuponod
-                    </p>
-                  ) : (
-                    activeCoupons.map((coupon) => (
-                      <MiniCouponRow key={coupon.id} coupon={coupon} />
-                    ))
-                  )}
-                </div>
-
-              {eligibleProducts.length > 0 ? (
-                <>
-                  <div className="border-t border-[#f0ede8] px-[18px] pb-2 pt-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b08898]">
-                      {recommendationLabel}
-                    </p>
-                  </div>
-                    <div className="grid grid-cols-3 gap-2 px-[18px] pb-4">
-                      {eligibleProducts.slice(0, 3).map((product) => (
-                        <MiniProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </>
-                ) : null}
-
-                <div className="border-t border-[#f0ede8] px-[18px] py-2.5">
-                  <Link
-                    href="/profile#kuponjaim"
-                    className="flex items-center gap-1 text-[11px] text-[#888] no-underline transition hover:text-[#1a1a1a]"
-                    onClick={closeMenu}
-                  >
-                    Összes kupon megtekintése <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-              </div>
-            </>
-          ) : null}
         </div>
       ) : null}
     </div>

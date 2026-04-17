@@ -13,6 +13,7 @@ type SharedProps = {
 
 type AdminActionLinkProps = SharedProps & {
   href: string;
+  title?: string;
 };
 
 type AdminActionButtonProps = SharedProps &
@@ -54,9 +55,10 @@ export function AdminActionLink({
   className,
   variant = "secondary",
   size = "md",
+  title,
 }: AdminActionLinkProps) {
   return (
-    <Link href={href} className={getClassName({ className, variant, size })}>
+    <Link href={href} title={title} className={getClassName({ className, variant, size })}>
       <Label>{children}</Label>
     </Link>
   );

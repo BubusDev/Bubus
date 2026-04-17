@@ -1,3 +1,5 @@
+import { Archive, Gift, Pencil, Percent, Sparkles, Trash2 } from "lucide-react";
+
 import {
   deleteProductAction,
   toggleProductArchiveAction,
@@ -88,27 +90,22 @@ export default async function AdminProductsPage() {
 
             <div className="mt-4 border-t border-[var(--admin-line-100)] pt-4">
               <p className="mb-2 text-xs font-medium text-[var(--admin-ink-500)]">Jelölések</p>
-              <div className="flex flex-wrap gap-2">
-                <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} label="Új" />
-                <ProductFlagToggle
-                  productId={product.id}
-                  flag="isGiftable"
-                  active={product.isGiftable}
-                  label="Ajándékozható"
-                />
-                <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} label="Akciós" />
+              <div className="flex flex-wrap gap-1.5">
+                <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
+                <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
+                <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
                 <ProductArchiveToggle productId={product.id} />
               </div>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--admin-line-100)] pt-4">
-              <AdminActionLink href={`/admin/products/${product.id}/edit`} size="sm" className="!h-9 !px-3 !text-xs">
-                Szerkesztés
+              <AdminActionLink href={`/admin/products/${product.id}/edit`} size="sm" className="!h-9 !w-9 !p-0" title="Szerkesztés">
+                <Pencil className="h-4 w-4" />
               </AdminActionLink>
               <form action={deleteProductAction}>
                 <input type="hidden" name="productId" value={product.id} />
-                <AdminActionButton type="submit" variant="danger" size="sm" className="!h-9 !px-3 !text-xs">
-                  Törlés
+                <AdminActionButton type="submit" variant="danger" size="sm" className="!h-9 !w-9 !p-0" title="Törlés">
+                  <Trash2 className="h-4 w-4" />
                 </AdminActionButton>
               </form>
             </div>
@@ -175,41 +172,27 @@ export default async function AdminProductsPage() {
                     }
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      <ProductFlagToggle
-                        productId={product.id}
-                        flag="isNew"
-                        active={product.isNew}
-                        label="Új"
-                      />
-                      <ProductFlagToggle
-                        productId={product.id}
-                        flag="isGiftable"
-                        active={product.isGiftable}
-                        label="Ajándékozható"
-                      />
-                      <ProductFlagToggle
-                        productId={product.id}
-                        flag="isOnSale"
-                        active={product.isOnSale}
-                        label="Akciós"
-                      />
+                    <div className="flex items-center gap-1.5">
+                      <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
+                      <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
+                      <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
                       <ProductArchiveToggle productId={product.id} />
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5">
                       <AdminActionLink
                         href={`/admin/products/${product.id}/edit`}
                         size="sm"
-                        className="!h-8 !px-3 !text-xs"
+                        className="!h-8 !w-8 !p-0"
+                        title="Szerkesztés"
                       >
-                        Szerkesztés
+                        <Pencil className="h-4 w-4" />
                       </AdminActionLink>
                       <form action={deleteProductAction}>
                         <input type="hidden" name="productId" value={product.id} />
-                        <AdminActionButton type="submit" variant="danger" size="sm" className="!h-8 !px-3 !text-xs">
-                          Törlés
+                        <AdminActionButton type="submit" variant="danger" size="sm" className="!h-8 !w-8 !p-0" title="Törlés">
+                          <Trash2 className="h-4 w-4" />
                         </AdminActionButton>
                       </form>
                     </div>
@@ -255,17 +238,29 @@ function OptionSummary({
   );
 }
 
+const flagIconMap = {
+  isNew: Sparkles,
+  isGiftable: Gift,
+  isOnSale: Percent,
+} as const;
+
+const flagTitleMap = {
+  isNew: "Új",
+  isGiftable: "Ajándékozható",
+  isOnSale: "Akciós",
+} as const;
+
 function ProductFlagToggle({
   productId,
   flag,
   active,
-  label,
 }: {
   productId: string;
   flag: "isNew" | "isGiftable" | "isOnSale";
   active: boolean;
-  label: string;
 }) {
+  const Icon = flagIconMap[flag];
+  const title = flagTitleMap[flag];
   return (
     <form action={toggleProductFlagAction}>
       <input type="hidden" name="productId" value={productId} />
@@ -275,9 +270,10 @@ function ProductFlagToggle({
         type="submit"
         size="sm"
         variant={active ? "primary" : "secondary"}
-        className="!h-8 !px-3 !text-xs"
+        className="!h-8 !w-8 !p-0"
+        title={title}
       >
-        {label}
+        <Icon className="h-4 w-4" />
       </AdminActionButton>
     </form>
   );
@@ -293,9 +289,10 @@ function ProductArchiveToggle({ productId }: { productId: string }) {
         type="submit"
         size="sm"
         variant="danger"
-        className="!h-8 !px-3 !text-xs"
+        className="!h-8 !w-8 !p-0"
+        title="Archiválás"
       >
-        Archiválás
+        <Archive className="h-4 w-4" />
       </AdminActionButton>
     </form>
   );
