@@ -37,7 +37,11 @@ export async function permanentlyDeleteProduct(id: string) {
   if (!product) return;
 
   await db.product.delete({ where: { id } });
-  await Promise.all(product.images.map((img) => deleteProductImageFile(img.url)));
+  await Promise.all(
+    product.images.map((img) =>
+      deleteProductImageFile(img.url, "product_permanently_deleted"),
+    ),
+  );
 
   revalidatePath("/admin/products/archive");
 }

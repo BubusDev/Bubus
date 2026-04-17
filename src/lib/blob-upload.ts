@@ -36,7 +36,7 @@ export function createProductImageUploadPathname(fileName: string) {
 }
 
 export function createAdminImageUploadPathname(
-  folder: "products" | "special-edition" | "homepage",
+  folder: "products" | "special-edition" | "homepage" | "specialties",
   fileName: string,
 ) {
   const { baseName, extension } = splitFileName(fileName);

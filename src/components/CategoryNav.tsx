@@ -31,6 +31,8 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
     name: item.name,
     href: getSpecialtyHref(item),
     shortDescription: item.shortDescription,
+    previewImageSrc: item.imageUrl ?? undefined,
+    previewImageAlt: item.imageAlt || item.name,
   }));
 
   return (

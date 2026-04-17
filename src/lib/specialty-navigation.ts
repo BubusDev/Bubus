@@ -12,6 +12,8 @@ function mapSpecialty(
     name: string;
     slug: string;
     shortDescription: string | null;
+    imageUrl: string | null;
+    imageAlt: string | null;
     isVisible: boolean;
     sortOrder: number;
     _count: { products: number };
@@ -22,6 +24,8 @@ function mapSpecialty(
     name: specialty.name,
     slug: specialty.slug,
     shortDescription: specialty.shortDescription,
+    imageUrl: specialty.imageUrl,
+    imageAlt: specialty.imageAlt,
     isVisible: specialty.isVisible,
     sortOrder: specialty.sortOrder,
     productCount: specialty._count.products,
@@ -37,6 +41,8 @@ export async function getVisibleSpecialties(): Promise<SpecialtyView[]> {
       name: true,
       slug: true,
       shortDescription: true,
+      imageUrl: true,
+      imageAlt: true,
       isVisible: true,
       sortOrder: true,
       _count: { select: { products: true } },
@@ -54,6 +60,8 @@ export async function getAdminSpecialties(): Promise<SpecialtyView[]> {
       name: true,
       slug: true,
       shortDescription: true,
+      imageUrl: true,
+      imageAlt: true,
       isVisible: true,
       sortOrder: true,
       _count: { select: { products: true } },

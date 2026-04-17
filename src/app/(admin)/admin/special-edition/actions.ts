@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
-  deleteProductImageFile,
   deleteSpecialEditionImageFile,
 } from "@/lib/product-images";
 import { storefrontProductWhere } from "@/lib/product-lifecycle";
@@ -85,7 +84,7 @@ export async function updateSpecialEditionBannerAction(formData: FormData) {
     });
 
     if (newBannerImageUrl && currentBannerImageUrl && currentBannerImageUrl !== newBannerImageUrl) {
-      await deleteSpecialEditionImageFile(currentBannerImageUrl);
+      await deleteSpecialEditionImageFile(currentBannerImageUrl, "special_edition_banner_replaced");
     }
 
     revalidateSpecialEditionPaths();
@@ -214,12 +213,12 @@ export async function updateSpecialEditionEntryAction(formData: FormData) {
       newPromoImageUrl &&
       existingEntry.promoImageUrl !== promoImageUrl &&
       existingEntry.promoImageUrl !== productImageUrl
-        ? deleteProductImageFile(existingEntry.promoImageUrl)
+        ? deleteSpecialEditionImageFile(existingEntry.promoImageUrl, "special_edition_promo_replaced")
         : Promise.resolve(),
       newProductImageUrl &&
       existingEntry.productImageUrl !== productImageUrl &&
       existingEntry.productImageUrl !== promoImageUrl
-        ? deleteProductImageFile(existingEntry.productImageUrl)
+        ? deleteSpecialEditionImageFile(existingEntry.productImageUrl, "special_edition_product_image_replaced")
         : Promise.resolve(),
     ]);
 
@@ -254,9 +253,9 @@ export async function deleteSpecialEditionEntryAction(formData: FormData) {
     await db.specialEditionEntry.delete({ where: { id: entryId } });
 
     await Promise.all([
-      deleteProductImageFile(entry.promoImageUrl),
+      deleteSpecialEditionImageFile(entry.promoImageUrl, "special_edition_entry_deleted"),
       entry.productImageUrl !== entry.promoImageUrl
-        ? deleteProductImageFile(entry.productImageUrl)
+        ? deleteSpecialEditionImageFile(entry.productImageUrl, "special_edition_entry_deleted")
         : Promise.resolve(),
     ]);
 

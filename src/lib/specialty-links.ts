@@ -5,6 +5,8 @@ export type SpecialtyView = {
   name: string;
   slug: string;
   shortDescription: string | null;
+  imageUrl: string | null;
+  imageAlt: string | null;
   isVisible: boolean;
   sortOrder: number;
   productCount: number;

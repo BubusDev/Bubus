@@ -81,6 +81,13 @@ enum PromoCodeApplicabilityScope {
   PRODUCTS
 }
 
+enum BlobCleanupStatus {
+  PENDING
+  DELETED
+  KEPT
+  FAILED
+}
+
 model User {
   id                     String     @id @default(cuid())
   name                   String
@@ -278,6 +285,23 @@ model ProductImage {
   @@index([productId, isCover])
 }
 
+model BlobCleanupQueueItem {
+  id             String            @id @default(cuid())
+  url            String
+  pathname       String?
+  reason         String?
+  status         BlobCleanupStatus @default(PENDING)
+  scheduledAt    DateTime          @default(now())
+  lastCheckedAt  DateTime?
+  deletedAt      DateTime?
+  failureMessage String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([url, status])
+}
+
 model SpecialEditionCampaign {
   id              String                @id @default(cuid())
   slug            String                @unique @default("gifts")
@@ -357,6 +381,8 @@ model Specialty {
   name             String
   slug             String             @unique
   shortDescription String?
+  imageUrl         String?
+  imageAlt         String?
   isVisible        Boolean            @default(true)
   sortOrder        Int                @default(0)
   products         ProductSpecialty[]

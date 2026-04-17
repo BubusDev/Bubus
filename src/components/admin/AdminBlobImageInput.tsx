@@ -6,7 +6,7 @@ import { useState } from "react";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
 import { browserSafeProductImageAccept } from "@/lib/image-safety";
 
-type Folder = "products" | "special-edition" | "homepage";
+type Folder = "products" | "special-edition" | "homepage" | "specialties";
 
 type AdminBlobImageInputProps = {
   /** Name of the hidden input that carries the uploaded URL to the server action. */
@@ -15,6 +15,8 @@ type AdminBlobImageInputProps = {
   defaultUrl?: string;
   label: string;
   folder: Folder;
+  previewClassName?: string;
+  imageClassName?: string;
 };
 
 export function AdminBlobImageInput({
@@ -22,6 +24,8 @@ export function AdminBlobImageInput({
   defaultUrl = "",
   label,
   folder,
+  previewClassName = "",
+  imageClassName = "aspect-[4/3] w-full object-cover",
 }: AdminBlobImageInputProps) {
   const [blobUrl, setBlobUrl] = useState(defaultUrl);
   const [isUploading, setIsUploading] = useState(false);
@@ -53,8 +57,10 @@ export function AdminBlobImageInput({
       <input type="hidden" name={name} value={blobUrl} />
 
       {blobUrl && (
-        <div className="overflow-hidden rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff7fb]">
-          <img src={blobUrl} alt={label} className="aspect-[4/3] w-full object-cover" />
+        <div
+          className={`overflow-hidden rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff7fb] ${previewClassName}`}
+        >
+          <img src={blobUrl} alt={label} className={imageClassName} />
         </div>
       )}
 

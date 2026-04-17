@@ -35,14 +35,14 @@ export async function upsertStoneAction(formData: FormData) {
     if (id) {
       const existing = await db.stone.findUnique({ where: { id }, select: { imageUrl: true } });
       if (existing?.imageUrl) {
-        await deleteStoneImageFile(existing.imageUrl).catch(() => {});
+        await deleteStoneImageFile(existing.imageUrl, "stone_image_replaced").catch(() => {});
       }
     }
     imageUrl = await saveUploadedStoneImage(imageFile);
   } else if (removeImage && id) {
     const existing = await db.stone.findUnique({ where: { id }, select: { imageUrl: true } });
     if (existing?.imageUrl) {
-      await deleteStoneImageFile(existing.imageUrl).catch(() => {});
+      await deleteStoneImageFile(existing.imageUrl, "stone_image_cleared").catch(() => {});
     }
     imageUrl = null;
   }
@@ -68,7 +68,7 @@ export async function deleteStoneAction(formData: FormData) {
   const id = formData.get("id") as string;
   const stone = await db.stone.findUnique({ where: { id }, select: { imageUrl: true } });
   if (stone?.imageUrl) {
-    await deleteStoneImageFile(stone.imageUrl).catch(() => {});
+    await deleteStoneImageFile(stone.imageUrl, "stone_deleted").catch(() => {});
   }
   await db.stone.delete({ where: { id } });
   revalidatePath("/stones");

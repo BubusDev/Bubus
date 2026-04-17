@@ -245,7 +245,11 @@ export async function createProductAction(formData: FormData) {
 
       return createdProduct;
     } catch (error) {
-      await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
+      await Promise.all(
+        uploadedImages.map((image) =>
+          deleteProductImageFile(image.url, "product_create_failed"),
+        ),
+      );
       throw error;
     }
   })();
@@ -385,11 +389,19 @@ export async function updateProductAction(formData: FormData) {
       });
     }
   } catch (error) {
-    await Promise.all(uploadedImages.map((image) => deleteProductImageFile(image.url)));
+    await Promise.all(
+      uploadedImages.map((image) =>
+        deleteProductImageFile(image.url, "product_update_failed"),
+      ),
+    );
     throw error;
   }
 
-  await Promise.all(removedImages.map((image) => deleteProductImageFile(image.url)));
+  await Promise.all(
+    removedImages.map((image) =>
+      deleteProductImageFile(image.url, "product_image_removed"),
+    ),
+  );
 
   if (updatedProduct && shouldTriggerLowStockNotification) {
     await sendLowStockAdminNotificationIfNeeded({
@@ -432,7 +444,11 @@ export async function deleteProductAction(formData: FormData) {
     where: { id: productId },
   });
 
-  await Promise.all(existingProduct.images.map((image) => deleteProductImageFile(image.url)));
+  await Promise.all(
+    existingProduct.images.map((image) =>
+      deleteProductImageFile(image.url, "product_deleted"),
+    ),
+  );
 
   revalidateCatalogPaths();
   revalidatePath(`/product/${existingProduct.slug}`);

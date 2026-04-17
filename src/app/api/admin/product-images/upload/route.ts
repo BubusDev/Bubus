@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       request,
       body,
       onBeforeGenerateToken: async (pathname) => {
-        const ALLOWED_PREFIXES = ["products/", "special-edition/", "homepage/"];
+        const ALLOWED_PREFIXES = ["products/", "special-edition/", "homepage/", "specialties/"];
         if (!ALLOWED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
           throw new Error("Érvénytelen feltöltési útvonal.");
         }

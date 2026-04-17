@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 
 import { AdminShell } from "@/components/admin/AdminShell";
+import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import { db } from "@/lib/db";
 import {
   createSpecialtyAction,
@@ -92,6 +93,27 @@ export default async function AdminSpecialtiesPage({
             />
           </label>
 
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <span className="admin-eyebrow">Preview kép</span>
+              <AdminBlobImageInput
+                name="imageUrl"
+                label="Kép feltöltése"
+                folder="specialties"
+                previewClassName="max-w-64 rounded-md"
+              />
+            </div>
+
+            <label className="block">
+              <span className="admin-eyebrow mb-1.5 block">Kép alt szöveg</span>
+              <input
+                name="imageAlt"
+                placeholder="Opcionális, alapértelmezés: név"
+                className={inputClassName}
+              />
+            </label>
+          </div>
+
           <button type="submit" className="admin-button-primary admin-control-md mt-4">
             Létrehozás
           </button>
@@ -166,6 +188,36 @@ export default async function AdminSpecialtiesPage({
                       className="admin-input min-h-20 px-3 py-2 text-sm"
                     />
                   </label>
+
+                  <div className="grid gap-4 lg:col-span-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
+                    <div className="grid gap-2">
+                      <span className="admin-eyebrow">Preview kép</span>
+                      <AdminBlobImageInput
+                        name="imageUrl"
+                        defaultUrl={item.imageUrl ?? ""}
+                        label={`${item.name} preview kép`}
+                        folder="specialties"
+                        previewClassName="max-w-48 rounded-md"
+                      />
+                    </div>
+
+                    <label className="block">
+                      <span className="admin-eyebrow mb-1.5 block">Kép alt szöveg</span>
+                      <input
+                        name="imageAlt"
+                        defaultValue={item.imageAlt ?? ""}
+                        placeholder={item.name}
+                        className={inputClassName}
+                      />
+                    </label>
+
+                    {item.imageUrl ? (
+                      <label className="admin-checkbox-pill inline-flex min-h-10 items-center gap-2 px-3 text-sm">
+                        <input name="clearImage" type="checkbox" className="h-4 w-4" />
+                        Kép törlése
+                      </label>
+                    ) : null}
+                  </div>
                 </form>
 
                 <div className="flex items-center gap-2">

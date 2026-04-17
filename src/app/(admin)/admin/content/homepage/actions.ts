@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { HomepageContentBlockKey } from "@prisma/client";
 
 import { requireAdminUser } from "@/lib/auth";
+import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import {
   upsertHomepageBlock,
   upsertHomepagePromoTile,
@@ -50,6 +51,12 @@ export async function saveHomepageBlockAction(formData: FormData) {
     isVisible: readCheckbox(formData, "isVisible"),
   });
 
+  if (existingImageUrl && existingImageUrl !== finalImageUrl) {
+    await enqueueBlobCleanup(existingImageUrl, {
+      reason: "homepage_block_image_replaced",
+    });
+  }
+
   revalidateHomepageContent();
   redirect("/admin/content/homepage?saved=block");
 }
@@ -75,6 +82,12 @@ export async function saveHomepagePromoTileAction(formData: FormData) {
     imageAlt,
     isVisible: readCheckbox(formData, "isVisible"),
   });
+
+  if (existingImageUrl && existingImageUrl !== finalImageUrl) {
+    await enqueueBlobCleanup(existingImageUrl, {
+      reason: "homepage_promo_tile_image_replaced",
+    });
+  }
 
   revalidateHomepageContent();
   redirect("/admin/content/homepage?saved=tile");

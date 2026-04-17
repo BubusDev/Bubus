@@ -1,4 +1,4 @@
-import { del, put } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -7,6 +7,7 @@ import {
   getUnsafeProductImageMessage,
   isBrowserSafeImageFile,
 } from "@/lib/image-safety";
+import { enqueueBlobCleanup, isVercelBlobUrl } from "@/lib/blob-cleanup";
 
 const uploadsDir = path.join(process.cwd(), "public", "uploads", "products");
 const specialEditionUploadsDir = path.join(
@@ -62,15 +63,6 @@ async function uploadImageToBlob(folder: "products" | "special-edition" | "homep
     url: blob.url,
     alt: getImageAltText(file.name),
   };
-}
-
-function isVercelBlobUrl(url: string) {
-  try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.hostname.endsWith("vercel-storage.com");
-  } catch {
-    return false;
-  }
 }
 
 export async function saveUploadedProductImages(files: File[]) {
@@ -182,10 +174,10 @@ export async function saveUploadedHomepageImage(file: File | null) {
   };
 }
 
-export async function deleteProductImageFile(url: string) {
+export async function deleteProductImageFile(url: string, reason = "product_image_removed") {
   if (!url.startsWith("/uploads/products/")) {
-    if (isBlobConfigured() && isVercelBlobUrl(url)) {
-      await del(url);
+    if (isVercelBlobUrl(url)) {
+      await enqueueBlobCleanup(url, { reason });
     }
     return;
   }
@@ -218,10 +210,10 @@ export async function saveUploadedStoneImage(file: File) {
   return `/uploads/stones/${fileName}`;
 }
 
-export async function deleteStoneImageFile(url: string) {
+export async function deleteStoneImageFile(url: string, reason = "stone_image_removed") {
   if (!url.startsWith("/uploads/stones/")) {
-    if (isBlobConfigured() && isVercelBlobUrl(url)) {
-      await del(url);
+    if (isVercelBlobUrl(url)) {
+      await enqueueBlobCleanup(url, { reason });
     }
     return;
   }
@@ -234,10 +226,10 @@ export async function deleteStoneImageFile(url: string) {
   }
 }
 
-export async function deleteSpecialEditionImageFile(url: string) {
+export async function deleteSpecialEditionImageFile(url: string, reason = "special_edition_image_removed") {
   if (!url.startsWith("/uploads/special-edition/")) {
-    if (isBlobConfigured() && isVercelBlobUrl(url)) {
-      await del(url);
+    if (isVercelBlobUrl(url)) {
+      await enqueueBlobCleanup(url, { reason });
     }
     return;
   }

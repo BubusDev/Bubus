@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminUser } from "@/lib/auth";
+import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import { db } from "@/lib/db";
 import { slugifyOptionName } from "@/lib/products";
 
@@ -20,6 +21,8 @@ function readSortOrder(formData: FormData) {
 function readSpecialtyFormData(formData: FormData) {
   const name = readString(formData, "name");
   const slug = slugifyOptionName(readString(formData, "slug") || name);
+  const clearImage = formData.get("clearImage") === "on";
+  const imageUrl = clearImage ? null : readString(formData, "imageUrl") || null;
 
   if (!name || !slug) {
     redirectWithError("A név és a slug megadása kötelező.");
@@ -29,6 +32,8 @@ function readSpecialtyFormData(formData: FormData) {
     name,
     slug,
     shortDescription: readString(formData, "shortDescription") || null,
+    imageUrl,
+    imageAlt: imageUrl ? readString(formData, "imageAlt") || null : null,
     sortOrder: readSortOrder(formData),
     isVisible: formData.get("isVisible") === "on",
   };
@@ -72,10 +77,26 @@ export async function updateSpecialtyAction(formData: FormData) {
   }
 
   try {
+    const existingSpecialty = await db.specialty.findUnique({
+      where: { id },
+      select: { imageUrl: true },
+    });
+
     await db.specialty.update({
       where: { id },
       data: specialty,
     });
+
+    if (
+      existingSpecialty?.imageUrl &&
+      existingSpecialty.imageUrl !== specialty.imageUrl
+    ) {
+      await enqueueBlobCleanup(existingSpecialty.imageUrl, {
+        reason: specialty.imageUrl
+          ? "specialty_preview_image_replaced"
+          : "specialty_preview_image_cleared",
+      });
+    }
   } catch {
     redirectWithError("Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.");
   }
@@ -92,7 +113,18 @@ export async function deleteSpecialtyAction(formData: FormData) {
     redirectWithError("Hiányzó különlegesség azonosító.");
   }
 
+  const existingSpecialty = await db.specialty.findUnique({
+    where: { id },
+    select: { imageUrl: true },
+  });
+
   await db.specialty.delete({ where: { id } });
+
+  if (existingSpecialty?.imageUrl) {
+    await enqueueBlobCleanup(existingSpecialty.imageUrl, {
+      reason: "specialty_deleted",
+    });
+  }
 
   revalidateSpecialties();
   redirect("/admin/content/specialties");
