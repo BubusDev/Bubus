@@ -5,9 +5,20 @@ import {
   type SpecialtyView,
 } from "@/lib/specialty-links";
 import type { NavigationCategory } from "@/lib/catalog";
+import { MegaMenu, type MegaMenuHeroConfig, type MegaMenuItem } from "@/components/MegaMenu";
 
 const topLevelNavItemClassName =
   "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
+
+// Hero config for "Különlegességek" mega menu — edit here until admin UI is built
+const SPECIALTY_HERO: MegaMenuHeroConfig = {
+  badge: "ÚJ KOLLEKCIÓ",
+  title: "Különlegességek",
+  description:
+    "Kézzel készített egyedi ékszerek — napfogók, álomfogók és különleges kulcstartók.",
+  ctaText: "Felfedezés",
+  ctaHref: "/kulonlegessegek",
+};
 
 type CategoryNavProps = {
   navigationCategories: NavigationCategory[];
@@ -15,6 +26,13 @@ type CategoryNavProps = {
 };
 
 export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNavProps) {
+  const megaItems: MegaMenuItem[] = specialtyItems.map((item) => ({
+    id: item.id,
+    name: item.name,
+    href: getSpecialtyHref(item),
+    shortDescription: item.shortDescription,
+  }));
+
   return (
     <nav
       aria-label="Category navigation"
@@ -31,38 +49,13 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
           </Link>
         ))}
 
-        {specialtyItems.length > 0 ? (
-          <div className="group/specialty relative inline-flex">
-            <Link
-              href={getSpecialtyHref(specialtyItems[0])}
-              className={`${topLevelNavItemClassName} inline-flex items-center gap-1`}
-              aria-haspopup="menu"
-            >
-              <span>Különlegességek</span>
-              <span aria-hidden="true" className="text-[10px] leading-none text-[#8b6d7f] transition duration-300 group-hover/category-nav:text-white group-focus-within/category-nav:text-white group-hover/specialty:translate-y-0.5 group-focus-within/specialty:translate-y-0.5">
-                ⌄
-              </span>
-            </Link>
-            <div className="invisible pointer-events-none absolute left-1/2 top-full z-40 w-[16rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 -translate-y-2 pt-2 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] group-hover/specialty:pointer-events-auto group-hover/specialty:visible group-hover/specialty:translate-y-0 group-hover/specialty:opacity-100 group-focus-within/specialty:pointer-events-auto group-focus-within/specialty:visible group-focus-within/specialty:translate-y-0 group-focus-within/specialty:opacity-100 motion-reduce:duration-0">
-              <div
-                className="flex flex-col items-stretch gap-1 rounded-[1.25rem] border border-white/70 bg-[#fffafd]/95 p-2.5 shadow-[0_18px_42px_rgba(76,43,65,0.12)] backdrop-blur-xl"
-                role="menu"
-                aria-label="Különlegességek"
-              >
-                {specialtyItems.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={getSpecialtyHref(item)}
-                    role="menuitem"
-                    className="block w-full rounded-[0.85rem] px-3.5 py-2.5 text-sm font-normal leading-5 tracking-[0.02em] text-[#3f2f39] transition duration-150 hover:bg-[#f8edf3] hover:text-[#241b21] focus-visible:bg-[#f8edf3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] active:bg-[#f2dfe9]"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {megaItems.length > 0 && (
+          <MegaMenu
+            triggerLabel="Különlegességek"
+            items={megaItems}
+            heroConfig={SPECIALTY_HERO}
+          />
+        )}
       </div>
     </nav>
   );
