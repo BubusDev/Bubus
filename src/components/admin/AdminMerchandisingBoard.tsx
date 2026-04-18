@@ -7,7 +7,7 @@ import { useMemo, useState, useTransition, type DragEvent } from "react";
 
 import { saveMerchandisingOrderAction } from "@/app/(admin)/admin/merchandising/actions";
 import { formatPrice } from "@/lib/catalog";
-import { getCroppedBackgroundStyle, type ImageCropArea } from "@/lib/image-crop";
+import { getFocalBackgroundStyle, type ImageFocalPoint } from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import type { MerchandisingContext } from "@/lib/products";
 
@@ -20,7 +20,7 @@ export type MerchandisingBoardProduct = {
   collectionLabel: string;
   categoryLabel: string;
   imageUrl: string | null;
-  cardCropArea: ImageCropArea | null;
+  cardFocalPoint: ImageFocalPoint | null;
   statusLabel: string;
   availableToSell: number;
   isNew: boolean;
@@ -355,7 +355,7 @@ function MerchandisingProductTile({
             role="img"
             aria-label={product.name}
             className="absolute inset-0 bg-[#f5f3f0]"
-            style={getCroppedBackgroundStyle(imageUrl, product.cardCropArea)}
+            style={getFocalBackgroundStyle(imageUrl, product.cardFocalPoint)}
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-[#edf1f6] px-3 text-center text-sm text-[var(--admin-ink-500)]">
@@ -425,7 +425,7 @@ function MerchandisingProductRow({
             role="img"
             aria-label={product.name}
             className="absolute inset-0 bg-[#f5f3f0]"
-            style={getCroppedBackgroundStyle(imageUrl, product.cardCropArea)}
+            style={getFocalBackgroundStyle(imageUrl, product.cardFocalPoint)}
           />
         ) : null}
       </div>

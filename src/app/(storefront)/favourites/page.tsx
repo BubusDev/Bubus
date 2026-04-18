@@ -78,6 +78,7 @@ export default async function FavouritesPage() {
                           alt={item.name}
                           imageUrl={item.imageUrl}
                           cropArea={item.cardCropArea ?? null}
+                          focalPoint={item.cardFocalPoint ?? null}
                           soldOut={isOutOfStock}
                           className="relative h-full w-full overflow-hidden"
                           imageClassName={`h-full w-full object-cover transition duration-500 ${

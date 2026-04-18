@@ -1,6 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import { getCroppedBackgroundStyle, type ImageCropArea } from "@/lib/image-crop";
+import {
+  getCroppedBackgroundStyle,
+  getFocalBackgroundStyle,
+  type ImageCropArea,
+  type ImageFocalPoint,
+} from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ProductImageFrameProps = {
@@ -14,6 +19,7 @@ type ProductImageFrameProps = {
   fallback?: ReactNode;
   style?: CSSProperties;
   cropArea?: ImageCropArea | null;
+  focalPoint?: ImageFocalPoint | null;
 };
 
 function buildBackground(palette?: readonly [string, string, string]) {
@@ -38,6 +44,7 @@ export function ProductImageFrame({
   fallback,
   style,
   cropArea,
+  focalPoint,
 }: ProductImageFrameProps) {
   const displayImageUrl = getBrowserDisplayImageUrl(imageUrl);
 
@@ -49,7 +56,7 @@ export function ProductImageFrame({
         ...style,
       }}
     >
-      {displayImageUrl && cropArea ? (
+      {displayImageUrl && (focalPoint || cropArea) ? (
         <div
           role="img"
           aria-label={alt}
@@ -58,7 +65,11 @@ export function ProductImageFrame({
               ? "scale-[1.008] saturate-[0.76] brightness-[0.96]"
               : ""
           }`}
-          style={getCroppedBackgroundStyle(displayImageUrl, cropArea)}
+          style={
+            focalPoint
+              ? getFocalBackgroundStyle(displayImageUrl, focalPoint)
+              : getCroppedBackgroundStyle(displayImageUrl, cropArea)
+          }
         />
       ) : displayImageUrl ? (
         <img

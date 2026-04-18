@@ -32,27 +32,27 @@ function readSpecialtyFormData(formData: FormData) {
   const cardImageUrl = clearCardImage ? null : readString(formData, "cardImageUrl") || null;
   const previewImageCrop = previewImageUrl
     ? {
-        previewImageCropX: readCropNumber(formData, "previewImageCropX", 0),
-        previewImageCropY: readCropNumber(formData, "previewImageCropY", 0),
+        previewImageCropX: readCropNumber(formData, "previewImageCropX", 50),
+        previewImageCropY: readCropNumber(formData, "previewImageCropY", 50),
         previewImageZoom: readCropNumber(formData, "previewImageZoom", 1),
         previewImageAspectRatio: readCropNumber(formData, "previewImageAspectRatio", 0.8),
       }
     : {
-        previewImageCropX: 0,
-        previewImageCropY: 0,
+        previewImageCropX: 50,
+        previewImageCropY: 50,
         previewImageZoom: 1,
         previewImageAspectRatio: 0.8,
       };
   const cardImageCrop = cardImageUrl
     ? {
-        cardImageCropX: readCropNumber(formData, "cardImageCropX", 0),
-        cardImageCropY: readCropNumber(formData, "cardImageCropY", 0),
+        cardImageCropX: readCropNumber(formData, "cardImageCropX", 50),
+        cardImageCropY: readCropNumber(formData, "cardImageCropY", 50),
         cardImageZoom: readCropNumber(formData, "cardImageZoom", 1),
         cardImageAspectRatio: readCropNumber(formData, "cardImageAspectRatio", 4 / 3),
       }
     : {
-        cardImageCropX: 0,
-        cardImageCropY: 0,
+        cardImageCropX: 50,
+        cardImageCropY: 50,
         cardImageZoom: 1,
         cardImageAspectRatio: 4 / 3,
       };

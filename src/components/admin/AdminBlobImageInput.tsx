@@ -4,10 +4,16 @@ import { upload } from "@vercel/blob/client";
 import { Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { AdminImageCropModal } from "@/components/admin/AdminImageCropModal";
+import { AdminImageFocalPointPicker } from "@/components/admin/AdminImageFocalPointPicker";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
-import { createCroppedImageFile } from "@/lib/client-image-crop";
-import { DEFAULT_IMAGE_CROP, type ImageCropMetadata } from "@/lib/image-crop";
+import {
+  DEFAULT_IMAGE_CROP,
+  DEFAULT_IMAGE_FOCAL_POINT,
+  focalPointFromLegacyCrop,
+  getImageFocalPointStyle,
+  normalizeFocalPoint,
+  type ImageCropMetadata,
+} from "@/lib/image-crop";
 import { browserSafeProductImageAccept } from "@/lib/image-safety";
 
 type Folder = "products" | "special-edition" | "homepage" | "specialties";
@@ -46,14 +52,14 @@ export function AdminBlobImageInput({
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
   const hasMountedRef = useRef(false);
   const [blobUrl, setBlobUrl] = useState(defaultUrl);
+  const initialFocalPoint = focalPointFromLegacyCrop(crop?.defaultValue);
   const [cropValue, setCropValue] = useState<ImageCropMetadata>({
     ...DEFAULT_IMAGE_CROP,
     ...crop?.defaultValue,
+    ...initialFocalPoint,
     aspectRatio: crop?.aspectRatio ?? crop?.defaultValue?.aspectRatio ?? DEFAULT_IMAGE_CROP.aspectRatio,
   });
-  const [pendingCrop, setPendingCrop] = useState<{ file: File; url: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isProcessingCrop, setIsProcessingCrop] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastFile, setLastFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
@@ -105,13 +111,6 @@ export function AdminBlobImageInput({
     if (!file) return;
 
     e.currentTarget.value = "";
-    if (crop) {
-      setErrorMessage(null);
-      setUploadStatus("Kép előkészítése...");
-      const url = URL.createObjectURL(file);
-      setPendingCrop({ file, url });
-      return;
-    }
     await uploadFile(file);
   }
 
@@ -120,39 +119,11 @@ export function AdminBlobImageInput({
     await uploadFile(lastFile);
   }
 
-  async function handleCropConfirm(nextCrop: ImageCropMetadata, croppedAreaPixels: Parameters<typeof createCroppedImageFile>[1]) {
-    if (!pendingCrop) return;
-    setIsProcessingCrop(true);
-    setUploadStatus("Feldolgozás...");
-    try {
-      const croppedFile = await createCroppedImageFile(
-        pendingCrop.url,
-        croppedAreaPixels,
-        pendingCrop.file,
-      );
-      URL.revokeObjectURL(pendingCrop.url);
-      setPendingCrop(null);
-      await uploadFile(croppedFile, nextCrop);
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "A kép feldolgozása nem sikerült.");
-      setUploadStatus("A feldolgozás megszakadt.");
-    } finally {
-      setIsProcessingCrop(false);
-    }
-  }
-
-  function handleCropCancel() {
-    if (pendingCrop) {
-      URL.revokeObjectURL(pendingCrop.url);
-      setPendingCrop(null);
-    }
-    setUploadStatus(null);
-  }
-
   function handleDelete() {
     setBlobUrl("");
     setCropValue({
       ...DEFAULT_IMAGE_CROP,
+      ...DEFAULT_IMAGE_FOCAL_POINT,
       aspectRatio: crop?.aspectRatio ?? DEFAULT_IMAGE_CROP.aspectRatio,
     });
     setUploadProgress(null);
@@ -160,7 +131,8 @@ export function AdminBlobImageInput({
     setErrorMessage(null);
   }
 
-  const isBusy = isUploading || isProcessingCrop;
+  const isBusy = isUploading;
+  const focalPoint = normalizeFocalPoint(cropValue);
 
   return (
     <div className="space-y-2">
@@ -170,24 +142,17 @@ export function AdminBlobImageInput({
       {crop?.zoomName ? <input type="hidden" name={crop.zoomName} value={cropValue.zoom} /> : null}
       {crop?.aspectRatioName ? <input type="hidden" name={crop.aspectRatioName} value={cropValue.aspectRatio} /> : null}
 
-      {pendingCrop && crop ? (
-        <AdminImageCropModal
-          aspectRatio={crop.aspectRatio}
-          guidance={crop.guidance}
-          imageUrl={pendingCrop.url}
-          isProcessing={isProcessingCrop}
-          onCancel={handleCropCancel}
-          onConfirm={handleCropConfirm}
-          title={crop.title}
-        />
-      ) : null}
-
       {(blobUrl || isBusy) && (
         <div
           className={`relative overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] ${previewClassName}`}
         >
           {blobUrl ? (
-            <img src={blobUrl} alt={label} className={imageClassName} />
+            <img
+              src={blobUrl}
+              alt={label}
+              className={imageClassName}
+              style={getImageFocalPointStyle(focalPoint)}
+            />
           ) : (
             <div className="flex min-h-36 items-center justify-center px-4 py-6 text-center text-xs text-[var(--admin-ink-500)]">
               Előnézet készítése...
@@ -224,6 +189,22 @@ export function AdminBlobImageInput({
           ) : null}
         </div>
       )}
+
+      {crop && blobUrl ? (
+        <AdminImageFocalPointPicker
+          disabled={isBusy}
+          label="Képfókusz"
+          value={focalPoint}
+          onChange={(nextFocalPoint) => {
+            setCropValue((current) => ({
+              ...current,
+              ...nextFocalPoint,
+              zoom: 1,
+              aspectRatio: crop.aspectRatio,
+            }));
+          }}
+        />
+      ) : null}
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-[var(--admin-ink-700)]">{label}</span>

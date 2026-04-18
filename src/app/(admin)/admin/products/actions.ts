@@ -129,8 +129,8 @@ function getRetainedImageIds(formData: FormData) {
 }
 
 const DEFAULT_PRODUCT_CARD_CROP = {
-  x: 0,
-  y: 0,
+  x: 50,
+  y: 50,
   zoom: 1,
   aspectRatio: 0.75,
 } satisfies ImageCropMetadata;
@@ -141,12 +141,16 @@ function parseImageCrop(value: unknown): ImageCropMetadata {
   }
 
   const input = value as Record<string, unknown>;
-  return {
+  const parsed = {
     x: normalizeCropNumber(input.x, DEFAULT_PRODUCT_CARD_CROP.x),
     y: normalizeCropNumber(input.y, DEFAULT_PRODUCT_CARD_CROP.y),
     zoom: normalizeCropNumber(input.zoom, DEFAULT_PRODUCT_CARD_CROP.zoom),
     aspectRatio: normalizeCropNumber(input.aspectRatio, DEFAULT_PRODUCT_CARD_CROP.aspectRatio),
   };
+
+  return parsed.x === 0 && parsed.y === 0
+    ? DEFAULT_PRODUCT_CARD_CROP
+    : parsed;
 }
 
 function parseImageCropArea(value: unknown): ImageCropArea {

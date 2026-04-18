@@ -10,7 +10,11 @@ import {
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
-import { getCroppedBackgroundStyle } from "@/lib/image-crop";
+import {
+  focalPointFromCropArea,
+  focalPointFromLegacyCrop,
+  getFocalBackgroundStyle,
+} from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ProductCardProps = {
@@ -45,6 +49,29 @@ function getProductCardDifferentiator(product: Product) {
   return null;
 }
 
+function getProductImageFocalPoint(image: Product["images"][number]) {
+  const cropArea = {
+    x: image.cardCropAreaX,
+    y: image.cardCropAreaY,
+    width: image.cardCropAreaWidth,
+    height: image.cardCropAreaHeight,
+  };
+  const hasLegacyCropArea =
+    cropArea.x !== 0 ||
+    cropArea.y !== 0 ||
+    cropArea.width !== 100 ||
+    cropArea.height !== 100;
+
+  return hasLegacyCropArea
+    ? focalPointFromCropArea(cropArea)
+    : focalPointFromLegacyCrop({
+        x: image.cardCropX,
+        y: image.cardCropY,
+        zoom: image.cardCropZoom,
+        aspectRatio: image.cardCropAspectRatio,
+      });
+}
+
 export function ProductCard({
   product,
   isFavourite = false,
@@ -74,6 +101,10 @@ export function ProductCard({
     safeImages[0] ??
     (productImageUrl && !brokenImageUrls.has(productImageUrl)
       ? {
+          cardCropX: 50,
+          cardCropY: 50,
+          cardCropZoom: 1,
+          cardCropAspectRatio: 0.75,
           cardCropAreaX: 0,
           cardCropAreaY: 0,
           cardCropAreaWidth: 100,
@@ -165,12 +196,7 @@ export function ProductCard({
                     ? "delay-100 group-hover:opacity-0 group-focus-within:opacity-0"
                     : imageHoverClass
                 } ${imageStateClass}`}
-                style={getCroppedBackgroundStyle(coverImageUrl, {
-                  x: coverImage.cardCropAreaX,
-                  y: coverImage.cardCropAreaY,
-                  width: coverImage.cardCropAreaWidth,
-                  height: coverImage.cardCropAreaHeight,
-                })}
+                style={getFocalBackgroundStyle(coverImageUrl, getProductImageFocalPoint(coverImage))}
               />
               {secondaryImage && secondaryImageUrl ? (
                 <div
@@ -178,12 +204,10 @@ export function ProductCard({
                   role="img"
                   className={`object-cover opacity-0 transition-[opacity,transform,filter] delay-100 duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100 group-focus-within:scale-[1.03] group-focus-within:opacity-100 ${imageStateClass}`}
                   style={{
-                    ...getCroppedBackgroundStyle(secondaryImageUrl, {
-                      x: secondaryImage.cardCropAreaX,
-                      y: secondaryImage.cardCropAreaY,
-                      width: secondaryImage.cardCropAreaWidth,
-                      height: secondaryImage.cardCropAreaHeight,
-                    }),
+                    ...getFocalBackgroundStyle(
+                      secondaryImageUrl,
+                      getProductImageFocalPoint(secondaryImage),
+                    ),
                     position: "absolute",
                     inset: 0,
                   }}

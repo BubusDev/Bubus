@@ -299,9 +299,9 @@ function SpecialtyForm({
                     imageClassName="aspect-[4/5] w-full object-cover"
                     crop={{
                       aspectRatio: 4 / 5,
-                      title: "Középső preview kép vágása",
+                      title: "Középső preview kép fókusza",
                       guidance:
-                        "Ez a kép a középső preview-ban jelenik meg. A rendszer levághatja a széleket. Fontos elemeket tartsd középen.",
+                        "Ez a kép automatikusan 4:5 arányban jelenik meg. A fókuszpont segít megtartani a fontos részletet.",
                       xName: "previewImageCropX",
                       yName: "previewImageCropY",
                       zoomName: "previewImageZoom",
@@ -341,9 +341,9 @@ function SpecialtyForm({
                     imageClassName="aspect-[4/3] w-full object-cover"
                     crop={{
                       aspectRatio: 4 / 3,
-                      title: "Jobb oldali card kép vágása",
+                      title: "Jobb oldali card kép fókusza",
                       guidance:
-                        "Ez a kép a jobb oldali CTA card háttere. A card 4:3 arányban jelenik meg. Szöveg vagy fontos részlet ne kerüljön a szélekre.",
+                        "Ez a kép automatikusan 4:3 arányban jelenik meg. A fókuszpont segít megtartani a fontos részletet.",
                       xName: "cardImageCropX",
                       yName: "cardImageCropY",
                       zoomName: "cardImageZoom",
