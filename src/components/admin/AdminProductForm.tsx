@@ -19,7 +19,10 @@ import {
   ChevronDown,
   ImagePlus,
   Loader2,
+  MoreHorizontal,
+  Pencil,
   Plus,
+  Search,
   Save,
   Sparkles,
   Star,
@@ -29,7 +32,9 @@ import {
 
 import {
   createProductOptionAction,
+  deleteProductOptionAction,
   toggleProductArchiveAction,
+  updateProductOptionAction,
 } from "@/app/(admin)/admin/products/actions";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
 import { homepagePlacementLabels } from "@/lib/catalog";
@@ -94,9 +99,21 @@ type ProductFormState = {
 type FormFieldName = keyof ProductFormState;
 type FormErrorState = Partial<Record<FormFieldName, string>>;
 type OptionListKey = Exclude<keyof AdminProductFormOptions, "homepagePlacements" | "specialties" | "statuses">;
-type QuickCreateStatus = "idle" | "pending" | "success";
-type QuickCreateState = Partial<
-  Record<OptionListKey, { isOpen: boolean; name: string; error: string | null; status: QuickCreateStatus }>
+type OptionManagerStatus = "idle" | "creating" | "updating" | "deleting" | "success";
+type OptionManagerState = Partial<
+  Record<
+    OptionListKey,
+    {
+      confirmDeleteId: string | null;
+      createName: string;
+      editId: string | null;
+      editName: string;
+      error: string | null;
+      isOpen: boolean;
+      query: string;
+      status: OptionManagerStatus;
+    }
+  >
 >;
 
 type UploadedImagePayload = {
@@ -621,41 +638,82 @@ function ToggleSwitch({
   );
 }
 
-function SimpleOptionSelect({
+function ManagedOptionSelect({
   error,
-  isCreating,
+  isPending,
   label,
   onCreate,
   onChange,
-  onQuickCreateChange,
-  onQuickCreateClose,
-  onQuickCreateOpen,
+  onClose,
+  onConfirmDelete,
+  onCreateNameChange,
+  onDelete,
+  onEditNameChange,
+  onOpen,
+  onQueryChange,
+  onStartEdit,
+  onUpdate,
   options,
-  quickCreateError,
-  quickCreateName,
-  quickCreateOpen,
-  quickCreateStatus,
+  managerError,
+  managerState,
   required,
   selectedValue,
 }: {
   error?: string;
-  isCreating?: boolean;
+  isPending?: boolean;
   label: string;
   onCreate: () => void;
   onChange: (nextValue: string) => void;
-  onQuickCreateChange: (nextValue: string) => void;
-  onQuickCreateClose: () => void;
-  onQuickCreateOpen: () => void;
-  options: { id: string; name: string }[];
-  quickCreateError?: string | null;
-  quickCreateName: string;
-  quickCreateOpen: boolean;
-  quickCreateStatus?: QuickCreateStatus;
+  onClose: () => void;
+  onConfirmDelete: (optionId: string) => void;
+  onCreateNameChange: (nextValue: string) => void;
+  onDelete: (optionId: string) => void;
+  onEditNameChange: (nextValue: string) => void;
+  onOpen: () => void;
+  onQueryChange: (nextValue: string) => void;
+  onStartEdit: (option: ProductOptionValue | null) => void;
+  onUpdate: (optionId: string) => void;
+  options: ProductOptionValue[];
+  managerError?: string | null;
+  managerState: {
+    confirmDeleteId: string | null;
+    createName: string;
+    editId: string | null;
+    editName: string;
+    isOpen: boolean;
+    query: string;
+    status: OptionManagerStatus;
+  };
   required?: boolean;
   selectedValue: string;
 }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const filteredOptions = useMemo(() => {
+    const query = managerState.query.trim().toLocaleLowerCase("hu-HU");
+    if (!query) return options;
+    return options.filter((option) => option.name.toLocaleLowerCase("hu-HU").includes(query));
+  }, [managerState.query, options]);
+  const selectedOption = options.find((option) => option.id === selectedValue);
+  const pendingCreate = isPending && managerState.status === "creating";
+  const pendingUpdate = isPending && managerState.status === "updating";
+  const pendingDelete = isPending && managerState.status === "deleting";
+
+  useEffect(() => {
+    if (!managerState.isOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (wrapperRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      onClose();
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [managerState.isOpen, onClose]);
+
   return (
-    <div>
+    <div ref={wrapperRef} className="relative">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className={eyebrowCls}>
           {label}
@@ -663,65 +721,213 @@ function SimpleOptionSelect({
         </span>
         <button
           type="button"
-          onClick={quickCreateOpen ? onQuickCreateClose : onQuickCreateOpen}
+          onClick={managerState.isOpen ? onClose : onOpen}
           className="inline-flex items-center gap-1 rounded-md border border-[var(--admin-line-100)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--admin-blue-700)] transition hover:border-[#bfd0ea] hover:bg-[var(--admin-blue-050)]"
+          aria-expanded={managerState.isOpen}
         >
-          {quickCreateOpen ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-          {quickCreateOpen ? "Bezárás" : "Új hozzáadása"}
+          {managerState.isOpen ? <X className="h-3 w-3" /> : <MoreHorizontal className="h-3 w-3" />}
+          Kezelés
         </button>
       </div>
-      <select
-        value={selectedValue}
-        onChange={(e) => onChange(e.target.value)}
-        className={inputCls}
-      >
-        <option value="">Válassz...</option>
-        {options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.name}
-          </option>
-        ))}
-      </select>
-      {quickCreateOpen ? (
-        <div className="mt-2 rounded-md border border-[#bfd0ea] bg-[var(--admin-blue-050)] p-2.5">
-          <div className="flex gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] gap-2">
+        <select
+          value={selectedValue}
+          onChange={(e) => onChange(e.target.value)}
+          className={inputCls}
+        >
+          <option value="">Válassz...</option>
+          {options.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={managerState.isOpen ? onClose : onOpen}
+          className="inline-flex h-11 items-center justify-center rounded-md border border-[var(--admin-line-200)] bg-white text-[var(--admin-blue-700)] transition hover:border-[#bfd0ea] hover:bg-[var(--admin-blue-050)]"
+          aria-label={`${label} opciók kezelése`}
+          aria-expanded={managerState.isOpen}
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+      {managerState.isOpen ? (
+        <div className="absolute left-0 right-0 z-30 mt-2 rounded-md border border-[#bfd0ea] bg-white p-2.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--admin-ink-500)]" />
             <input
-              value={quickCreateName}
-              onChange={(event) => onQuickCreateChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  onCreate();
-                }
-                if (event.key === "Escape") {
-                  onQuickCreateClose();
-                }
-              }}
-              placeholder={`${label} neve`}
-              disabled={isCreating}
-              className={`${inputCls} h-9 min-w-0`}
+              value={managerState.query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder="Keresés..."
+              className={`${inputCls} h-9 pl-8 text-xs`}
             />
-            <button
-              type="button"
-              onClick={onCreate}
-              disabled={isCreating || quickCreateName.trim().length === 0}
-              className="inline-flex h-9 min-w-[5.75rem] items-center justify-center gap-1.5 rounded-md border border-[#295da8] bg-[#2a63b5] px-3 text-xs font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
-            >
-              {isCreating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : quickCreateStatus === "success" ? (
-                <Check className="h-3.5 w-3.5" />
-              ) : (
-                <Plus className="h-3.5 w-3.5" />
-              )}
-              {isCreating ? "Mentés..." : quickCreateStatus === "success" ? "Kész" : "Mentés"}
-            </button>
           </div>
-          {quickCreateError ? (
-            <p className="mt-1.5 text-xs text-[#9b476f]">{quickCreateError}</p>
+
+          <div className="mt-2 max-h-52 overflow-y-auto border border-[var(--admin-line-100)]">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => {
+                const isSelected = option.id === selectedValue;
+                const isEditing = managerState.editId === option.id;
+                const isConfirmingDelete = managerState.confirmDeleteId === option.id;
+
+                return (
+                  <div
+                    key={option.id}
+                    className={`border-b border-[var(--admin-line-100)] bg-white p-2 last:border-b-0 ${
+                      isSelected ? "bg-[var(--admin-blue-050)]" : ""
+                    }`}
+                  >
+                    {isEditing ? (
+                      <div className="flex gap-1.5">
+                        <input
+                          value={managerState.editName}
+                          onChange={(event) => onEditNameChange(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              onUpdate(option.id);
+                            }
+                            if (event.key === "Escape") {
+                              onStartEdit(null);
+                            }
+                          }}
+                          className={`${inputCls} h-8 min-w-0 px-2.5 text-xs`}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => onUpdate(option.id)}
+                          disabled={pendingUpdate || managerState.editName.trim().length === 0}
+                          className="admin-button-primary h-8 w-8 shrink-0"
+                          aria-label={`${option.name} mentése`}
+                        >
+                          {pendingUpdate ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onStartEdit(null)}
+                          className="admin-button-secondary h-8 w-8 shrink-0"
+                          aria-label="Szerkesztés megszakítása"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onChange(option.id);
+                            onClose();
+                          }}
+                          className="min-w-0 flex-1 rounded-md px-2 py-1.5 text-left text-xs font-medium text-[var(--admin-ink-800)] transition hover:bg-[var(--admin-blue-050)]"
+                        >
+                          <span className="block truncate">{option.name}</span>
+                          {isSelected ? (
+                            <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-blue-700)]">
+                              <Check className="h-3 w-3" />
+                              Kiválasztva
+                            </span>
+                          ) : null}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onStartEdit(option)}
+                          className="admin-button-secondary h-8 w-8 shrink-0"
+                          aria-label={`${option.name} átnevezése`}
+                          title="Átnevezés"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onConfirmDelete(option.id)}
+                          className="admin-button-danger h-8 w-8 shrink-0"
+                          aria-label={`${option.name} eltávolítása`}
+                          title="Eltávolítás"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {isConfirmingDelete ? (
+                      <div className="mt-2 border border-[#e3c7cf] bg-[#fbf5f6] p-2">
+                        <p className="text-xs leading-5 text-[#8d3345]">
+                          Biztosan eltávolítod? Használatban lévő opció csak megerősítéssel lesz inaktiválva.
+                        </p>
+                        <div className="mt-2 flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onDelete(option.id)}
+                            disabled={pendingDelete}
+                            className="admin-button-danger h-8 px-2.5 text-xs"
+                          >
+                            {pendingDelete ? "Eltávolítás..." : "Eltávolítás"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onConfirmDelete("")}
+                            className="admin-button-secondary h-8 px-2.5 text-xs"
+                          >
+                            Mégsem
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })
+            ) : (
+              <p className="px-3 py-4 text-center text-xs text-[var(--admin-ink-500)]">
+                Nincs találat.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-2 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-2">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--admin-ink-500)]">
+              Új opció
+            </p>
+            <div className="flex gap-1.5">
+              <input
+                value={managerState.createName}
+                onChange={(event) => onCreateNameChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    onCreate();
+                  }
+                  if (event.key === "Escape") {
+                    onClose();
+                  }
+                }}
+                placeholder={`${label} neve`}
+                disabled={pendingCreate}
+                className={`${inputCls} h-8 min-w-0 px-2.5 text-xs`}
+              />
+              <button
+                type="button"
+                onClick={onCreate}
+                disabled={pendingCreate || managerState.createName.trim().length === 0}
+                className="admin-button-primary h-8 shrink-0 px-2.5 text-xs"
+              >
+                {pendingCreate ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Plus className="h-3.5 w-3.5" />
+                )}
+                {pendingCreate ? "Mentés..." : "Hozzáad"}
+              </button>
+            </div>
+          </div>
+
+          {managerError ? (
+            <p className="mt-2 text-xs leading-5 text-[#9b476f]">{managerError}</p>
           ) : (
-            <p className="mt-1.5 text-xs text-[var(--admin-ink-500)]">
-              Mentés után az új érték azonnal kiválasztásra kerül.
+            <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
+              {selectedOption ? `Jelenlegi: ${selectedOption.name}` : "Válassz vagy hozz létre új értéket."}
             </p>
           )}
         </div>
@@ -758,15 +964,15 @@ export function AdminProductForm({
 
   const [formValues, setFormValues] = useState<ProductFormState>(initialFormState);
   const [localOptions, setLocalOptions] = useState<AdminProductFormOptions>(options);
-  const [quickCreateState, setQuickCreateState] = useState<QuickCreateState>({});
-  const [pendingQuickCreateKey, setPendingQuickCreateKey] = useState<OptionListKey | null>(null);
+  const [optionManagerState, setOptionManagerState] = useState<OptionManagerState>({});
+  const [pendingOptionManagerKey, setPendingOptionManagerKey] = useState<OptionListKey | null>(null);
   const [errors, setErrors] = useState<FormErrorState>({});
   const [existingImages, setExistingImages] = useState<PendingImage[]>(initialExistingImages);
   const [uploadedImages, setUploadedImages] = useState<PendingImage[]>([]);
   const [coverImageKey, setCoverImageKey] = useState<string>(initialCoverImageKey);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, startSubmitTransition] = useTransition();
-  const [isCreatingOption, startCreateOptionTransition] = useTransition();
+  const [isManagingOption, startManageOptionTransition] = useTransition();
   const [isArchiving, startArchiveTransition] = useTransition();
   const [slugUserEdited, setSlugUserEdited] = useState(!!values.slug);
   const [seoOpen, setSeoOpen] = useState(false);
@@ -889,13 +1095,17 @@ export function AdminProductForm({
     });
   };
 
-  function setQuickCreatePatch(key: OptionListKey, patch: Partial<NonNullable<QuickCreateState[OptionListKey]>>) {
-    setQuickCreateState((current) => ({
+  function setOptionManagerPatch(key: OptionListKey, patch: Partial<NonNullable<OptionManagerState[OptionListKey]>>) {
+    setOptionManagerState((current) => ({
       ...current,
       [key]: {
-        isOpen: current[key]?.isOpen ?? false,
-        name: current[key]?.name ?? "",
+        confirmDeleteId: current[key]?.confirmDeleteId ?? null,
+        createName: current[key]?.createName ?? "",
+        editId: current[key]?.editId ?? null,
+        editName: current[key]?.editName ?? "",
         error: current[key]?.error ?? null,
+        isOpen: current[key]?.isOpen ?? false,
+        query: current[key]?.query ?? "",
         status: current[key]?.status ?? "idle",
         ...patch,
       },
@@ -909,10 +1119,24 @@ export function AdminProductForm({
     }));
   }
 
+  function updateLocalOption(key: OptionListKey, optionId: string, nextOption: ProductOptionValue) {
+    setLocalOptions((current) => ({
+      ...current,
+      [key]: current[key].map((option) => (option.id === optionId ? nextOption : option)),
+    }));
+  }
+
+  function removeLocalOption(key: OptionListKey, optionId: string) {
+    setLocalOptions((current) => ({
+      ...current,
+      [key]: current[key].filter((option) => option.id !== optionId),
+    }));
+  }
+
   function handleCreateOption(key: OptionListKey, fieldName: FormFieldName) {
-    const name = quickCreateState[key]?.name.trim() ?? "";
+    const name = optionManagerState[key]?.createName.trim() ?? "";
     if (!name) {
-      setQuickCreatePatch(key, { error: "Adj meg egy nevet.", status: "idle" });
+      setOptionManagerPatch(key, { error: "Adj meg egy nevet.", status: "idle" });
       return;
     }
 
@@ -923,27 +1147,110 @@ export function AdminProductForm({
       formData.append("isStorefrontVisible", "on");
     }
 
-    setPendingQuickCreateKey(key);
-    setQuickCreatePatch(key, { error: null, status: "pending" });
+    setPendingOptionManagerKey(key);
+    setOptionManagerPatch(key, { error: null, status: "creating" });
 
-    startCreateOptionTransition(async () => {
+    startManageOptionTransition(async () => {
       try {
         const createdOption = await createProductOptionAction(formData);
         appendCreatedOption(key, createdOption);
         handleFieldChange(fieldName, createdOption.id as ProductFormState[typeof fieldName]);
-        setQuickCreatePatch(key, {
+        setOptionManagerPatch(key, {
+          confirmDeleteId: null,
+          createName: "",
+          editId: null,
+          editName: "",
           error: null,
           isOpen: false,
-          name: "",
           status: "success",
         });
       } catch (err) {
-        setQuickCreatePatch(key, {
+        setOptionManagerPatch(key, {
           error: err instanceof Error ? err.message : "Az új opció mentése nem sikerült.",
           status: "idle",
         });
       } finally {
-        setPendingQuickCreateKey(null);
+        setPendingOptionManagerKey(null);
+      }
+    });
+  }
+
+  function handleUpdateOption(key: OptionListKey, optionId: string) {
+    const currentOption = localOptions[key].find((option) => option.id === optionId);
+    const name = optionManagerState[key]?.editName.trim() ?? "";
+    if (!currentOption || !name) {
+      setOptionManagerPatch(key, { error: "Adj meg egy nevet.", status: "idle" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("optionId", optionId);
+    formData.append("name", name);
+    formData.append("slug", currentOption.slug);
+    formData.append("sortOrder", String(currentOption.sortOrder));
+    formData.append("isActive", "on");
+    if (key === "categories") {
+      formData.append("isStorefrontVisible", currentOption.isStorefrontVisible ? "on" : "off");
+      formData.append("showInMainNav", currentOption.showInMainNav ? "on" : "off");
+      formData.append("navSortOrder", String(currentOption.navSortOrder));
+      formData.append("navLabel", currentOption.navLabel ?? "");
+    }
+
+    setPendingOptionManagerKey(key);
+    setOptionManagerPatch(key, { error: null, status: "updating" });
+
+    startManageOptionTransition(async () => {
+      try {
+        const updatedOption = await updateProductOptionAction(formData);
+        updateLocalOption(key, optionId, updatedOption);
+        setOptionManagerPatch(key, {
+          editId: null,
+          editName: "",
+          error: null,
+          status: "success",
+        });
+      } catch (err) {
+        setOptionManagerPatch(key, {
+          error: err instanceof Error ? err.message : "Az opció átnevezése nem sikerült.",
+          status: "idle",
+        });
+      } finally {
+        setPendingOptionManagerKey(null);
+      }
+    });
+  }
+
+  function handleDeleteOption(key: OptionListKey, fieldName: FormFieldName, optionId: string) {
+    const formData = new FormData();
+    formData.append("optionId", optionId);
+    formData.append("confirmInUse", "true");
+
+    setPendingOptionManagerKey(key);
+    setOptionManagerPatch(key, { error: null, status: "deleting" });
+
+    startManageOptionTransition(async () => {
+      try {
+        const result = await deleteProductOptionAction(formData);
+        removeLocalOption(key, optionId);
+        if (formValues[fieldName] === optionId) {
+          handleFieldChange(fieldName, "" as ProductFormState[typeof fieldName]);
+        }
+        setOptionManagerPatch(key, {
+          confirmDeleteId: null,
+          editId: null,
+          editName: "",
+          error: result.deactivated
+            ? `Az opció használatban volt ${result.inUse} terméknél, ezért törlés helyett inaktiváltuk.`
+            : null,
+          status: "success",
+        });
+      } catch (err) {
+        setOptionManagerPatch(key, {
+          error: err instanceof Error ? err.message : "Az opció eltávolítása nem sikerült.",
+          status: "idle",
+        });
+      } finally {
+        setPendingOptionManagerKey(null);
       }
     });
   }
@@ -1168,22 +1475,49 @@ export function AdminProductForm({
     });
   }
 
-  function getQuickCreateProps(key: OptionListKey, fieldName: FormFieldName) {
-    const state = quickCreateState[key];
+  function getOptionManagerProps(key: OptionListKey, fieldName: FormFieldName) {
+    const state = optionManagerState[key];
+    const managerState = {
+      confirmDeleteId: state?.confirmDeleteId ?? null,
+      createName: state?.createName ?? "",
+      editId: state?.editId ?? null,
+      editName: state?.editName ?? "",
+      isOpen: state?.isOpen ?? false,
+      query: state?.query ?? "",
+      status: state?.status ?? "idle",
+    };
 
     return {
-      isCreating: isCreatingOption && pendingQuickCreateKey === key,
+      isPending: isManagingOption && pendingOptionManagerKey === key,
+      managerError: state?.error ?? null,
+      managerState,
       onCreate: () => handleCreateOption(key, fieldName),
-      onQuickCreateChange: (nextValue: string) =>
-        setQuickCreatePatch(key, { error: null, name: nextValue, status: "idle" }),
-      onQuickCreateClose: () =>
-        setQuickCreatePatch(key, { error: null, isOpen: false, status: "idle" }),
-      onQuickCreateOpen: () =>
-        setQuickCreatePatch(key, { error: null, isOpen: true, status: "idle" }),
-      quickCreateError: state?.error ?? null,
-      quickCreateName: state?.name ?? "",
-      quickCreateOpen: state?.isOpen ?? false,
-      quickCreateStatus: state?.status ?? "idle",
+      onClose: () =>
+        setOptionManagerPatch(key, { confirmDeleteId: null, error: null, isOpen: false, status: "idle" }),
+      onConfirmDelete: (optionId: string) =>
+        setOptionManagerPatch(key, {
+          confirmDeleteId: optionId || null,
+          error: null,
+          status: "idle",
+        }),
+      onCreateNameChange: (nextValue: string) =>
+        setOptionManagerPatch(key, { createName: nextValue, error: null, status: "idle" }),
+      onDelete: (optionId: string) => handleDeleteOption(key, fieldName, optionId),
+      onEditNameChange: (nextValue: string) =>
+        setOptionManagerPatch(key, { editName: nextValue, error: null, status: "idle" }),
+      onOpen: () =>
+        setOptionManagerPatch(key, { error: null, isOpen: true, status: "idle" }),
+      onQueryChange: (nextValue: string) =>
+        setOptionManagerPatch(key, { query: nextValue, error: null, status: "idle" }),
+      onStartEdit: (option: ProductOptionValue | null) =>
+        setOptionManagerPatch(key, {
+          confirmDeleteId: null,
+          editId: option?.id ?? null,
+          editName: option?.name ?? "",
+          error: null,
+          status: "idle",
+        }),
+      onUpdate: (optionId: string) => handleUpdateOption(key, optionId),
     };
   }
 
@@ -1666,68 +2000,68 @@ export function AdminProductForm({
 
           <CardShell eyebrow="Besorolás" title="Kategóriák és attribútumok">
             <div className="space-y-5">
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Kategória"
                 selectedValue={formValues.category}
                 options={localOptions.categories}
                 onChange={(v) => handleFieldChange("category", v)}
                 error={errors.category}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("categories", "category")}
+                {...getOptionManagerProps("categories", "category")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Kőtípus"
                 selectedValue={formValues.stoneType}
                 options={localOptions.stoneTypes}
                 onChange={(v) => handleFieldChange("stoneType", v)}
                 error={errors.stoneType}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("stoneTypes", "stoneType")}
+                {...getOptionManagerProps("stoneTypes", "stoneType")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Szín / Fém"
                 selectedValue={formValues.color}
                 options={localOptions.colors}
                 onChange={(v) => handleFieldChange("color", v)}
                 error={errors.color}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("colors", "color")}
+                {...getOptionManagerProps("colors", "color")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Stílus"
                 selectedValue={formValues.style}
                 options={localOptions.styles}
                 onChange={(v) => handleFieldChange("style", v)}
                 error={errors.style}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("styles", "style")}
+                {...getOptionManagerProps("styles", "style")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Alkalom"
                 selectedValue={formValues.occasion}
                 options={localOptions.occasions}
                 onChange={(v) => handleFieldChange("occasion", v)}
                 error={errors.occasion}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("occasions", "occasion")}
+                {...getOptionManagerProps("occasions", "occasion")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Elérhetőség"
                 selectedValue={formValues.availability}
                 options={localOptions.availability}
                 onChange={(v) => handleFieldChange("availability", v)}
                 error={errors.availability}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("availability", "availability")}
+                {...getOptionManagerProps("availability", "availability")}
               />
-              <SimpleOptionSelect
+              <ManagedOptionSelect
                 label="Vizuális tónus"
                 selectedValue={formValues.tone}
                 options={localOptions.tones}
                 onChange={(v) => handleFieldChange("tone", v)}
                 error={errors.tone}
                 required={formValues.status === "ACTIVE"}
-                {...getQuickCreateProps("tones", "tone")}
+                {...getOptionManagerProps("tones", "tone")}
               />
             </div>
           </CardShell>

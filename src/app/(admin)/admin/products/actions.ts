@@ -599,7 +599,7 @@ export async function updateProductOptionAction(formData: FormData) {
     throw new Error("Az opció már nem létezik. Frissítsd az oldalt, és próbáld újra.");
   }
 
-  await db.productOption.update({
+  const option = await db.productOption.update({
     where: { id: optionId },
     data: {
       name,
@@ -613,6 +613,19 @@ export async function updateProductOptionAction(formData: FormData) {
   });
 
   revalidateCatalogPaths();
+
+  return {
+    id: option.id,
+    type: option.type,
+    name: option.name,
+    slug: option.slug,
+    isActive: option.isActive,
+    isStorefrontVisible: option.isStorefrontVisible,
+    showInMainNav: option.showInMainNav,
+    navSortOrder: option.navSortOrder,
+    navLabel: option.navLabel,
+    sortOrder: option.sortOrder,
+  };
 }
 
 export async function reorderProductOptionsAction(formData: FormData) {
@@ -689,11 +702,20 @@ export async function deleteProductOptionAction(formData: FormData) {
     },
   });
 
+  if (inUse > 0 && formData.get("confirmInUse") !== "true") {
+    throw new Error(
+      `Ez az opció ${inUse} terméknél használatban van. Törlés helyett inaktiválható, de előbb erősítsd meg.`,
+    );
+  }
+
   if (inUse > 0) {
     await db.productOption.update({
       where: { id: optionId },
       data: { isActive: false },
     });
+
+    revalidateCatalogPaths();
+    return { deleted: false, deactivated: true, inUse };
   } else {
     await db.productOption.delete({
       where: { id: optionId },
@@ -701,4 +723,5 @@ export async function deleteProductOptionAction(formData: FormData) {
   }
 
   revalidateCatalogPaths();
+  return { deleted: true, deactivated: false, inUse };
 }
