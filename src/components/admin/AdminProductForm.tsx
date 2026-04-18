@@ -12,10 +12,23 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import Link from "next/link";
-import { Archive, ChevronDown, ImagePlus, Save, Sparkles, Star, Trash2 } from "lucide-react";
+import type { ProductOptionType } from "@prisma/client";
+import {
+  Archive,
+  Check,
+  ChevronDown,
+  ImagePlus,
+  Loader2,
+  Plus,
+  Save,
+  Sparkles,
+  Star,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import {
+  createProductOptionAction,
   toggleProductArchiveAction,
 } from "@/app/(admin)/admin/products/actions";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
@@ -23,6 +36,7 @@ import { homepagePlacementLabels } from "@/lib/catalog";
 import {
   type AdminProductFormOptions,
   type AdminProductFormValues,
+  type ProductOptionValue,
 } from "@/lib/products";
 import {
   getUnsafeProductImageMessage,
@@ -80,6 +94,10 @@ type ProductFormState = {
 type FormFieldName = keyof ProductFormState;
 type FormErrorState = Partial<Record<FormFieldName, string>>;
 type OptionListKey = Exclude<keyof AdminProductFormOptions, "homepagePlacements" | "specialties" | "statuses">;
+type QuickCreateStatus = "idle" | "pending" | "success";
+type QuickCreateState = Partial<
+  Record<OptionListKey, { isOpen: boolean; name: string; error: string | null; status: QuickCreateStatus }>
+>;
 
 type UploadedImagePayload = {
   key: string;
@@ -139,6 +157,16 @@ const optionListKeyByField: Partial<Record<FormFieldName, OptionListKey>> = {
   occasion: "occasions",
   availability: "availability",
   tone: "tones",
+};
+
+const optionTypeByListKey: Record<OptionListKey, ProductOptionType> = {
+  categories: "CATEGORY",
+  stoneTypes: "STONE_TYPE",
+  colors: "COLOR",
+  styles: "STYLE",
+  occasions: "OCCASION",
+  availability: "AVAILABILITY",
+  tones: "VISUAL_TONE",
 };
 
 const textEncoder = new TextEncoder();
@@ -595,16 +623,34 @@ function ToggleSwitch({
 
 function SimpleOptionSelect({
   error,
+  isCreating,
   label,
+  onCreate,
   onChange,
+  onQuickCreateChange,
+  onQuickCreateClose,
+  onQuickCreateOpen,
   options,
+  quickCreateError,
+  quickCreateName,
+  quickCreateOpen,
+  quickCreateStatus,
   required,
   selectedValue,
 }: {
   error?: string;
+  isCreating?: boolean;
   label: string;
+  onCreate: () => void;
   onChange: (nextValue: string) => void;
+  onQuickCreateChange: (nextValue: string) => void;
+  onQuickCreateClose: () => void;
+  onQuickCreateOpen: () => void;
   options: { id: string; name: string }[];
+  quickCreateError?: string | null;
+  quickCreateName: string;
+  quickCreateOpen: boolean;
+  quickCreateStatus?: QuickCreateStatus;
   required?: boolean;
   selectedValue: string;
 }) {
@@ -615,12 +661,14 @@ function SimpleOptionSelect({
           {label}
           {required ? <span className="ml-1 text-[#9b476f]">*</span> : null}
         </span>
-        <Link
-          href="/admin/options"
-          className="text-[10px] font-medium text-[var(--admin-blue-700)] transition hover:underline"
+        <button
+          type="button"
+          onClick={quickCreateOpen ? onQuickCreateClose : onQuickCreateOpen}
+          className="inline-flex items-center gap-1 rounded-md border border-[var(--admin-line-100)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--admin-blue-700)] transition hover:border-[#bfd0ea] hover:bg-[var(--admin-blue-050)]"
         >
-          Opciók kezelése →
-        </Link>
+          {quickCreateOpen ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+          {quickCreateOpen ? "Bezárás" : "Új hozzáadása"}
+        </button>
       </div>
       <select
         value={selectedValue}
@@ -634,6 +682,50 @@ function SimpleOptionSelect({
           </option>
         ))}
       </select>
+      {quickCreateOpen ? (
+        <div className="mt-2 rounded-md border border-[#bfd0ea] bg-[var(--admin-blue-050)] p-2.5">
+          <div className="flex gap-2">
+            <input
+              value={quickCreateName}
+              onChange={(event) => onQuickCreateChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  onCreate();
+                }
+                if (event.key === "Escape") {
+                  onQuickCreateClose();
+                }
+              }}
+              placeholder={`${label} neve`}
+              disabled={isCreating}
+              className={`${inputCls} h-9 min-w-0`}
+            />
+            <button
+              type="button"
+              onClick={onCreate}
+              disabled={isCreating || quickCreateName.trim().length === 0}
+              className="inline-flex h-9 min-w-[5.75rem] items-center justify-center gap-1.5 rounded-md border border-[#295da8] bg-[#2a63b5] px-3 text-xs font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
+            >
+              {isCreating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : quickCreateStatus === "success" ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
+              {isCreating ? "Mentés..." : quickCreateStatus === "success" ? "Kész" : "Mentés"}
+            </button>
+          </div>
+          {quickCreateError ? (
+            <p className="mt-1.5 text-xs text-[#9b476f]">{quickCreateError}</p>
+          ) : (
+            <p className="mt-1.5 text-xs text-[var(--admin-ink-500)]">
+              Mentés után az új érték azonnal kiválasztásra kerül.
+            </p>
+          )}
+        </div>
+      ) : null}
       {error && <p className="mt-1.5 text-xs text-[#9b476f]">{error}</p>}
     </div>
   );
@@ -665,12 +757,16 @@ export function AdminProductForm({
   );
 
   const [formValues, setFormValues] = useState<ProductFormState>(initialFormState);
+  const [localOptions, setLocalOptions] = useState<AdminProductFormOptions>(options);
+  const [quickCreateState, setQuickCreateState] = useState<QuickCreateState>({});
+  const [pendingQuickCreateKey, setPendingQuickCreateKey] = useState<OptionListKey | null>(null);
   const [errors, setErrors] = useState<FormErrorState>({});
   const [existingImages, setExistingImages] = useState<PendingImage[]>(initialExistingImages);
   const [uploadedImages, setUploadedImages] = useState<PendingImage[]>([]);
   const [coverImageKey, setCoverImageKey] = useState<string>(initialCoverImageKey);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, startSubmitTransition] = useTransition();
+  const [isCreatingOption, startCreateOptionTransition] = useTransition();
   const [isArchiving, startArchiveTransition] = useTransition();
   const [slugUserEdited, setSlugUserEdited] = useState(!!values.slug);
   const [seoOpen, setSeoOpen] = useState(false);
@@ -682,6 +778,10 @@ export function AdminProductForm({
   useEffect(() => {
     uploadedImagesRef.current = uploadedImages;
   }, [uploadedImages]);
+
+  useEffect(() => {
+    setLocalOptions(options);
+  }, [options]);
 
   useEffect(() => {
     return () => {
@@ -788,6 +888,65 @@ export function AdminProductForm({
       return next;
     });
   };
+
+  function setQuickCreatePatch(key: OptionListKey, patch: Partial<NonNullable<QuickCreateState[OptionListKey]>>) {
+    setQuickCreateState((current) => ({
+      ...current,
+      [key]: {
+        isOpen: current[key]?.isOpen ?? false,
+        name: current[key]?.name ?? "",
+        error: current[key]?.error ?? null,
+        status: current[key]?.status ?? "idle",
+        ...patch,
+      },
+    }));
+  }
+
+  function appendCreatedOption(key: OptionListKey, option: ProductOptionValue) {
+    setLocalOptions((current) => ({
+      ...current,
+      [key]: [...current[key], option],
+    }));
+  }
+
+  function handleCreateOption(key: OptionListKey, fieldName: FormFieldName) {
+    const name = quickCreateState[key]?.name.trim() ?? "";
+    if (!name) {
+      setQuickCreatePatch(key, { error: "Adj meg egy nevet.", status: "idle" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("type", optionTypeByListKey[key]);
+    formData.append("name", name);
+    if (key === "categories") {
+      formData.append("isStorefrontVisible", "on");
+    }
+
+    setPendingQuickCreateKey(key);
+    setQuickCreatePatch(key, { error: null, status: "pending" });
+
+    startCreateOptionTransition(async () => {
+      try {
+        const createdOption = await createProductOptionAction(formData);
+        appendCreatedOption(key, createdOption);
+        handleFieldChange(fieldName, createdOption.id as ProductFormState[typeof fieldName]);
+        setQuickCreatePatch(key, {
+          error: null,
+          isOpen: false,
+          name: "",
+          status: "success",
+        });
+      } catch (err) {
+        setQuickCreatePatch(key, {
+          error: err instanceof Error ? err.message : "Az új opció mentése nem sikerült.",
+          status: "idle",
+        });
+      } finally {
+        setPendingQuickCreateKey(null);
+      }
+    });
+  }
 
   const handleNameChange = (name: string) => {
     handleFieldChange("name", name);
@@ -921,7 +1080,7 @@ export function AdminProductForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validateFormState(formValues, options);
+    const nextErrors = validateFormState(formValues, localOptions);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -1007,6 +1166,25 @@ export function AdminProductForm({
         setSubmitError(err instanceof Error ? err.message : "Az állapotművelet nem sikerült.");
       }
     });
+  }
+
+  function getQuickCreateProps(key: OptionListKey, fieldName: FormFieldName) {
+    const state = quickCreateState[key];
+
+    return {
+      isCreating: isCreatingOption && pendingQuickCreateKey === key,
+      onCreate: () => handleCreateOption(key, fieldName),
+      onQuickCreateChange: (nextValue: string) =>
+        setQuickCreatePatch(key, { error: null, name: nextValue, status: "idle" }),
+      onQuickCreateClose: () =>
+        setQuickCreatePatch(key, { error: null, isOpen: false, status: "idle" }),
+      onQuickCreateOpen: () =>
+        setQuickCreatePatch(key, { error: null, isOpen: true, status: "idle" }),
+      quickCreateError: state?.error ?? null,
+      quickCreateName: state?.name ?? "",
+      quickCreateOpen: state?.isOpen ?? false,
+      quickCreateStatus: state?.status ?? "idle",
+    };
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -1443,7 +1621,7 @@ export function AdminProductForm({
                 }
                 className={inputCls}
               >
-                {options.statuses.map((status) => (
+                {localOptions.statuses.map((status) => (
                   <option key={status} value={status}>
                     {statusLabels[status]}
                   </option>
@@ -1464,7 +1642,7 @@ export function AdminProductForm({
                 className={inputCls}
               >
                 <option value="">Válassz kihelyezést...</option>
-                {options.homepagePlacements.map((placement) => (
+                {localOptions.homepagePlacements.map((placement) => (
                   <option key={placement} value={placement}>
                     {homepagePlacementLabels[placement]}
                   </option>
@@ -1491,66 +1669,73 @@ export function AdminProductForm({
               <SimpleOptionSelect
                 label="Kategória"
                 selectedValue={formValues.category}
-                options={options.categories}
+                options={localOptions.categories}
                 onChange={(v) => handleFieldChange("category", v)}
                 error={errors.category}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("categories", "category")}
               />
               <SimpleOptionSelect
                 label="Kőtípus"
                 selectedValue={formValues.stoneType}
-                options={options.stoneTypes}
+                options={localOptions.stoneTypes}
                 onChange={(v) => handleFieldChange("stoneType", v)}
                 error={errors.stoneType}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("stoneTypes", "stoneType")}
               />
               <SimpleOptionSelect
                 label="Szín / Fém"
                 selectedValue={formValues.color}
-                options={options.colors}
+                options={localOptions.colors}
                 onChange={(v) => handleFieldChange("color", v)}
                 error={errors.color}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("colors", "color")}
               />
               <SimpleOptionSelect
                 label="Stílus"
                 selectedValue={formValues.style}
-                options={options.styles}
+                options={localOptions.styles}
                 onChange={(v) => handleFieldChange("style", v)}
                 error={errors.style}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("styles", "style")}
               />
               <SimpleOptionSelect
                 label="Alkalom"
                 selectedValue={formValues.occasion}
-                options={options.occasions}
+                options={localOptions.occasions}
                 onChange={(v) => handleFieldChange("occasion", v)}
                 error={errors.occasion}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("occasions", "occasion")}
               />
               <SimpleOptionSelect
                 label="Elérhetőség"
                 selectedValue={formValues.availability}
-                options={options.availability}
+                options={localOptions.availability}
                 onChange={(v) => handleFieldChange("availability", v)}
                 error={errors.availability}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("availability", "availability")}
               />
               <SimpleOptionSelect
                 label="Vizuális tónus"
                 selectedValue={formValues.tone}
-                options={options.tones}
+                options={localOptions.tones}
                 onChange={(v) => handleFieldChange("tone", v)}
                 error={errors.tone}
                 required={formValues.status === "ACTIVE"}
+                {...getQuickCreateProps("tones", "tone")}
               />
             </div>
           </CardShell>
 
           <CardShell eyebrow="Különlegességek" title="Kollekció kapcsolatok">
-            {options.specialties.length > 0 ? (
+            {localOptions.specialties.length > 0 ? (
               <div className="space-y-2">
-                {options.specialties.map((specialty) => {
+                {localOptions.specialties.map((specialty) => {
                   const checked = formValues.specialtyIds.includes(specialty.id);
 
                   return (

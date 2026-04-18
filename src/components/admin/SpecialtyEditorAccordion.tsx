@@ -11,7 +11,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Check, ChevronDown, Save } from "lucide-react";
+import { Check, ChevronDown, Loader2, Save } from "lucide-react";
 
 type SpecialtyAccordionContextValue = {
   accordionId: string;
@@ -273,13 +273,10 @@ export function SpecialtyEditorSaveButton({
     !isSubmitting &&
     savedSpecialtyId === specialtyId &&
     (savedStatus === "updated" || savedStatus === "created");
-  const isIdle = !isDirty && !isSubmitting && !isSaved;
-  const disabled = isSubmitting || isIdle || isSaved;
+  const disabled = isSubmitting || isSaved;
   const className = isSaved
-    ? "admin-control-sm gap-1.5 border border-[#88bea0] bg-[#2f7d4e] px-2.5 text-xs font-semibold text-white hover:bg-[#276a42] disabled:opacity-100"
-    : isIdle
-      ? "admin-button-secondary admin-control-sm gap-1.5"
-      : "admin-button-primary admin-control-sm gap-1.5";
+    ? "admin-control-sm min-w-[6.75rem] gap-1.5 border border-[#b8d9c6] bg-[#f2faf5] px-2.5 text-xs font-semibold text-[#24533a] shadow-[0_1px_0_rgba(15,23,42,0.03)] transition-colors duration-200 disabled:opacity-100"
+    : "admin-button-primary admin-control-sm min-w-[6.75rem] gap-1.5 transition-colors duration-200";
 
   return (
     <button
@@ -289,12 +286,16 @@ export function SpecialtyEditorSaveButton({
       aria-live="polite"
       className={className}
     >
-      {isSaved ? (
+      {isSubmitting ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : isSaved ? (
         <Check className="h-3.5 w-3.5" />
       ) : (
         <Save className="h-3.5 w-3.5" />
       )}
-      {isSubmitting ? "Mentés..." : isSaved ? "Mentve" : isIdle ? "Nincs módosítás" : "Mentés"}
+      <span className="min-w-[3.65rem] text-center">
+        {isSubmitting ? "Mentés..." : isSaved ? "Mentve" : "Mentés"}
+      </span>
     </button>
   );
 }
