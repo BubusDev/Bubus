@@ -1,6 +1,14 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ExternalLink, Eye, ImageIcon, Plus, Save, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ExternalLink,
+  Eye,
+  ImageIcon,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 
 import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -66,21 +74,37 @@ function Field({
 
 function EditorSection({
   children,
+  defaultOpen = false,
   eyebrow,
   title,
 }: {
   children: ReactNode;
+  defaultOpen?: boolean;
   eyebrow: string;
   title: string;
 }) {
   return (
-    <section className="border border-[var(--admin-line-100)] bg-white/82 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.03)] sm:p-5">
-      <p className="admin-eyebrow">{eyebrow}</p>
-      <h3 className="mt-1 text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
-        {title}
-      </h3>
-      <div className="mt-4">{children}</div>
-    </section>
+    <details
+      className="group overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-white/82 shadow-[0_10px_24px_rgba(15,23,42,0.03)] [&_summary::-webkit-details-marker]:hidden"
+      open={defaultOpen}
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-[var(--admin-blue-050)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(63,122,210,0.18)] focus-visible:ring-offset-2 sm:px-5">
+        <span className="min-w-0">
+          <span className="admin-eyebrow block">{eyebrow}</span>
+          <span className="mt-1 block truncate text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
+            {title}
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-[var(--admin-ink-500)]">
+          <span className="hidden group-open:inline">Nyitva</span>
+          <span className="inline group-open:hidden">Zárva</span>
+          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
+      <div className="border-t border-[var(--admin-line-100)] px-4 py-4 sm:px-5">
+        {children}
+      </div>
+    </details>
   );
 }
 
@@ -101,74 +125,76 @@ function SpecialtyPreview({ item }: { item: SpecialtyEditorItem }) {
   const ctaLabel = item.ctaLabel || "Kollekció megnyitása";
 
   return (
-    <aside className="admin-panel-soft p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="admin-eyebrow">Előnézeti kontextus</p>
-          <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
-            Mega menu viselkedés
-          </h3>
-        </div>
-        <span
-          className={`rounded-sm border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-            item.isVisible
-              ? "border-[#bdd7c8] bg-[#f2faf5] text-[#24533a]"
-              : "border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-500)]"
-          }`}
-        >
-          {item.isVisible ? "Látható" : "Rejtett"}
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <div>
-          <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
-            Középső preview
-          </p>
-          <div className="flex aspect-[3/4] max-h-64 items-center justify-center overflow-hidden rounded-sm border border-[var(--admin-line-100)] bg-[#f6edf3]">
-            {previewImage ? (
-              <img src={previewImage} alt={item.previewImageAlt || item.imageAlt || item.name} className="h-full w-full object-cover" />
-            ) : (
-              <ImageIcon className="h-8 w-8 text-[#c7aaba]" />
-            )}
+    <aside>
+      <EditorSection eyebrow="05" title="Előnézeti kontextus">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="admin-eyebrow">Mega menu</p>
+            <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
+              Mega menu viselkedés
+            </h3>
           </div>
-          {!previewImage ? <MissingNote>Hiányzik a preview kép. A storefront fallback vizuált mutat.</MissingNote> : null}
+          <span
+            className={`rounded-sm border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+              item.isVisible
+                ? "border-[#bdd7c8] bg-[#f2faf5] text-[#24533a]"
+                : "border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-500)]"
+            }`}
+          >
+            {item.isVisible ? "Látható" : "Rejtett"}
+          </span>
         </div>
 
-        <div>
-          <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
-            Jobb oldali card
-          </p>
-          <div className="relative min-h-64 overflow-hidden rounded-sm bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
-            {cardImage ? (
-              <img src={cardImage} alt={item.cardImageAlt || item.previewImageAlt || item.name} className="absolute inset-0 h-full w-full object-cover" />
-            ) : null}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
-            <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
-              <p className="mb-2 self-start rounded-sm border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.22em] text-white/80">
-                Válogatás
-              </p>
-              <h4 className="line-clamp-2 break-words font-[family:var(--font-display)] text-lg font-semibold leading-tight">
-                {cardTitle}
-              </h4>
-              {cardDescription ? (
-                <p className="mt-2 line-clamp-3 text-xs leading-5 text-white/80">{cardDescription}</p>
-              ) : null}
-              <p className="mt-3 line-clamp-1 break-all text-xs font-medium">{ctaLabel}</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
+              Középső preview
+            </p>
+            <div className="flex aspect-[3/4] max-h-64 items-center justify-center overflow-hidden rounded-sm border border-[var(--admin-line-100)] bg-[#f7f9fc]">
+              {previewImage ? (
+                <img src={previewImage} alt={item.previewImageAlt || item.imageAlt || item.name} className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-[var(--admin-ink-500)]" />
+              )}
             </div>
+            {!previewImage ? <MissingNote>Hiányzik a preview kép. A storefront fallback vizuált mutat.</MissingNote> : null}
           </div>
-          {!item.cardImageUrl ? <MissingNote>Hiányzik a card kép. A card a preview képet vagy fallback hátteret használ.</MissingNote> : null}
-        </div>
-      </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[var(--admin-ink-600)]">
-        <span>{item._count.products} kapcsolt termék</span>
-        <span aria-hidden="true">/</span>
-        <Link href={href} className="inline-flex items-center gap-1 text-[var(--admin-blue-700)] hover:underline">
-          {href}
-          <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
+          <div>
+            <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
+              Jobb oldali card
+            </p>
+            <div className="relative min-h-64 overflow-hidden rounded-sm bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+              {cardImage ? (
+                <img src={cardImage} alt={item.cardImageAlt || item.previewImageAlt || item.name} className="absolute inset-0 h-full w-full object-cover" />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
+              <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                <p className="mb-2 self-start rounded-sm border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.22em] text-white/80">
+                  Válogatás
+                </p>
+                <h4 className="line-clamp-2 break-words font-[family:var(--font-display)] text-lg font-semibold leading-tight">
+                  {cardTitle}
+                </h4>
+                {cardDescription ? (
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-white/80">{cardDescription}</p>
+                ) : null}
+                <p className="mt-3 line-clamp-1 break-all text-xs font-medium">{ctaLabel}</p>
+              </div>
+            </div>
+            {!item.cardImageUrl ? <MissingNote>Hiányzik a card kép. A card a preview képet vagy fallback hátteret használ.</MissingNote> : null}
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[var(--admin-ink-600)]">
+          <span>{item._count.products} kapcsolt termék</span>
+          <span aria-hidden="true">/</span>
+          <Link href={href} className="inline-flex items-center gap-1 text-[var(--admin-blue-700)] hover:underline">
+            {href}
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        </div>
+      </EditorSection>
     </aside>
   );
 }
@@ -196,7 +222,7 @@ function SpecialtyForm({
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
         <div className="space-y-5">
-          <EditorSection eyebrow="01" title="Alapinformációk">
+          <EditorSection eyebrow="01" title="Alapinformációk" defaultOpen>
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_7rem]">
               <Field label="Név">
                 <input name="name" required defaultValue={item?.name ?? ""} placeholder="Kulcstartók" className={inputClassName} />
@@ -210,7 +236,7 @@ function SpecialtyForm({
             </div>
           </EditorSection>
 
-          <EditorSection eyebrow="02" title="Storefront tartalom">
+          <EditorSection eyebrow="02" title="Storefront tartalom" defaultOpen>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Jobb oldali card cím" helper="Ha üres, a specialty neve jelenik meg a mega menu jobb oldali kártyáján.">
                 <input name="cardTitle" defaultValue={item?.cardTitle ?? ""} placeholder={item?.name ?? "Kulcstartók"} className={inputClassName} />
@@ -306,14 +332,16 @@ function SpecialtyForm({
         {item ? (
           <SpecialtyPreview item={item} />
         ) : (
-          <aside className="admin-panel-soft p-4">
-            <p className="admin-eyebrow">Előnézeti kontextus</p>
-            <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
-              Új specialty
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">
-              Mentés után saját listing oldalt kap, és ha látható, megjelenik a Különlegességek mega menüben.
-            </p>
+          <aside>
+            <EditorSection eyebrow="05" title="Előnézeti kontextus">
+              <p className="admin-eyebrow">Új specialty</p>
+              <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
+                Új specialty
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">
+                Mentés után saját listing oldalt kap, és ha látható, megjelenik a Különlegességek mega menüben.
+              </p>
+            </EditorSection>
           </aside>
         )}
       </div>

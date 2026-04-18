@@ -58,24 +58,24 @@ export function AdminBlobImageInput({
 
       {blobUrl && (
         <div
-          className={`overflow-hidden rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff7fb] ${previewClassName}`}
+          className={`overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] ${previewClassName}`}
         >
           <img src={blobUrl} alt={label} className={imageClassName} />
         </div>
       )}
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-[#5a374e]">{label}</span>
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium text-[var(--admin-ink-700)]">{label}</span>
         <input
           type="file"
           accept={browserSafeProductImageAccept}
           disabled={isUploading}
           onChange={handleFileChange}
-          className="block w-full rounded-2xl border border-[#edd1e1] bg-white px-4 py-3 text-sm text-[#4d2741] file:mr-4 file:rounded-full file:border-0 file:bg-[#f183bc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white disabled:opacity-60"
+          className="admin-input block min-h-10 w-full px-2.5 py-2 text-sm text-[var(--admin-ink-700)] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[#295da8] file:bg-[#2a63b5] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#24579f] disabled:opacity-60"
         />
       </label>
 
-      {isUploading && <p className="text-xs text-[#af7795]">Feltöltés folyamatban...</p>}
+      {isUploading && <p className="text-xs text-[var(--admin-blue-700)]">Feltöltés folyamatban...</p>}
       {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
     </div>
   );
