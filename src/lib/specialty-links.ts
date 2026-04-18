@@ -9,8 +9,16 @@ export type SpecialtyView = {
   imageAlt: string | null;
   previewImageUrl: string | null;
   previewImageAlt: string | null;
+  previewImageCropX: number;
+  previewImageCropY: number;
+  previewImageZoom: number;
+  previewImageAspectRatio: number;
   cardImageUrl: string | null;
   cardImageAlt: string | null;
+  cardImageCropX: number;
+  cardImageCropY: number;
+  cardImageZoom: number;
+  cardImageAspectRatio: number;
   cardTitle: string | null;
   cardDescription: string | null;
   ctaLabel: string | null;

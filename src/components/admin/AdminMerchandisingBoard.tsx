@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, GripVertical, LayoutGrid, List, RotateCcw, Save } from "lucide-react";
@@ -8,6 +7,7 @@ import { useMemo, useState, useTransition, type DragEvent } from "react";
 
 import { saveMerchandisingOrderAction } from "@/app/(admin)/admin/merchandising/actions";
 import { formatPrice } from "@/lib/catalog";
+import { getCroppedBackgroundStyle, type ImageCropArea } from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import type { MerchandisingContext } from "@/lib/products";
 
@@ -20,6 +20,7 @@ export type MerchandisingBoardProduct = {
   collectionLabel: string;
   categoryLabel: string;
   imageUrl: string | null;
+  cardCropArea: ImageCropArea | null;
   statusLabel: string;
   availableToSell: number;
   isNew: boolean;
@@ -350,7 +351,12 @@ function MerchandisingProductTile({
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0]">
         {imageUrl ? (
-          <Image src={imageUrl} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 20vw" />
+          <div
+            role="img"
+            aria-label={product.name}
+            className="absolute inset-0 bg-[#f5f3f0]"
+            style={getCroppedBackgroundStyle(imageUrl, product.cardCropArea)}
+          />
         ) : (
           <div className="flex h-full items-center justify-center bg-[#edf1f6] px-3 text-center text-sm text-[var(--admin-ink-500)]">
             {product.name}
@@ -415,7 +421,12 @@ function MerchandisingProductRow({
       </div>
       <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#f5f3f0]">
         {imageUrl ? (
-          <Image src={imageUrl} alt={product.name} fill className="object-cover" sizes="56px" />
+          <div
+            role="img"
+            aria-label={product.name}
+            className="absolute inset-0 bg-[#f5f3f0]"
+            style={getCroppedBackgroundStyle(imageUrl, product.cardCropArea)}
+          />
         ) : null}
       </div>
       <div className="min-w-0">

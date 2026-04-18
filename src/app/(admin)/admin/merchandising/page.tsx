@@ -14,21 +14,33 @@ export default async function AdminMerchandisingPage({
     ? resolvedSearchParams.context[0]
     : resolvedSearchParams.context;
   const board = await getAdminMerchandisingBoard(selectedContext);
-  const products: MerchandisingBoardProduct[] = board.products.map((product) => ({
-    id: product.id,
-    slug: product.slug,
-    name: product.name,
-    price: product.price,
-    badge: product.badge,
-    collectionLabel: product.collectionLabel,
-    categoryLabel: product.labels.category,
-    imageUrl: product.imageUrl ?? null,
-    statusLabel: product.status,
-    availableToSell: product.availableToSell,
-    isNew: product.isNew,
-    isOnSale: product.isOnSale,
-    isGiftable: product.isGiftable,
-  }));
+  const products: MerchandisingBoardProduct[] = board.products.map((product) => {
+    const cardImage = product.images.find((image) => image.isCover) ?? product.images[0] ?? null;
+
+    return {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      badge: product.badge,
+      collectionLabel: product.collectionLabel,
+      categoryLabel: product.labels.category,
+      imageUrl: cardImage?.url ?? product.imageUrl ?? null,
+      cardCropArea: cardImage
+        ? {
+            x: cardImage.cardCropAreaX,
+            y: cardImage.cardCropAreaY,
+            width: cardImage.cardCropAreaWidth,
+            height: cardImage.cardCropAreaHeight,
+          }
+        : null,
+      statusLabel: product.status,
+      availableToSell: product.availableToSell,
+      isNew: product.isNew,
+      isOnSale: product.isOnSale,
+      isGiftable: product.isGiftable,
+    };
+  });
 
   return (
     <AdminShell

@@ -3,7 +3,6 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import Image from "next/image";
 
 import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import {
@@ -11,6 +10,7 @@ import {
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
+import { getCroppedBackgroundStyle } from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type ProductCardProps = {
@@ -70,10 +70,22 @@ export function ProductCard({
   );
   const productImageUrl = getBrowserDisplayImageUrl(product.imageUrl);
   const coverImage =
-    productImageUrl && !brokenImageUrls.has(productImageUrl)
-      ? productImageUrl
-      : safeImages[0]?.displayUrl ?? null;
-  const secondaryImage = safeImages.find((image) => image.displayUrl !== coverImage);
+    safeImages.find((image) => image.isCover) ??
+    safeImages[0] ??
+    (productImageUrl && !brokenImageUrls.has(productImageUrl)
+      ? {
+          cardCropAreaX: 0,
+          cardCropAreaY: 0,
+          cardCropAreaWidth: 100,
+          cardCropAreaHeight: 100,
+          displayUrl: productImageUrl,
+          id: "legacy-cover",
+          isCover: true,
+          url: productImageUrl,
+        }
+      : null);
+  const secondaryImage = safeImages.find((image) => image.displayUrl !== coverImage?.displayUrl);
+  const coverImageUrl = coverImage?.displayUrl ?? null;
   const secondaryImageUrl = secondaryImage?.displayUrl ?? null;
   const productHref = `/product/${product.slug}`;
   const isOutOfStock = isProductOutOfStock(product);
@@ -143,31 +155,37 @@ export function ProductCard({
           href={productHref}
           className="absolute inset-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
         >
-          {coverImage ? (
+          {coverImageUrl ? (
             <>
-              <Image
-                src={coverImage}
-                alt={product.name}
-                fill
-                className={`object-cover transition-[opacity,transform,filter] duration-500 ease-out ${
+              <div
+                aria-label={product.name}
+                role="img"
+                className={`absolute inset-0 bg-[#f5f3f0] transition-[opacity,transform,filter] duration-500 ease-out ${
                   secondaryImageUrl
                     ? "delay-100 group-hover:opacity-0 group-focus-within:opacity-0"
                     : imageHoverClass
                 } ${imageStateClass}`}
-                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 33vw, 25vw"
-                onError={() => {
-                  setBrokenImageUrls((current) => new Set(current).add(coverImage));
-                }}
+                style={getCroppedBackgroundStyle(coverImageUrl, {
+                  x: coverImage.cardCropAreaX,
+                  y: coverImage.cardCropAreaY,
+                  width: coverImage.cardCropAreaWidth,
+                  height: coverImage.cardCropAreaHeight,
+                })}
               />
-              {secondaryImageUrl ? (
-                <Image
-                  src={secondaryImageUrl}
-                  alt={secondaryImage?.alt ?? product.name}
-                  fill
+              {secondaryImage && secondaryImageUrl ? (
+                <div
+                  aria-label={secondaryImage?.alt ?? product.name}
+                  role="img"
                   className={`object-cover opacity-0 transition-[opacity,transform,filter] delay-100 duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100 group-focus-within:scale-[1.03] group-focus-within:opacity-100 ${imageStateClass}`}
-                  sizes="(max-width: 640px) 25vw, (max-width: 1024px) 33vw, 25vw"
-                  onError={() => {
-                    setBrokenImageUrls((current) => new Set(current).add(secondaryImageUrl));
+                  style={{
+                    ...getCroppedBackgroundStyle(secondaryImageUrl, {
+                      x: secondaryImage.cardCropAreaX,
+                      y: secondaryImage.cardCropAreaY,
+                      width: secondaryImage.cardCropAreaWidth,
+                      height: secondaryImage.cardCropAreaHeight,
+                    }),
+                    position: "absolute",
+                    inset: 0,
                   }}
                 />
               ) : null}

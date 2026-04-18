@@ -9,6 +9,7 @@ import { clearGuestCartToken, getGuestCartToken } from "@/lib/cartToken";
 import {
   isInStock,
 } from "@/lib/inventory";
+import type { ImageCropArea } from "@/lib/image-crop";
 import { getProductAvailabilitySnapshot, storefrontProductWhere } from "@/lib/product-lifecycle";
 import {
   type AppliedPromo,
@@ -35,6 +36,7 @@ export type FavouriteProduct = {
   soldOutAt?: Date | null;
   inStock: boolean;
   imageUrl?: string | null;
+  cardCropArea?: ImageCropArea | null;
 };
 
 export type CartItemSummary = {
@@ -171,9 +173,33 @@ function readPositiveInt(formData: FormData, key: string, fallback = 1) {
 
 function getCoverImage(product: {
   imageUrl?: string | null;
-  images: { id: string; url: string; alt?: string | null; isCover: boolean }[];
+  images: {
+    id: string;
+    url: string;
+    alt?: string | null;
+    isCover: boolean;
+    cardCropAreaX?: number;
+    cardCropAreaY?: number;
+    cardCropAreaWidth?: number;
+    cardCropAreaHeight?: number;
+  }[];
 }) {
   return product.images.find((image) => image.isCover) ?? product.images[0] ?? null;
+}
+
+function getProductCardCropArea(
+  image: ReturnType<typeof getCoverImage>,
+): ImageCropArea | null {
+  if (!image) {
+    return null;
+  }
+
+  return {
+    x: image.cardCropAreaX ?? 0,
+    y: image.cardCropAreaY ?? 0,
+    width: image.cardCropAreaWidth ?? 100,
+    height: image.cardCropAreaHeight ?? 100,
+  };
 }
 
 export function formatDate(value: Date) {
@@ -343,6 +369,7 @@ export async function getFavouriteProducts(userId: string) {
       soldOutAt: entry.product.soldOutAt,
       inStock: isInStock(entry.product),
       imageUrl: coverImage?.url ?? entry.product.imageUrl,
+      cardCropArea: getProductCardCropArea(coverImage),
     };
   });
 }

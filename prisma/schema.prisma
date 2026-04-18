@@ -280,6 +280,14 @@ model ProductImage {
   url       String
   alt       String?
   isCover   Boolean  @default(false)
+  cardCropX Float    @default(0)
+  cardCropY Float    @default(0)
+  cardCropZoom Float @default(1)
+  cardCropAspectRatio Float @default(0.75)
+  cardCropAreaX Float @default(0)
+  cardCropAreaY Float @default(0)
+  cardCropAreaWidth Float @default(100)
+  cardCropAreaHeight Float @default(100)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 
@@ -412,8 +420,16 @@ model Specialty {
   imageAlt         String?
   previewImageUrl  String?
   previewImageAlt  String?
+  previewImageCropX Float              @default(0)
+  previewImageCropY Float              @default(0)
+  previewImageZoom  Float              @default(1)
+  previewImageAspectRatio Float        @default(0.8)
   cardImageUrl     String?
   cardImageAlt     String?
+  cardImageCropX   Float               @default(0)
+  cardImageCropY   Float               @default(0)
+  cardImageZoom    Float               @default(1)
+  cardImageAspectRatio Float           @default(1.3333333333333333)
   cardTitle        String?
   cardDescription  String?
   ctaLabel         String?

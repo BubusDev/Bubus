@@ -6,10 +6,13 @@ import {
   useId,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, ArrowRight } from "lucide-react";
+
+import { getImageCropStyle, type ImageCropMetadata } from "@/lib/image-crop";
 
 export type MegaMenuHeroConfig = {
   backgroundImageSrc?: string;
@@ -27,8 +30,10 @@ export type MegaMenuItem = {
   shortDescription?: string | null;
   previewImageSrc?: string;
   previewImageAlt?: string;
+  previewImageCrop?: ImageCropMetadata;
   cardImageSrc?: string;
   cardImageAlt?: string;
+  cardImageCrop?: ImageCropMetadata;
   cardTitle?: string | null;
   cardDescription?: string | null;
   ctaText?: string | null;
@@ -47,11 +52,13 @@ function FadingMenuImage({
   className,
   sizes,
   src,
+  style,
 }: {
   alt: string;
   className: string;
   sizes: string;
   src?: string;
+  style?: CSSProperties;
 }) {
   const [isLoaded, setIsLoaded] = useState(!src);
   const [hasError, setHasError] = useState(false);
@@ -78,6 +85,7 @@ function FadingMenuImage({
         className={`${className} transition-opacity duration-300 ease-out ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
+        style={style}
         sizes={sizes}
       />
     </>
@@ -137,6 +145,7 @@ export function MegaMenu({
     : firstItem;
 
   const previewSrc = activeItem?.previewImageSrc ?? defaultPreviewImageSrc;
+  const previewCrop = activeItem?.previewImageCrop;
   const previewAlt =
     activeItem?.previewImageAlt ??
     activeItem?.name ??
@@ -152,6 +161,7 @@ export function MegaMenu({
   const cardHref = activeItem?.href || heroConfig?.ctaHref;
   const cardImageSrc = activeItem?.cardImageSrc || heroConfig?.backgroundImageSrc;
   const cardImageAlt = activeItem?.cardImageAlt || cardTitle || triggerLabel;
+  const cardImageCrop = activeItem?.cardImageCrop;
 
   function handleItemKeyDown(e: React.KeyboardEvent<HTMLAnchorElement>) {
     const all = Array.from(
@@ -265,6 +275,7 @@ export function MegaMenu({
                       src={previewSrc}
                       alt={previewAlt}
                       className="object-cover object-center transition-opacity duration-200"
+                      style={getImageCropStyle(previewCrop)}
                       sizes="(max-width: 1600px) 35vw"
                     />
                   ) : (
@@ -288,13 +299,14 @@ export function MegaMenu({
               {/* ── RIGHT: hero / promo block (35%) ── */}
               <div className="min-w-0 pl-5 xl:pl-10">
                 {cardTitle && cardHref ? (
-                  <div className="relative h-full min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+                  <div className="relative aspect-[4/3] min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
                     {cardImageSrc ? (
                       <FadingMenuImage
                         key={cardImageSrc}
                         src={cardImageSrc}
                         alt={cardImageAlt}
                         className="object-cover object-center"
+                        style={getImageCropStyle(cardImageCrop)}
                         sizes="(max-width: 1600px) 35vw"
                       />
                     ) : null}

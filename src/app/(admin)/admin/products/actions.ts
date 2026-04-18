@@ -12,6 +12,13 @@ import {
 import { getImageAltTextFromUrl } from "@/lib/blob-upload";
 import { db } from "@/lib/db";
 import {
+  DEFAULT_IMAGE_CROP_AREA,
+  normalizeCropArea,
+  normalizeCropNumber,
+  type ImageCropArea,
+  type ImageCropMetadata,
+} from "@/lib/image-crop";
+import {
   getSoldOutTimestamp,
   hasBecomeOutOfStock,
   hasCrossedIntoLowStock,
@@ -121,6 +128,41 @@ function getRetainedImageIds(formData: FormData) {
     .filter((value): value is string => typeof value === "string" && value.length > 0);
 }
 
+const DEFAULT_PRODUCT_CARD_CROP = {
+  x: 0,
+  y: 0,
+  zoom: 1,
+  aspectRatio: 0.75,
+} satisfies ImageCropMetadata;
+
+function parseImageCrop(value: unknown): ImageCropMetadata {
+  if (typeof value !== "object" || value === null) {
+    return DEFAULT_PRODUCT_CARD_CROP;
+  }
+
+  const input = value as Record<string, unknown>;
+  return {
+    x: normalizeCropNumber(input.x, DEFAULT_PRODUCT_CARD_CROP.x),
+    y: normalizeCropNumber(input.y, DEFAULT_PRODUCT_CARD_CROP.y),
+    zoom: normalizeCropNumber(input.zoom, DEFAULT_PRODUCT_CARD_CROP.zoom),
+    aspectRatio: normalizeCropNumber(input.aspectRatio, DEFAULT_PRODUCT_CARD_CROP.aspectRatio),
+  };
+}
+
+function parseImageCropArea(value: unknown): ImageCropArea {
+  if (typeof value !== "object" || value === null) {
+    return DEFAULT_IMAGE_CROP_AREA;
+  }
+
+  const input = value as Record<string, unknown>;
+  return normalizeCropArea({
+    x: normalizeCropNumber(input.x, DEFAULT_IMAGE_CROP_AREA.x),
+    y: normalizeCropNumber(input.y, DEFAULT_IMAGE_CROP_AREA.y),
+    width: normalizeCropNumber(input.width, DEFAULT_IMAGE_CROP_AREA.width),
+    height: normalizeCropNumber(input.height, DEFAULT_IMAGE_CROP_AREA.height),
+  });
+}
+
 function getUploadedImages(formData: FormData) {
   const compactValue = formData.get("uploadedImagesJson");
 
@@ -139,7 +181,7 @@ function getUploadedImages(formData: FormData) {
 
     return parsed
       .filter(
-        (entry): entry is { key: string; url: string } =>
+        (entry): entry is { key: string; url: string; cardCrop?: unknown; cardCropArea?: unknown } =>
           typeof entry === "object" &&
           entry !== null &&
           typeof entry.key === "string" &&
@@ -148,6 +190,8 @@ function getUploadedImages(formData: FormData) {
           entry.url.length > 0,
       )
       .map((entry) => ({
+        cardCrop: parseImageCrop(entry.cardCrop),
+        cardCropArea: parseImageCropArea(entry.cardCropArea),
         key: entry.key,
         url: entry.url,
       }));
@@ -157,9 +201,49 @@ function getUploadedImages(formData: FormData) {
   const uploadedImageKeys = getUploadedImageKeys(formData);
 
   return uploadedImageUrls.map((url, index) => ({
+    cardCrop: DEFAULT_PRODUCT_CARD_CROP,
+    cardCropArea: DEFAULT_IMAGE_CROP_AREA,
     url,
     key: uploadedImageKeys[index] ?? `upload:${index}`,
   }));
+}
+
+function getRetainedImageCrops(formData: FormData) {
+  const compactValue = formData.get("retainedImageCropsJson");
+  const crops = new Map<string, { cardCrop: ImageCropMetadata; cardCropArea: ImageCropArea }>();
+
+  if (typeof compactValue !== "string" || compactValue.trim().length === 0) {
+    return crops;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(compactValue);
+  } catch {
+    throw new Error("Érvénytelen megtartott kép crop csomag.");
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("Érvénytelen megtartott kép crop csomag.");
+  }
+
+  for (const entry of parsed) {
+    if (
+      typeof entry !== "object" ||
+      entry === null ||
+      typeof (entry as { id?: unknown }).id !== "string"
+    ) {
+      continue;
+    }
+
+    const typedEntry = entry as { id: string; cardCrop?: unknown; cardCropArea?: unknown };
+    crops.set(typedEntry.id, {
+      cardCrop: parseImageCrop(typedEntry.cardCrop),
+      cardCropArea: parseImageCropArea(typedEntry.cardCropArea),
+    });
+  }
+
+  return crops;
 }
 
 function buildProductImageRecords(
@@ -172,6 +256,8 @@ function buildProductImageRecords(
     alt: getImageAltTextFromUrl(image.url) || productName,
     key: image.key,
     sortOrder: existingImageIds.length + index,
+    cardCrop: image.cardCrop,
+    cardCropArea: image.cardCropArea,
   }));
 
   for (const image of uploadedImages) {
@@ -184,6 +270,7 @@ function buildProductImageRecords(
   return {
     uploadedImages,
     coverImageKey,
+    retainedImageCrops: getRetainedImageCrops(formData),
   };
 }
 
@@ -219,6 +306,14 @@ export async function createProductAction(formData: FormData) {
               url: image.url,
               alt: image.alt,
               sortOrder: index,
+              cardCropX: image.cardCrop.x,
+              cardCropY: image.cardCrop.y,
+              cardCropZoom: image.cardCrop.zoom,
+              cardCropAspectRatio: image.cardCrop.aspectRatio,
+              cardCropAreaX: image.cardCropArea.x,
+              cardCropAreaY: image.cardCropArea.y,
+              cardCropAreaWidth: image.cardCropArea.width,
+              cardCropAreaHeight: image.cardCropArea.height,
               isCover:
                 coverImageKey.length > 0
                   ? coverImageKey === image.key
@@ -285,7 +380,7 @@ export async function updateProductAction(formData: FormData) {
 
   const { data, specialtyIds } = await parseProductFormData(formData);
   await assertProductSlugAvailable(data.slug, productId);
-  const { uploadedImages, coverImageKey } = buildProductImageRecords(
+  const { uploadedImages, coverImageKey, retainedImageCrops } = buildProductImageRecords(
     formData,
     data.name,
     retainedImageIds,
@@ -351,15 +446,38 @@ export async function updateProductAction(formData: FormData) {
             },
             updateMany: retainedImages.map((image, index) => ({
               where: { id: image.id },
-              data: {
-                sortOrder: index,
-                isCover: image.id === coverImageKey,
-              },
+              data: (() => {
+                const retainedCrop = retainedImageCrops.get(image.id);
+                return {
+                  sortOrder: index,
+                  isCover: image.id === coverImageKey,
+                  ...(retainedCrop
+                    ? {
+                        cardCropX: retainedCrop.cardCrop.x,
+                        cardCropY: retainedCrop.cardCrop.y,
+                        cardCropZoom: retainedCrop.cardCrop.zoom,
+                        cardCropAspectRatio: retainedCrop.cardCrop.aspectRatio,
+                        cardCropAreaX: retainedCrop.cardCropArea.x,
+                        cardCropAreaY: retainedCrop.cardCropArea.y,
+                        cardCropAreaWidth: retainedCrop.cardCropArea.width,
+                        cardCropAreaHeight: retainedCrop.cardCropArea.height,
+                      }
+                    : {}),
+                };
+              })(),
             })),
             create: uploadedImages.map((image, index) => ({
               url: image.url,
               alt: image.alt,
               sortOrder: retainedImages.length + index,
+              cardCropX: image.cardCrop.x,
+              cardCropY: image.cardCrop.y,
+              cardCropZoom: image.cardCrop.zoom,
+              cardCropAspectRatio: image.cardCrop.aspectRatio,
+              cardCropAreaX: image.cardCropArea.x,
+              cardCropAreaY: image.cardCropArea.y,
+              cardCropAreaWidth: image.cardCropArea.width,
+              cardCropAreaHeight: image.cardCropArea.height,
               isCover: coverImageKey === image.key,
             })),
           },

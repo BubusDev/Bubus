@@ -69,6 +69,14 @@ export type Product = {
     url: string;
     alt?: string | null;
     isCover: boolean;
+    cardCropX: number;
+    cardCropY: number;
+    cardCropZoom: number;
+    cardCropAspectRatio: number;
+    cardCropAreaX: number;
+    cardCropAreaY: number;
+    cardCropAreaWidth: number;
+    cardCropAreaHeight: number;
   }[];
   imagePalette: [string, string, string];
   homepagePlacement: HomepagePlacement;

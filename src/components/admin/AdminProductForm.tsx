@@ -36,7 +36,14 @@ import {
   toggleProductArchiveAction,
   updateProductOptionAction,
 } from "@/app/(admin)/admin/products/actions";
+import { AdminImageCropModal } from "@/components/admin/AdminImageCropModal";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
+import {
+  DEFAULT_IMAGE_CROP_AREA,
+  getCroppedBackgroundStyle,
+  type ImageCropArea,
+  type ImageCropMetadata,
+} from "@/lib/image-crop";
 import { homepagePlacementLabels } from "@/lib/catalog";
 import {
   type AdminProductFormOptions,
@@ -68,6 +75,13 @@ type PendingImage = {
   uploadedUrl: string;
   status: "ready" | "uploading" | "error";
   errorMessage?: string;
+  cardCrop: ImageCropMetadata;
+  cardCropArea: ImageCropArea;
+};
+
+type ProductCropItem = {
+  file: File;
+  url: string;
 };
 
 type ProductFormState = {
@@ -119,6 +133,8 @@ type OptionManagerState = Partial<
 type UploadedImagePayload = {
   key: string;
   url: string;
+  cardCrop: ImageCropMetadata;
+  cardCropArea: ImageCropArea;
 };
 
 type SubmissionEntrySummary = {
@@ -190,6 +206,13 @@ const textEncoder = new TextEncoder();
 const PRODUCT_IMAGE_DIRECT_UPLOAD_LIMIT_BYTES = 8 * 1024 * 1024;
 const PRODUCT_IMAGE_TARGET_MAX_EDGE = 2400;
 const PRODUCT_IMAGE_ENCODE_QUALITY = 0.86;
+const PRODUCT_CARD_ASPECT_RATIO = 3 / 4;
+const DEFAULT_PRODUCT_CARD_CROP: ImageCropMetadata = {
+  x: 0,
+  y: 0,
+  zoom: 1,
+  aspectRatio: PRODUCT_CARD_ASPECT_RATIO,
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -954,6 +977,18 @@ export function AdminProductForm({
         kind: "existing",
         uploadedUrl: image.url,
         status: "ready",
+        cardCrop: {
+          x: image.cardCropX,
+          y: image.cardCropY,
+          zoom: image.cardCropZoom,
+          aspectRatio: image.cardCropAspectRatio,
+        },
+        cardCropArea: {
+          x: image.cardCropAreaX,
+          y: image.cardCropAreaY,
+          width: image.cardCropAreaWidth,
+          height: image.cardCropAreaHeight,
+        },
       })),
     [values],
   );
@@ -977,13 +1012,21 @@ export function AdminProductForm({
   const [slugUserEdited, setSlugUserEdited] = useState(!!values.slug);
   const [seoOpen, setSeoOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [productCropQueue, setProductCropQueue] = useState<ProductCropItem[]>([]);
+  const [isProcessingProductCrop, setIsProcessingProductCrop] = useState(false);
+  const [editingCardCropImage, setEditingCardCropImage] = useState<PendingImage | null>(null);
 
   const uploadedImagesRef = useRef(uploadedImages);
+  const productCropQueueRef = useRef(productCropQueue);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     uploadedImagesRef.current = uploadedImages;
   }, [uploadedImages]);
+
+  useEffect(() => {
+    productCropQueueRef.current = productCropQueue;
+  }, [productCropQueue]);
 
   useEffect(() => {
     setLocalOptions(options);
@@ -993,6 +1036,9 @@ export function AdminProductForm({
     return () => {
       for (const image of uploadedImagesRef.current) {
         URL.revokeObjectURL(image.previewUrl);
+      }
+      for (const cropItem of productCropQueueRef.current) {
+        URL.revokeObjectURL(cropItem.url);
       }
     };
   }, []);
@@ -1278,7 +1324,10 @@ export function AdminProductForm({
     }
   };
 
-  async function processFiles(files: File[]) {
+  async function processFiles(
+    files: File[],
+    cropByFileName = new Map<string, { cardCrop: ImageCropMetadata; cardCropArea: ImageCropArea }>(),
+  ) {
     if (files.length === 0) return;
     setSubmitError(null);
 
@@ -1298,6 +1347,8 @@ export function AdminProductForm({
       kind: "upload" as const,
       uploadedUrl: "",
       status: "uploading" as const,
+      cardCrop: cropByFileName.get(file.name)?.cardCrop ?? DEFAULT_PRODUCT_CARD_CROP,
+      cardCropArea: cropByFileName.get(file.name)?.cardCropArea ?? DEFAULT_IMAGE_CROP_AREA,
     }));
 
     setUploadedImages((cur) => [...cur, ...nextImages]);
@@ -1338,7 +1389,7 @@ export function AdminProductForm({
   async function handleImageSelection(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
-    await processFiles(files);
+    beginProductImageCrop(files);
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
@@ -1347,11 +1398,100 @@ export function AdminProductForm({
     const files = Array.from(event.dataTransfer.files).filter((f) =>
       f.type.startsWith("image/") || isUploadAcceptedImageFile(f),
     );
-    void processFiles(files);
+    beginProductImageCrop(files);
+  }
+
+  function beginProductImageCrop(files: File[]) {
+    if (files.length === 0) return;
+    setSubmitError(null);
+
+    const acceptedFiles = files.filter(isUploadAcceptedImageFile);
+    const rejectedFiles = files.filter((file) => !isUploadAcceptedImageFile(file));
+    if (rejectedFiles.length > 0) {
+      setSubmitError(getUnsafeProductImageMessage(rejectedFiles[0]?.name));
+    }
+    if (acceptedFiles.length === 0) return;
+
+    const directUploadFiles = acceptedFiles.filter(
+      (file) => file.type === "image/gif" || isHeicImageFile(file),
+    );
+    const cropFiles = acceptedFiles.filter(
+      (file) => file.type !== "image/gif" && !isHeicImageFile(file),
+    );
+
+    if (directUploadFiles.length > 0) {
+      void processFiles(directUploadFiles);
+    }
+    if (cropFiles.length > 0) {
+      setProductCropQueue((current) => [
+        ...current,
+        ...cropFiles.map((file) => ({ file, url: URL.createObjectURL(file) })),
+      ]);
+    }
+  }
+
+  async function handleProductCropConfirm(
+    cardCrop: ImageCropMetadata,
+    croppedAreaPercentages: ImageCropArea,
+  ) {
+    const current = productCropQueue[0];
+    if (!current) return;
+    setIsProcessingProductCrop(true);
+    try {
+      URL.revokeObjectURL(current.url);
+      setProductCropQueue((queue) => queue.slice(1));
+      await processFiles(
+        [current.file],
+        new Map([
+          [
+            current.file.name,
+            {
+              cardCrop,
+              cardCropArea: {
+                x: croppedAreaPercentages.x,
+                y: croppedAreaPercentages.y,
+                width: croppedAreaPercentages.width,
+                height: croppedAreaPercentages.height,
+              },
+            },
+          ],
+        ]),
+      );
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "A kép vágása nem sikerült.");
+    } finally {
+      setIsProcessingProductCrop(false);
+    }
+  }
+
+  function updateImageCardCrop(
+    image: PendingImage,
+    cardCrop: ImageCropMetadata,
+    cardCropArea: ImageCropArea,
+  ) {
+    const updater = (current: PendingImage) =>
+      current.id === image.id ? { ...current, cardCrop, cardCropArea } : current;
+
+    if (image.kind === "existing") {
+      setExistingImages((cur) => cur.map(updater));
+    } else {
+      setUploadedImages((cur) => cur.map(updater));
+    }
+    setSubmitError(null);
+  }
+
+  function handleProductCropCancel() {
+    const current = productCropQueue[0];
+    if (!current) return;
+    URL.revokeObjectURL(current.url);
+    setProductCropQueue((queue) => queue.slice(1));
   }
 
   function removeImage(image: PendingImage) {
     setSubmitError(null);
+    if (editingCardCropImage?.id === image.id) {
+      setEditingCardCropImage(null);
+    }
     if (image.kind === "existing") {
       setExistingImages((cur) => cur.filter((ei) => ei.id !== image.id));
       return;
@@ -1363,7 +1503,14 @@ export function AdminProductForm({
   function buildSubmissionFormData() {
     const formData = new FormData();
     const retainedIds = existingImages.map((img) => img.id);
+    const retainedCropPayload = existingImages.map((img) => ({
+      cardCrop: img.cardCrop,
+      cardCropArea: img.cardCropArea,
+      id: img.id,
+    }));
     const uploadPayload: UploadedImagePayload[] = completedUploadedImages.map((img) => ({
+      cardCrop: img.cardCrop,
+      cardCropArea: img.cardCropArea,
       key: img.id,
       url: img.uploadedUrl,
     }));
@@ -1395,6 +1542,7 @@ export function AdminProductForm({
       formData.append("specialtyIds", specialtyId);
     }
     if (retainedIds.length > 0) formData.append("retainedImageIdsCsv", retainedIds.join(","));
+    if (retainedCropPayload.length > 0) formData.append("retainedImageCropsJson", JSON.stringify(retainedCropPayload));
     if (uploadPayload.length > 0) formData.append("uploadedImagesJson", JSON.stringify(uploadPayload));
     formData.append("coverImageKey", effectiveCoverImageKey);
     return formData;
@@ -1541,6 +1689,33 @@ export function AdminProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
+      {productCropQueue[0] ? (
+        <AdminImageCropModal
+          aspectRatio={PRODUCT_CARD_ASPECT_RATIO}
+          guidance="Ez a kép a storefront termékkártyáin 3:4 arányban jelenik meg. A terméket tartsd középen; a szélek listing nézetben levágódhatnak."
+          imageUrl={productCropQueue[0].url}
+          isProcessing={isProcessingProductCrop}
+          onCancel={handleProductCropCancel}
+          onConfirm={() => undefined}
+          onConfirmArea={handleProductCropConfirm}
+          title="Termékkártya kép vágása"
+        />
+      ) : null}
+      {editingCardCropImage ? (
+        <AdminImageCropModal
+          aspectRatio={PRODUCT_CARD_ASPECT_RATIO}
+          guidance="Ez az előnézet ugyanazt a 3:4 termékkártya-kivágást használja, mint a listing grid és a merchandising board."
+          imageUrl={editingCardCropImage.previewUrl}
+          initialCrop={editingCardCropImage.cardCrop}
+          onCancel={() => setEditingCardCropImage(null)}
+          onConfirm={() => undefined}
+          onConfirmArea={(cardCrop, cardCropArea) => {
+            updateImageCardCrop(editingCardCropImage, cardCrop, cardCropArea);
+            setEditingCardCropImage(null);
+          }}
+          title="Termékkártya kivágás módosítása"
+        />
+      ) : null}
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
@@ -1771,12 +1946,21 @@ export function AdminProductForm({
                             boxShadow: isCover ? "0 0 0 1px rgba(42,99,181,0.2)" : undefined,
                           }}
                         >
-                          <div className="aspect-square">
-                            <img
-                              src={image.previewUrl}
-                              alt={image.name}
-                              className="h-full w-full object-cover"
-                            />
+                          <div
+                            className="aspect-[3/4] bg-[#f5f3f0]"
+                            role="img"
+                            aria-label={image.name}
+                            style={getCroppedBackgroundStyle(image.previewUrl, image.cardCropArea)}
+                          />
+                          <div className="border-t border-[var(--admin-line-100)] bg-white px-2 py-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setEditingCardCropImage(image)}
+                              disabled={image.status !== "ready"}
+                              className="w-full rounded-sm border border-[var(--admin-line-200)] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-blue-700)] transition hover:bg-[var(--admin-blue-050)] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Kártya crop
+                            </button>
                           </div>
                           <button
                             type="button"

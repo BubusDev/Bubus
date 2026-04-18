@@ -23,6 +23,7 @@ import {
   deleteSpecialtyAction,
   updateSpecialtyAction,
 } from "./actions";
+import { getImageCropStyle } from "@/lib/image-crop";
 
 type AdminSpecialtiesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -142,9 +143,19 @@ function SpecialtyPreview({
             <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
               Középső preview
             </p>
-            <div className="flex aspect-[3/4] max-h-64 items-center justify-center overflow-hidden rounded-sm border border-[var(--admin-line-100)] bg-[#f7f9fc]">
+            <div className="flex aspect-[4/5] max-h-64 items-center justify-center overflow-hidden rounded-sm border border-[var(--admin-line-100)] bg-[#f7f9fc]">
               {previewImage ? (
-                <img src={previewImage} alt={item.previewImageAlt || item.imageAlt || item.name} className="h-full w-full object-cover" />
+                <img
+                  src={previewImage}
+                  alt={item.previewImageAlt || item.imageAlt || item.name}
+                  className="h-full w-full object-cover"
+                  style={getImageCropStyle({
+                    x: item.previewImageCropX,
+                    y: item.previewImageCropY,
+                    zoom: item.previewImageZoom,
+                    aspectRatio: item.previewImageAspectRatio,
+                  })}
+                />
               ) : (
                 <ImageIcon className="h-8 w-8 text-[var(--admin-ink-500)]" />
               )}
@@ -156,9 +167,28 @@ function SpecialtyPreview({
             <p className="mb-2 text-xs font-medium text-[var(--admin-ink-600)]">
               Jobb oldali card
             </p>
-            <div className="relative min-h-64 overflow-hidden rounded-sm bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+            <div className="relative aspect-[4/3] min-h-64 overflow-hidden rounded-sm bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
               {cardImage ? (
-                <img src={cardImage} alt={item.cardImageAlt || item.previewImageAlt || item.name} className="absolute inset-0 h-full w-full object-cover" />
+                <img
+                  src={cardImage}
+                  alt={item.cardImageAlt || item.previewImageAlt || item.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={getImageCropStyle(
+                    item.cardImageUrl
+                      ? {
+                          x: item.cardImageCropX,
+                          y: item.cardImageCropY,
+                          zoom: item.cardImageZoom,
+                          aspectRatio: item.cardImageAspectRatio,
+                        }
+                      : {
+                          x: item.previewImageCropX,
+                          y: item.previewImageCropY,
+                          zoom: item.previewImageZoom,
+                          aspectRatio: item.previewImageAspectRatio,
+                        },
+                  )}
+                />
               ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
               <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
@@ -258,7 +288,7 @@ function SpecialtyForm({
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Középső preview kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a kép a mega menu középső paneljében jelenik meg. Ajánlott arány: közel négyzetes vagy enyhén álló, kb. 4:5.
+                    Ez a kép a középső preview-ban jelenik meg. A rendszer levághatja a széleket. Fontos elemeket tartsd középen.
                   </p>
                   <AdminBlobImageInput
                     name="previewImageUrl"
@@ -266,7 +296,23 @@ function SpecialtyForm({
                     label="Középső preview kép feltöltése"
                     folder="specialties"
                     previewClassName="max-w-64 rounded-sm"
-                    imageClassName="aspect-[3/4] w-full object-cover"
+                    imageClassName="aspect-[4/5] w-full object-cover"
+                    crop={{
+                      aspectRatio: 4 / 5,
+                      title: "Középső preview kép vágása",
+                      guidance:
+                        "Ez a kép a középső preview-ban jelenik meg. A rendszer levághatja a széleket. Fontos elemeket tartsd középen.",
+                      xName: "previewImageCropX",
+                      yName: "previewImageCropY",
+                      zoomName: "previewImageZoom",
+                      aspectRatioName: "previewImageAspectRatio",
+                      defaultValue: {
+                        x: item?.previewImageCropX ?? 0,
+                        y: item?.previewImageCropY ?? 0,
+                        zoom: item?.previewImageZoom ?? 1,
+                        aspectRatio: item?.previewImageAspectRatio ?? 4 / 5,
+                      },
+                    }}
                   />
                 </div>
                 <Field label="Középső preview alt text" helper="A preview kép akadálymentes leírása. Ha üres és van kép, a specialty neve használható támpontnak.">
@@ -284,7 +330,7 @@ function SpecialtyForm({
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Jobb oldali card kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a jobb oldali CTA card háttere. Ajánlott arány: szélesebb, banner jellegű kép, kb. 4:3.
+                    Ez a jobb oldali CTA card háttere. A card 4:3 arányban jelenik meg. Szöveg vagy fontos részlet ne kerüljön a szélekre.
                   </p>
                   <AdminBlobImageInput
                     name="cardImageUrl"
@@ -293,6 +339,22 @@ function SpecialtyForm({
                     folder="specialties"
                     previewClassName="max-w-64 rounded-sm"
                     imageClassName="aspect-[4/3] w-full object-cover"
+                    crop={{
+                      aspectRatio: 4 / 3,
+                      title: "Jobb oldali card kép vágása",
+                      guidance:
+                        "Ez a kép a jobb oldali CTA card háttere. A card 4:3 arányban jelenik meg. Szöveg vagy fontos részlet ne kerüljön a szélekre.",
+                      xName: "cardImageCropX",
+                      yName: "cardImageCropY",
+                      zoomName: "cardImageZoom",
+                      aspectRatioName: "cardImageAspectRatio",
+                      defaultValue: {
+                        x: item?.cardImageCropX ?? 0,
+                        y: item?.cardImageCropY ?? 0,
+                        zoom: item?.cardImageZoom ?? 1,
+                        aspectRatio: item?.cardImageAspectRatio ?? 4 / 3,
+                      },
+                    }}
                   />
                 </div>
                 <Field label="Jobb oldali card alt text" helper="A card háttérkép leírása. Dekoratív kép esetén rövid, tárgyszerű szöveg elég.">

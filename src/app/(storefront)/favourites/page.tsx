@@ -77,6 +77,7 @@ export default async function FavouritesPage() {
                         <ProductImageFrame
                           alt={item.name}
                           imageUrl={item.imageUrl}
+                          cropArea={item.cardCropArea ?? null}
                           soldOut={isOutOfStock}
                           className="relative h-full w-full overflow-hidden"
                           imageClassName={`h-full w-full object-cover transition duration-500 ${

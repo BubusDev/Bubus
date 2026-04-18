@@ -268,6 +268,14 @@ function mapImage(image: DbProductImage) {
     url: image.url,
     alt: image.alt,
     isCover: image.isCover,
+    cardCropX: image.cardCropX,
+    cardCropY: image.cardCropY,
+    cardCropZoom: image.cardCropZoom,
+    cardCropAspectRatio: image.cardCropAspectRatio,
+    cardCropAreaX: image.cardCropAreaX,
+    cardCropAreaY: image.cardCropAreaY,
+    cardCropAreaWidth: image.cardCropAreaWidth,
+    cardCropAreaHeight: image.cardCropAreaHeight,
   };
 }
 
@@ -321,6 +329,14 @@ function getMappedImages(product: Pick<DbProductWithRelations, "images" | "image
         url: product.imageUrl,
         alt: product.name,
         isCover: true,
+        cardCropX: 0,
+        cardCropY: 0,
+        cardCropZoom: 1,
+        cardCropAspectRatio: 0.75,
+        cardCropAreaX: 0,
+        cardCropAreaY: 0,
+        cardCropAreaWidth: 100,
+        cardCropAreaHeight: 100,
       },
     ];
   }
@@ -1117,6 +1133,14 @@ export type AdminProductImageValue = {
   url: string;
   alt: string;
   isCover: boolean;
+  cardCropX: number;
+  cardCropY: number;
+  cardCropZoom: number;
+  cardCropAspectRatio: number;
+  cardCropAreaX: number;
+  cardCropAreaY: number;
+  cardCropAreaWidth: number;
+  cardCropAreaHeight: number;
 };
 
 export type AdminProductFormValues = {
@@ -1277,6 +1301,14 @@ export function toAdminProductFormValues(
     url: image.url,
     alt: image.alt ?? product.name,
     isCover: image.isCover,
+    cardCropX: image.cardCropX,
+    cardCropY: image.cardCropY,
+    cardCropZoom: image.cardCropZoom,
+    cardCropAspectRatio: image.cardCropAspectRatio,
+    cardCropAreaX: image.cardCropAreaX,
+    cardCropAreaY: image.cardCropAreaY,
+    cardCropAreaWidth: image.cardCropAreaWidth,
+    cardCropAreaHeight: image.cardCropAreaHeight,
   }));
 
   return {
