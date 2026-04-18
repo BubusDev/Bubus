@@ -173,7 +173,7 @@ export function Header({
           </Link>
 
           {/* ── COL 3: mobile icons / desktop right nav ── */}
-          <div className="flex min-w-0 justify-end">
+          <div className="flex justify-end">
             {/* Mobile: user icon + coupon icon + cart icon */}
             <div className="flex min-w-0 shrink-0 items-center justify-end gap-0 min-[390px]:gap-0.5 sm:gap-1.5 lg:hidden">
               {/* User icon → /account or /sign-in */}
