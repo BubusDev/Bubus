@@ -66,17 +66,20 @@ export async function createSpecialtyAction(formData: FormData) {
   await requireAdminUser("/admin/content/specialties");
 
   const specialty = readSpecialtyFormData(formData);
+  let createdSpecialtyId = "";
 
   try {
-    await db.specialty.create({
+    const createdSpecialty = await db.specialty.create({
       data: specialty,
+      select: { id: true },
     });
+    createdSpecialtyId = createdSpecialty.id;
   } catch {
     redirectWithError("Nem sikerült létrehozni. Ellenőrizd, hogy a slug egyedi-e.");
   }
 
   revalidateSpecialties();
-  redirect("/admin/content/specialties?saved=created");
+  redirect(`/admin/content/specialties?saved=created&savedId=${encodeURIComponent(createdSpecialtyId)}#specialty-${createdSpecialtyId}`);
 }
 
 export async function updateSpecialtyAction(formData: FormData) {
@@ -119,7 +122,7 @@ export async function updateSpecialtyAction(formData: FormData) {
   }
 
   revalidateSpecialties();
-  redirect("/admin/content/specialties?saved=updated");
+  redirect(`/admin/content/specialties?saved=updated&savedId=${encodeURIComponent(id)}#specialty-${id}`);
 }
 
 export async function deleteSpecialtyAction(formData: FormData) {

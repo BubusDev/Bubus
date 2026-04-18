@@ -11,12 +11,15 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Save } from "lucide-react";
 
 type SpecialtyAccordionContextValue = {
   accordionId: string;
   dirtySectionIds: Set<string>;
   hasUnsavedChanges: boolean;
+  savedSpecialtyId?: string | null;
+  savedStatus?: string | null;
+  submittingFormId: string | null;
   openSectionId: string | null;
   setOpenSectionId: (sectionId: string | null) => void;
 };
@@ -40,10 +43,14 @@ export function SpecialtyEditorAccordion({
   children,
   defaultOpenSectionId,
   savedMessage,
+  savedSpecialtyId,
+  savedStatus,
 }: {
   children: ReactNode;
   defaultOpenSectionId?: string;
   savedMessage?: string | null;
+  savedSpecialtyId?: string | null;
+  savedStatus?: string | null;
 }) {
   const generatedId = useId();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -52,6 +59,7 @@ export function SpecialtyEditorAccordion({
   const isSubmittingRef = useRef(false);
   const [dirtySectionIds, setDirtySectionIds] = useState<Set<string>>(new Set());
   const [openSectionId, setOpenSectionId] = useState<string | null>(defaultOpenSectionId ?? null);
+  const [submittingFormId, setSubmittingFormId] = useState<string | null>(null);
   const hasUnsavedChanges = dirtySectionIds.size > 0;
 
   const recomputeDirtySections = useCallback(() => {
@@ -140,8 +148,9 @@ export function SpecialtyEditorAccordion({
     window.requestAnimationFrame(recomputeDirtySections);
   }
 
-  function handleEditorSubmit(_event: FormEvent<HTMLDivElement>) {
+  function handleEditorSubmit(event: FormEvent<HTMLDivElement>) {
     isSubmittingRef.current = true;
+    setSubmittingFormId(event.target instanceof HTMLFormElement ? event.target.id : null);
   }
 
   return (
@@ -150,6 +159,9 @@ export function SpecialtyEditorAccordion({
         accordionId: generatedId,
         dirtySectionIds,
         hasUnsavedChanges,
+        savedSpecialtyId,
+        savedStatus,
+        submittingFormId,
         openSectionId,
         setOpenSectionId,
       }}
@@ -168,11 +180,13 @@ export function SpecialtyEditorAccordion({
 }
 
 export function SpecialtyEditorSection({
+  alwaysOpen = false,
   children,
   eyebrow,
   id,
   title,
 }: {
+  alwaysOpen?: boolean;
   children: ReactNode;
   eyebrow: string;
   id: string;
@@ -180,7 +194,7 @@ export function SpecialtyEditorSection({
 }) {
   const { accordionId, dirtySectionIds, openSectionId, setOpenSectionId } =
     useSpecialtyAccordion();
-  const isOpen = openSectionId === id;
+  const isOpen = alwaysOpen || openSectionId === id;
   const isDirty = dirtySectionIds.has(id);
   const panelId = `${accordionId}-${id}-panel`;
   const buttonId = `${accordionId}-${id}-button`;
@@ -201,7 +215,11 @@ export function SpecialtyEditorSection({
         className={`flex w-full cursor-pointer items-center justify-between gap-4 px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(63,122,210,0.18)] focus-visible:ring-offset-2 sm:px-5 ${
           isOpen ? "bg-[var(--admin-blue-050)]" : "hover:bg-[var(--admin-blue-050)]"
         }`}
-        onClick={() => setOpenSectionId(isOpen ? null : id)}
+        onClick={() => {
+          if (!alwaysOpen) {
+            setOpenSectionId(isOpen ? null : id);
+          }
+        }}
       >
         <span className="min-w-0">
           <span className="admin-eyebrow flex items-center gap-2">
@@ -217,8 +235,10 @@ export function SpecialtyEditorSection({
           </span>
         </span>
         <span className="inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-[var(--admin-ink-500)]">
-          <span>{isOpen ? "Nyitva" : "Zárva"}</span>
-          <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <span>{alwaysOpen ? "Mindig nyitva" : isOpen ? "Nyitva" : "Zárva"}</span>
+          {!alwaysOpen ? (
+            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          ) : null}
         </span>
       </button>
       <div
@@ -232,6 +252,50 @@ export function SpecialtyEditorSection({
         {children}
       </div>
     </section>
+  );
+}
+
+export function SpecialtyEditorSaveButton({
+  formId,
+  specialtyId,
+}: {
+  formId: string;
+  specialtyId: string;
+}) {
+  const { dirtySectionIds, savedSpecialtyId, savedStatus, submittingFormId } =
+    useSpecialtyAccordion();
+  const isDirty = Array.from(dirtySectionIds).some((sectionId) =>
+    sectionId.startsWith(`${formId}-`),
+  );
+  const isSubmitting = submittingFormId === formId;
+  const isSaved =
+    !isDirty &&
+    !isSubmitting &&
+    savedSpecialtyId === specialtyId &&
+    (savedStatus === "updated" || savedStatus === "created");
+  const isIdle = !isDirty && !isSubmitting && !isSaved;
+  const disabled = isSubmitting || isIdle || isSaved;
+  const className = isSaved
+    ? "admin-control-sm gap-1.5 border border-[#88bea0] bg-[#2f7d4e] px-2.5 text-xs font-semibold text-white hover:bg-[#276a42] disabled:opacity-100"
+    : isIdle
+      ? "admin-button-secondary admin-control-sm gap-1.5"
+      : "admin-button-primary admin-control-sm gap-1.5";
+
+  return (
+    <button
+      type="submit"
+      form={formId}
+      disabled={disabled}
+      aria-live="polite"
+      className={className}
+    >
+      {isSaved ? (
+        <Check className="h-3.5 w-3.5" />
+      ) : (
+        <Save className="h-3.5 w-3.5" />
+      )}
+      {isSubmitting ? "Mentés..." : isSaved ? "Mentve" : isIdle ? "Nincs módosítás" : "Mentés"}
+    </button>
   );
 }
 

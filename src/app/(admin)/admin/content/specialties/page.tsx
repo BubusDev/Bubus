@@ -13,6 +13,7 @@ import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import { AdminShell } from "@/components/admin/AdminShell";
 import {
   SpecialtyEditorAccordion,
+  SpecialtyEditorSaveButton,
   SpecialtyEditorSection,
 } from "@/components/admin/SpecialtyEditorAccordion";
 import { getSpecialtyHref } from "@/lib/specialty-links";
@@ -43,6 +44,16 @@ function getSavedMessage(searchParams: Record<string, string | string[] | undefi
   if (saved === "updated") return "Változások mentve";
   if (saved === "deleted") return "Specialty törölve";
   return null;
+}
+
+function getSavedStatus(searchParams: Record<string, string | string[] | undefined>) {
+  const saved = searchParams.saved;
+  return typeof saved === "string" ? saved : null;
+}
+
+function getSavedSpecialtyId(searchParams: Record<string, string | string[] | undefined>) {
+  const savedId = searchParams.savedId;
+  return typeof savedId === "string" ? savedId : null;
 }
 
 async function getSpecialties() {
@@ -107,7 +118,7 @@ function SpecialtyPreview({
 
   return (
     <aside>
-      <SpecialtyEditorSection id={sectionId} eyebrow="05" title="Előnézeti kontextus">
+      <SpecialtyEditorSection alwaysOpen id={sectionId} eyebrow="05" title="Előnézeti kontextus">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="admin-eyebrow">Mega menu</p>
@@ -314,7 +325,7 @@ function SpecialtyForm({
           <SpecialtyPreview item={item} sectionId={`${formId}-preview`} />
         ) : (
           <aside>
-            <SpecialtyEditorSection id={`${formId}-preview`} eyebrow="05" title="Előnézeti kontextus">
+            <SpecialtyEditorSection alwaysOpen id={`${formId}-preview`} eyebrow="05" title="Előnézeti kontextus">
               <p className="admin-eyebrow">Új specialty</p>
               <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
                 Új specialty
@@ -339,12 +350,16 @@ export default async function AdminSpecialtiesPage({
   ]);
   const errorMessage = getErrorMessage(resolvedSearchParams);
   const savedMessage = getSavedMessage(resolvedSearchParams);
+  const savedStatus = getSavedStatus(resolvedSearchParams);
+  const savedSpecialtyId = getSavedSpecialtyId(resolvedSearchParams);
 
   return (
     <AdminShell title="Különlegességek navigáció">
       <SpecialtyEditorAccordion
         defaultOpenSectionId="specialty-create-form-basic"
         savedMessage={savedMessage}
+        savedSpecialtyId={savedSpecialtyId}
+        savedStatus={savedStatus}
       >
         <div className="space-y-6">
           {errorMessage ? (
@@ -388,7 +403,7 @@ export default async function AdminSpecialtiesPage({
                 const formId = `specialty-item-${item.id}`;
 
                 return (
-                  <section key={item.id} className="admin-panel p-5">
+                  <section key={item.id} id={`specialty-${item.id}`} className="admin-panel p-5 scroll-mt-24">
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <p className="admin-eyebrow">Specialty editor</p>
@@ -398,10 +413,7 @@ export default async function AdminSpecialtiesPage({
                         </h2>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <button type="submit" form={formId} className="admin-button-primary admin-control-sm gap-1.5">
-                          <Save className="h-3.5 w-3.5" />
-                          Mentés
-                        </button>
+                        <SpecialtyEditorSaveButton formId={formId} specialtyId={item.id} />
                         <form action={deleteSpecialtyAction}>
                           <input type="hidden" name="id" value={item.id} />
                           <button type="submit" className="admin-button-danger admin-control-sm gap-1.5">
