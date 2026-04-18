@@ -173,14 +173,14 @@ export function Header({
           </Link>
 
           {/* ── COL 3: mobile icons / desktop right nav ── */}
-          <div className="min-w-0">
+          <div className="flex min-w-0 justify-end">
             {/* Mobile: user icon + coupon icon + cart icon */}
             <div className="flex min-w-0 shrink-0 items-center justify-end gap-0 min-[390px]:gap-0.5 sm:gap-1.5 lg:hidden">
               {/* User icon → /account or /sign-in */}
               <Link
                 href={user ? "/account" : "/sign-in"}
                 aria-label={user ? "Fiókom" : "Belépés"}
-                className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10"
+                className="relative hidden min-[390px]:inline-flex h-10 w-10 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
@@ -222,7 +222,7 @@ export function Header({
             {/* Desktop icon nav */}
             <nav
               aria-label="Hasznos navigáció"
-              className="hidden items-center gap-1 lg:flex"
+              className="hidden items-center justify-end gap-1 lg:flex"
             >
               <HeaderActionButton
                 href="/favourites"
