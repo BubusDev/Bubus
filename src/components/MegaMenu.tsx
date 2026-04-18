@@ -27,6 +27,11 @@ export type MegaMenuItem = {
   shortDescription?: string | null;
   previewImageSrc?: string;
   previewImageAlt?: string;
+  cardImageSrc?: string;
+  cardImageAlt?: string;
+  cardTitle?: string | null;
+  cardDescription?: string | null;
+  ctaText?: string | null;
 };
 
 type MegaMenuProps = {
@@ -36,6 +41,48 @@ type MegaMenuProps = {
   defaultPreviewImageSrc?: string;
   defaultPreviewImageAlt?: string;
 };
+
+function FadingMenuImage({
+  alt,
+  className,
+  sizes,
+  src,
+}: {
+  alt: string;
+  className: string;
+  sizes: string;
+  src?: string;
+}) {
+  const [isLoaded, setIsLoaded] = useState(!src);
+  const [hasError, setHasError] = useState(false);
+
+  if (!src || hasError) {
+    return null;
+  }
+
+  return (
+    <>
+      {!isLoaded ? (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 animate-pulse bg-white/18"
+        />
+      ) : null}
+      <Image
+        key={src}
+        src={src}
+        alt={alt}
+        fill
+        onError={() => setHasError(true)}
+        onLoad={() => setIsLoaded(true)}
+        className={`${className} transition-opacity duration-300 ease-out ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+        sizes={sizes}
+      />
+    </>
+  );
+}
 
 export function MegaMenu({
   triggerLabel,
@@ -69,6 +116,12 @@ export function MegaMenu({
     closeTimerRef.current = setTimeout(closeNow, 200);
   }, [clearTimers, closeNow]);
 
+  function handleWrapperBlur(e: React.FocusEvent<HTMLDivElement>) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      scheduleClose();
+    }
+  }
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeNow(); };
@@ -78,9 +131,10 @@ export function MegaMenu({
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
+  const firstItem = items[0] ?? null;
   const activeItem = hoveredItemId
-    ? (items.find((i) => i.id === hoveredItemId) ?? null)
-    : null;
+    ? (items.find((i) => i.id === hoveredItemId) ?? firstItem)
+    : firstItem;
 
   const previewSrc = activeItem?.previewImageSrc ?? defaultPreviewImageSrc;
   const previewAlt =
@@ -89,6 +143,15 @@ export function MegaMenu({
     defaultPreviewImageAlt ??
     triggerLabel;
   const previewDesc = activeItem?.shortDescription ?? null;
+  const cardTitle = activeItem?.cardTitle || activeItem?.name || heroConfig?.title;
+  const cardDescription =
+    activeItem?.cardDescription ||
+    activeItem?.shortDescription ||
+    heroConfig?.description;
+  const cardCtaText = activeItem?.ctaText || heroConfig?.ctaText || "Megnyitás";
+  const cardHref = activeItem?.href || heroConfig?.ctaHref;
+  const cardImageSrc = activeItem?.cardImageSrc || heroConfig?.backgroundImageSrc;
+  const cardImageAlt = activeItem?.cardImageAlt || cardTitle || triggerLabel;
 
   function handleItemKeyDown(e: React.KeyboardEvent<HTMLAnchorElement>) {
     const all = Array.from(
@@ -121,15 +184,13 @@ export function MegaMenu({
         will anchor to the parent <nav> (which has position:relative), making the panel
         span the full nav width.
       */}
-      <div onMouseEnter={scheduleOpen} onMouseLeave={scheduleClose}>
+      <div onMouseEnter={scheduleOpen} onMouseLeave={scheduleClose} onFocus={openNow} onBlur={handleWrapperBlur}>
         {/* Trigger button */}
         <button
           type="button"
           aria-haspopup="true"
           aria-expanded={isOpen}
           aria-controls={panelId}
-          onFocus={scheduleOpen}
-          onBlur={scheduleClose}
           className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] focus-visible:ring-offset-1"
         >
           <span>{triggerLabel}</span>
@@ -149,14 +210,14 @@ export function MegaMenu({
           data-state={isOpen ? "open" : "closed"}
           className="absolute left-0 right-0 top-full z-[41] border-t border-[#f0e8ee] bg-[#fffafd]/98 shadow-[0_28px_64px_rgba(76,43,65,0.18)] backdrop-blur-xl pointer-events-none opacity-0 -translate-y-2 transition-[opacity,transform] duration-[250ms] ease-out data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=open]:translate-y-0"
         >
-          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mx-auto max-w-[1600px] px-4 py-7 sm:px-6 lg:px-8">
             <div
               className="grid divide-x divide-[#f0e8ee]"
-              style={{ gridTemplateColumns: "30% 35% 35%" }}
+              style={{ gridTemplateColumns: "minmax(180px, 0.82fr) minmax(220px, 1fr) minmax(260px, 1.05fr)" }}
             >
 
               {/* ── LEFT: category links (30%) ── */}
-              <div className="pr-10">
+              <div className="min-w-0 pr-5 xl:pr-10">
                 <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b08898]">
                   {triggerLabel}
                 </p>
@@ -169,18 +230,22 @@ export function MegaMenu({
                         tabIndex={isOpen ? 0 : -1}
                         role="menuitem"
                         onMouseEnter={() => setHoveredItemId(item.id)}
-                        onMouseLeave={() => setHoveredItemId(null)}
                         onFocus={() => setHoveredItemId(item.id)}
-                        onBlur={() => setHoveredItemId(null)}
                         onKeyDown={handleItemKeyDown}
-                        className="group/link flex items-center gap-2 py-2 font-[family:var(--font-serif)] text-[18px] leading-tight text-[#3f2f39] focus-visible:outline-none focus-visible:underline focus-visible:decoration-[#c45a85] focus-visible:text-[#9b3d6e]"
+                        className={`group/link flex min-w-0 items-center gap-2 py-2 font-[family:var(--font-serif)] text-[17px] leading-tight focus-visible:outline-none focus-visible:underline focus-visible:decoration-[#c45a85] focus-visible:text-[#9b3d6e] xl:text-[18px] ${
+                          activeItem?.id === item.id ? "text-[#9b3d6e]" : "text-[#3f2f39]"
+                        }`}
                       >
-                        <span className="transition-transform duration-150 group-hover/link:translate-x-1 group-hover/link:text-[#9b3d6e]">
+                        <span className={`min-w-0 break-words transition-transform duration-150 group-hover/link:translate-x-1 group-hover/link:text-[#9b3d6e] ${
+                          activeItem?.id === item.id ? "translate-x-1" : ""
+                        }`}>
                           {item.name}
                         </span>
                         <span
                           aria-hidden="true"
-                          className="mt-px h-px w-0 flex-none bg-[#c45a85] transition-all duration-150 group-hover/link:w-4"
+                          className={`mt-px h-px flex-none bg-[#c45a85] transition-all duration-150 group-hover/link:w-4 ${
+                            activeItem?.id === item.id ? "w-4" : "w-0"
+                          }`}
                         />
                       </Link>
                     </li>
@@ -189,24 +254,23 @@ export function MegaMenu({
               </div>
 
               {/* ── MIDDLE: hover preview (35%) ── */}
-              <div className="flex flex-col px-10">
+              <div className="flex min-w-0 flex-col px-5 xl:px-10">
                 <div
-                  className="relative w-full overflow-hidden rounded-xl bg-[#f3e8ef]"
-                  style={{ aspectRatio: "3/4", maxHeight: 300 }}
+                  className="relative w-full overflow-hidden rounded-lg bg-[linear-gradient(135deg,#f8edf3_0%,#ead7e4_100%)]"
+                  style={{ aspectRatio: "4/5", maxHeight: 300 }}
                 >
                   {previewSrc ? (
-                    <Image
+                    <FadingMenuImage
                       key={previewSrc}
                       src={previewSrc}
                       alt={previewAlt}
-                      fill
-                      className="object-cover transition-opacity duration-200"
+                      className="object-cover object-center transition-opacity duration-200"
                       sizes="(max-width: 1600px) 35vw"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center">
+                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,#fff7fb_0%,#f2dce9_52%,#dfc0d2_100%)]">
                       <span
-                        className="font-[family:var(--font-serif)] text-4xl text-[#d4b8c8]"
+                        className="font-[family:var(--font-serif)] text-4xl text-[#b985a1]"
                         aria-hidden="true"
                       >
                         ✦
@@ -215,56 +279,91 @@ export function MegaMenu({
                   )}
                 </div>
                 {previewDesc && (
-                  <p className="mt-3 text-xs leading-relaxed text-[#8a6878]">
+                  <p key={activeItem?.id ?? "preview-desc"} className="mt-3 line-clamp-3 text-xs leading-relaxed text-[#8a6878] transition-opacity duration-200">
                     {previewDesc}
                   </p>
                 )}
               </div>
 
               {/* ── RIGHT: hero / promo block (35%) ── */}
-              <div className="pl-10">
-                {heroConfig ? (
-                  <div className="relative h-full min-h-[240px] overflow-hidden rounded-xl bg-gradient-to-br from-[#f0d0e0] to-[#d8b0cc]">
-                    {heroConfig.backgroundImageSrc && (
-                      <Image
-                        src={heroConfig.backgroundImageSrc}
-                        alt={heroConfig.title}
-                        fill
-                        className="object-cover"
+              <div className="min-w-0 pl-5 xl:pl-10">
+                {cardTitle && cardHref ? (
+                  <div className="relative h-full min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+                    {cardImageSrc ? (
+                      <FadingMenuImage
+                        key={cardImageSrc}
+                        src={cardImageSrc}
+                        alt={cardImageAlt}
+                        className="object-cover object-center"
                         sizes="(max-width: 1600px) 35vw"
                       />
-                    )}
+                    ) : null}
                     {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#3c1428]/80 via-[#3c1428]/30 to-transparent" />
-                    <div className="absolute inset-0 flex flex-col justify-end p-6">
-                      {heroConfig.badge && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
+                    <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 drop-shadow-sm xl:p-6">
+                      <span className="mb-2 self-start rounded border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.28em] text-white/80">
+                        Válogatás
+                      </span>
+                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-xl font-semibold leading-tight text-white">
+                        {cardTitle}
+                      </h3>
+                      {cardDescription && (
+                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/82">
+                          {cardDescription}
+                        </p>
+                      )}
+                      <Link
+                        ref={heroCta}
+                        href={cardHref}
+                        tabIndex={isOpen ? 0 : -1}
+                        className="inline-flex max-w-full items-center gap-1.5 self-start rounded border border-[#e9b7cc]/80 bg-[#3c1428]/18 px-4 py-2 text-xs text-white transition-colors hover:bg-[#c45a85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                      >
+                        <span className="line-clamp-1 min-w-0 break-all">{cardCtaText}</span>
+                        <ArrowRight className="h-3 w-3 flex-none" />
+                      </Link>
+                    </div>
+                  </div>
+                ) : heroConfig ? (
+                  <div className="relative h-full min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+                    {heroConfig.backgroundImageSrc ? (
+                      <FadingMenuImage
+                        key={heroConfig.backgroundImageSrc}
+                        src={heroConfig.backgroundImageSrc}
+                        alt={heroConfig.title}
+                        className="object-cover object-center"
+                        sizes="(max-width: 1600px) 35vw"
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
+                    <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 xl:p-6">
+                      {heroConfig.badge ? (
                         <span className="mb-2 self-start rounded border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.28em] text-white/80">
                           {heroConfig.badge}
                         </span>
-                      )}
-                      <h3 className="mb-2 font-[family:var(--font-display)] text-xl font-semibold leading-tight text-white">
+                      ) : null}
+                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-xl font-semibold leading-tight text-white">
                         {heroConfig.title}
                       </h3>
                       {heroConfig.description && (
-                        <p className="mb-4 text-xs leading-relaxed text-white/75">
+                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/82">
                           {heroConfig.description}
                         </p>
                       )}
-                      {heroConfig.ctaText && heroConfig.ctaHref && (
+                      {heroConfig.ctaText && heroConfig.ctaHref ? (
                         <Link
                           ref={heroCta}
                           href={heroConfig.ctaHref}
                           tabIndex={isOpen ? 0 : -1}
-                          className="inline-flex items-center gap-1.5 self-start rounded border border-[#c45a85]/80 px-4 py-2 text-xs text-white transition-colors hover:bg-[#c45a85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                          className="inline-flex max-w-full items-center gap-1.5 self-start rounded border border-[#e9b7cc]/80 bg-[#3c1428]/18 px-4 py-2 text-xs text-white transition-colors hover:bg-[#c45a85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
                         >
-                          {heroConfig.ctaText}
-                          <ArrowRight className="h-3 w-3" />
+                          <span className="line-clamp-1 min-w-0 break-all">{heroConfig.ctaText}</span>
+                          <ArrowRight className="h-3 w-3 flex-none" />
                         </Link>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full min-h-[240px] rounded-xl bg-[#f3e8ef]" />
+                  <div className="h-full min-h-[260px] rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]" />
                 )}
               </div>
 

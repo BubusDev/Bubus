@@ -754,9 +754,36 @@ async function seedStones() {
 async function seedSpecialties() {
   await prisma.specialty.createMany({
     data: [
-      { name: "Napfogó", slug: "napfogo", sortOrder: 0, isVisible: true },
-      { name: "Álomfogó", slug: "alomfogo", sortOrder: 1, isVisible: true },
-      { name: "Bokaláncok", slug: "bokalancok", sortOrder: 2, isVisible: true },
+      {
+        name: "Napfogó",
+        slug: "napfogo",
+        shortDescription: "Fényjátékos, ablakba akasztható különlegességek.",
+        cardTitle: "Napfogó",
+        cardDescription: "Kristályos fényjátékok otthonra és ajándékba.",
+        ctaLabel: "Napfogók megnyitása",
+        sortOrder: 0,
+        isVisible: true,
+      },
+      {
+        name: "Álomfogó",
+        slug: "alomfogo",
+        shortDescription: "Finom részletekkel készült, dekoratív álomfogók.",
+        cardTitle: "Álomfogó",
+        cardDescription: "Lágy, kézzel készített darabok nyugodt terekhez.",
+        ctaLabel: "Álomfogók megnyitása",
+        sortOrder: 1,
+        isVisible: true,
+      },
+      {
+        name: "Bokaláncok",
+        slug: "bokalancok",
+        shortDescription: "Könnyed, szezonális bokalánc válogatás.",
+        cardTitle: "Bokaláncok",
+        cardDescription: "Letisztult darabok nyári és ünnepi viseletekhez.",
+        ctaLabel: "Bokaláncok megnyitása",
+        sortOrder: 2,
+        isVisible: true,
+      },
     ],
   });
 }

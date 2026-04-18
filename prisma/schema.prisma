@@ -383,6 +383,14 @@ model Specialty {
   shortDescription String?
   imageUrl         String?
   imageAlt         String?
+  previewImageUrl  String?
+  previewImageAlt  String?
+  cardImageUrl     String?
+  cardImageAlt     String?
+  cardTitle        String?
+  cardDescription  String?
+  ctaLabel         String?
+  destinationHref  String?
   isVisible        Boolean            @default(true)
   sortOrder        Int                @default(0)
   products         ProductSpecialty[]

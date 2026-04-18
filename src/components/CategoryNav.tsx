@@ -5,20 +5,10 @@ import {
   type SpecialtyView,
 } from "@/lib/specialty-links";
 import type { NavigationCategory } from "@/lib/catalog";
-import { MegaMenu, type MegaMenuHeroConfig, type MegaMenuItem } from "@/components/MegaMenu";
+import { MegaMenu, type MegaMenuItem } from "@/components/MegaMenu";
 
 const topLevelNavItemClassName =
   "whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white";
-
-// Hero config for "Különlegességek" mega menu — edit here until admin UI is built
-const SPECIALTY_HERO: MegaMenuHeroConfig = {
-  badge: "ÚJ KOLLEKCIÓ",
-  title: "Különlegességek",
-  description:
-    "Kézzel készített egyedi ékszerek — napfogók, álomfogók és különleges kulcstartók.",
-  ctaText: "Felfedezés",
-  ctaHref: "/kulonlegessegek",
-};
 
 type CategoryNavProps = {
   navigationCategories: NavigationCategory[];
@@ -31,8 +21,13 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
     name: item.name,
     href: getSpecialtyHref(item),
     shortDescription: item.shortDescription,
-    previewImageSrc: item.imageUrl ?? undefined,
-    previewImageAlt: item.imageAlt || item.name,
+    previewImageSrc: item.previewImageUrl ?? item.imageUrl ?? undefined,
+    previewImageAlt: item.previewImageAlt || item.imageAlt || item.name,
+    cardImageSrc: item.cardImageUrl ?? item.previewImageUrl ?? item.imageUrl ?? undefined,
+    cardImageAlt: item.cardImageAlt || item.previewImageAlt || item.imageAlt || item.name,
+    cardTitle: item.cardTitle || item.name,
+    cardDescription: item.cardDescription || item.shortDescription,
+    ctaText: item.ctaLabel || "Kollekció megnyitása",
   }));
 
   return (
@@ -55,7 +50,6 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
           <MegaMenu
             triggerLabel="Különlegességek"
             items={megaItems}
-            heroConfig={SPECIALTY_HERO}
           />
         )}
       </div>

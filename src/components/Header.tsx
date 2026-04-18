@@ -390,11 +390,11 @@ export function Header({
                       key={item.id}
                       href={getSpecialtyHref(item)}
                       onClick={() => setMobileMenuPath(null)}
-                      className="flex items-center justify-between border-b border-[#f5f4f2] py-3 pl-4 text-sm text-[#555]"
+                      className="flex min-w-0 items-center justify-between gap-3 border-b border-[#f5f4f2] py-3 pl-4 text-sm text-[#555]"
                     >
-                      {item.name}
+                      <span className="min-w-0 break-words">{item.name}</span>
                       <ChevronRight
-                        className="h-3.5 w-3.5 text-[#ccc]"
+                        className="h-3.5 w-3.5 flex-none text-[#ccc]"
                         strokeWidth={1.5}
                       />
                     </Link>

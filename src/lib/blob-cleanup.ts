@@ -102,7 +102,15 @@ export async function isBlobUrlReferenced(url: string) {
   ] = await Promise.all([
     db.product.count({ where: { imageUrl: url } }),
     db.productImage.count({ where: { url } }),
-    db.specialty.count({ where: { imageUrl: url } }),
+    db.specialty.count({
+      where: {
+        OR: [
+          { imageUrl: url },
+          { previewImageUrl: url },
+          { cardImageUrl: url },
+        ],
+      },
+    }),
     db.homepageContentBlock.count({ where: { imageUrl: url } }),
     db.homepagePromoTile.count({ where: { imageUrl: url } }),
     db.specialEditionCampaign.count({ where: { bannerImageUrl: url } }),

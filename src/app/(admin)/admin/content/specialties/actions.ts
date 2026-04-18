@@ -21,8 +21,12 @@ function readSortOrder(formData: FormData) {
 function readSpecialtyFormData(formData: FormData) {
   const name = readString(formData, "name");
   const slug = slugifyOptionName(readString(formData, "slug") || name);
-  const clearImage = formData.get("clearImage") === "on";
-  const imageUrl = clearImage ? null : readString(formData, "imageUrl") || null;
+  const clearPreviewImage = formData.get("clearPreviewImage") === "on";
+  const clearCardImage = formData.get("clearCardImage") === "on";
+  const previewImageUrl = clearPreviewImage ? null : readString(formData, "previewImageUrl") || null;
+  const cardImageUrl = clearCardImage ? null : readString(formData, "cardImageUrl") || null;
+  const cardDescription = readString(formData, "cardDescription");
+  const shortDescription = readString(formData, "shortDescription");
 
   if (!name || !slug) {
     redirectWithError("A név és a slug megadása kötelező.");
@@ -31,9 +35,17 @@ function readSpecialtyFormData(formData: FormData) {
   return {
     name,
     slug,
-    shortDescription: readString(formData, "shortDescription") || null,
-    imageUrl,
-    imageAlt: imageUrl ? readString(formData, "imageAlt") || null : null,
+    shortDescription: shortDescription || null,
+    imageUrl: previewImageUrl,
+    imageAlt: previewImageUrl ? readString(formData, "previewImageAlt") || null : null,
+    previewImageUrl,
+    previewImageAlt: previewImageUrl ? readString(formData, "previewImageAlt") || null : null,
+    cardImageUrl,
+    cardImageAlt: cardImageUrl ? readString(formData, "cardImageAlt") || null : null,
+    cardTitle: readString(formData, "cardTitle") || null,
+    cardDescription: cardDescription || shortDescription || null,
+    ctaLabel: readString(formData, "ctaLabel") || null,
+    destinationHref: readString(formData, "destinationHref") || null,
     sortOrder: readSortOrder(formData),
     isVisible: formData.get("isVisible") === "on",
   };
@@ -41,6 +53,7 @@ function readSpecialtyFormData(formData: FormData) {
 
 function revalidateSpecialties() {
   revalidatePath("/admin/content/specialties");
+  revalidatePath("/kulonlegessegek");
   revalidatePath("/kulonlegessegek/[slug]", "page");
   revalidatePath("/", "layout");
 }
@@ -79,7 +92,7 @@ export async function updateSpecialtyAction(formData: FormData) {
   try {
     const existingSpecialty = await db.specialty.findUnique({
       where: { id },
-      select: { imageUrl: true },
+      select: { imageUrl: true, previewImageUrl: true, cardImageUrl: true },
     });
 
     await db.specialty.update({
@@ -87,15 +100,19 @@ export async function updateSpecialtyAction(formData: FormData) {
       data: specialty,
     });
 
-    if (
-      existingSpecialty?.imageUrl &&
-      existingSpecialty.imageUrl !== specialty.imageUrl
-    ) {
-      await enqueueBlobCleanup(existingSpecialty.imageUrl, {
-        reason: specialty.imageUrl
-          ? "specialty_preview_image_replaced"
-          : "specialty_preview_image_cleared",
-      });
+    const previousUrls = [
+      existingSpecialty?.previewImageUrl,
+      existingSpecialty?.imageUrl,
+      existingSpecialty?.cardImageUrl,
+    ].filter((url): url is string => Boolean(url));
+    const nextUrls = new Set([specialty.previewImageUrl, specialty.imageUrl, specialty.cardImageUrl].filter(Boolean));
+
+    for (const url of new Set(previousUrls)) {
+      if (!nextUrls.has(url)) {
+        await enqueueBlobCleanup(url, {
+          reason: "specialty_image_replaced_or_cleared",
+        });
+      }
     }
   } catch {
     redirectWithError("Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.");
@@ -115,13 +132,19 @@ export async function deleteSpecialtyAction(formData: FormData) {
 
   const existingSpecialty = await db.specialty.findUnique({
     where: { id },
-    select: { imageUrl: true },
+    select: { imageUrl: true, previewImageUrl: true, cardImageUrl: true },
   });
 
   await db.specialty.delete({ where: { id } });
 
-  if (existingSpecialty?.imageUrl) {
-    await enqueueBlobCleanup(existingSpecialty.imageUrl, {
+  const urls = [
+    existingSpecialty?.previewImageUrl,
+    existingSpecialty?.imageUrl,
+    existingSpecialty?.cardImageUrl,
+  ].filter((url): url is string => Boolean(url));
+
+  for (const url of new Set(urls)) {
+    await enqueueBlobCleanup(url, {
       reason: "specialty_deleted",
     });
   }

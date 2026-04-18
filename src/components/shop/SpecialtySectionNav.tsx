@@ -39,13 +39,13 @@ export function SpecialtySectionNav({
                 key={specialty.id}
                 href={getSpecialtyHref(specialty)}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative whitespace-nowrap rounded-full px-4 py-2 text-sm leading-5 tracking-[0.02em] transition ${
+                className={`relative max-w-[18rem] shrink-0 rounded-full px-4 py-2 text-sm leading-5 tracking-[0.02em] transition ${
                   isActive
                     ? "bg-[#f6e8ef] text-[#2b2228]"
                     : "text-[#6f5664] hover:bg-white hover:text-[#2b2228]"
                 }`}
               >
-                {specialty.name}
+                <span className="line-clamp-1 break-all">{specialty.name}</span>
                 {isActive ? (
                   <span className="absolute inset-x-4 -bottom-1 h-px bg-[#8a4867]" />
                 ) : null}
