@@ -16,6 +16,7 @@ import {
   Menu,
   Image,
   LayoutTemplate,
+  LayoutGrid,
   Settings,
   User,
   RotateCcw,
@@ -53,6 +54,7 @@ const navGroups: NavGroup[] = [
     label: "Termékek",
     items: [
       { label: "Összes termék", href: "/admin/products", icon: Package, exact: true },
+      { label: "Merchandising", href: "/admin/merchandising", icon: LayoutGrid },
       { label: "Új termék", href: "/admin/products/new", icon: PackagePlus },
       { label: "Archívum", href: "/admin/products/archive", icon: Archive },
       { label: "Special Edition", href: "/admin/special-edition", icon: Sparkles },

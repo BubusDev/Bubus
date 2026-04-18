@@ -72,6 +72,7 @@ export type Product = {
   }[];
   imagePalette: [string, string, string];
   homepagePlacement: HomepagePlacement;
+  manualSortOrder?: number | null;
   labels: ProductOptionLabels;
 };
 
@@ -416,6 +417,10 @@ export function sortProducts(inputProducts: Product[], sort: string) {
       return productsCopy.sort((a, b) => a.name.localeCompare(b.name));
     default:
       return productsCopy.sort((a, b) => {
+        if (a.manualSortOrder != null || b.manualSortOrder != null) {
+          return (a.manualSortOrder ?? Number.MAX_SAFE_INTEGER) - (b.manualSortOrder ?? Number.MAX_SAFE_INTEGER);
+        }
+
         const scoreA =
           Number(a.isNew) * 3 + Number(a.isGiftable) * 2 + Number(a.isOnSale);
         const scoreB =

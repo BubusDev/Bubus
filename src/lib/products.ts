@@ -31,6 +31,51 @@ import {
   type NavigationCategory,
   type Product,
 } from "@/lib/catalog";
+import { getSpecialtyHref } from "@/lib/specialty-links";
+
+export type MerchandisingListingType = "category" | "editorial" | "homepage" | "specialty";
+
+export type MerchandisingContext = {
+  key: string;
+  type: MerchandisingListingType;
+  label: string;
+  description: string;
+  href: string;
+  storefrontHref?: string;
+  storefrontLabel?: string;
+  categoryId?: string;
+  specialtyId?: string;
+};
+
+function buildMerchandisingContext(input: Omit<MerchandisingContext, "storefrontHref" | "storefrontLabel">): MerchandisingContext {
+  const destination = resolveMerchandisingStorefrontDestination(input);
+
+  return {
+    ...input,
+    storefrontHref: destination?.href,
+    storefrontLabel: destination?.label,
+  };
+}
+
+export function resolveMerchandisingStorefrontDestination(
+  context: Pick<MerchandisingContext, "href" | "label" | "type">,
+) {
+  if (!context.href || !context.href.startsWith("/")) {
+    return null;
+  }
+
+  if (context.type === "homepage") {
+    return {
+      href: "/#focusban",
+      label: "Kezdőlap Fókuszban szekció",
+    };
+  }
+
+  return {
+    href: context.href,
+    label: `${context.label} oldal`,
+  };
+}
 
 const productWithImagesAndOptions = {
   images: {
@@ -283,7 +328,7 @@ function getMappedImages(product: Pick<DbProductWithRelations, "images" | "image
   return [];
 }
 
-function mapProduct(product: DbProductWithRelations): Product {
+function mapProduct(product: DbProductWithRelations, manualSortOrder?: number | null): Product {
   const category = getSafeRelation(product.category, "Egyéb", "other");
   const stoneType = getSafeRelation(product.stoneType, "Nincs megadva", "unspecified");
   const color = getSafeRelation(product.color, "Nincs megadva", "unspecified");
@@ -353,6 +398,7 @@ function mapProduct(product: DbProductWithRelations): Product {
     images,
     imagePalette: getTonePalette(tone.slug),
     homepagePlacement: homepagePlacementMap[product.homepagePlacement],
+    manualSortOrder: manualSortOrder ?? null,
     labels: {
       category: getOptionLabel(category.name, category.slug),
       stoneType: getOptionLabel(stoneType.name, stoneType.slug),
@@ -365,8 +411,10 @@ function mapProduct(product: DbProductWithRelations): Product {
   };
 }
 
-function mapStorefrontProducts(products: DbProductWithRelations[]) {
-  return products.filter(isProductPublishReady).map(mapProduct);
+function mapStorefrontProducts(products: DbProductWithRelations[], manualSortOrders?: Map<string, number>) {
+  return products
+    .filter(isProductPublishReady)
+    .map((product) => mapProduct(product, manualSortOrders?.get(product.id) ?? null));
 }
 
 function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereInput {
@@ -385,6 +433,69 @@ function baseWhereForCategory(categorySlug: CategorySlug): Prisma.ProductWhereIn
         },
       };
   }
+}
+
+function getEditorialListingKey(slug: string) {
+  return `editorial:${slug}`;
+}
+
+function getCategoryListingKey(slug: string) {
+  return `category:${normalizeCategorySlug(slug)}`;
+}
+
+function getHomepageListingKey(placement: HomepagePlacement) {
+  return `homepage:${placement}`;
+}
+
+function getSpecialtyListingKey(slug: string) {
+  return `specialty:${slug}`;
+}
+
+function getListingKeyForCategory(categorySlug: CategorySlug) {
+  return editorialCategoryDefinitions.some((category) => category.slug === categorySlug)
+    ? getEditorialListingKey(categorySlug)
+    : getCategoryListingKey(categorySlug);
+}
+
+async function getManualSortOrdersForListing<T extends { id: string }>(
+  listingKey: string,
+  items: T[],
+) {
+  const placements = await db.productListingPlacement.findMany({
+    where: { listingKey, isVisible: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { productId: true },
+  });
+
+  if (placements.length === 0) {
+    return null;
+  }
+
+  const itemIds = new Set(items.map((item) => item.id));
+  const orderedIds = placements
+    .map((placement) => placement.productId)
+    .filter((productId) => itemIds.has(productId));
+  const placedIds = new Set(orderedIds);
+
+  for (const item of items) {
+    if (!placedIds.has(item.id)) {
+      orderedIds.push(item.id);
+    }
+  }
+
+  return new Map(orderedIds.map((productId, index) => [productId, index]));
+}
+
+function sortByManualSortOrders<T extends { id: string }>(items: T[], manualSortOrders: Map<string, number> | null) {
+  if (!manualSortOrders) {
+    return items;
+  }
+
+  return [...items].sort(
+    (a, b) =>
+      (manualSortOrders.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (manualSortOrders.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+  );
 }
 
 export async function getAllProductSlugs() {
@@ -412,13 +523,14 @@ export async function getHomepageProducts(
       where,
       include: productWithImagesAndOptions,
       orderBy: [{ isNew: "desc" }, { updatedAt: "desc" }],
-      skip: (safePage - 1) * perPage,
-      take: perPage,
     }),
   ]);
+  const manualSortOrders = await getManualSortOrdersForListing(getHomepageListingKey(placement), products);
+  const orderedProducts = sortByManualSortOrders(products, manualSortOrders);
+  const pagedProducts = orderedProducts.slice((safePage - 1) * perPage, safePage * perPage);
 
   return {
-    products: mapStorefrontProducts(products),
+    products: mapStorefrontProducts(pagedProducts, manualSortOrders ?? undefined),
     page: safePage,
     total,
     totalPages: Math.max(1, Math.ceil(total / perPage)),
@@ -431,8 +543,9 @@ export async function getProductsForCategory(categorySlug: CategorySlug) {
     include: productWithImagesAndOptions,
     orderBy: [{ updatedAt: "desc" }],
   });
+  const manualSortOrders = await getManualSortOrdersForListing(getListingKeyForCategory(categorySlug), products);
 
-  return mapStorefrontProducts(products);
+  return mapStorefrontProducts(sortByManualSortOrders(products, manualSortOrders), manualSortOrders ?? undefined);
 }
 
 export async function getSpecialtyBySlug(slug: string, visibleOnly = true) {
@@ -481,8 +594,10 @@ export async function getProductsForSpecialty(slug: string) {
     },
     orderBy: [{ product: { updatedAt: "desc" } }],
   });
+  const products = productSpecialties.map((entry) => entry.product);
+  const manualSortOrders = await getManualSortOrdersForListing(getSpecialtyListingKey(slug), products);
 
-  return mapStorefrontProducts(productSpecialties.map((entry) => entry.product));
+  return mapStorefrontProducts(sortByManualSortOrders(products, manualSortOrders), manualSortOrders ?? undefined);
 }
 
 export async function getFilterOptionsForCategory(categorySlug: CategorySlug) {
@@ -760,6 +875,216 @@ export async function getFilterGroupsForAvailableFilters(
                 ? pickOptions("OCCASION", availableFilters.occasions)
                 : pickOptions("AVAILABILITY", availableFilters.availability),
   }));
+}
+
+export async function getMerchandisingContexts(): Promise<MerchandisingContext[]> {
+  const [categories, specialties] = await Promise.all([
+    db.productOption.findMany({
+      where: { type: "CATEGORY", isActive: true, isStorefrontVisible: true },
+      orderBy: [{ showInMainNav: "desc" }, { navSortOrder: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true, slug: true },
+    }),
+    db.specialty.findMany({
+      where: { isVisible: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true, slug: true, shortDescription: true, destinationHref: true },
+    }),
+  ]);
+
+  const editorialContexts = editorialCategoryDefinitions
+    .filter((category) => category.slug !== "special-edition")
+    .map((category) => buildMerchandisingContext({
+      key: getEditorialListingKey(category.slug),
+      type: "editorial" as const,
+      label: category.title,
+      description: category.seoDescription,
+      href: `/${category.slug}`,
+    }));
+
+  const categoryContexts = categories.map((category) => {
+    const slug = normalizeCategorySlug(category.slug);
+
+    return buildMerchandisingContext({
+      key: getCategoryListingKey(slug),
+      type: "category" as const,
+      label: category.name,
+      description: `A ${category.name} kategória storefront sorrendje.`,
+      href: `/${slug}`,
+      categoryId: category.id,
+    });
+  });
+
+  const homepageContexts = [
+    buildMerchandisingContext({
+      key: getHomepageListingKey("spotlight"),
+      type: "homepage" as const,
+      label: "Kezdőlap - Fókuszban",
+      description: "A kezdőlapi Fókuszban / Újdonságok terméksor sorrendje.",
+      href: "/",
+    }),
+  ];
+
+  const specialtyContexts = specialties.map((specialty) => {
+    const specialtyHref = getSpecialtyHref({
+      slug: specialty.slug,
+      destinationHref: specialty.destinationHref,
+    });
+
+    return buildMerchandisingContext({
+      key: getSpecialtyListingKey(specialty.slug),
+      type: "specialty" as const,
+      label: `Különlegesség - ${specialty.name}`,
+      description: specialty.shortDescription ?? `A ${specialty.name} különlegesség terméksorrendje.`,
+      href: specialtyHref.startsWith("/") ? specialtyHref : `/kulonlegessegek/${specialty.slug}`,
+      specialtyId: specialty.id,
+    });
+  });
+
+  return [...categoryContexts, ...editorialContexts, ...homepageContexts, ...specialtyContexts];
+}
+
+function getContextBaseWhere(context: MerchandisingContext): Prisma.ProductWhereInput {
+  if (context.key === getEditorialListingKey("new-in")) {
+    return { isNew: true };
+  }
+
+  if (context.key === getEditorialListingKey("sale")) {
+    return { isOnSale: true };
+  }
+
+  if (context.key === getHomepageListingKey("spotlight")) {
+    return { homepagePlacement: "SPOTLIGHT" };
+  }
+
+  if (context.type === "category") {
+    const slug = context.href.replace(/^\//, "");
+    return baseWhereForCategory(slug);
+  }
+
+  return {};
+}
+
+export async function getAdminMerchandisingBoard(selectedKey?: string) {
+  const contexts = await getMerchandisingContexts();
+  const selectedContext =
+    contexts.find((context) => context.key === selectedKey) ??
+    contexts[0] ??
+    null;
+
+  if (!selectedContext) {
+    return {
+      contexts,
+      selectedContext: null,
+      products: [],
+      hasManualOrder: false,
+    };
+  }
+
+  const products =
+    selectedContext.type === "specialty"
+      ? (
+          await db.productSpecialty.findMany({
+            where: {
+              specialtyId: selectedContext.specialtyId,
+              product: storefrontProductWhere,
+            },
+            include: {
+              product: {
+                include: productWithImagesAndOptions,
+              },
+            },
+            orderBy: [{ product: { updatedAt: "desc" } }],
+          })
+        ).map((entry) => entry.product)
+      : await db.product.findMany({
+          where: withStorefrontProducts(getContextBaseWhere(selectedContext)),
+          include: productWithImagesAndOptions,
+          orderBy:
+            selectedContext.type === "homepage"
+              ? [{ isNew: "desc" }, { updatedAt: "desc" }]
+              : [{ updatedAt: "desc" }],
+        });
+
+  const placements = await db.productListingPlacement.findMany({
+    where: { listingKey: selectedContext.key, isVisible: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { productId: true, sortOrder: true, isPinned: true, isFeatured: true },
+  });
+  const manualSortOrders = placements.length
+    ? await getManualSortOrdersForListing(selectedContext.key, products)
+    : null;
+
+  return {
+    contexts,
+    selectedContext,
+    products: mapStorefrontProducts(sortByManualSortOrders(products, manualSortOrders), manualSortOrders ?? undefined),
+    hasManualOrder: placements.length > 0,
+  };
+}
+
+export async function saveMerchandisingOrder(input: {
+  listingKey: string;
+  orderedProductIds: string[];
+}) {
+  const contexts = await getMerchandisingContexts();
+  const context = contexts.find((item) => item.key === input.listingKey);
+
+  if (!context) {
+    throw new Error("Ismeretlen merchandising kontextus.");
+  }
+
+  if (input.orderedProductIds.length !== new Set(input.orderedProductIds).size) {
+    throw new Error("Duplikált termékazonosító érkezett.");
+  }
+
+  const board = await getAdminMerchandisingBoard(context.key);
+  const currentIds = new Set(board.products.map((product) => product.id));
+
+  if (
+    input.orderedProductIds.length !== currentIds.size ||
+    input.orderedProductIds.some((productId) => !currentIds.has(productId))
+  ) {
+    throw new Error("A terméklista időközben megváltozott. Frissítsd az oldalt, majd ments újra.");
+  }
+
+  await db.$transaction(async (tx) => {
+    await tx.productListingPlacement.deleteMany({
+      where: {
+        listingKey: context.key,
+        productId: { notIn: input.orderedProductIds },
+      },
+    });
+
+    await Promise.all(
+      input.orderedProductIds.map((productId, index) =>
+        tx.productListingPlacement.upsert({
+          where: {
+            listingKey_productId: {
+              listingKey: context.key,
+              productId,
+            },
+          },
+          create: {
+            productId,
+            listingKey: context.key,
+            listingType: context.type,
+            categoryId: context.categoryId,
+            specialtyId: context.specialtyId,
+            sortOrder: index,
+          },
+          update: {
+            listingType: context.type,
+            categoryId: context.categoryId,
+            specialtyId: context.specialtyId,
+            sortOrder: index,
+            isVisible: true,
+          },
+        }),
+      ),
+    );
+  });
+
+  return context;
 }
 
 function readString(formData: FormData, key: string) {

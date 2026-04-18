@@ -26,7 +26,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <main className="min-h-screen bg-[#fbfaf7]">
       <HomeHero block={homepageContent.hero} />
       <ValueStrip />
-      <section className="mx-auto max-w-[1320px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <section id="focusban" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <HomeProductSection
           eyebrow="Fókuszban"
           title="Újdonságok"

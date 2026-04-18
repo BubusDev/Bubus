@@ -13,6 +13,7 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
   const labelMap: Record<string, string> = {
     admin: "Admin",
     products: "Termékek",
+    merchandising: "Merchandising",
     new: "Új termék",
     edit: "Szerkesztés",
     archive: "Archívum",

@@ -210,6 +210,7 @@ model Product {
   inventoryEvents   InventoryEvent[]
   specialEditionEntries SpecialEditionEntry[]
   specialties       ProductSpecialty[]
+  listingPlacements ProductListingPlacement[]
   homepagePlacement HomepagePlacement  @default(NONE)
   archivedAt        DateTime?
   archiveReason     String?
@@ -262,6 +263,7 @@ model ProductOption {
   productsAsAvailability Product[]       @relation("ProductAvailability")
   productsAsTone       Product[]         @relation("ProductTone")
   promoCodesAsCategory PromoCodeCategory[]
+  listingPlacements    ProductListingPlacement[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
@@ -283,6 +285,31 @@ model ProductImage {
 
   @@index([productId, sortOrder])
   @@index([productId, isCover])
+}
+
+model ProductListingPlacement {
+  id          String         @id @default(cuid())
+  productId   String
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  listingKey  String
+  listingType String
+  categoryId  String?
+  category    ProductOption? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  specialtyId String?
+  specialty   Specialty?     @relation(fields: [specialtyId], references: [id], onDelete: SetNull)
+  sortOrder   Int            @default(0)
+  isPinned    Boolean        @default(false)
+  isFeatured  Boolean        @default(false)
+  isVisible   Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([listingKey, productId])
+  @@index([listingKey, sortOrder])
+  @@index([listingType])
+  @@index([productId])
+  @@index([categoryId])
+  @@index([specialtyId])
 }
 
 model BlobCleanupQueueItem {
@@ -394,6 +421,7 @@ model Specialty {
   isVisible        Boolean            @default(true)
   sortOrder        Int                @default(0)
   products         ProductSpecialty[]
+  listingPlacements ProductListingPlacement[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
