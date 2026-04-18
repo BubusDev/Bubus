@@ -76,7 +76,7 @@ export async function createSpecialtyAction(formData: FormData) {
   }
 
   revalidateSpecialties();
-  redirect("/admin/content/specialties");
+  redirect("/admin/content/specialties?saved=created");
 }
 
 export async function updateSpecialtyAction(formData: FormData) {
@@ -119,7 +119,7 @@ export async function updateSpecialtyAction(formData: FormData) {
   }
 
   revalidateSpecialties();
-  redirect("/admin/content/specialties");
+  redirect("/admin/content/specialties?saved=updated");
 }
 
 export async function deleteSpecialtyAction(formData: FormData) {
@@ -150,5 +150,5 @@ export async function deleteSpecialtyAction(formData: FormData) {
   }
 
   revalidateSpecialties();
-  redirect("/admin/content/specialties");
+  redirect("/admin/content/specialties?saved=deleted");
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ChevronDown,
   ExternalLink,
   Eye,
   ImageIcon,
@@ -12,6 +11,10 @@ import {
 
 import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import { AdminShell } from "@/components/admin/AdminShell";
+import {
+  SpecialtyEditorAccordion,
+  SpecialtyEditorSection,
+} from "@/components/admin/SpecialtyEditorAccordion";
 import { getSpecialtyHref } from "@/lib/specialty-links";
 import { db } from "@/lib/db";
 import {
@@ -32,6 +35,14 @@ const textareaClassName = "admin-input min-h-24 px-3 py-2 text-sm";
 function getErrorMessage(searchParams: Record<string, string | string[] | undefined>) {
   const error = searchParams.error;
   return typeof error === "string" ? error : null;
+}
+
+function getSavedMessage(searchParams: Record<string, string | string[] | undefined>) {
+  const saved = searchParams.saved;
+  if (saved === "created") return "Specialty létrehozva";
+  if (saved === "updated") return "Változások mentve";
+  if (saved === "deleted") return "Specialty törölve";
+  return null;
 }
 
 async function getSpecialties() {
@@ -72,42 +83,6 @@ function Field({
   );
 }
 
-function EditorSection({
-  children,
-  defaultOpen = false,
-  eyebrow,
-  title,
-}: {
-  children: ReactNode;
-  defaultOpen?: boolean;
-  eyebrow: string;
-  title: string;
-}) {
-  return (
-    <details
-      className="group overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-white/82 shadow-[0_10px_24px_rgba(15,23,42,0.03)] [&_summary::-webkit-details-marker]:hidden"
-      open={defaultOpen}
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-[var(--admin-blue-050)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(63,122,210,0.18)] focus-visible:ring-offset-2 sm:px-5">
-        <span className="min-w-0">
-          <span className="admin-eyebrow block">{eyebrow}</span>
-          <span className="mt-1 block truncate text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
-            {title}
-          </span>
-        </span>
-        <span className="inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-[var(--admin-ink-500)]">
-          <span className="hidden group-open:inline">Nyitva</span>
-          <span className="inline group-open:hidden">Zárva</span>
-          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-        </span>
-      </summary>
-      <div className="border-t border-[var(--admin-line-100)] px-4 py-4 sm:px-5">
-        {children}
-      </div>
-    </details>
-  );
-}
-
 function MissingNote({ children }: { children: ReactNode }) {
   return (
     <p className="rounded-sm border border-[#ead6a7] bg-[#fff9e8] px-3 py-2 text-xs leading-5 text-[#765b18]">
@@ -116,7 +91,13 @@ function MissingNote({ children }: { children: ReactNode }) {
   );
 }
 
-function SpecialtyPreview({ item }: { item: SpecialtyEditorItem }) {
+function SpecialtyPreview({
+  item,
+  sectionId,
+}: {
+  item: SpecialtyEditorItem;
+  sectionId: string;
+}) {
   const href = destinationFor(item);
   const previewImage = item.previewImageUrl ?? item.imageUrl;
   const cardImage = item.cardImageUrl ?? previewImage;
@@ -126,7 +107,7 @@ function SpecialtyPreview({ item }: { item: SpecialtyEditorItem }) {
 
   return (
     <aside>
-      <EditorSection eyebrow="05" title="Előnézeti kontextus">
+      <SpecialtyEditorSection id={sectionId} eyebrow="05" title="Előnézeti kontextus">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="admin-eyebrow">Mega menu</p>
@@ -194,7 +175,7 @@ function SpecialtyPreview({ item }: { item: SpecialtyEditorItem }) {
             <ExternalLink className="h-3 w-3" />
           </Link>
         </div>
-      </EditorSection>
+      </SpecialtyEditorSection>
     </aside>
   );
 }
@@ -222,7 +203,7 @@ function SpecialtyForm({
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
         <div className="space-y-5">
-          <EditorSection eyebrow="01" title="Alapinformációk" defaultOpen>
+          <SpecialtyEditorSection id={`${formId}-basic`} eyebrow="01" title="Alapinformációk">
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_7rem]">
               <Field label="Név">
                 <input name="name" required defaultValue={item?.name ?? ""} placeholder="Kulcstartók" className={inputClassName} />
@@ -234,9 +215,9 @@ function SpecialtyForm({
                 <input name="sortOrder" type="number" defaultValue={item?.sortOrder ?? nextSortOrder} className={inputClassName} />
               </Field>
             </div>
-          </EditorSection>
+          </SpecialtyEditorSection>
 
-          <EditorSection eyebrow="02" title="Storefront tartalom" defaultOpen>
+          <SpecialtyEditorSection id={`${formId}-storefront`} eyebrow="02" title="Storefront tartalom">
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Jobb oldali card cím" helper="Ha üres, a specialty neve jelenik meg a mega menu jobb oldali kártyáján.">
                 <input name="cardTitle" defaultValue={item?.cardTitle ?? ""} placeholder={item?.name ?? "Kulcstartók"} className={inputClassName} />
@@ -258,9 +239,9 @@ function SpecialtyForm({
                 <input name="destinationHref" defaultValue={item?.destinationHref ?? ""} placeholder="/kulonlegessegek/kulcstartok" className={inputClassName} />
               </Field>
             </div>
-          </EditorSection>
+          </SpecialtyEditorSection>
 
-          <EditorSection eyebrow="03" title="Mega menu képek">
+          <SpecialtyEditorSection id={`${formId}-images`} eyebrow="03" title="Mega menu képek">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-3">
                 <div className="grid gap-2">
@@ -314,9 +295,9 @@ function SpecialtyForm({
                 ) : null}
               </div>
             </div>
-          </EditorSection>
+          </SpecialtyEditorSection>
 
-          <EditorSection eyebrow="04" title="Állapot / storefront viselkedés">
+          <SpecialtyEditorSection id={`${formId}-status`} eyebrow="04" title="Állapot / storefront viselkedés">
             <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
               <label className="admin-checkbox-pill inline-flex min-h-10 items-center gap-2 px-3 text-sm">
                 <input name="isVisible" type="checkbox" defaultChecked={item?.isVisible ?? true} className="h-4 w-4" />
@@ -326,14 +307,14 @@ function SpecialtyForm({
                 A menü első nyitáskor az első látható, sorrend szerinti specialty-t választja ki automatikusan.
               </p>
             </div>
-          </EditorSection>
+          </SpecialtyEditorSection>
         </div>
 
         {item ? (
-          <SpecialtyPreview item={item} />
+          <SpecialtyPreview item={item} sectionId={`${formId}-preview`} />
         ) : (
           <aside>
-            <EditorSection eyebrow="05" title="Előnézeti kontextus">
+            <SpecialtyEditorSection id={`${formId}-preview`} eyebrow="05" title="Előnézeti kontextus">
               <p className="admin-eyebrow">Új specialty</p>
               <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
                 Új specialty
@@ -341,7 +322,7 @@ function SpecialtyForm({
               <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">
                 Mentés után saját listing oldalt kap, és ha látható, megjelenik a Különlegességek mega menüben.
               </p>
-            </EditorSection>
+            </SpecialtyEditorSection>
           </aside>
         )}
       </div>
@@ -357,82 +338,88 @@ export default async function AdminSpecialtiesPage({
     searchParams,
   ]);
   const errorMessage = getErrorMessage(resolvedSearchParams);
+  const savedMessage = getSavedMessage(resolvedSearchParams);
 
   return (
     <AdminShell title="Különlegességek navigáció">
-      <div className="space-y-6">
-        {errorMessage ? (
-          <div className="rounded-md border border-[#e3c7cf] bg-[#fff1f3] px-4 py-3 text-sm text-[#99283d]">
-            {errorMessage}
-          </div>
-        ) : null}
-
-        <div className="admin-panel-muted px-4 py-3 text-sm leading-6 text-[var(--admin-ink-700)]">
-          A Különlegességek mega menu specialty-specifikus: a bal oldali választás határozza meg a középső preview képet, a jobb oldali cardot és a CTA céloldalt.
-        </div>
-
-        <section className="admin-panel p-5">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Plus className="h-4 w-4 text-[var(--admin-blue-700)]" />
-                <h2 className="text-sm font-semibold text-[var(--admin-ink-900)]">
-                  Új specialty létrehozása
-                </h2>
-              </div>
-              <p className="mt-2 text-sm leading-6 text-[var(--admin-ink-600)]">
-                A slug alapján automatikusan létrejön a publikus specialty listing.
-              </p>
+      <SpecialtyEditorAccordion
+        defaultOpenSectionId="specialty-create-form-basic"
+        savedMessage={savedMessage}
+      >
+        <div className="space-y-6">
+          {errorMessage ? (
+            <div className="rounded-md border border-[#e3c7cf] bg-[#fff1f3] px-4 py-3 text-sm text-[#99283d]">
+              {errorMessage}
             </div>
-            <button type="submit" form="specialty-create-form" className="admin-button-primary admin-control-md gap-2">
-              <Save className="h-4 w-4" />
-              Létrehozás
-            </button>
-          </div>
-          <SpecialtyForm formId="specialty-create-form" mode="create" nextSortOrder={items.length} />
-        </section>
+          ) : null}
 
-        {items.length === 0 ? (
-          <div className="admin-panel-muted p-5 text-sm text-[var(--admin-ink-600)]">
-            Még nincs kezelhető elem. Amíg nincs látható elem, a Különlegességek menüpont nem jelenik meg a webshop navigációjában.
+          <div className="admin-panel-muted px-4 py-3 text-sm leading-6 text-[var(--admin-ink-700)]">
+            A Különlegességek mega menu specialty-specifikus: a bal oldali választás határozza meg a középső preview képet, a jobb oldali cardot és a CTA céloldalt.
           </div>
-        ) : (
-          <div className="space-y-6">
-            {items.map((item) => {
-              const formId = `specialty-item-${item.id}`;
 
-              return (
-                <section key={item.id} className="admin-panel p-5">
-                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="admin-eyebrow">Specialty editor</p>
-                      <h2 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
-                        {item.name}
-                        {item.isVisible ? <Eye className="h-4 w-4 text-[#24533a]" /> : null}
-                      </h2>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button type="submit" form={formId} className="admin-button-primary admin-control-sm gap-1.5">
-                        <Save className="h-3.5 w-3.5" />
-                        Mentés
-                      </button>
-                      <form action={deleteSpecialtyAction}>
-                        <input type="hidden" name="id" value={item.id} />
-                        <button type="submit" className="admin-button-danger admin-control-sm gap-1.5">
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Törlés
+          <section className="admin-panel p-5">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4 text-[var(--admin-blue-700)]" />
+                  <h2 className="text-sm font-semibold text-[var(--admin-ink-900)]">
+                    Új specialty létrehozása
+                  </h2>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-[var(--admin-ink-600)]">
+                  A slug alapján automatikusan létrejön a publikus specialty listing.
+                </p>
+              </div>
+              <button type="submit" form="specialty-create-form" className="admin-button-primary admin-control-md gap-2">
+                <Save className="h-4 w-4" />
+                Létrehozás
+              </button>
+            </div>
+            <SpecialtyForm formId="specialty-create-form" mode="create" nextSortOrder={items.length} />
+          </section>
+
+          {items.length === 0 ? (
+            <div className="admin-panel-muted p-5 text-sm text-[var(--admin-ink-600)]">
+              Még nincs kezelhető elem. Amíg nincs látható elem, a Különlegességek menüpont nem jelenik meg a webshop navigációjában.
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {items.map((item) => {
+                const formId = `specialty-item-${item.id}`;
+
+                return (
+                  <section key={item.id} className="admin-panel p-5">
+                    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="admin-eyebrow">Specialty editor</p>
+                        <h2 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
+                          {item.name}
+                          {item.isVisible ? <Eye className="h-4 w-4 text-[#24533a]" /> : null}
+                        </h2>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button type="submit" form={formId} className="admin-button-primary admin-control-sm gap-1.5">
+                          <Save className="h-3.5 w-3.5" />
+                          Mentés
                         </button>
-                      </form>
+                        <form action={deleteSpecialtyAction}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <button type="submit" className="admin-button-danger admin-control-sm gap-1.5">
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Törlés
+                          </button>
+                        </form>
+                      </div>
                     </div>
-                  </div>
 
-                  <SpecialtyForm formId={formId} item={item} mode="update" nextSortOrder={items.length} />
-                </section>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                    <SpecialtyForm formId={formId} item={item} mode="update" nextSortOrder={items.length} />
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </SpecialtyEditorAccordion>
     </AdminShell>
   );
 }
