@@ -12,8 +12,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, ArrowRight } from "lucide-react";
 
-import { getImageCropStyle, type ImageCropMetadata } from "@/lib/image-crop";
-
 export type MegaMenuHeroConfig = {
   backgroundImageSrc?: string;
   badge?: string;
@@ -30,10 +28,8 @@ export type MegaMenuItem = {
   shortDescription?: string | null;
   previewImageSrc?: string;
   previewImageAlt?: string;
-  previewImageCrop?: ImageCropMetadata;
   cardImageSrc?: string;
   cardImageAlt?: string;
-  cardImageCrop?: ImageCropMetadata;
   cardTitle?: string | null;
   cardDescription?: string | null;
   ctaText?: string | null;
@@ -145,7 +141,6 @@ export function MegaMenu({
     : firstItem;
 
   const previewSrc = activeItem?.previewImageSrc ?? defaultPreviewImageSrc;
-  const previewCrop = activeItem?.previewImageCrop;
   const previewAlt =
     activeItem?.previewImageAlt ??
     activeItem?.name ??
@@ -161,7 +156,6 @@ export function MegaMenu({
   const cardHref = activeItem?.href || heroConfig?.ctaHref;
   const cardImageSrc = activeItem?.cardImageSrc || heroConfig?.backgroundImageSrc;
   const cardImageAlt = activeItem?.cardImageAlt || cardTitle || triggerLabel;
-  const cardImageCrop = activeItem?.cardImageCrop;
 
   function handleItemKeyDown(e: React.KeyboardEvent<HTMLAnchorElement>) {
     const all = Array.from(
@@ -275,7 +269,6 @@ export function MegaMenu({
                       src={previewSrc}
                       alt={previewAlt}
                       className="object-cover object-center transition-opacity duration-200"
-                      style={getImageCropStyle(previewCrop)}
                       sizes="(max-width: 1600px) 35vw"
                     />
                   ) : (
@@ -306,7 +299,6 @@ export function MegaMenu({
                         src={cardImageSrc}
                         alt={cardImageAlt}
                         className="object-cover object-center"
-                        style={getImageCropStyle(cardImageCrop)}
                         sizes="(max-width: 1600px) 35vw"
                       />
                     ) : null}

@@ -9,12 +9,6 @@ import { clearGuestCartToken, getGuestCartToken } from "@/lib/cartToken";
 import {
   isInStock,
 } from "@/lib/inventory";
-import {
-  focalPointFromCropArea,
-  focalPointFromLegacyCrop,
-  type ImageCropArea,
-  type ImageFocalPoint,
-} from "@/lib/image-crop";
 import { getProductAvailabilitySnapshot, storefrontProductWhere } from "@/lib/product-lifecycle";
 import {
   type AppliedPromo,
@@ -41,8 +35,6 @@ export type FavouriteProduct = {
   soldOutAt?: Date | null;
   inStock: boolean;
   imageUrl?: string | null;
-  cardCropArea?: ImageCropArea | null;
-  cardFocalPoint?: ImageFocalPoint | null;
 };
 
 export type CartItemSummary = {
@@ -195,35 +187,6 @@ function getCoverImage(product: {
   }[];
 }) {
   return product.images.find((image) => image.isCover) ?? product.images[0] ?? null;
-}
-
-function getProductCardFocalPoint(
-  image: ReturnType<typeof getCoverImage>,
-): ImageFocalPoint | null {
-  if (!image) {
-    return null;
-  }
-
-  const cropArea = {
-    x: image.cardCropAreaX ?? 0,
-    y: image.cardCropAreaY ?? 0,
-    width: image.cardCropAreaWidth ?? 100,
-    height: image.cardCropAreaHeight ?? 100,
-  };
-  const hasLegacyCropArea =
-    cropArea.x !== 0 ||
-    cropArea.y !== 0 ||
-    cropArea.width !== 100 ||
-    cropArea.height !== 100;
-
-  return hasLegacyCropArea
-    ? focalPointFromCropArea(cropArea)
-    : focalPointFromLegacyCrop({
-        x: image.cardCropX,
-        y: image.cardCropY,
-        zoom: image.cardCropZoom,
-        aspectRatio: image.cardCropAspectRatio,
-      });
 }
 
 export function formatDate(value: Date) {
@@ -393,8 +356,6 @@ export async function getFavouriteProducts(userId: string) {
       soldOutAt: entry.product.soldOutAt,
       inStock: isInStock(entry.product),
       imageUrl: coverImage?.url ?? entry.product.imageUrl,
-      cardCropArea: null,
-      cardFocalPoint: getProductCardFocalPoint(coverImage),
     };
   });
 }

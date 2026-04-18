@@ -73,12 +73,10 @@ export default async function FavouritesPage() {
                   return (
                     <>
 
-                      <Link href={`/product/${item.slug}?redirectTo=/favourites`} className="relative block aspect-[4/5] overflow-hidden">
+                      <Link href={`/product/${item.slug}?redirectTo=/favourites`} className="relative block aspect-[3/4] overflow-hidden">
                         <ProductImageFrame
                           alt={item.name}
                           imageUrl={item.imageUrl}
-                          cropArea={item.cardCropArea ?? null}
-                          focalPoint={item.cardFocalPoint ?? null}
                           soldOut={isOutOfStock}
                           className="relative h-full w-full overflow-hidden"
                           imageClassName={`h-full w-full object-cover transition duration-500 ${

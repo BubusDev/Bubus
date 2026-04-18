@@ -1,6 +1,5 @@
 import { AdminMerchandisingBoard, type MerchandisingBoardProduct } from "@/components/admin/AdminMerchandisingBoard";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { focalPointFromCropArea, focalPointFromLegacyCrop } from "@/lib/image-crop";
 import { getAdminMerchandisingBoard } from "@/lib/products";
 
 type AdminMerchandisingPageProps = {
@@ -27,30 +26,6 @@ export default async function AdminMerchandisingPage({
       collectionLabel: product.collectionLabel,
       categoryLabel: product.labels.category,
       imageUrl: cardImage?.url ?? product.imageUrl ?? null,
-      cardFocalPoint: cardImage
-        ? (() => {
-            const cropArea = {
-              x: cardImage.cardCropAreaX,
-              y: cardImage.cardCropAreaY,
-              width: cardImage.cardCropAreaWidth,
-              height: cardImage.cardCropAreaHeight,
-            };
-            const hasLegacyCropArea =
-              cropArea.x !== 0 ||
-              cropArea.y !== 0 ||
-              cropArea.width !== 100 ||
-              cropArea.height !== 100;
-
-            return hasLegacyCropArea
-              ? focalPointFromCropArea(cropArea)
-              : focalPointFromLegacyCrop({
-                  x: cardImage.cardCropX,
-                  y: cardImage.cardCropY,
-                  zoom: cardImage.cardCropZoom,
-                  aspectRatio: cardImage.cardCropAspectRatio,
-                });
-          })()
-        : null,
       statusLabel: product.status,
       availableToSell: product.availableToSell,
       isNew: product.isNew,

@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth";
 import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import { db } from "@/lib/db";
-import { normalizeCropNumber } from "@/lib/image-crop";
 import { slugifyOptionName } from "@/lib/products";
 
 function readString(formData: FormData, key: string) {
@@ -19,10 +18,6 @@ function readSortOrder(formData: FormData) {
   return Number.isFinite(sortOrder) ? sortOrder : 0;
 }
 
-function readCropNumber(formData: FormData, key: string, fallback: number) {
-  return normalizeCropNumber(readString(formData, key), fallback);
-}
-
 function readSpecialtyFormData(formData: FormData) {
   const name = readString(formData, "name");
   const slug = slugifyOptionName(readString(formData, "slug") || name);
@@ -30,32 +25,18 @@ function readSpecialtyFormData(formData: FormData) {
   const clearCardImage = formData.get("clearCardImage") === "on";
   const previewImageUrl = clearPreviewImage ? null : readString(formData, "previewImageUrl") || null;
   const cardImageUrl = clearCardImage ? null : readString(formData, "cardImageUrl") || null;
-  const previewImageCrop = previewImageUrl
-    ? {
-        previewImageCropX: readCropNumber(formData, "previewImageCropX", 50),
-        previewImageCropY: readCropNumber(formData, "previewImageCropY", 50),
-        previewImageZoom: readCropNumber(formData, "previewImageZoom", 1),
-        previewImageAspectRatio: readCropNumber(formData, "previewImageAspectRatio", 0.8),
-      }
-    : {
-        previewImageCropX: 50,
-        previewImageCropY: 50,
-        previewImageZoom: 1,
-        previewImageAspectRatio: 0.8,
-      };
-  const cardImageCrop = cardImageUrl
-    ? {
-        cardImageCropX: readCropNumber(formData, "cardImageCropX", 50),
-        cardImageCropY: readCropNumber(formData, "cardImageCropY", 50),
-        cardImageZoom: readCropNumber(formData, "cardImageZoom", 1),
-        cardImageAspectRatio: readCropNumber(formData, "cardImageAspectRatio", 4 / 3),
-      }
-    : {
-        cardImageCropX: 50,
-        cardImageCropY: 50,
-        cardImageZoom: 1,
-        cardImageAspectRatio: 4 / 3,
-      };
+  const previewImageCrop = {
+    previewImageCropX: 50,
+    previewImageCropY: 50,
+    previewImageZoom: 1,
+    previewImageAspectRatio: 4 / 5,
+  };
+  const cardImageCrop = {
+    cardImageCropX: 50,
+    cardImageCropY: 50,
+    cardImageZoom: 1,
+    cardImageAspectRatio: 4 / 3,
+  };
   const cardDescription = readString(formData, "cardDescription");
   const shortDescription = readString(formData, "shortDescription");
 

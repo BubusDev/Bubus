@@ -23,7 +23,6 @@ import {
   deleteSpecialtyAction,
   updateSpecialtyAction,
 } from "./actions";
-import { getImageCropStyle } from "@/lib/image-crop";
 
 type AdminSpecialtiesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -149,12 +148,6 @@ function SpecialtyPreview({
                   src={previewImage}
                   alt={item.previewImageAlt || item.imageAlt || item.name}
                   className="h-full w-full object-cover"
-                  style={getImageCropStyle({
-                    x: item.previewImageCropX,
-                    y: item.previewImageCropY,
-                    zoom: item.previewImageZoom,
-                    aspectRatio: item.previewImageAspectRatio,
-                  })}
                 />
               ) : (
                 <ImageIcon className="h-8 w-8 text-[var(--admin-ink-500)]" />
@@ -173,21 +166,6 @@ function SpecialtyPreview({
                   src={cardImage}
                   alt={item.cardImageAlt || item.previewImageAlt || item.name}
                   className="absolute inset-0 h-full w-full object-cover"
-                  style={getImageCropStyle(
-                    item.cardImageUrl
-                      ? {
-                          x: item.cardImageCropX,
-                          y: item.cardImageCropY,
-                          zoom: item.cardImageZoom,
-                          aspectRatio: item.cardImageAspectRatio,
-                        }
-                      : {
-                          x: item.previewImageCropX,
-                          y: item.previewImageCropY,
-                          zoom: item.previewImageZoom,
-                          aspectRatio: item.previewImageAspectRatio,
-                        },
-                  )}
                 />
               ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
@@ -288,7 +266,7 @@ function SpecialtyForm({
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Középső preview kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a kép a középső preview-ban jelenik meg. A rendszer levághatja a széleket. Fontos elemeket tartsd középen.
+                    Ez a kép a középső preview-ban jelenik meg. A szélek levágásra kerülhetnek.
                   </p>
                   <AdminBlobImageInput
                     name="previewImageUrl"
@@ -296,12 +274,9 @@ function SpecialtyForm({
                     label="Középső preview kép feltöltése"
                     folder="specialties"
                     previewClassName="max-w-64 rounded-sm"
-                    imageClassName="aspect-[4/5] w-full object-cover"
+                    imageClassName="aspect-[4/5] w-full object-cover object-center"
                     crop={{
                       aspectRatio: 4 / 5,
-                      title: "Középső preview kép fókusza",
-                      guidance:
-                        "Ez a kép automatikusan 4:5 arányban jelenik meg. A fókuszpont segít megtartani a fontos részletet.",
                       xName: "previewImageCropX",
                       yName: "previewImageCropY",
                       zoomName: "previewImageZoom",
@@ -318,19 +293,13 @@ function SpecialtyForm({
                 <Field label="Középső preview alt text" helper="A preview kép akadálymentes leírása. Ha üres és van kép, a specialty neve használható támpontnak.">
                   <input name="previewImageAlt" defaultValue={previewImageAlt} placeholder={item?.name ?? "Különlegesség preview"} className={inputClassName} />
                 </Field>
-                {previewImageUrl ? (
-                  <label className="admin-checkbox-pill inline-flex min-h-10 items-center gap-2 px-3 text-sm">
-                    <input name="clearPreviewImage" type="checkbox" className="h-4 w-4" />
-                    Preview kép törlése
-                  </label>
-                ) : null}
               </div>
 
               <div className="space-y-3">
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Jobb oldali card kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a jobb oldali CTA card háttere. A card 4:3 arányban jelenik meg. Szöveg vagy fontos részlet ne kerüljön a szélekre.
+                    Ez a kép a jobb oldali kártyán jelenik meg, szélesebb kivágásban.
                   </p>
                   <AdminBlobImageInput
                     name="cardImageUrl"
@@ -338,12 +307,9 @@ function SpecialtyForm({
                     label="Jobb oldali card kép feltöltése"
                     folder="specialties"
                     previewClassName="max-w-64 rounded-sm"
-                    imageClassName="aspect-[4/3] w-full object-cover"
+                    imageClassName="aspect-[4/3] w-full object-cover object-center"
                     crop={{
                       aspectRatio: 4 / 3,
-                      title: "Jobb oldali card kép fókusza",
-                      guidance:
-                        "Ez a kép automatikusan 4:3 arányban jelenik meg. A fókuszpont segít megtartani a fontos részletet.",
                       xName: "cardImageCropX",
                       yName: "cardImageCropY",
                       zoomName: "cardImageZoom",
@@ -360,12 +326,6 @@ function SpecialtyForm({
                 <Field label="Jobb oldali card alt text" helper="A card háttérkép leírása. Dekoratív kép esetén rövid, tárgyszerű szöveg elég.">
                   <input name="cardImageAlt" defaultValue={item?.cardImageAlt ?? ""} placeholder={item?.cardTitle || item?.name || "Különlegesség card"} className={inputClassName} />
                 </Field>
-                {item?.cardImageUrl ? (
-                  <label className="admin-checkbox-pill inline-flex min-h-10 items-center gap-2 px-3 text-sm">
-                    <input name="clearCardImage" type="checkbox" className="h-4 w-4" />
-                    Card kép törlése
-                  </label>
-                ) : null}
               </div>
             </div>
           </SpecialtyEditorSection>

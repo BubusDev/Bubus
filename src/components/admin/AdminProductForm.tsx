@@ -36,13 +36,10 @@ import {
   toggleProductArchiveAction,
   updateProductOptionAction,
 } from "@/app/(admin)/admin/products/actions";
-import { AdminImageFocalPointPicker } from "@/components/admin/AdminImageFocalPointPicker";
 import { createProductImageUploadPathname } from "@/lib/blob-upload";
 import {
   DEFAULT_IMAGE_CROP_AREA,
-  focalPointFromCropArea,
-  focalPointFromLegacyCrop,
-  getFocalBackgroundStyle,
+  getCenteredBackgroundFillStyle,
   type ImageCropArea,
   type ImageCropMetadata,
 } from "@/lib/image-crop";
@@ -300,33 +297,8 @@ function getOptimizedImageFileName(fileName: string) {
   return `${baseName || "product-image"}.jpg`;
 }
 
-function getProductImageFocalCrop(image: AdminProductImageValue): ImageCropMetadata {
-  const cropArea = {
-    x: image.cardCropAreaX,
-    y: image.cardCropAreaY,
-    width: image.cardCropAreaWidth,
-    height: image.cardCropAreaHeight,
-  };
-  const hasLegacyCropArea =
-    cropArea.x !== 0 ||
-    cropArea.y !== 0 ||
-    cropArea.width !== 100 ||
-    cropArea.height !== 100;
-  const focalPoint = hasLegacyCropArea
-    ? focalPointFromCropArea(cropArea)
-    : focalPointFromLegacyCrop({
-        x: image.cardCropX,
-        y: image.cardCropY,
-        zoom: image.cardCropZoom,
-        aspectRatio: image.cardCropAspectRatio,
-      });
-
-  return {
-    x: focalPoint.x,
-    y: focalPoint.y,
-    zoom: 1,
-    aspectRatio: PRODUCT_CARD_ASPECT_RATIO,
-  };
+function getProductImageCardCrop(): ImageCropMetadata {
+  return DEFAULT_PRODUCT_CARD_CROP;
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
@@ -1004,7 +976,7 @@ export function AdminProductForm({
         kind: "existing",
         uploadedUrl: image.url,
         status: "ready",
-        cardCrop: getProductImageFocalCrop(image),
+        cardCrop: getProductImageCardCrop(),
         cardCropArea: DEFAULT_IMAGE_CROP_AREA,
       })),
     [values],
@@ -1404,23 +1376,6 @@ export function AdminProductForm({
     void processFiles(files);
   }
 
-  function updateImageCardCrop(
-    image: PendingImage,
-    cardCrop: ImageCropMetadata,
-  ) {
-    const updater = (current: PendingImage) =>
-      current.id === image.id
-        ? { ...current, cardCrop, cardCropArea: DEFAULT_IMAGE_CROP_AREA }
-        : current;
-
-    if (image.kind === "existing") {
-      setExistingImages((cur) => cur.map(updater));
-    } else {
-      setUploadedImages((cur) => cur.map(updater));
-    }
-    setSubmitError(null);
-  }
-
   function removeImage(image: PendingImage) {
     setSubmitError(null);
     if (image.kind === "existing") {
@@ -1782,7 +1737,7 @@ export function AdminProductForm({
           <CardShell
             eyebrow="Média"
             title="Termékképek"
-            subtitle="Aktív termékhez legalább egy kép kell. A csillag jelöli a borítót."
+            subtitle="Aktív termékhez legalább egy kép kell. Az első kép legyen a fő vizuál, a második a hover kép."
           >
             <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
               <div
@@ -1812,6 +1767,9 @@ export function AdminProductForm({
                   </p>
                   <p className="mt-1 text-xs leading-5 text-[var(--admin-ink-500)]">
                     {productImageFormatHelpText}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
+                    A kártyán a kép 3:4 arányban jelenik meg. Fontos részleteket érdemes középen tartani.
                   </p>
                 </div>
               </div>
@@ -1854,21 +1812,12 @@ export function AdminProductForm({
                             className="aspect-[3/4] bg-[#f5f3f0]"
                             role="img"
                             aria-label={image.name}
-                            style={getFocalBackgroundStyle(image.previewUrl, image.cardCrop)}
+                            style={getCenteredBackgroundFillStyle(image.previewUrl)}
                           />
                           <div className="border-t border-[var(--admin-line-100)] bg-white p-2">
-                            <AdminImageFocalPointPicker
-                              disabled={image.status !== "ready"}
-                              value={image.cardCrop}
-                              onChange={(focalPoint) =>
-                                updateImageCardCrop(image, {
-                                  ...image.cardCrop,
-                                  ...focalPoint,
-                                  zoom: 1,
-                                  aspectRatio: PRODUCT_CARD_ASPECT_RATIO,
-                                })
-                              }
-                            />
+                            <p className="line-clamp-2 text-[11px] leading-4 text-[var(--admin-ink-600)]">
+                              {isCover ? "Fő kép" : "Hover / második kép"}
+                            </p>
                           </div>
                           <button
                             type="button"

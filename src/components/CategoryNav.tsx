@@ -23,27 +23,8 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
     shortDescription: item.shortDescription,
     previewImageSrc: item.previewImageUrl ?? item.imageUrl ?? undefined,
     previewImageAlt: item.previewImageAlt || item.imageAlt || item.name,
-    previewImageCrop: {
-      x: item.previewImageCropX,
-      y: item.previewImageCropY,
-      zoom: item.previewImageZoom,
-      aspectRatio: item.previewImageAspectRatio,
-    },
     cardImageSrc: item.cardImageUrl ?? item.previewImageUrl ?? item.imageUrl ?? undefined,
     cardImageAlt: item.cardImageAlt || item.previewImageAlt || item.imageAlt || item.name,
-    cardImageCrop: item.cardImageUrl
-      ? {
-          x: item.cardImageCropX,
-          y: item.cardImageCropY,
-          zoom: item.cardImageZoom,
-          aspectRatio: item.cardImageAspectRatio,
-        }
-      : {
-          x: item.previewImageCropX,
-          y: item.previewImageCropY,
-          zoom: item.previewImageZoom,
-          aspectRatio: item.previewImageAspectRatio,
-        },
     cardTitle: item.cardTitle || item.name,
     cardDescription: item.cardDescription || item.shortDescription,
     ctaText: item.ctaLabel || "Kollekció megnyitása",

@@ -38,6 +38,8 @@ export const DEFAULT_IMAGE_CROP_AREA: ImageCropArea = {
   height: 100,
 };
 
+// Compatibility helpers for legacy crop/focal metadata. New storefront/admin
+// image surfaces use fixed frames with centered cover rendering.
 export function getImageCropStyle(crop?: Partial<ImageCropMetadata> | null) {
   return getImageFocalPointStyle(focalPointFromLegacyCrop(crop));
 }
@@ -48,6 +50,13 @@ export function getImageFocalPointStyle(focalPoint?: Partial<ImageFocalPoint> | 
   return {
     objectFit: "cover",
     objectPosition: `${focal.x}% ${focal.y}%`,
+  } satisfies CSSProperties;
+}
+
+export function getCenteredImageFillStyle() {
+  return {
+    objectFit: "cover",
+    objectPosition: "center",
   } satisfies CSSProperties;
 }
 
@@ -128,6 +137,15 @@ export function getFocalBackgroundStyle(
   return {
     backgroundImage: `url("${escapeCssUrl(imageUrl)}")`,
     backgroundPosition: `${focal.x}% ${focal.y}%`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
+  } satisfies CSSProperties;
+}
+
+export function getCenteredBackgroundFillStyle(imageUrl: string) {
+  return {
+    backgroundImage: `url("${escapeCssUrl(imageUrl)}")`,
+    backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
     backgroundSize: "cover",
   } satisfies CSSProperties;

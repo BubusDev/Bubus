@@ -4,14 +4,10 @@ import { upload } from "@vercel/blob/client";
 import { Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { AdminImageFocalPointPicker } from "@/components/admin/AdminImageFocalPointPicker";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
 import {
   DEFAULT_IMAGE_CROP,
   DEFAULT_IMAGE_FOCAL_POINT,
-  focalPointFromLegacyCrop,
-  getImageFocalPointStyle,
-  normalizeFocalPoint,
   type ImageCropMetadata,
 } from "@/lib/image-crop";
 import { browserSafeProductImageAccept } from "@/lib/image-safety";
@@ -29,8 +25,6 @@ type AdminBlobImageInputProps = {
   imageClassName?: string;
   crop?: {
     aspectRatio: number;
-    title: string;
-    guidance: string;
     xName?: string;
     yName?: string;
     zoomName?: string;
@@ -52,11 +46,9 @@ export function AdminBlobImageInput({
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
   const hasMountedRef = useRef(false);
   const [blobUrl, setBlobUrl] = useState(defaultUrl);
-  const initialFocalPoint = focalPointFromLegacyCrop(crop?.defaultValue);
   const [cropValue, setCropValue] = useState<ImageCropMetadata>({
     ...DEFAULT_IMAGE_CROP,
-    ...crop?.defaultValue,
-    ...initialFocalPoint,
+    ...DEFAULT_IMAGE_FOCAL_POINT,
     aspectRatio: crop?.aspectRatio ?? crop?.defaultValue?.aspectRatio ?? DEFAULT_IMAGE_CROP.aspectRatio,
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -132,7 +124,6 @@ export function AdminBlobImageInput({
   }
 
   const isBusy = isUploading;
-  const focalPoint = normalizeFocalPoint(cropValue);
 
   return (
     <div className="space-y-2">
@@ -151,7 +142,6 @@ export function AdminBlobImageInput({
               src={blobUrl}
               alt={label}
               className={imageClassName}
-              style={getImageFocalPointStyle(focalPoint)}
             />
           ) : (
             <div className="flex min-h-36 items-center justify-center px-4 py-6 text-center text-xs text-[var(--admin-ink-500)]">
@@ -189,22 +179,6 @@ export function AdminBlobImageInput({
           ) : null}
         </div>
       )}
-
-      {crop && blobUrl ? (
-        <AdminImageFocalPointPicker
-          disabled={isBusy}
-          label="Képfókusz"
-          value={focalPoint}
-          onChange={(nextFocalPoint) => {
-            setCropValue((current) => ({
-              ...current,
-              ...nextFocalPoint,
-              zoom: 1,
-              aspectRatio: crop.aspectRatio,
-            }));
-          }}
-        />
-      ) : null}
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-[var(--admin-ink-700)]">{label}</span>
