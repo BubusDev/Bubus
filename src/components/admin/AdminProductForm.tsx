@@ -713,7 +713,7 @@ function ManagedOptionSelect({
   }, [managerState.isOpen, onClose]);
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="relative isolate">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className={eyebrowCls}>
           {label}
@@ -729,7 +729,11 @@ function ManagedOptionSelect({
           Kezelés
         </button>
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] gap-2">
+      <div
+        className={`transition-opacity duration-150 ease-out ${
+          managerState.isOpen ? "opacity-[0.45]" : "opacity-100"
+        }`}
+      >
         <select
           value={selectedValue}
           onChange={(e) => onChange(e.target.value)}
@@ -742,18 +746,13 @@ function ManagedOptionSelect({
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          onClick={managerState.isOpen ? onClose : onOpen}
-          className="inline-flex h-11 items-center justify-center rounded-md border border-[var(--admin-line-200)] bg-white text-[var(--admin-blue-700)] transition hover:border-[#bfd0ea] hover:bg-[var(--admin-blue-050)]"
-          aria-label={`${label} opciók kezelése`}
-          aria-expanded={managerState.isOpen}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
       </div>
       {managerState.isOpen ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 rounded-md border border-[#bfd0ea] bg-white p-2.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)]">
+        <div
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-40 w-[min(22rem,calc(100vw-2rem))] rounded-md border border-[#bfd0ea] bg-white p-2.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)] [animation:option-panel-in_150ms_ease-out] lg:left-auto lg:right-[calc(100%+0.75rem)] lg:top-0"
+          aria-label={`${label} opciókezelő panel`}
+        >
+          <span className="absolute -right-2 top-9 hidden h-4 w-4 rotate-45 border-r border-t border-[#bfd0ea] bg-white lg:block" />
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--admin-ink-500)]" />
             <input
@@ -1096,9 +1095,23 @@ export function AdminProductForm({
   };
 
   function setOptionManagerPatch(key: OptionListKey, patch: Partial<NonNullable<OptionManagerState[OptionListKey]>>) {
-    setOptionManagerState((current) => ({
-      ...current,
-      [key]: {
+    setOptionManagerState((current) => {
+      const next: OptionManagerState = patch.isOpen ? {} : { ...current };
+
+      if (patch.isOpen) {
+        for (const currentKey of Object.keys(current) as OptionListKey[]) {
+          const currentState = current[currentKey];
+          if (!currentState) continue;
+          next[currentKey] = {
+            ...currentState,
+            confirmDeleteId: null,
+            editId: null,
+            isOpen: false,
+          };
+        }
+      }
+
+      next[key] = {
         confirmDeleteId: current[key]?.confirmDeleteId ?? null,
         createName: current[key]?.createName ?? "",
         editId: current[key]?.editId ?? null,
@@ -1108,8 +1121,10 @@ export function AdminProductForm({
         query: current[key]?.query ?? "",
         status: current[key]?.status ?? "idle",
         ...patch,
-      },
-    }));
+      };
+
+      return next;
+    });
   }
 
   function appendCreatedOption(key: OptionListKey, option: ProductOptionValue) {
