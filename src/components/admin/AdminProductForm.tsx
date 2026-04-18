@@ -1769,7 +1769,7 @@ export function AdminProductForm({
                     {productImageFormatHelpText}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
-                    A kártyán a kép 3:4 arányban jelenik meg. Fontos részleteket érdemes középen tartani.
+                    A kártyán a kép 3:4 arányban jelenik meg, például 1200 x 1600 px méretben. Fontos részleteket érdemes középen tartani.
                   </p>
                 </div>
               </div>

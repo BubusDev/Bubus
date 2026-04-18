@@ -266,7 +266,7 @@ function SpecialtyForm({
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Középső preview kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a kép a középső preview-ban jelenik meg. A szélek levágásra kerülhetnek.
+                    Ez a kép a középső preview-ban jelenik meg 4:5 arányban, például 1200 x 1500 px méretben. A szélek levágásra kerülhetnek.
                   </p>
                   <AdminBlobImageInput
                     name="previewImageUrl"
@@ -299,7 +299,7 @@ function SpecialtyForm({
                 <div className="grid gap-2">
                   <span className="admin-eyebrow">Jobb oldali card kép</span>
                   <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Ez a kép a jobb oldali kártyán jelenik meg, szélesebb kivágásban.
+                    Ez a kép a jobb oldali kártyán jelenik meg 4:3 arányban, például 1600 x 1200 px méretben.
                   </p>
                   <AdminBlobImageInput
                     name="cardImageUrl"
