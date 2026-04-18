@@ -142,7 +142,7 @@ export function Header({
                   currentPath === pathname ? null : pathname,
                 )
               }
-              className="flex h-11 w-11 items-center justify-center rounded-[1rem] border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#ead9e1] bg-[rgba(255,247,250,0.62)] text-[#5a4651] backdrop-blur-xl transition duration-300 hover:bg-[#fff8fb]/88 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-11 sm:w-11 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -180,7 +180,7 @@ export function Header({
               <Link
                 href={user ? "/account" : "/sign-in"}
                 aria-label={user ? "Fiókom" : "Belépés"}
-                className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
+                className="relative inline-flex h-8 w-8 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
@@ -190,12 +190,15 @@ export function Header({
                 <button
                   type="button"
                   aria-label="Kuponjaim"
+                  aria-expanded={mobileCouponOpen}
                   onClick={() => setMobileCouponOpen(true)}
-                  className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
+                  className="relative inline-flex h-8 w-8 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10"
                 >
                   <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                   {couponPreview.activeCoupons.length > 0 && (
-                    <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85]" />
+                    <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[rgba(255,248,251,0.95)] bg-[#c45a85] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
+                      {couponPreview.activeCoupons.length > 9 ? "9+" : couponPreview.activeCoupons.length}
+                    </span>
                   )}
                 </button>
               ) : null}
@@ -205,7 +208,7 @@ export function Header({
                 type="button"
                 aria-label="Kosár"
                 onClick={() => setCartPath(pathname)}
-                className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
+                className="relative inline-flex h-8 w-8 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10"
               >
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
                 {cartCount > 0 && (
