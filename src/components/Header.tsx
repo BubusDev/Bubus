@@ -180,7 +180,7 @@ export function Header({
               <Link
                 href={user ? "/account" : "/sign-in"}
                 aria-label={user ? "Fiókom" : "Belépés"}
-                className="relative hidden min-[390px]:inline-flex h-10 w-10 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10"
+                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
@@ -192,7 +192,7 @@ export function Header({
                   aria-label="Kuponjaim"
                   aria-expanded={mobileCouponOpen}
                   onClick={() => setMobileCouponOpen(true)}
-                  className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10"
+                  className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
                 >
                   <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                   {couponPreview.activeCoupons.length > 0 && (
@@ -208,7 +208,7 @@ export function Header({
                 type="button"
                 aria-label="Kosár"
                 onClick={() => setCartPath(pathname)}
-                className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10"
+                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
               >
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
                 {cartCount > 0 && (
@@ -459,9 +459,9 @@ export function Header({
       {/* ── MOBILE COUPON POPUP ── */}
       {mobileCouponOpen && couponPreview ? (
         <div className="fixed inset-0 z-[200] flex items-start lg:hidden" onClick={() => setMobileCouponOpen(false)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" style={{ animation: "mobile-panel-overlay 320ms cubic-bezier(0.22,1,0.36,1) both" }} />
           <div
-            className="relative w-full max-h-[85vh] overflow-hidden rounded-b-2xl border-b border-[#e8e5e0] bg-white shadow-2xl"
+            className="mobile-panel-reveal relative w-full max-h-[85vh] overflow-hidden rounded-b-2xl border-b border-[#e8e5e0] bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
