@@ -943,6 +943,7 @@ export function AdminProductForm({
   options,
   values,
 }: AdminProductFormProps) {
+  const isCreateMode = !values.id;
   const initialFormState = useMemo(() => buildInitialFormState(values), [values]);
   const initialExistingImages = useMemo<PendingImage[]>(
     () =>
@@ -2005,11 +2006,13 @@ export function AdminProductForm({
                 onChange={(v) => handleFieldChange("isNew", v)}
                 label="Új termék"
               />
-              <ToggleSwitch
-                checked={formValues.isGiftable}
-                onChange={(v) => handleFieldChange("isGiftable", v)}
-                label="Ajándékozható"
-              />
+              {!isCreateMode ? (
+                <ToggleSwitch
+                  checked={formValues.isGiftable}
+                  onChange={(v) => handleFieldChange("isGiftable", v)}
+                  label="Ajándékozható"
+                />
+              ) : null}
             </div>
           </CardShell>
 
@@ -2060,24 +2063,28 @@ export function AdminProductForm({
                 required={formValues.status === "ACTIVE"}
                 {...getOptionManagerProps("occasions", "occasion")}
               />
-              <ManagedOptionSelect
-                label="Elérhetőség"
-                selectedValue={formValues.availability}
-                options={localOptions.availability}
-                onChange={(v) => handleFieldChange("availability", v)}
-                error={errors.availability}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("availability", "availability")}
-              />
-              <ManagedOptionSelect
-                label="Vizuális tónus"
-                selectedValue={formValues.tone}
-                options={localOptions.tones}
-                onChange={(v) => handleFieldChange("tone", v)}
-                error={errors.tone}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("tones", "tone")}
-              />
+              {!isCreateMode ? (
+                <>
+                  <ManagedOptionSelect
+                    label="Elérhetőség"
+                    selectedValue={formValues.availability}
+                    options={localOptions.availability}
+                    onChange={(v) => handleFieldChange("availability", v)}
+                    error={errors.availability}
+                    required={formValues.status === "ACTIVE"}
+                    {...getOptionManagerProps("availability", "availability")}
+                  />
+                  <ManagedOptionSelect
+                    label="Vizuális tónus"
+                    selectedValue={formValues.tone}
+                    options={localOptions.tones}
+                    onChange={(v) => handleFieldChange("tone", v)}
+                    error={errors.tone}
+                    required={formValues.status === "ACTIVE"}
+                    {...getOptionManagerProps("tones", "tone")}
+                  />
+                </>
+              ) : null}
             </div>
           </CardShell>
 

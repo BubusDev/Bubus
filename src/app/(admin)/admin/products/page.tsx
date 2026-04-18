@@ -1,4 +1,5 @@
 import { Archive, Gift, Pencil, Percent, Sparkles, Trash2 } from "lucide-react";
+import Image from "next/image";
 
 import {
   deleteProductAction,
@@ -32,85 +33,95 @@ export default async function AdminProductsPage() {
       </div>
 
       <div className="space-y-3 md:hidden">
-        {products.map((product) => (
-          <article key={product.id} className="admin-panel-soft p-4">
-            {(() => {
-              const snapshot = getProductAvailabilitySnapshot(product);
-              const statusLabel =
-                snapshot.lifecycleStatus === "active"
-                  ? "Aktív"
-                  : snapshot.lifecycleStatus === "draft"
-                    ? "Draft"
-                  : snapshot.lifecycleStatus === "sold_out"
-                    ? "Elfogyott"
-                    : "Hiányos";
+        {products.map((product) => {
+          const coverImageUrl =
+            product.images.find((image) => image.isCover)?.url ??
+            product.images[0]?.url ??
+            product.imageUrl;
 
-              return (
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="admin-badge-neutral admin-pill">{statusLabel}</span>
-                  <span className="text-xs text-[var(--admin-ink-500)]">
-                    Készlet: {product.stockQuantity} db
-                  </span>
-                  {snapshot.readinessIssues.length > 0 ? (
-                    <span className="text-xs text-[#9b476f]">
-                      {snapshot.readinessIssues[0]?.message}
+          return (
+            <article key={product.id} className="admin-panel-soft p-4">
+              {(() => {
+                const snapshot = getProductAvailabilitySnapshot(product);
+                const statusLabel =
+                  snapshot.lifecycleStatus === "active"
+                    ? "Aktív"
+                    : snapshot.lifecycleStatus === "draft"
+                      ? "Draft"
+                    : snapshot.lifecycleStatus === "sold_out"
+                      ? "Elfogyott"
+                      : "Hiányos";
+
+                return (
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="admin-badge-neutral admin-pill">{statusLabel}</span>
+                    <span className="text-xs text-[var(--admin-ink-500)]">
+                      Készlet: {product.stockQuantity} db
                     </span>
-                  ) : null}
+                    {snapshot.readinessIssues.length > 0 ? (
+                      <span className="text-xs text-[#9b476f]">
+                        {snapshot.readinessIssues[0]?.message}
+                      </span>
+                    ) : null}
+                  </div>
+                );
+              })()}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  <ProductThumbnail src={coverImageUrl} alt={product.name} />
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
+                      {product.name}
+                    </p>
+                    <p className="mt-1 break-all text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
+                  </div>
                 </div>
-              );
-            })()}
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
-                  {product.name}
+                <p className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
+                  {formatPrice(product.price)}
                 </p>
-                <p className="mt-1 break-all text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
               </div>
-              <p className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
-                {formatPrice(product.price)}
-              </p>
-            </div>
 
-            <div className="mt-4 grid gap-2 text-sm text-[var(--admin-ink-700)]">
-              <div className="flex justify-between gap-3">
-                <span className="text-[var(--admin-ink-500)]">Kategória</span>
-                <span className="font-medium text-[var(--admin-ink-900)]">{product.category.name}</span>
+              <div className="mt-4 grid gap-2 text-sm text-[var(--admin-ink-700)]">
+                <div className="flex justify-between gap-3">
+                  <span className="text-[var(--admin-ink-500)]">Kategória</span>
+                  <span className="font-medium text-[var(--admin-ink-900)]">{product.category.name}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-[var(--admin-ink-500)]">Kihelyezés</span>
+                  <span className="text-right font-medium text-[var(--admin-ink-900)]">
+                    {
+                      homepagePlacementLabels[
+                        product.homepagePlacement.toLowerCase() as keyof typeof homepagePlacementLabels
+                      ]
+                    }
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-[var(--admin-ink-500)]">Kihelyezés</span>
-                <span className="text-right font-medium text-[var(--admin-ink-900)]">
-                  {
-                    homepagePlacementLabels[
-                      product.homepagePlacement.toLowerCase() as keyof typeof homepagePlacementLabels
-                    ]
-                  }
-                </span>
-              </div>
-            </div>
 
-            <div className="mt-4 border-t border-[var(--admin-line-100)] pt-4">
-              <p className="mb-2 text-xs font-medium text-[var(--admin-ink-500)]">Jelölések</p>
-              <div className="flex flex-wrap gap-1.5">
-                <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
-                <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
-                <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
-                <ProductArchiveToggle productId={product.id} />
+              <div className="mt-4 border-t border-[var(--admin-line-100)] pt-4">
+                <p className="mb-2 text-xs font-medium text-[var(--admin-ink-500)]">Jelölések</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
+                  <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
+                  <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
+                  <ProductArchiveToggle productId={product.id} />
+                </div>
               </div>
-            </div>
 
-            <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--admin-line-100)] pt-4">
-              <AdminActionLink href={`/admin/products/${product.id}/edit`} size="sm" className="!h-9 !w-9 !p-0" title="Szerkesztés">
-                <Pencil className="h-4 w-4" />
-              </AdminActionLink>
-              <form action={deleteProductAction}>
-                <input type="hidden" name="productId" value={product.id} />
-                <AdminActionButton type="submit" variant="danger" size="sm" className="!h-9 !w-9 !p-0" title="Törlés">
-                  <Trash2 className="h-4 w-4" />
-                </AdminActionButton>
-              </form>
-            </div>
-          </article>
-        ))}
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--admin-line-100)] pt-4">
+                <AdminActionLink href={`/admin/products/${product.id}/edit`} size="sm" className="!h-9 !w-9 !p-0" title="Szerkesztés">
+                  <Pencil className="h-4 w-4" />
+                </AdminActionLink>
+                <form action={deleteProductAction}>
+                  <input type="hidden" name="productId" value={product.id} />
+                  <AdminActionButton type="submit" variant="danger" size="sm" className="!h-9 !w-9 !p-0" title="Törlés">
+                    <Trash2 className="h-4 w-4" />
+                  </AdminActionButton>
+                </form>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <div className="admin-table-shell hidden md:block">
@@ -130,6 +141,10 @@ export default async function AdminProductsPage() {
             <tbody>
               {products.map((product) => {
                 const snapshot = getProductAvailabilitySnapshot(product);
+                const coverImageUrl =
+                  product.images.find((image) => image.isCover)?.url ??
+                  product.images[0]?.url ??
+                  product.imageUrl;
                 const statusLabel =
                   snapshot.lifecycleStatus === "active"
                     ? "Aktív"
@@ -140,10 +155,15 @@ export default async function AdminProductsPage() {
                       : "Hiányos";
 
                 return (
-                <tr key={product.id} className="admin-table-row last:border-b-0">
+                  <tr key={product.id} className="admin-table-row last:border-b-0">
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-[var(--admin-ink-900)]">{product.name}</p>
-                    <p className="mt-1 text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
+                    <div className="flex items-center gap-3">
+                      <ProductThumbnail src={coverImageUrl} alt={product.name} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[var(--admin-ink-900)]">{product.name}</p>
+                        <p className="mt-1 text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                     {product.category.name}
@@ -205,6 +225,26 @@ export default async function AdminProductsPage() {
         </div>
       </div>
     </AdminShell>
+  );
+}
+
+function ProductThumbnail({ src, alt }: { src?: string | null; alt: string }) {
+  return (
+    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
+      {src ? (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          sizes="56px"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-[var(--admin-ink-400)]">
+          Nincs kép
+        </div>
+      )}
+    </div>
   );
 }
 

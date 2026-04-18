@@ -168,7 +168,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
           aria-label="Profil menü"
           className="user-dropdown-wrap dropdown-reveal absolute right-0 top-full z-50 mt-3"
         >
-          <div className="user-menu-left bg-white/96 p-2 backdrop-blur-xl">
+          <div className="user-menu-left bg-white p-2">
             <div className="rounded-md border border-[#eee7ea] bg-[#fffdfb] px-4 py-3.5">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f4f5] text-[#8e5f79]">
