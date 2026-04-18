@@ -205,7 +205,7 @@ export function MegaMenu({
           />
         </button>
 
-        {/* Mega menu panel — absolutely positioned relative to the <nav> ancestor */}
+        {/* Specialty navigation panel, absolutely positioned relative to the <nav> ancestor. */}
         <div
           id={panelId}
           role="region"

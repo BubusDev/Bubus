@@ -13,6 +13,7 @@ import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import { AdminShell } from "@/components/admin/AdminShell";
 import {
   SpecialtyEditorAccordion,
+  SpecialtyEditorForm,
   SpecialtyEditorSaveButton,
   SpecialtyEditorSection,
 } from "@/components/admin/SpecialtyEditorAccordion";
@@ -102,6 +103,36 @@ function MissingNote({ children }: { children: ReactNode }) {
   );
 }
 
+function SpecialtyFormContainer({
+  action,
+  children,
+  clientSubmit,
+  formId,
+}: {
+  action: typeof createSpecialtyAction | typeof updateSpecialtyAction;
+  children: ReactNode;
+  clientSubmit: boolean;
+  formId: string;
+}) {
+  if (clientSubmit) {
+    return (
+      <SpecialtyEditorForm id={formId} action={action} className="space-y-5">
+        {children}
+      </SpecialtyEditorForm>
+    );
+  }
+
+  return (
+    <form
+      id={formId}
+      action={action as unknown as (formData: FormData) => Promise<void>}
+      className="space-y-5"
+    >
+      {children}
+    </form>
+  );
+}
+
 function SpecialtyPreview({
   item,
   sectionId,
@@ -121,9 +152,9 @@ function SpecialtyPreview({
       <SpecialtyEditorSection alwaysOpen id={sectionId} eyebrow="05" title="Előnézeti kontextus">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="admin-eyebrow">Mega menu</p>
+            <p className="admin-eyebrow">Különlegességek menü</p>
             <h3 className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
-              Mega menu viselkedés
+              Navigációs viselkedés
             </h3>
           </div>
           <span
@@ -217,7 +248,7 @@ function SpecialtyForm({
   const previewImageAlt = item?.previewImageAlt ?? item?.imageAlt ?? "";
 
   return (
-    <form id={formId} action={action} className="space-y-5">
+    <SpecialtyFormContainer formId={formId} action={action} clientSubmit={!isCreate}>
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
@@ -238,7 +269,7 @@ function SpecialtyForm({
 
           <SpecialtyEditorSection id={`${formId}-storefront`} eyebrow="02" title="Storefront tartalom">
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Jobb oldali card cím" helper="Ha üres, a specialty neve jelenik meg a mega menu jobb oldali kártyáján.">
+              <Field label="Jobb oldali card cím" helper="Ha üres, a specialty neve jelenik meg a Különlegességek menü jobb oldali kártyáján.">
                 <input name="cardTitle" defaultValue={item?.cardTitle ?? ""} placeholder={item?.name ?? "Kulcstartók"} className={inputClassName} />
               </Field>
               <Field label="Card CTA szöveg" helper="Röviden tartsd. Hosszú szövegnél a storefront egy sorra vágja.">
@@ -246,7 +277,7 @@ function SpecialtyForm({
               </Field>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <Field label="Rövid leírás" helper="A listing fejlécében és a mega menu középső preview szövegeként jelenik meg.">
+              <Field label="Rövid leírás" helper="A listing fejlécében és a Különlegességek menü középső preview szövegeként jelenik meg.">
                 <textarea name="shortDescription" rows={4} defaultValue={item?.shortDescription ?? ""} className={textareaClassName} />
               </Field>
               <Field label="Jobb oldali card leírás" helper="Ha üres, a rövid leírás kerül a cardra. A storefront legfeljebb néhány sort mutat.">
@@ -260,7 +291,7 @@ function SpecialtyForm({
             </div>
           </SpecialtyEditorSection>
 
-          <SpecialtyEditorSection id={`${formId}-images`} eyebrow="03" title="Mega menu képek">
+          <SpecialtyEditorSection id={`${formId}-images`} eyebrow="03" title="Menü képek">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-3">
                 <div className="grid gap-2">
@@ -353,13 +384,13 @@ function SpecialtyForm({
                 Új specialty
               </h3>
               <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">
-                Mentés után saját listing oldalt kap, és ha látható, megjelenik a Különlegességek mega menüben.
+                Mentés után saját listing oldalt kap, és ha látható, megjelenik a Különlegességek menüben.
               </p>
             </SpecialtyEditorSection>
           </aside>
         )}
       </div>
-    </form>
+    </SpecialtyFormContainer>
   );
 }
 
@@ -391,7 +422,7 @@ export default async function AdminSpecialtiesPage({
           ) : null}
 
           <div className="admin-panel-muted px-4 py-3 text-sm leading-6 text-[var(--admin-ink-700)]">
-            A Különlegességek mega menu specialty-specifikus: a bal oldali választás határozza meg a középső preview képet, a jobb oldali cardot és a CTA céloldalt.
+            A Különlegességek menü specialty-specifikus: a bal oldali választás határozza meg a középső preview képet, a jobb oldali cardot és a CTA céloldalt.
           </div>
 
           <section className="admin-panel p-5">
@@ -435,7 +466,7 @@ export default async function AdminSpecialtiesPage({
                         </h2>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <SpecialtyEditorSaveButton formId={formId} specialtyId={item.id} />
+                        <SpecialtyEditorSaveButton formId={formId} />
                         <form action={deleteSpecialtyAction}>
                           <input type="hidden" name="id" value={item.id} />
                           <button type="submit" className="admin-button-danger admin-control-sm gap-1.5">

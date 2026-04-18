@@ -8,19 +8,28 @@ import {
   useId,
   useRef,
   useState,
+  useTransition,
   type FormEvent,
   type ReactNode,
 } from "react";
 import { Check, ChevronDown, Loader2, Save } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import type { SpecialtyActionResult } from "@/app/(admin)/admin/content/specialties/actions";
 
 type SpecialtyAccordionContextValue = {
   accordionId: string;
   dirtySectionIds: Set<string>;
   hasUnsavedChanges: boolean;
+  saveButtonStatuses: Record<string, SaveButtonStatus>;
   savedSpecialtyId?: string | null;
   savedStatus?: string | null;
+  submitError: string | null;
   submittingFormId: string | null;
+  markFormSaved: (formId: string) => void;
   openSectionId: string | null;
+  setSaveButtonStatus: (formId: string, status: SaveButtonStatus) => void;
+  setSubmitError: (message: string | null) => void;
   setOpenSectionId: (sectionId: string | null) => void;
 };
 
@@ -28,6 +37,9 @@ const SpecialtyAccordionContext = createContext<SpecialtyAccordionContextValue |
 
 const SECTION_SELECTOR = "[data-specialty-section-id]";
 const FIELD_SELECTOR = "input[name], textarea[name], select[name]";
+const SUCCESS_STATE_MS = 1500;
+
+type SaveButtonStatus = "idle" | "loading" | "success";
 
 function useSpecialtyAccordion() {
   const context = useContext(SpecialtyAccordionContext);
@@ -57,8 +69,11 @@ export function SpecialtyEditorAccordion({
   const initialSectionStateRef = useRef<Map<string, string>>(new Map());
   const isConfirmedNavigationRef = useRef(false);
   const isSubmittingRef = useRef(false);
+  const successTimeoutsRef = useRef<Map<string, number>>(new Map());
   const [dirtySectionIds, setDirtySectionIds] = useState<Set<string>>(new Set());
   const [openSectionId, setOpenSectionId] = useState<string | null>(defaultOpenSectionId ?? null);
+  const [saveButtonStatuses, setSaveButtonStatuses] = useState<Record<string, SaveButtonStatus>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittingFormId, setSubmittingFormId] = useState<string | null>(null);
   const hasUnsavedChanges = dirtySectionIds.size > 0;
 
@@ -144,13 +159,82 @@ export function SpecialtyEditorAccordion({
     return () => document.removeEventListener("click", handleDocumentClick, true);
   }, [hasUnsavedChanges]);
 
+  const setSaveButtonStatus = useCallback((formId: string, status: SaveButtonStatus) => {
+    const existingTimeout = successTimeoutsRef.current.get(formId);
+    if (existingTimeout) {
+      window.clearTimeout(existingTimeout);
+      successTimeoutsRef.current.delete(formId);
+    }
+
+    setSaveButtonStatuses((current) => {
+      if (status === "idle") {
+        const { [formId]: _removed, ...rest } = current;
+        return rest;
+      }
+
+      return { ...current, [formId]: status };
+    });
+
+    if (status === "success") {
+      const timeout = window.setTimeout(() => {
+        setSaveButtonStatuses((current) => {
+          const { [formId]: _removed, ...rest } = current;
+          return rest;
+        });
+        successTimeoutsRef.current.delete(formId);
+      }, SUCCESS_STATE_MS);
+      successTimeoutsRef.current.set(formId, timeout);
+    }
+  }, []);
+
+  const markFormSaved = useCallback((formId: string) => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    root.querySelectorAll<HTMLElement>(SECTION_SELECTOR).forEach((section) => {
+      const sectionId = section.dataset.specialtySectionId;
+      if (sectionId?.startsWith(`${formId}-`)) {
+        initialSectionStateRef.current.set(sectionId, serializeSection(section));
+      }
+    });
+
+    recomputeDirtySections();
+  }, [recomputeDirtySections]);
+
+  useEffect(() => {
+    if (
+      savedSpecialtyId &&
+      (savedStatus === "updated" || savedStatus === "created")
+    ) {
+      const formId =
+        savedStatus === "created" ? "specialty-create-form" : `specialty-item-${savedSpecialtyId}`;
+      setSaveButtonStatus(formId, "success");
+    }
+  }, [savedSpecialtyId, savedStatus, setSaveButtonStatus]);
+
+  useEffect(() => {
+    const successTimeouts = successTimeoutsRef.current;
+    return () => {
+      for (const timeout of successTimeouts.values()) {
+        window.clearTimeout(timeout);
+      }
+      successTimeouts.clear();
+    };
+  }, []);
+
   function handleEditorChange() {
+    setSubmitError(null);
     window.requestAnimationFrame(recomputeDirtySections);
   }
 
   function handleEditorSubmit(event: FormEvent<HTMLDivElement>) {
     isSubmittingRef.current = true;
-    setSubmittingFormId(event.target instanceof HTMLFormElement ? event.target.id : null);
+    if (event.target instanceof HTMLFormElement) {
+      setSubmittingFormId(event.target.id);
+      setSaveButtonStatus(event.target.id, "loading");
+    } else {
+      setSubmittingFormId(null);
+    }
   }
 
   return (
@@ -159,10 +243,15 @@ export function SpecialtyEditorAccordion({
         accordionId: generatedId,
         dirtySectionIds,
         hasUnsavedChanges,
+        saveButtonStatuses,
         savedSpecialtyId,
         savedStatus,
+        submitError,
         submittingFormId,
+        markFormSaved,
         openSectionId,
+        setSaveButtonStatus,
+        setSubmitError,
         setOpenSectionId,
       }}
     >
@@ -176,6 +265,64 @@ export function SpecialtyEditorAccordion({
         {children}
       </div>
     </SpecialtyAccordionContext.Provider>
+  );
+}
+
+export function SpecialtyEditorForm({
+  action,
+  children,
+  className,
+  id,
+}: {
+  action: (formData: FormData) => Promise<SpecialtyActionResult>;
+  children: ReactNode;
+  className?: string;
+  id: string;
+}) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const {
+    markFormSaved,
+    saveButtonStatuses,
+    setSaveButtonStatus,
+    setSubmitError,
+  } = useSpecialtyAccordion();
+  const isLoading = saveButtonStatuses[id] === "loading";
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (isLoading) return;
+
+    const formData = new FormData(event.currentTarget);
+    formData.set("_clientSubmit", "1");
+    setSubmitError(null);
+    setSaveButtonStatus(id, "loading");
+
+    startTransition(async () => {
+      try {
+        const result = await action(formData);
+        if (!result.ok) {
+          setSubmitError(result.error);
+          setSaveButtonStatus(id, "idle");
+          return;
+        }
+
+        markFormSaved(id);
+        setSaveButtonStatus(id, "success");
+        router.refresh();
+      } catch (error) {
+        setSubmitError(error instanceof Error ? error.message : "A mentés nem sikerült.");
+        setSaveButtonStatus(id, "idle");
+      }
+    });
+  }
+
+  return (
+    <form id={id} onSubmit={handleSubmit} className={className}>
+      <input type="hidden" name="_clientSubmit" value="1" />
+      {children}
+    </form>
   );
 }
 
@@ -257,23 +404,17 @@ export function SpecialtyEditorSection({
 
 export function SpecialtyEditorSaveButton({
   formId,
-  specialtyId,
 }: {
   formId: string;
-  specialtyId: string;
 }) {
-  const { dirtySectionIds, savedSpecialtyId, savedStatus, submittingFormId } =
-    useSpecialtyAccordion();
+  const { dirtySectionIds, saveButtonStatuses, submittingFormId } = useSpecialtyAccordion();
   const isDirty = Array.from(dirtySectionIds).some((sectionId) =>
     sectionId.startsWith(`${formId}-`),
   );
-  const isSubmitting = submittingFormId === formId;
-  const isSaved =
-    !isDirty &&
-    !isSubmitting &&
-    savedSpecialtyId === specialtyId &&
-    (savedStatus === "updated" || savedStatus === "created");
-  const disabled = isSubmitting || isSaved;
+  const status = isDirty ? "idle" : saveButtonStatuses[formId] ?? "idle";
+  const isSubmitting = status === "loading" || submittingFormId === formId;
+  const isSaved = status === "success";
+  const disabled = isSubmitting;
   const className = isSaved
     ? "admin-control-sm min-w-[6.75rem] gap-1.5 border border-[#b8d9c6] bg-[#f2faf5] px-2.5 text-xs font-semibold text-[#24533a] shadow-[0_1px_0_rgba(15,23,42,0.03)] transition-colors duration-200 disabled:opacity-100"
     : "admin-button-primary admin-control-sm min-w-[6.75rem] gap-1.5 transition-colors duration-200";
@@ -301,20 +442,24 @@ export function SpecialtyEditorSaveButton({
 }
 
 function SpecialtyEditorSaveStatus({ savedMessage }: { savedMessage?: string | null }) {
-  const { hasUnsavedChanges } = useSpecialtyAccordion();
+  const { hasUnsavedChanges, submitError } = useSpecialtyAccordion();
 
   return (
     <div
       aria-live="polite"
       className={`mb-4 rounded-md border px-4 py-2.5 text-sm transition ${
-        hasUnsavedChanges
+        submitError
+          ? "border-[#e3c7cf] bg-[#fff1f3] text-[#99283d]"
+          : hasUnsavedChanges
           ? "border-[#bfd0ea] bg-[#eef3fb] text-[var(--admin-blue-700)]"
           : savedMessage
             ? "border-[#bdd7c8] bg-[#f2faf5] text-[#24533a]"
             : "border-[var(--admin-line-100)] bg-white/72 text-[var(--admin-ink-600)]"
       }`}
     >
-      {hasUnsavedChanges ? (
+      {submitError ? (
+        <span className="font-medium">{submitError}</span>
+      ) : hasUnsavedChanges ? (
         <span className="font-medium">Nem mentett módosítások</span>
       ) : savedMessage ? (
         <span className="font-medium">{savedMessage}</span>

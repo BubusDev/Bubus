@@ -8,6 +8,12 @@ import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import { db } from "@/lib/db";
 import { slugifyOptionName } from "@/lib/products";
 
+export type SpecialtyActionResult =
+  | { ok: true; saved: "created" | "updated" | "deleted"; savedId?: string }
+  | { ok: false; error: string };
+
+class SpecialtyFormError extends Error {}
+
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
@@ -41,7 +47,7 @@ function readSpecialtyFormData(formData: FormData) {
   const shortDescription = readString(formData, "shortDescription");
 
   if (!name || !slug) {
-    redirectWithError("A név és a slug megadása kötelező.");
+    throw new SpecialtyFormError("A név és a slug megadása kötelező.");
   }
 
   return {
@@ -76,37 +82,58 @@ function redirectWithError(message: string): never {
   redirect(`/admin/content/specialties?error=${encodeURIComponent(message)}`);
 }
 
-export async function createSpecialtyAction(formData: FormData) {
+function isClientSubmit(formData: FormData) {
+  return formData.get("_clientSubmit") === "1";
+}
+
+function actionFailure(formData: FormData, message: string): SpecialtyActionResult {
+  if (isClientSubmit(formData)) {
+    return { ok: false, error: message };
+  }
+
+  redirectWithError(message);
+}
+
+export async function createSpecialtyAction(formData: FormData): Promise<SpecialtyActionResult> {
   await requireAdminUser("/admin/content/specialties");
 
-  const specialty = readSpecialtyFormData(formData);
   let createdSpecialtyId = "";
 
   try {
+    const specialty = readSpecialtyFormData(formData);
     const createdSpecialty = await db.specialty.create({
       data: specialty,
       select: { id: true },
     });
     createdSpecialtyId = createdSpecialty.id;
-  } catch {
-    redirectWithError("Nem sikerült létrehozni. Ellenőrizd, hogy a slug egyedi-e.");
+  } catch (error) {
+    return actionFailure(
+      formData,
+      error instanceof SpecialtyFormError
+        ? error.message
+        : "Nem sikerült létrehozni. Ellenőrizd, hogy a slug egyedi-e.",
+    );
   }
 
   revalidateSpecialties();
+  if (isClientSubmit(formData)) {
+    return { ok: true, saved: "created", savedId: createdSpecialtyId };
+  }
+
   redirect(`/admin/content/specialties?saved=created&savedId=${encodeURIComponent(createdSpecialtyId)}#specialty-${createdSpecialtyId}`);
 }
 
-export async function updateSpecialtyAction(formData: FormData) {
+export async function updateSpecialtyAction(formData: FormData): Promise<SpecialtyActionResult> {
   await requireAdminUser("/admin/content/specialties");
 
   const id = readString(formData, "id");
-  const specialty = readSpecialtyFormData(formData);
 
   if (!id) {
-    redirectWithError("Hiányzó különlegesség azonosító.");
+    return actionFailure(formData, "Hiányzó különlegesség azonosító.");
   }
 
   try {
+    const specialty = readSpecialtyFormData(formData);
     const existingSpecialty = await db.specialty.findUnique({
       where: { id },
       select: { imageUrl: true, previewImageUrl: true, cardImageUrl: true },
@@ -131,11 +158,20 @@ export async function updateSpecialtyAction(formData: FormData) {
         });
       }
     }
-  } catch {
-    redirectWithError("Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.");
+  } catch (error) {
+    return actionFailure(
+      formData,
+      error instanceof SpecialtyFormError
+        ? error.message
+        : "Nem sikerült menteni. Ellenőrizd, hogy a slug egyedi-e.",
+    );
   }
 
   revalidateSpecialties();
+  if (isClientSubmit(formData)) {
+    return { ok: true, saved: "updated", savedId: id };
+  }
+
   redirect(`/admin/content/specialties?saved=updated&savedId=${encodeURIComponent(id)}#specialty-${id}`);
 }
 

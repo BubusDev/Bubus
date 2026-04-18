@@ -128,7 +128,7 @@ export function Header({
   return (
     <>
       <header className="navbar-glass sticky top-0 z-50 w-full border-b border-white/30 bg-[rgba(255,241,247,0.52)] hover:bg-[rgba(255,241,247,0.88)] hover:border-white/60">
-        <div className="mx-auto grid min-h-[82px] w-full max-w-[1500px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 sm:px-6 lg:min-h-[90px] lg:px-8">
+        <div className="mx-auto grid min-h-[76px] w-full max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-3 py-3 sm:min-h-[82px] sm:gap-2 sm:px-6 lg:min-h-[90px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
 
           {/* ── COL 1: mobile hamburger / desktop spacer ── */}
           <div>
@@ -151,14 +151,14 @@ export function Header({
           {/* ── COL 2: logo (center) ── */}
           <Link
             href="/"
-            className="flex min-w-0 items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+            className="flex min-w-0 max-w-full items-center justify-self-center text-center transition duration-300 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
           >
-            <div className="flex flex-col items-center leading-none">
-              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.34em] text-[#c0517a] sm:text-[0.72rem]">
+            <div className="flex min-w-0 max-w-full flex-col items-center leading-none">
+              <span className="max-w-full truncate text-[0.56rem] font-semibold uppercase tracking-[0.24em] text-[#c0517a] sm:text-[0.72rem] sm:tracking-[0.34em]">
                 Boutique ékszer
               </span>
               <span
-                className="font-[family:var(--font-display)] text-[1.68rem] font-semibold tracking-[-0.02em] sm:text-[2.1rem] lg:text-[2.28rem]"
+                className="max-w-full truncate font-[family:var(--font-display)] text-[1.42rem] font-semibold tracking-[-0.02em] sm:text-[2.1rem] lg:text-[2.28rem]"
                 style={{
                   background:
                     "linear-gradient(135deg, #c45a85 0%, #9b3d6e 50%, #e07a70 100%)",
@@ -175,12 +175,12 @@ export function Header({
           {/* ── COL 3: mobile icons / desktop right nav ── */}
           <div className="flex items-center justify-end gap-1">
             {/* Mobile: user icon + coupon icon + cart icon */}
-            <div className="flex items-center gap-1.5 lg:hidden">
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5 lg:hidden">
               {/* User icon → /account or /sign-in */}
               <Link
                 href={user ? "/account" : "/sign-in"}
                 aria-label={user ? "Fiókom" : "Belépés"}
-                className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
@@ -191,7 +191,7 @@ export function Header({
                   type="button"
                   aria-label="Kuponjaim"
                   onClick={() => setMobileCouponOpen(true)}
-                  className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                  className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
                 >
                   <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                   {couponPreview.activeCoupons.length > 0 && (
@@ -205,7 +205,7 @@ export function Header({
                 type="button"
                 aria-label="Kosár"
                 onClick={() => setCartPath(pathname)}
-                className="relative inline-flex h-10 w-10 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                className="relative inline-flex h-9 w-9 items-center justify-center text-[#5a4651] transition hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] sm:h-10 sm:w-10"
               >
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
                 {cartCount > 0 && (
