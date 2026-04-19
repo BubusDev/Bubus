@@ -730,8 +730,29 @@ export async function getShowcaseTabProducts(
     where,
     include: productWithImagesAndOptions,
     orderBy: [{ isNew: "desc" }, { createdAt: "desc" }],
-    take: maxItems,
+    take: filterType === "manual" ? undefined : maxItems,
   });
+
+  if (filterType === "manual") {
+    const ids = (() => {
+      try {
+        return JSON.parse(filterValue ?? "[]") as string[];
+      } catch {
+        return [];
+      }
+    })();
+    const order = new Map(ids.map((id, index) => [id, index]));
+
+    return mapStorefrontProducts(
+      products
+        .sort(
+          (a, b) =>
+            (order.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+            (order.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+        )
+        .slice(0, maxItems),
+    );
+  }
 
   return mapStorefrontProducts(products);
 }

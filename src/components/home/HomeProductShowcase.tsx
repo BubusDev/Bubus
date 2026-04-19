@@ -2,69 +2,116 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { formatPrice } from "@/lib/catalog";
-import type { Product } from "@/lib/catalog";
+
+export type HomeShowcaseProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  imageUrl?: string | null;
+};
 
 type Tab = {
   key: string;
   label: string;
-  products: Product[];
+  products: HomeShowcaseProduct[];
 };
 
 type Props = {
   tabs: Tab[];
   defaultTab?: string;
+  compactPreview?: boolean;
 };
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    update();
+    mediaQuery.addEventListener("change", update);
+    return () => mediaQuery.removeEventListener("change", update);
+  }, []);
+
+  return prefersReducedMotion;
+}
 
 function ScrollProgressBar({
   scrollerRef,
+  resetKey,
+  prefersReducedMotion,
+  compactPreview = false,
 }: {
   scrollerRef: React.RefObject<HTMLDivElement | null>;
+  resetKey: string | undefined;
+  prefersReducedMotion: boolean;
+  compactPreview?: boolean;
 }) {
-  const [progress, setProgress] = useState({ left: 0, width: 30 });
+  const barRef = useRef<HTMLDivElement>(null);
+
+  const updateProgress = useCallback(() => {
+    const el = scrollerRef.current;
+    const bar = barRef.current;
+    if (!el || !bar) return;
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) {
+      bar.style.left = "0%";
+      bar.style.width = "100%";
+      return;
+    }
+    const visibleRatio = el.clientWidth / el.scrollWidth;
+    const scrollRatio = el.scrollLeft / maxScroll;
+    const barWidth = visibleRatio * 100;
+    const barLeft = scrollRatio * (100 - barWidth);
+    bar.style.left = `${barLeft}%`;
+    bar.style.width = `${barWidth}%`;
+  }, [scrollerRef]);
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    updateProgress();
+    el.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    return () => {
+      el.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [scrollerRef, updateProgress]);
 
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
-    const update = () => {
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (maxScroll <= 0) {
-        setProgress({ left: 0, width: 100 });
-        return;
-      }
-      const visibleRatio = el.clientWidth / el.scrollWidth;
-      const scrollRatio = el.scrollLeft / maxScroll;
-      const barWidth = visibleRatio * 100;
-      const barLeft = scrollRatio * (100 - barWidth);
-      setProgress({ left: barLeft, width: barWidth });
-    };
+    el.scrollLeft = 0;
+    updateProgress();
 
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      el.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, [scrollerRef]);
+    const frame = requestAnimationFrame(updateProgress);
+    return () => cancelAnimationFrame(frame);
+  }, [resetKey, scrollerRef, updateProgress]);
 
   return (
-    <div style={{ padding: "0 40px", marginTop: 8 }}>
+    <div style={{ padding: compactPreview ? "0" : "0 40px", marginTop: 8 }}>
       <div style={{ position: "relative", height: 2, background: "#e8e5e0" }}>
         <div
+          ref={barRef}
           style={{
             position: "absolute",
             top: -1,
             height: 4,
-            left: `${progress.left}%`,
-            width: `${progress.width}%`,
+            left: "0%",
+            width: "30%",
             background: "#1a1a1a",
-            transition: "left .15s ease-out",
+            transition: prefersReducedMotion ? "none" : "left .15s ease-out",
           }}
         />
       </div>
@@ -72,13 +119,16 @@ function ScrollProgressBar({
   );
 }
 
-export function HomeProductShowcase({ tabs, defaultTab }: Props) {
+export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }: Props) {
   const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.key);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(compactPreview);
   const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
+    if (compactPreview) return;
+
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
@@ -87,7 +137,7 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [compactPreview]);
 
   if (tabs.length === 0) return null;
 
@@ -98,14 +148,14 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
     const width = scrollerRef.current.clientWidth;
     scrollerRef.current.scrollBy({
       left: dir === "next" ? width * 0.8 : -width * 0.8,
-      behavior: "smooth",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
   };
 
   return (
     <section
       ref={sectionRef}
-      className={`showcase-section ${isVisible ? "showcase-visible" : ""}`}
+      className={`showcase-section ${compactPreview ? "showcase-preview" : ""} ${isVisible ? "showcase-visible" : ""}`}
     >
       <div className="showcase-tabs">
         {tabs.map((tab) => (
@@ -163,7 +213,12 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
         </button>
       </div>
 
-      <ScrollProgressBar scrollerRef={scrollerRef} />
+      <ScrollProgressBar
+        scrollerRef={scrollerRef}
+        resetKey={activeTab}
+        prefersReducedMotion={prefersReducedMotion}
+        compactPreview={compactPreview}
+      />
 
       <style>{`
         .showcase-section {
@@ -178,6 +233,12 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
           opacity: 1;
           transform: translateY(0);
         }
+        .showcase-preview {
+          padding: 0;
+          max-width: none;
+          opacity: 1;
+          transform: none;
+        }
 
         .showcase-tabs {
           display: flex;
@@ -185,6 +246,11 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
           padding: 0 40px;
           margin-bottom: 32px;
           border-bottom: 1px solid #e8e5e0;
+        }
+        .showcase-preview .showcase-tabs {
+          gap: 24px;
+          padding: 0;
+          margin-bottom: 18px;
         }
         .showcase-tab {
           position: relative;
@@ -213,6 +279,9 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
           position: relative;
           padding: 0 40px;
         }
+        .showcase-preview .showcase-scroll-wrap {
+          padding: 0;
+        }
 
         .showcase-scroller {
           display: flex;
@@ -231,6 +300,11 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
           opacity: 0;
           transform: translateY(20px);
           transition: opacity .6s ease-out, transform .6s ease-out;
+        }
+        .showcase-preview .showcase-card {
+          flex-basis: 180px;
+          opacity: 1;
+          transform: none;
         }
         .showcase-visible .showcase-card {
           opacity: 1;
@@ -283,6 +357,9 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
         }
         .showcase-nav-prev { left: 12px; }
         .showcase-nav-next { right: 12px; }
+        .showcase-preview .showcase-nav-btn {
+          display: none;
+        }
 
         @media (max-width: 640px) {
           .showcase-tabs { gap: 20px; padding: 0 20px; }
@@ -295,9 +372,12 @@ export function HomeProductShowcase({ tabs, defaultTab }: Props) {
         @media (prefers-reduced-motion: reduce) {
           .showcase-section,
           .showcase-card,
-          .showcase-img { transition: none !important; }
+          .showcase-img,
+          .showcase-tab,
+          .showcase-nav-btn { transition: none !important; }
           .showcase-section { opacity: 1; transform: none; }
           .showcase-visible .showcase-card { opacity: 1; transform: none; }
+          .showcase-card:hover .showcase-img { transform: none; }
         }
       `}</style>
     </section>

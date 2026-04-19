@@ -790,13 +790,13 @@ async function seedSpecialties() {
 }
 
 async function seedShowcaseTabs() {
-  await prisma.homeShowcaseTab.deleteMany();
   await prisma.homeShowcaseTab.createMany({
     data: [
       { key: "new", label: "Újdonságok", sortOrder: 1, filterType: "new_arrivals", maxItems: 8 },
       { key: "necklaces", label: "Nyakláncok", sortOrder: 2, filterType: "category", filterValue: "necklaces", maxItems: 8 },
       { key: "sale", label: "Akció", sortOrder: 3, filterType: "on_sale", maxItems: 8 },
     ],
+    skipDuplicates: true,
   });
 }
 

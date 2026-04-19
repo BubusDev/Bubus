@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { getShowcaseTabProducts } from "@/lib/products";
+import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import type { Product } from "@/lib/catalog";
 
 export type ShowcaseTab = {
@@ -19,13 +20,34 @@ export type AdminShowcaseTabRow = {
   maxItems: number;
 };
 
+export type AdminShowcaseCategoryOption = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type AdminShowcaseProductOption = {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  price: number;
+  categoryName: string;
+  categorySlug: string;
+  isNew: boolean;
+  isOnSale: boolean;
+  isGiftable: boolean;
+};
+
 export const SHOWCASE_FILTER_TYPES = [
   { value: "new_arrivals", label: "Újdonságok (isNew)" },
   { value: "category", label: "Kategória" },
   { value: "on_sale", label: "Akciós termékek" },
   { value: "giftable", label: "Ajándékozható" },
-  { value: "manual", label: "Kézi válogatás (product IDs)" },
+  { value: "manual", label: "Kézi válogatás" },
 ] as const;
+
+export type ShowcaseFilterType = (typeof SHOWCASE_FILTER_TYPES)[number]["value"];
 
 export async function getHomeShowcaseTabs(): Promise<ShowcaseTab[]> {
   const configs = await db.homeShowcaseTab.findMany({
@@ -53,6 +75,45 @@ export async function getAdminShowcaseTabs(): Promise<AdminShowcaseTabRow[]> {
   return db.homeShowcaseTab.findMany({
     orderBy: { sortOrder: "asc" },
   });
+}
+
+export async function getAdminShowcaseCategories(): Promise<AdminShowcaseCategoryOption[]> {
+  return db.productOption.findMany({
+    where: { type: "CATEGORY", isActive: true, isStorefrontVisible: true },
+    select: { id: true, name: true, slug: true },
+    orderBy: [{ showInMainNav: "desc" }, { navSortOrder: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
+  });
+}
+
+export async function getAdminShowcaseProducts(): Promise<AdminShowcaseProductOption[]> {
+  return db.product.findMany({
+    where: storefrontProductWhere,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      imageUrl: true,
+      price: true,
+      isNew: true,
+      isOnSale: true,
+      isGiftable: true,
+      category: { select: { name: true, slug: true } },
+    },
+    orderBy: [{ name: "asc" }],
+  }).then((products) =>
+    products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      imageUrl: product.imageUrl,
+      price: product.price,
+      categoryName: product.category.name,
+      categorySlug: product.category.slug,
+      isNew: product.isNew,
+      isOnSale: product.isOnSale,
+      isGiftable: product.isGiftable,
+    })),
+  );
 }
 
 export async function upsertShowcaseTab(data: {
@@ -85,4 +146,53 @@ export async function upsertShowcaseTab(data: {
 
 export async function deleteShowcaseTab(id: string) {
   return db.homeShowcaseTab.delete({ where: { id } });
+}
+
+export async function reorderShowcaseTabs(ids: string[]) {
+  await db.$transaction(
+    ids.map((id, index) =>
+      db.homeShowcaseTab.update({
+        where: { id },
+        data: { sortOrder: index + 1 },
+      }),
+    ),
+  );
+}
+
+export async function duplicateShowcaseTab(id: string): Promise<AdminShowcaseTabRow> {
+  const original = await db.homeShowcaseTab.findUnique({ where: { id } });
+  if (!original) throw new Error("A duplikálandó tab nem található.");
+
+  const existingKeys = await db.homeShowcaseTab.findMany({
+    where: { key: { startsWith: `${original.key}-copy` } },
+    select: { key: true },
+  });
+  const usedKeys = new Set(existingKeys.map((entry) => entry.key));
+  let key = `${original.key}-copy`;
+  let suffix = 2;
+
+  while (usedKeys.has(key)) {
+    key = `${original.key}-copy-${suffix}`;
+    suffix += 1;
+  }
+
+  const [, created] = await db.$transaction([
+    db.homeShowcaseTab.updateMany({
+      where: { sortOrder: { gt: original.sortOrder } },
+      data: { sortOrder: { increment: 1 } },
+    }),
+    db.homeShowcaseTab.create({
+      data: {
+        key,
+        label: `${original.label} Másolat`,
+        sortOrder: original.sortOrder + 1,
+        isActive: original.isActive,
+        filterType: original.filterType,
+        filterValue: original.filterValue,
+        maxItems: original.maxItems,
+      },
+    }),
+  ]);
+
+  return created;
 }
