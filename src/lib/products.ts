@@ -686,6 +686,56 @@ export async function getRelatedProducts(product: Product, limit = 4) {
   return mapStorefrontProducts(products);
 }
 
+export async function getShowcaseTabProducts(
+  filterType: string,
+  filterValue: string | null | undefined,
+  maxItems: number,
+): Promise<Product[]> {
+  let where: Prisma.ProductWhereInput;
+
+  switch (filterType) {
+    case "new_arrivals":
+      where = withStorefrontProducts({ isNew: true });
+      break;
+    case "category":
+      where = withStorefrontProducts({
+        category: {
+          slug: { in: filterValue ? getCategorySlugAliases(filterValue) : [] },
+          type: "CATEGORY",
+        },
+      });
+      break;
+    case "on_sale":
+      where = withStorefrontProducts({ isOnSale: true });
+      break;
+    case "giftable":
+      where = withStorefrontProducts({ isGiftable: true });
+      break;
+    case "manual": {
+      const ids = (() => {
+        try {
+          return JSON.parse(filterValue ?? "[]") as string[];
+        } catch {
+          return [];
+        }
+      })();
+      where = withStorefrontProducts({ id: { in: ids } });
+      break;
+    }
+    default:
+      return [];
+  }
+
+  const products = await db.product.findMany({
+    where,
+    include: productWithImagesAndOptions,
+    orderBy: [{ isNew: "desc" }, { createdAt: "desc" }],
+    take: maxItems,
+  });
+
+  return mapStorefrontProducts(products);
+}
+
 export async function getCuratedProductRecommendations(
   excludedProductIds: string[],
   limit = 4,

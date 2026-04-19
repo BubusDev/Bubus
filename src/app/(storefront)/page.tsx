@@ -1,11 +1,11 @@
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
-import { HomeProductSection } from "@/components/home/HomeProductSection";
+import { HomeProductShowcase } from "@/components/home/HomeProductShowcase";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { ValueStrip } from "@/components/home/ValueStrip";
 import { getHomepageContent } from "@/lib/homepage-content";
-import { getHomepageProducts } from "@/lib/products";
+import { getHomeShowcaseTabs } from "@/lib/homepage-showcase";
 
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -13,9 +13,9 @@ type HomePageProps = {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
-  const [homepageContent, spotlightData] = await Promise.all([
+  const [homepageContent, showcaseTabs] = await Promise.all([
     getHomepageContent(),
-    getHomepageProducts("spotlight", 1, 20),
+    getHomeShowcaseTabs(),
   ]);
   const newsletterStatusValue = resolvedSearchParams.newsletter;
   const newsletterStatus = Array.isArray(newsletterStatusValue)
@@ -26,15 +26,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <main className="min-h-screen bg-[#fbfaf7]">
       <HomeHero block={homepageContent.hero} />
       <ValueStrip />
-      <section id="focusban" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <HomeProductSection
-          eyebrow="Fókuszban"
-          title="Újdonságok"
-          href="/new-in"
-          products={spotlightData.products}
-          redirectTo="/"
-          compactPremiumRow
-        />
+      <section id="focusban" className="scroll-mt-24">
+        <HomeProductShowcase tabs={showcaseTabs} />
       </section>
       <HomeInstagramPromo block={homepageContent.instagram} />
       <HomePromoTileGrid tiles={homepageContent.promoTiles} />

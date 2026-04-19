@@ -37,6 +37,12 @@ export default function AdminContentPage() {
     <AdminShell title="Tartalom">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ContentCard
+          href="/admin/content/homepage-showcase"
+          eyebrow="Kezdőlap"
+          title="Termék showcase tabjai"
+          description="A kezdőlap kategória-váltós, scrollozható termékcsúszkájának tabjai és szűrőfeltételei."
+        />
+        <ContentCard
           href="/admin/content/stones"
           eyebrow="Féldrágakövek"
           title="Kövek szerkesztő"

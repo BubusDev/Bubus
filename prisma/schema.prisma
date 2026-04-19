@@ -779,6 +779,21 @@ model WeeklySummaryDispatch {
   @@index([weekStart, sentAt])
 }
 
+model HomeShowcaseTab {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  filterType  String
+  filterValue String?
+  maxItems    Int      @default(8)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 model Stone {
   id          String   @id @default(cuid())
   name        String   @unique
