@@ -17,7 +17,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               className="mb-10 font-[family:var(--font-display)] tracking-[-0.03em] text-[#4d2741]"
               style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)" }}
             >
-              Vásároljon kategória szerint
+              Vásároljon karkötőket Féldrágakő, Kristály, Ásványok szerint!
             </h3>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">

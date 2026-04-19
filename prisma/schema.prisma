@@ -411,6 +411,20 @@ model HomepagePromoTile {
   @@index([isVisible, slotIndex])
 }
 
+model HomepageMaterialPick {
+  id                String   @id @default(cuid())
+  itemType          String
+  itemId            String
+  featuredProductId String?
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([itemType, itemId])
+  @@index([featuredProductId])
+  @@index([sortOrder])
+}
+
 model Specialty {
   id               String             @id @default(cuid())
   name             String

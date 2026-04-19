@@ -193,7 +193,7 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
                       alt={product.name}
                       fill
                       className="showcase-img"
-                      sizes="(max-width: 640px) 200px, 280px"
+                      sizes="(max-width: 640px) 160px, 220px"
                     />
                   ) : null}
                 </div>
@@ -222,8 +222,8 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
       <style>{`
         .showcase-section {
-          padding: 60px 0 40px;
-          max-width: 1400px;
+          padding: 36px 0 28px;
+          max-width: 1240px;
           margin: 0 auto;
           opacity: 0;
           transform: translateY(32px);
@@ -242,9 +242,9 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
         .showcase-tabs {
           display: flex;
-          gap: 36px;
-          padding: 0 40px;
-          margin-bottom: 32px;
+          gap: 28px;
+          padding: 0 32px;
+          margin-bottom: 22px;
           border-bottom: 1px solid #e8e5e0;
         }
         .showcase-preview .showcase-tabs {
@@ -254,8 +254,8 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
         }
         .showcase-tab {
           position: relative;
-          padding: 12px 0;
-          font-size: 15px;
+          padding: 10px 0;
+          font-size: 14px;
           font-weight: 500;
           color: #999;
           background: none;
@@ -277,7 +277,7 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
         .showcase-scroll-wrap {
           position: relative;
-          padding: 0 40px;
+          padding: 0 32px;
         }
         .showcase-preview .showcase-scroll-wrap {
           padding: 0;
@@ -285,17 +285,17 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
         .showcase-scroller {
           display: flex;
-          gap: 24px;
+          gap: 18px;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
           scrollbar-width: none;
           -ms-overflow-style: none;
-          padding-bottom: 20px;
+          padding-bottom: 14px;
         }
         .showcase-scroller::-webkit-scrollbar { display: none; }
 
         .showcase-card {
-          flex: 0 0 280px;
+          flex: 0 0 220px;
           scroll-snap-align: start;
           opacity: 0;
           transform: translateY(20px);
@@ -316,7 +316,7 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           aspect-ratio: 1 / 1;
           background: #f5f3f0;
           overflow: hidden;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
         }
         .showcase-img {
           object-fit: cover;
@@ -326,22 +326,22 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           transform: scale(1.04);
         }
         .showcase-name {
-          font-size: 14px;
+          font-size: 13px;
           color: #1a1a1a;
           margin-bottom: 4px;
           line-height: 1.3;
         }
         .showcase-price {
-          font-size: 14px;
+          font-size: 13px;
           color: #1a1a1a;
           font-weight: 500;
         }
 
         .showcase-nav-btn {
           position: absolute;
-          top: calc(50% - 30px);
+          top: calc(50% - 24px);
           z-index: 10;
-          width: 44px; height: 44px;
+          width: 38px; height: 38px;
           display: flex; align-items: center; justify-content: center;
           background: white;
           border: 1px solid #e8e5e0;
@@ -362,10 +362,11 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
         }
 
         @media (max-width: 640px) {
-          .showcase-tabs { gap: 20px; padding: 0 20px; }
+          .showcase-tabs { gap: 18px; padding: 0 16px; margin-bottom: 18px; }
           .showcase-tab { font-size: 13px; }
-          .showcase-scroll-wrap { padding: 0 20px; }
-          .showcase-card { flex: 0 0 200px; }
+          .showcase-scroll-wrap { padding: 0 16px; }
+          .showcase-scroller { gap: 14px; }
+          .showcase-card { flex: 0 0 160px; }
           .showcase-nav-btn { display: none; }
         }
 

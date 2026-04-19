@@ -37,6 +37,12 @@ export default function AdminContentPage() {
     <AdminShell title="Tartalom">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ContentCard
+          href="/admin/content/homepage"
+          eyebrow="Kezdőlap"
+          title="Kezdőlap blokkok és válogatás"
+          description="Hero, Instagram blokk, kezdőlapi kő- és termékválogatás, valamint a promó csempék kezelése."
+        />
+        <ContentCard
           href="/admin/content/homepage-showcase"
           eyebrow="Kezdőlap"
           title="Termék showcase tabjai"
@@ -59,6 +65,12 @@ export default function AdminContentPage() {
           eyebrow="Navigáció"
           title="Különlegességek menü"
           description="A webshop felső navigációjában megjelenő Különlegességek legördülő elemeinek kezelése."
+        />
+        <ContentCard
+          href="/admin/special-edition"
+          eyebrow="Kampány"
+          title="Kampány bannerek"
+          description="A Special Edition és kampányfelületek termékes, képes megjelenéseinek kezelése."
         />
       </div>
     </AdminShell>

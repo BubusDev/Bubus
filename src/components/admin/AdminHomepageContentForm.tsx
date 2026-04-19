@@ -5,14 +5,17 @@ import {
   saveHomepagePromoTileAction,
 } from "@/app/(admin)/admin/content/homepage/actions";
 import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
+import { HomepageMaterialPicksEditor } from "@/components/admin/HomepageMaterialPicksEditor";
 import type {
   HomepageBlockView,
   HomepageContentView,
+  HomepageMaterialPickOptions,
   HomepagePromoTileView,
 } from "@/lib/homepage-content";
 
 type AdminHomepageContentFormProps = {
   content: HomepageContentView;
+  materialPickOptions: HomepageMaterialPickOptions;
 };
 
 function TextField({
@@ -203,7 +206,10 @@ function PromoTileForm({ tile }: { tile: HomepagePromoTileView }) {
   );
 }
 
-export function AdminHomepageContentForm({ content }: AdminHomepageContentFormProps) {
+export function AdminHomepageContentForm({
+  content,
+  materialPickOptions,
+}: AdminHomepageContentFormProps) {
   return (
     <div className="space-y-6">
       <HomepageBlockForm
@@ -217,6 +223,8 @@ export function AdminHomepageContentForm({ content }: AdminHomepageContentFormPr
         title="Instagram promó blokk"
         helper="A zöldes hangulatú social promó blokk képe, szövege és cél URL-je."
       />
+
+      <HomepageMaterialPicksEditor picks={content.materialPicks} options={materialPickOptions} />
 
       <section className="admin-panel p-5">
         <div className="mb-5">

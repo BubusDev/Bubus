@@ -136,8 +136,7 @@ function FilterPanel({
       <div className="fp-left">
         <div className="fp-lh">
           <div>
-            <p className="fp-eye">Szűrők</p>
-            <h2 className="fp-htitle">Finomítás</h2>
+            <h2 className="fp-htitle">SZŰRŐK</h2>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             {searchParams.size > 0 && (

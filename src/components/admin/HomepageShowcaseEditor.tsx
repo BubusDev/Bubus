@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   Check,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   GripVertical,
   Loader2,
@@ -54,31 +55,118 @@ function parseManualProductIds(value: string | null) {
   }
 }
 
-function getSourceSummary(
-  tab: Pick<AdminShowcaseTabRow, "filterType" | "filterValue" | "maxItems">,
+function getHeaderSummaryParts(
+  tab: Pick<AdminShowcaseTabRow, "filterType" | "filterValue">,
   categories: AdminShowcaseCategoryOption[],
   products: AdminShowcaseProductOption[],
+  previewProductCount: number,
 ) {
+  const sourceType = tab.filterType;
+  let extra: string | null = null;
+
   switch (tab.filterType) {
-    case "new_arrivals":
-      return `Legfeljebb ${tab.maxItems} újdonság`;
     case "category": {
       const category = categories.find((item) => item.slug === tab.filterValue);
-      return category ? `${category.name} kategória` : "Nincs kategória kiválasztva";
+      extra = category?.name ?? "Nincs kategória";
+      break;
     }
-    case "on_sale":
-      return `Legfeljebb ${tab.maxItems} akciós termék`;
-    case "giftable":
-      return `Legfeljebb ${tab.maxItems} ajándékozható termék`;
     case "manual": {
       const selectedCount = parseManualProductIds(tab.filterValue).filter((id) =>
         products.some((product) => product.id === id),
       ).length;
-      return `${selectedCount} kézzel kiválasztott termék`;
+      extra = `${selectedCount} termék`;
+      break;
     }
+    case "new_arrivals":
+    case "on_sale":
+    case "giftable":
+      extra = `${previewProductCount} termék`;
+      break;
     default:
-      return "Nincs beállított forrás";
+      extra = null;
   }
+
+  return { sourceType, extra };
+}
+
+function getEmptyShowcaseReason({
+  filterType,
+  filterValue,
+  categorySlug,
+  manualProductIds,
+}: {
+  filterType: FilterType;
+  filterValue: string | null;
+  categorySlug: string;
+  manualProductIds: string[];
+}) {
+  if (filterType === "category" && !categorySlug) {
+    return "nincs kategória kiválasztva";
+  }
+
+  if (filterType === "manual" && manualProductIds.length === 0) {
+    return "nincs termék kiválasztva";
+  }
+
+  if (filterType === "manual" && filterValue) {
+    return "nincs storefront-ready kiválasztott product";
+  }
+
+  if (filterType === "category") {
+    return "nincs storefront-ready product ebben a kategóriában";
+  }
+
+  return "nincs storefront-ready product";
+}
+
+function getEmptyShowcaseAction(filterType: FilterType, reason: string | null) {
+  if (filterType === "category" && reason === "nincs kategória kiválasztva") {
+    return { label: "Kategória mező", targetId: "category-source" };
+  }
+
+  if (filterType === "manual" && reason === "nincs termék kiválasztva") {
+    return { label: "Termékválasztó", targetId: "manual-products" };
+  }
+
+  return null;
+}
+
+function getShowcasePreviewText({
+  filterType,
+  categorySlug,
+  manualProductIds,
+  categories,
+  products,
+  previewProducts,
+}: {
+  filterType: FilterType;
+  categorySlug: string;
+  manualProductIds: string[];
+  categories: AdminShowcaseCategoryOption[];
+  products: AdminShowcaseProductOption[];
+  previewProducts: AdminShowcaseProductOption[];
+}) {
+  if (previewProducts.length === 0) return null;
+
+  if (filterType === "manual") {
+    const selectedNames = manualProductIds
+      .map((id) => products.find((product) => product.id === id)?.name)
+      .filter((name): name is string => Boolean(name))
+      .slice(0, 2);
+
+    return selectedNames.length > 0
+      ? `${previewProducts.length} termék · ${selectedNames.join(", ")}`
+      : `${previewProducts.length} termék`;
+  }
+
+  if (filterType === "category") {
+    const categoryName = categories.find((category) => category.slug === categorySlug)?.name;
+    return categoryName
+      ? `${categoryName} · ${previewProducts.length} termék`
+      : `${previewProducts.length} termék`;
+  }
+
+  return `${previewProducts.length} termék kerülne a csúszkába`;
 }
 
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
@@ -391,6 +479,7 @@ function TabEditor({
     { status: "idle", message: "" },
   );
   const [saveFeedbackVisible, setSaveFeedbackVisible] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const currentFilterValue =
     filterType === "category"
@@ -405,15 +494,6 @@ function TabEditor({
     maxItems !== tab.maxItems ||
     filterType !== initialFilterType ||
     currentFilterValue !== (tab.filterValue ?? null);
-  const summary = getSourceSummary(
-    {
-      filterType,
-      filterValue: currentFilterValue,
-      maxItems,
-    },
-    categories,
-    products,
-  );
   const previewProducts = buildPreviewProducts({
     filterType,
     categorySlug,
@@ -421,6 +501,42 @@ function TabEditor({
     maxItems,
     products,
   });
+  const headerSummary = getHeaderSummaryParts(
+    {
+      filterType,
+      filterValue: currentFilterValue,
+    },
+    categories,
+    products,
+    previewProducts.length,
+  );
+  const hasNoVisibleProducts = isActive && previewProducts.length === 0;
+  const emptyShowcaseReason = hasNoVisibleProducts
+    ? getEmptyShowcaseReason({
+        filterType,
+        filterValue: currentFilterValue,
+        categorySlug,
+        manualProductIds,
+      })
+    : null;
+  const emptyShowcaseAction = getEmptyShowcaseAction(filterType, emptyShowcaseReason);
+  const showcasePreviewText = getShowcasePreviewText({
+    filterType,
+    categorySlug,
+    manualProductIds,
+    categories,
+    products,
+    previewProducts,
+  });
+
+  function jumpToEditorTarget(targetId: string) {
+    setIsCollapsed(false);
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`${tab.id}-${targetId}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (target instanceof HTMLElement) target.focus({ preventScroll: true });
+    });
+  }
 
   useEffect(() => {
     if (saveState.status === "success" && saveState.tab) {
@@ -468,13 +584,51 @@ function TabEditor({
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsCollapsed((current) => !current)}
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]"
+                aria-expanded={!isCollapsed}
+                aria-label={isCollapsed ? "Showcase tab megnyitása" : "Showcase tab becsukása"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </button>
               <GripVertical className="h-4 w-4 shrink-0 text-[var(--admin-ink-400)]" />
-              <h2 className="truncate text-base font-semibold text-[var(--admin-ink-900)]">
-                {label || "Névtelen tab"}
+              <h2 className="min-w-0 truncate text-base font-semibold text-[var(--admin-ink-900)]">
+                <span>{label || "Névtelen tab"}</span>
+                <span className="font-normal text-[var(--admin-ink-500)]">
+                  {" · "}
+                  {headerSummary.sourceType}
+                </span>
+                {headerSummary.extra ? (
+                  <span className="font-normal text-[var(--admin-ink-500)]">
+                    {" · "}
+                    {headerSummary.extra}
+                  </span>
+                ) : null}
               </h2>
               {dirty ? (
                 <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
                   Módosult
+                </span>
+              ) : null}
+              {hasNoVisibleProducts ? (
+                <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                  Nincs megjeleníthető termék
+                  {emptyShowcaseReason ? `: ${emptyShowcaseReason}` : ""}
+                  {emptyShowcaseAction ? (
+                    <button
+                      type="button"
+                      onClick={() => jumpToEditorTarget(emptyShowcaseAction.targetId)}
+                      className="ml-2 font-semibold underline underline-offset-2"
+                    >
+                      {emptyShowcaseAction.label}
+                    </button>
+                  ) : null}
                 </span>
               ) : null}
               {!isActive ? (
@@ -483,7 +637,11 @@ function TabEditor({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-[var(--admin-ink-600)]">{summary}</p>
+            {!hasNoVisibleProducts && showcasePreviewText ? (
+              <p className="mt-1 truncate text-xs text-[var(--admin-ink-500)]">
+                Preview: {showcasePreviewText}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -520,10 +678,11 @@ function TabEditor({
         </div>
       </div>
 
-      <form action={saveFormAction} className="grid gap-5 px-5 py-5">
-        <input type="hidden" name="id" value={tab.id} />
-        <input type="hidden" name="sortOrder" value={index + 1} />
-        <input type="hidden" name="isActive" value={isActive ? "on" : ""} />
+      {!isCollapsed ? (
+        <form action={saveFormAction} className="grid gap-5 px-5 py-5">
+          <input type="hidden" name="id" value={tab.id} />
+          <input type="hidden" name="sortOrder" value={index + 1} />
+          <input type="hidden" name="isActive" value={isActive ? "on" : ""} />
 
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
           <label className="grid gap-1.5">
@@ -626,6 +785,7 @@ function TabEditor({
           <label className="grid gap-1.5">
             <span className="admin-eyebrow">Kategória</span>
             <select
+              id={`${tab.id}-category-source`}
               name="categorySlug"
               value={categorySlug}
               onChange={(event) => {
@@ -646,7 +806,7 @@ function TabEditor({
         ) : null}
 
         {filterType === "manual" ? (
-          <div className="grid gap-1.5">
+          <div id={`${tab.id}-manual-products`} tabIndex={-1} className="grid gap-1.5 scroll-mt-24">
             <span className="admin-eyebrow">Kézi termékválogatás</span>
             <ProductPicker
               products={products}
@@ -718,7 +878,8 @@ function TabEditor({
             Törlés
           </button>
         </div>
-      </form>
+        </form>
+      ) : null}
     </section>
   );
 }
@@ -990,6 +1151,14 @@ export function HomepageShowcaseEditor({
 
   return (
     <div className="grid gap-8">
+      <NewTabForm
+        nextSortOrder={orderedTabs.length + 1}
+        categories={categories}
+        products={products}
+        filterTypes={filterTypes}
+        onCreated={appendCreatedTab}
+      />
+
       <form action={reorderShowcaseTabsAction} className="admin-panel-soft px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -1034,13 +1203,6 @@ export function HomepageShowcaseEditor({
         )}
       </div>
 
-      <NewTabForm
-        nextSortOrder={orderedTabs.length + 1}
-        categories={categories}
-        products={products}
-        filterTypes={filterTypes}
-        onCreated={appendCreatedTab}
-      />
     </div>
   );
 }

@@ -84,6 +84,7 @@ const navGroups: NavGroup[] = [
     label: "Tartalom",
     items: [
       { label: "Kezdőlap", href: "/admin/content/homepage", icon: LayoutTemplate },
+      { label: "Showcase tabok", href: "/admin/content/homepage-showcase", icon: LayoutGrid },
       { label: "Kövek", href: "/admin/content/stones", icon: Gem },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
       { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },

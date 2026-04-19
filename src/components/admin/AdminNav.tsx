@@ -26,6 +26,8 @@ const productSubNav = [
 ];
 
 const contentSubNav = [
+  { label: "Kezdőlap", href: "/admin/content/homepage" },
+  { label: "Showcase tabok", href: "/admin/content/homepage-showcase" },
   { label: "Üzenetsáv", href: "/admin/content/announcement" },
   { label: "Kövek szerkesztő", href: "/admin/content/stones" },
   { label: "Különlegességek menü", href: "/admin/content/specialties" },

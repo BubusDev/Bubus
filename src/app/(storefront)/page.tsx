@@ -30,7 +30,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <HomeProductShowcase tabs={showcaseTabs} />
       </section>
       <HomeInstagramPromo block={homepageContent.instagram} />
-      <HomePromoTileGrid tiles={homepageContent.promoTiles} />
+      <HomePromoTileGrid
+        tiles={homepageContent.promoTiles}
+        materialPicks={homepageContent.materialPicks}
+      />
       <HomeNewsletterBlock status={newsletterStatus} />
     </main>
   );
