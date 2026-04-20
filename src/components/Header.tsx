@@ -60,20 +60,20 @@ function HeaderActionButton({
       href={href}
       aria-label={label}
       data-cart-icon-target={isCartButton ? "cart" : undefined}
-      className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
+      className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
     >
       <span className="transition-transform duration-200 group-hover:scale-105">
         {children}
       </span>
 
       {hasBadge ? (
-        <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#6f4559] px-1 text-[9px] font-semibold tracking-[0.08em] text-white shadow-[0_6px_16px_rgba(84,54,65,0.14)]">
+        <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#9b3d6e] px-1 text-[9px] font-semibold tracking-[0.08em] text-white shadow-[0_6px_14px_rgba(155,61,110,0.16)]">
           {badgeCount! > 9 ? "9+" : badgeCount}
         </span>
       ) : null}
 
       {/* underline dot */}
-      <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#7f485c] transition-all duration-150 group-hover:w-full" />
+      <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#9b3d6e] transition-all duration-150 group-hover:w-5" />
     </Link>
   );
 }
@@ -127,7 +127,7 @@ export function Header({
 
   return (
     <>
-      <header className="navbar-glass sticky top-0 z-50 w-full border-b border-[#e7d9d5] bg-[#fbf8f5]/95 hover:border-[#decbc5] hover:bg-[#fffdfb]">
+      <header className="navbar-glass sticky top-0 z-50 w-full border-b border-[#eaded9] bg-[#fbf8f5]/95 hover:border-[#dfcdc7] hover:bg-[#fcf9f6]/98 focus-within:border-[#dfcdc7] focus-within:bg-[#fcf9f6]/98">
         <div className="mx-auto grid min-h-[72px] w-full max-w-[1500px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-2.5 py-2.5 min-[390px]:px-3 sm:min-h-[80px] sm:gap-2 sm:px-6 lg:min-h-[84px] lg:grid-cols-[1fr_auto_1fr] lg:px-8">
 
           {/* ── COL 1: mobile hamburger / desktop spacer ── */}
@@ -151,7 +151,7 @@ export function Header({
           {/* ── COL 2: logo (center) ── */}
           <Link
             href="/"
-            className="flex min-w-0 max-w-full items-center justify-self-center text-center transition duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
+            className="flex min-w-0 max-w-full items-center justify-self-center text-center transition duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
           >
             <div className="flex min-w-0 max-w-full flex-col items-center leading-none">
               <span className="max-w-full truncate text-[0.5rem] font-semibold uppercase tracking-[0.16em] text-[#7f485c] min-[390px]:text-[0.56rem] min-[390px]:tracking-[0.24em] sm:text-[0.68rem] sm:tracking-[0.32em]">
@@ -180,7 +180,7 @@ export function Header({
               <Link
                 href={user ? "/account" : "/sign-in"}
                 aria-label={user ? "Fiókom" : "Belépés"}
-                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
+                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
               </Link>
@@ -192,11 +192,11 @@ export function Header({
                   aria-label="Kuponjaim"
                   aria-expanded={mobileCouponOpen}
                   onClick={() => setMobileCouponOpen(true)}
-                  className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
+                  className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
                 >
                   <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                   {couponPreview.activeCoupons.length > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#7f485c] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
+                    <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#9b3d6e] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
                       {couponPreview.activeCoupons.length > 9 ? "9+" : couponPreview.activeCoupons.length}
                     </span>
                   )}
@@ -208,11 +208,11 @@ export function Header({
                 type="button"
                 aria-label="Kosár"
                 onClick={() => setCartPath(pathname)}
-                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
+                className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
               >
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
                 {cartCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#6f4559] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
+                  <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full border border-[#fffdfb] bg-[#9b3d6e] px-1 text-[9px] font-semibold tracking-[0.08em] text-white">
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
@@ -245,15 +245,15 @@ export function Header({
                     aria-label="Kuponjaim"
                     aria-expanded={desktopCouponOpen}
                     onClick={() => setDesktopCouponOpen((o) => !o)}
-                    className={`nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] ${desktopCouponOpen ? "text-[#34262b]" : ""}`}
+                    className={`nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] ${desktopCouponOpen ? "text-[#9b3d6e]" : ""}`}
                   >
                     <span className="transition-transform duration-200 group-hover:scale-105">
                       <TicketPercent className="h-[1.1rem] w-[1.1rem]" />
                     </span>
                     {couponPreview.activeCoupons.length > 0 && (
-                      <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[#fffdfb] bg-[#7f485c]" />
+                      <span className="absolute right-[9px] top-[9px] h-2 w-2 rounded-full border border-[#fffdfb] bg-[#9b3d6e]" />
                     )}
-                    <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#7f485c] transition-all duration-150 group-hover:w-full" />
+                    <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#9b3d6e] transition-all duration-150 group-hover:w-5" />
                   </button>
 
                   {desktopCouponOpen ? (
@@ -311,12 +311,12 @@ export function Header({
                 <Link
                   href="/sign-in"
                   aria-label="Belépés"
-                  className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
+                  className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
                 >
                   <span className="transition-transform duration-200 group-hover:scale-105">
                     <User className="h-[1.1rem] w-[1.1rem]" />
                   </span>
-                  <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#7f485c] transition-all duration-150 group-hover:w-full" />
+                  <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#9b3d6e] transition-all duration-150 group-hover:w-5" />
                 </Link>
               )}
             </nav>

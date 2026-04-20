@@ -180,7 +180,7 @@ export function MegaMenu({
       <div
         aria-hidden="true"
         data-state={isOpen ? "open" : "closed"}
-        className="pointer-events-none fixed inset-0 z-[39] bg-[#2f2028]/[0.06] opacity-0 transition-opacity duration-200 data-[state=open]:opacity-100"
+        className="pointer-events-none fixed inset-0 z-[39] bg-[#2f2028]/[0.035] opacity-0 transition-opacity duration-200 data-[state=open]:opacity-100"
       />
 
       {/*
@@ -195,10 +195,10 @@ export function MegaMenu({
           aria-haspopup="true"
           aria-expanded={isOpen}
           aria-controls={panelId}
-          className={`relative inline-flex items-center gap-1 whitespace-nowrap py-1 text-[13px] uppercase leading-5 tracking-[0.08em] transition-colors duration-150 after:absolute after:-bottom-1 after:left-0 after:h-px after:bg-[#7f485c] after:transition-[width] after:duration-150 active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fbf8f5] ${
+          className={`relative inline-flex items-center gap-1 whitespace-nowrap py-1 text-[13px] uppercase leading-5 tracking-[0.08em] transition-[color,font-weight] duration-150 after:absolute after:-bottom-1 after:left-0 after:h-px after:bg-[#9b3d6e] after:transition-[width] after:duration-150 active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fbf8f5] ${
             isOpen
-              ? "font-semibold text-[#7f485c] after:w-full"
-              : "font-medium text-[#4a343d] after:w-0 hover:text-[#7f485c] hover:after:w-full"
+              ? "font-semibold text-[#9b3d6e] after:w-full"
+              : "font-medium text-[#4a343d] after:w-0 hover:font-semibold hover:text-[#9b3d6e] hover:after:w-full"
           }`}
         >
           <span>{triggerLabel}</span>
@@ -206,7 +206,7 @@ export function MegaMenu({
             strokeWidth={2}
             aria-hidden="true"
             className={`h-3 w-3 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-[#7f485c]" : "text-[#8d7780]"
+              isOpen ? "rotate-180 text-[#9b3d6e]" : "text-[#8d7780]"
             }`}
           />
         </button>
@@ -218,17 +218,17 @@ export function MegaMenu({
           aria-label={triggerLabel}
           aria-hidden={!isOpen}
           data-state={isOpen ? "open" : "closed"}
-          className="pointer-events-none absolute left-0 right-0 top-full z-[41] border-t border-[#e6d8d2] bg-[#fffdfb] opacity-0 shadow-[0_18px_42px_rgba(57,39,47,0.08)] transition-opacity duration-200 ease-out data-[state=open]:pointer-events-auto data-[state=open]:opacity-100"
+          className="pointer-events-none absolute left-0 right-0 top-full z-[41] border-t border-[#eaded9] bg-[#fffdfb] opacity-0 shadow-[0_16px_36px_rgba(57,39,47,0.07)] transition-opacity duration-200 ease-out data-[state=open]:pointer-events-auto data-[state=open]:opacity-100"
         >
           <div className="mx-auto max-w-[1600px] px-4 py-7 sm:px-6 lg:px-8 xl:py-8">
             <div
-              className="grid divide-x divide-[#eee4df]"
+              className="grid divide-x divide-[#efe5e0]"
               style={{ gridTemplateColumns: "minmax(190px, 0.78fr) minmax(230px, 1fr) minmax(280px, 1.08fr)" }}
             >
 
               {/* ── LEFT: category links (30%) ── */}
               <div className="min-w-0 pr-6 xl:pr-10">
-                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9a7c82]">
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#a56f85]">
                   {triggerLabel}
                 </p>
                 <ul role="list" className="space-y-0.5">
@@ -242,18 +242,18 @@ export function MegaMenu({
                         onMouseEnter={() => setHoveredItemId(item.id)}
                         onFocus={() => setHoveredItemId(item.id)}
                         onKeyDown={handleItemKeyDown}
-                        className={`group/link flex min-w-0 items-center gap-2 py-2.5 font-[family:var(--font-serif)] text-[17px] leading-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb] xl:text-[18px] ${
-                          activeItem?.id === item.id ? "font-semibold text-[#7f485c]" : "font-medium text-[#4a343d]"
+                        className={`group/link flex min-w-0 items-center gap-2 py-2.5 font-[family:var(--font-serif)] text-[17px] leading-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb] xl:text-[18px] ${
+                          activeItem?.id === item.id ? "font-semibold text-[#9b3d6e]" : "font-medium text-[#4a343d]"
                         }`}
                       >
-                        <span className={`min-w-0 break-words transition-[color,transform] duration-150 group-hover/link:translate-x-0.5 group-hover/link:text-[#7f485c] ${
+                        <span className={`min-w-0 break-words transition-[color,transform] duration-150 group-hover/link:translate-x-0.5 group-hover/link:text-[#9b3d6e] ${
                           activeItem?.id === item.id ? "translate-x-0.5" : ""
                         }`}>
                           {item.name}
                         </span>
                         <span
                           aria-hidden="true"
-                          className={`mt-px h-px flex-none bg-[#7f485c] transition-all duration-150 group-hover/link:w-5 ${
+                          className={`mt-px h-px flex-none bg-[#9b3d6e] transition-all duration-150 group-hover/link:w-5 ${
                             activeItem?.id === item.id ? "w-5" : "w-0"
                           }`}
                         />
@@ -266,7 +266,7 @@ export function MegaMenu({
               {/* ── MIDDLE: hover preview (35%) ── */}
               <div className="flex min-w-0 flex-col px-6 xl:px-10">
                 <div
-                  className="relative w-full overflow-hidden rounded-md bg-[#f3ede9]"
+                  className="relative w-full overflow-hidden rounded-md border border-[#efe5e0] bg-[#f5efeb]"
                   style={{ aspectRatio: "3/4", maxHeight: 318 }}
                 >
                   {previewSrc ? (
@@ -280,7 +280,7 @@ export function MegaMenu({
                   ) : (
                     <div className="flex h-full items-center justify-center bg-[#f4eeea]">
                       <span
-                        className="font-[family:var(--font-serif)] text-4xl text-[#a98b91]"
+                        className="font-[family:var(--font-serif)] text-4xl text-[#b28c9b]"
                         aria-hidden="true"
                       >
                         ✦
@@ -289,7 +289,7 @@ export function MegaMenu({
                   )}
                 </div>
                 {previewDesc && (
-                  <p key={activeItem?.id ?? "preview-desc"} className="mt-3 line-clamp-3 max-w-[34rem] text-[13px] leading-relaxed text-[#6f5960] transition-opacity duration-200">
+                  <p key={activeItem?.id ?? "preview-desc"} className="mt-3 line-clamp-3 max-w-[34rem] text-[13px] leading-relaxed text-[#6b5960] transition-opacity duration-200">
                     {previewDesc}
                   </p>
                 )}
@@ -298,7 +298,7 @@ export function MegaMenu({
               {/* ── RIGHT: hero / promo block (35%) ── */}
               <div className="min-w-0 pl-6 xl:pl-10">
                 {cardTitle && cardHref ? (
-                  <div className="relative aspect-[4/3] min-h-[268px] overflow-hidden rounded-md bg-[#efe6e1]">
+                  <div className="relative aspect-[4/3] min-h-[268px] overflow-hidden rounded-md border border-[#eaded9] bg-[#f5efeb]">
                     {cardImageSrc ? (
                       <FadingMenuImage
                         key={cardImageSrc}
@@ -309,16 +309,16 @@ export function MegaMenu({
                       />
                     ) : null}
                     {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/78 via-[#2f2028]/28 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 drop-shadow-sm xl:p-6">
-                      <span className="mb-2 self-start border border-white/35 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/82">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/72 via-[#2f2028]/22 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 xl:p-6">
+                      <span className="mb-2 self-start border border-white/45 bg-[#9b3d6e]/18 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/88">
                         Válogatás
                       </span>
                       <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-[1.35rem] font-semibold leading-tight text-white">
                         {cardTitle}
                       </h3>
                       {cardDescription && (
-                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/82">
+                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/84">
                           {cardDescription}
                         </p>
                       )}
@@ -326,7 +326,7 @@ export function MegaMenu({
                         ref={heroCta}
                         href={cardHref}
                         tabIndex={isOpen ? 0 : -1}
-                        className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/50 bg-white/12 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
+                        className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/55 bg-[#9b3d6e]/22 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-[#9b3d6e]/32 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
                       >
                         <span className="line-clamp-1 min-w-0 break-all">{cardCtaText}</span>
                         <ArrowRight className="h-3 w-3 flex-none" />
@@ -334,7 +334,7 @@ export function MegaMenu({
                     </div>
                   </div>
                 ) : heroConfig ? (
-                  <div className="relative h-full min-h-[268px] overflow-hidden rounded-md bg-[#efe6e1]">
+                  <div className="relative h-full min-h-[268px] overflow-hidden rounded-md border border-[#eaded9] bg-[#f5efeb]">
                     {heroConfig.backgroundImageSrc ? (
                       <FadingMenuImage
                         key={heroConfig.backgroundImageSrc}
@@ -344,10 +344,10 @@ export function MegaMenu({
                         sizes="(max-width: 1600px) 35vw"
                       />
                     ) : null}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/78 via-[#2f2028]/28 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/72 via-[#2f2028]/22 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 xl:p-6">
                       {heroConfig.badge ? (
-                        <span className="mb-2 self-start border border-white/35 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/82">
+                        <span className="mb-2 self-start border border-white/45 bg-[#9b3d6e]/18 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/88">
                           {heroConfig.badge}
                         </span>
                       ) : null}
@@ -355,7 +355,7 @@ export function MegaMenu({
                         {heroConfig.title}
                       </h3>
                       {heroConfig.description && (
-                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/82">
+                        <p className="mb-4 line-clamp-3 text-xs leading-relaxed text-white/84">
                           {heroConfig.description}
                         </p>
                       )}
@@ -364,7 +364,7 @@ export function MegaMenu({
                           ref={heroCta}
                           href={heroConfig.ctaHref}
                           tabIndex={isOpen ? 0 : -1}
-                          className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/50 bg-white/12 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
+                          className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/55 bg-[#9b3d6e]/22 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-[#9b3d6e]/32 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
                         >
                           <span className="line-clamp-1 min-w-0 break-all">{heroConfig.ctaText}</span>
                           <ArrowRight className="h-3 w-3 flex-none" />
@@ -373,7 +373,7 @@ export function MegaMenu({
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full min-h-[268px] rounded-md bg-[#efe6e1]" />
+                  <div className="h-full min-h-[268px] rounded-md border border-[#eaded9] bg-[#f5efeb]" />
                 )}
               </div>
 
