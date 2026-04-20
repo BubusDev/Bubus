@@ -10,13 +10,13 @@ export default function DragakovekLayout({ children }: { children: ReactNode }) 
           background: #f3bdc8 !important;
         }
 
-        html:has(.dragakovek-page) {
-          scroll-snap-type: y proximity;
+        .dragakovek-page article,
+        .dragakovek-page button[aria-expanded] {
+          overflow-anchor: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
           html:has(.dragakovek-page) {
-            scroll-snap-type: none;
             scroll-behavior: auto;
           }
         }

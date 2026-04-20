@@ -75,8 +75,8 @@ function GemstoneCard({
     target: ref,
     offset: ["start end", "center center"],
   });
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.85, 1, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 1, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.96, 1, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.6, 1, 1]);
   const accentColor = gemstone.accentColor || "#7a2a3e";
 
   useEffect(() => {
@@ -87,18 +87,18 @@ function GemstoneCard({
     <motion.article
       ref={ref}
       style={isClient && !shouldReduceMotion ? { scale, opacity } : undefined}
-      className="snap-center bg-[#f3bdc8]"
+      className="bg-[#f3bdc8]"
     >
-      <div className="grid min-h-screen border-b-2 border-white/40 md:grid-cols-[0.75fr_3fr_0.45fr]">
-        <div className="flex items-start border-white/40 px-4 py-8 md:border-r-2 md:px-8 md:py-12">
+      <div className="grid border-b-2 border-white/40 py-10 md:min-h-[82svh] md:grid-cols-[0.75fr_3fr_0.45fr] md:py-24">
+        <div className="flex items-start border-white/40 px-4 md:border-r-2 md:px-8">
           <span className="font-serif text-7xl font-light leading-none text-[#fdfaf7]/70 sm:text-8xl">
             {index + 1}
           </span>
         </div>
 
-        <div className="grid gap-8 border-white/40 px-4 pb-8 md:grid-cols-[minmax(220px,400px)_1fr] md:border-r-2 md:px-8 md:py-12 lg:gap-12">
+        <div className="grid gap-8 border-white/40 px-4 md:grid-cols-[minmax(220px,400px)_1fr] md:border-r-2 md:px-8 lg:gap-12">
           <div
-            className="relative aspect-square w-full max-w-[400px] overflow-hidden border bg-[#fdfaf7]/15"
+            className="relative mx-auto aspect-square w-full max-w-[min(75vw,300px)] overflow-hidden border bg-[#fdfaf7]/15 md:mx-0 md:max-w-[360px]"
             style={{ borderColor: `${accentColor}55` }}
           >
             {gemstone.imageUrl ? (
@@ -106,7 +106,7 @@ function GemstoneCard({
                 src={gemstone.imageUrl}
                 alt={gemstone.title}
                 fill
-                sizes="(min-width: 1024px) 400px, 85vw"
+                sizes="(min-width: 768px) 360px, min(75vw, 300px)"
                 className="object-cover"
               />
             ) : (
@@ -139,11 +139,6 @@ function GemstoneCard({
                   animate={{ height: "auto", opacity: 1, y: 0 }}
                   exit={{ height: 0, opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  onAnimationComplete={() => {
-                    if (open && !shouldReduceMotion) {
-                      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
-                  }}
                   className="overflow-hidden"
                 >
                   <div className="mt-8 space-y-7 border-t-2 border-white/40 pt-8">
@@ -210,7 +205,7 @@ function GemstoneCard({
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-label={`${gemstone.title} részleteinek ${open ? "bezárása" : "megnyitása"}`}
-          className="flex items-start justify-end px-4 py-8 font-serif text-5xl font-thin leading-none text-[#7a2a3e] transition hover:text-[#fdfaf7] md:px-8 md:py-12"
+          className="flex items-start justify-end px-4 pt-8 font-serif text-5xl font-thin leading-none text-[#7a2a3e] transition hover:text-[#fdfaf7] md:px-8 md:pt-0"
         >
           <span className="mr-4 hidden pt-4 text-xs uppercase tracking-[0.25em] opacity-70 md:inline">
             Részletek
@@ -229,7 +224,7 @@ function GemstoneCard({
 
 export function GemstoneCardList({ gemstones }: { gemstones: Gemstone[] }) {
   return (
-    <section className="mx-auto max-w-[1520px] snap-y snap-proximity overflow-visible bg-[#f3bdc8]">
+    <section className="mx-auto max-w-[1520px] overflow-visible bg-[#f3bdc8]">
       {gemstones.map((gemstone, index) => (
         <GemstoneCard
           key={gemstone.id}
