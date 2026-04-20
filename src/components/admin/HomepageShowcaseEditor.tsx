@@ -25,7 +25,7 @@ import {
 } from "@/app/(admin)/admin/content/homepage-showcase/actions";
 import { HomeProductShowcase } from "@/components/home/HomeProductShowcase";
 import { formatPrice } from "@/lib/catalog";
-import { getShowcaseFilterTypeLabel } from "@/lib/homepage-showcase";
+import { getShowcaseFilterTypeLabel } from "@/lib/homepage-showcase-shared";
 import type {
   AdminShowcaseCategoryOption,
   AdminShowcaseProductOption,
