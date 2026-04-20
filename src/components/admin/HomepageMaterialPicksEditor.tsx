@@ -247,7 +247,6 @@ export function HomepageMaterialPicksEditor({
   const isSubmittingRef = useRef(false);
   const [slots, setSlots] = useState<PickSlot[]>(() => initialState.slots);
   const [draggedSlotId, setDraggedSlotId] = useState<string | null>(null);
-  const draggedSlotIdRef = useRef<string | null>(null);
   const [collapsedSlotIds, setCollapsedSlotIds] = useState<Set<string>>(
     () => initialState.collapsedSlotIds,
   );
@@ -323,19 +322,6 @@ export function HomepageMaterialPicksEditor({
 
   function moveSlot(fromIndex: number, toIndex: number) {
     setSlots((current) => moveItem(current, fromIndex, toIndex));
-  }
-
-  function moveDraggedSlot(overSlotId: string) {
-    setSlots((current) => {
-      const activeSlotId = draggedSlotIdRef.current;
-      if (!activeSlotId || activeSlotId === overSlotId) return current;
-
-      const fromIndex = current.findIndex((slot) => slot.clientId === activeSlotId);
-      const toIndex = current.findIndex((slot) => slot.clientId === overSlotId);
-      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return current;
-
-      return moveItem(current, fromIndex, toIndex);
-    });
   }
 
   function toggleCollapsedSlot(slotId: string) {
@@ -424,30 +410,18 @@ export function HomepageMaterialPicksEditor({
               key={slot.clientId}
               draggable
               onDragStart={(event) => {
-                const target = event.target as HTMLElement;
-                if (!target.closest("[data-material-pick-drag-handle]")) {
-                  event.preventDefault();
-                  return;
-                }
-                draggedSlotIdRef.current = slot.clientId;
-                setDraggedSlotId(slot.clientId);
+                event.dataTransfer.setData("text/plain", String(index));
                 event.dataTransfer.effectAllowed = "move";
-                event.dataTransfer.setData("text/plain", slot.clientId);
+                setDraggedSlotId(slot.clientId);
               }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = "move";
-                moveDraggedSlot(slot.clientId);
-              }}
+              onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
-                draggedSlotIdRef.current = null;
+                const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+                if (Number.isInteger(fromIndex)) moveSlot(fromIndex, index);
                 setDraggedSlotId(null);
               }}
-              onDragEnd={() => {
-                draggedSlotIdRef.current = null;
-                setDraggedSlotId(null);
-              }}
+              onDragEnd={() => setDraggedSlotId(null)}
               className={`rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-3.5 transition ${
                 isDragging ? "opacity-60 ring-2 ring-[var(--admin-blue-100)]" : ""
               }`}
