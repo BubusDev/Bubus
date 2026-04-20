@@ -591,7 +591,7 @@ function TabEditor({
       }}
       className="admin-panel overflow-hidden"
     >
-      <div className="flex flex-col gap-3 border-b border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 border-b border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white text-sm font-semibold text-[var(--admin-ink-700)]">
             {index + 1}
@@ -693,13 +693,13 @@ function TabEditor({
       </div>
 
       {!isCollapsed ? (
-        <form action={saveFormAction} className="grid gap-5 px-5 py-5">
+        <form action={saveFormAction} className="grid gap-3 px-4 py-3">
           <input type="hidden" name="id" value={tab.id} />
           <input type="hidden" name="sortOrder" value={index + 1} />
           <input type="hidden" name="isActive" value={isActive ? "on" : ""} />
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
-          <label className="grid gap-1.5">
+        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+          <label className="grid gap-1">
             <span className="admin-eyebrow">Tab felirat</span>
             <input
               name="label"
@@ -709,11 +709,11 @@ function TabEditor({
                 setSaveFeedbackVisible(false);
               }}
               required
-              className="admin-input min-h-10 px-3 text-sm"
+              className="admin-input h-8 px-2.5 text-sm"
             />
           </label>
 
-          <label className="grid gap-1.5">
+          <label className="grid gap-1">
             <span className="admin-eyebrow">Belső azonosító</span>
             <input
               name="key"
@@ -723,17 +723,17 @@ function TabEditor({
                 setSaveFeedbackVisible(false);
               }}
               required
-              className="admin-input min-h-10 px-3 text-sm"
+              className="admin-input h-8 px-2.5 text-sm"
             />
           </label>
 
-          <div className="mt-5 grid gap-1.5 lg:mt-6">
+          <div className="grid gap-1">
             <span className="admin-eyebrow">Láthatóság</span>
             <button
               type="button"
               onClick={() => setIsActive((current) => !current)}
               onMouseDown={() => setSaveFeedbackVisible(false)}
-              className={`inline-flex min-h-10 items-center justify-between gap-3 rounded border px-3 text-sm font-medium transition ${
+              className={`inline-flex h-8 items-center justify-between gap-2 rounded border px-2.5 text-sm font-medium transition ${
                 isActive
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                   : "border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-600)]"
@@ -742,13 +742,13 @@ function TabEditor({
             >
               <span>{isActive ? "Aktív" : "Inaktív"}</span>
               <span
-                className={`relative h-5 w-9 rounded-full transition ${
+                className={`relative h-4 w-7 rounded-full transition ${
                   isActive ? "bg-emerald-500" : "bg-[var(--admin-line-200)]"
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition ${
-                    isActive ? "left-4" : "left-0.5"
+                  className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition ${
+                    isActive ? "left-3.5" : "left-0.5"
                   }`}
                 />
               </span>
@@ -756,8 +756,8 @@ function TabEditor({
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_160px]">
-          <label className="grid gap-1.5">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px]">
+          <label className="grid gap-1">
             <span className="admin-eyebrow">Forrás</span>
             <select
               name="filterType"
@@ -768,7 +768,7 @@ function TabEditor({
                 if (nextType !== "category") setCategorySlug("");
                 setSaveFeedbackVisible(false);
               }}
-              className="admin-input min-h-10 px-3 text-sm"
+              className="admin-input h-8 px-2.5 text-sm"
             >
               {filterTypes.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -778,8 +778,8 @@ function TabEditor({
             </select>
           </label>
 
-          <label className="grid gap-1.5">
-            <span className="admin-eyebrow">Max. termékszám</span>
+          <label className="grid gap-1">
+            <span className="admin-eyebrow">Max. db</span>
             <input
               type="number"
               name="maxItems"
@@ -790,13 +790,13 @@ function TabEditor({
               }}
               min={1}
               max={24}
-              className="admin-input min-h-10 px-3 text-sm"
+              className="admin-input h-8 px-2.5 text-sm"
             />
           </label>
         </div>
 
         {filterType === "category" ? (
-          <label className="grid gap-1.5">
+          <label className="grid gap-1">
             <span className="admin-eyebrow">Kategória</span>
             <select
               id={`${tab.id}-category-source`}
@@ -807,7 +807,7 @@ function TabEditor({
                 setSaveFeedbackVisible(false);
               }}
               required
-              className="admin-input min-h-10 px-3 text-sm"
+              className="admin-input h-8 px-2.5 text-sm"
             >
               <option value="">Válassz kategóriát</option>
               {categories.map((category) => (
@@ -840,13 +840,8 @@ function TabEditor({
         ) : null}
 
         <div className={previewPanelClass}>
-          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="admin-eyebrow">Storefront előnézet</p>
-              <p className="mt-1 text-sm text-[var(--admin-ink-600)]">
-                A jelenlegi beállítások alapján frissül.
-              </p>
-            </div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="admin-eyebrow">Előnézet</p>
             <span className="text-xs text-[var(--admin-ink-500)]">
               {previewProducts.length} termék
             </span>
@@ -875,7 +870,7 @@ function TabEditor({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 border-t border-[var(--admin-line-100)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t border-[var(--admin-line-100)] pt-3 sm:flex-row sm:items-center sm:justify-between">
           <SaveButton
             visualState={saveFeedbackVisible ? "saved" : saveState.status === "error" ? "error" : "default"}
             dirty={dirty}
@@ -947,18 +942,13 @@ function NewTabForm({
   }, [onCreated, saveState]);
 
   return (
-    <form action={saveFormAction} className="admin-panel grid gap-5 px-5 py-5">
+    <form action={saveFormAction} className="admin-panel grid gap-3 px-4 py-3">
       <input type="hidden" name="sortOrder" value={nextSortOrder} />
       <input type="hidden" name="isActive" value={isActive ? "on" : ""} />
 
-      <div>
-        <p className="admin-eyebrow">Új tab</p>
-        <h2 className="mt-1 text-base font-semibold text-[var(--admin-ink-900)]">
-          Új showcase forrás hozzáadása
-        </h2>
-      </div>
+      <p className="text-sm font-semibold text-[var(--admin-ink-900)]">Új tab hozzáadása</p>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
         <label className="grid gap-1.5">
           <span className="admin-eyebrow">Tab felirat</span>
           <input
@@ -970,11 +960,11 @@ function NewTabForm({
             }}
             placeholder="pl. Újdonságok"
             required
-            className="admin-input min-h-10 px-3 text-sm"
+            className="admin-input h-8 px-2.5 text-sm"
           />
         </label>
 
-        <label className="grid gap-1.5">
+        <label className="grid gap-1">
           <span className="admin-eyebrow">Belső azonosító</span>
           <input
             name="key"
@@ -985,11 +975,11 @@ function NewTabForm({
             }}
             placeholder="pl. new, necklaces, sale"
             required
-            className="admin-input min-h-10 px-3 text-sm"
+            className="admin-input h-8 px-2.5 text-sm"
           />
         </label>
 
-        <div className="mt-5 grid gap-1.5 lg:mt-6">
+        <div className="grid gap-1">
           <span className="admin-eyebrow">Láthatóság</span>
           <button
             type="button"
@@ -997,7 +987,7 @@ function NewTabForm({
               setIsActive((current) => !current);
               setSaveFeedbackVisible(false);
             }}
-            className={`inline-flex min-h-10 items-center justify-between gap-3 rounded border px-3 text-sm font-medium transition ${
+            className={`inline-flex h-8 items-center justify-between gap-2 rounded border px-2.5 text-sm font-medium transition ${
               isActive
                 ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                 : "border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-600)]"
@@ -1006,13 +996,13 @@ function NewTabForm({
           >
             <span>{isActive ? "Aktív" : "Inaktív"}</span>
             <span
-              className={`relative h-5 w-9 rounded-full transition ${
+              className={`relative h-4 w-7 rounded-full transition ${
                 isActive ? "bg-emerald-500" : "bg-[var(--admin-line-200)]"
               }`}
             >
               <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition ${
-                  isActive ? "left-4" : "left-0.5"
+                className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition ${
+                  isActive ? "left-3.5" : "left-0.5"
                 }`}
               />
             </span>
@@ -1020,8 +1010,8 @@ function NewTabForm({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_160px]">
-        <label className="grid gap-1.5">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px]">
+        <label className="grid gap-1">
           <span className="admin-eyebrow">Forrás</span>
           <select
             name="filterType"
@@ -1030,7 +1020,7 @@ function NewTabForm({
               setFilterType(event.target.value as FilterType);
               setSaveFeedbackVisible(false);
             }}
-            className="admin-input min-h-10 px-3 text-sm"
+            className="admin-input h-8 px-2.5 text-sm"
           >
             {filterTypes.map((item) => (
               <option key={item.value} value={item.value}>
@@ -1040,8 +1030,8 @@ function NewTabForm({
           </select>
         </label>
 
-        <label className="grid gap-1.5">
-          <span className="admin-eyebrow">Max. termékszám</span>
+        <label className="grid gap-1">
+          <span className="admin-eyebrow">Max. db</span>
           <input
             type="number"
             name="maxItems"
@@ -1052,13 +1042,13 @@ function NewTabForm({
             }}
             min={1}
             max={24}
-            className="admin-input min-h-10 px-3 text-sm"
+            className="admin-input h-8 px-2.5 text-sm"
           />
         </label>
       </div>
 
       {filterType === "category" ? (
-        <label className="grid gap-1.5">
+        <label className="grid gap-1">
           <span className="admin-eyebrow">Kategória</span>
           <select
             name="categorySlug"
@@ -1068,7 +1058,7 @@ function NewTabForm({
               setSaveFeedbackVisible(false);
             }}
             required
-            className="admin-input min-h-10 px-3 text-sm"
+            className="admin-input h-8 px-2.5 text-sm"
           >
             <option value="">Válassz kategóriát</option>
             {categories.map((category) => (
@@ -1081,7 +1071,7 @@ function NewTabForm({
       ) : null}
 
       {filterType === "manual" ? (
-        <div className="grid gap-1.5">
+        <div className="grid gap-1">
           <span className="admin-eyebrow">Kézi termékválogatás</span>
           <ProductPicker
             products={products}
@@ -1164,7 +1154,7 @@ export function HomepageShowcaseEditor({
   }, []);
 
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-5">
       <NewTabForm
         nextSortOrder={orderedTabs.length + 1}
         categories={categories}
@@ -1173,15 +1163,9 @@ export function HomepageShowcaseEditor({
         onCreated={appendCreatedTab}
       />
 
-      <form action={reorderShowcaseTabsAction} className="admin-panel-soft px-4 py-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="admin-eyebrow">Tab sorrend</p>
-            <p className="mt-1 text-sm text-[var(--admin-ink-600)]">
-              Húzd át a tabokat, vagy használd a Fel/Le gombokat. A sorrend mentés után
-              jelenik meg a storefronton.
-            </p>
-          </div>
+      <form action={reorderShowcaseTabsAction} className="admin-panel-soft px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-[var(--admin-ink-600)]">Tab sorrend — húzd vagy Fel/Le gombokkal rendezd</p>
           {orderedTabs.map((tab) => (
             <input key={tab.id} type="hidden" name="tabIds" value={tab.id} />
           ))}

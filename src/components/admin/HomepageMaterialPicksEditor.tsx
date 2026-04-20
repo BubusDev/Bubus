@@ -344,23 +344,15 @@ export function HomepageMaterialPicksEditor({
       }}
       className="admin-panel p-5"
     >
-      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <p className="admin-eyebrow">Kezdőlapi válogatás</p>
-          <h2 className="mt-2 text-lg font-semibold text-[var(--admin-ink-900)]">
-            Kőtípus alapú kezdőlapi cardok
-          </h2>
-          <p className="mt-1.5 max-w-[68ch] text-sm leading-6 text-[var(--admin-ink-600)]">
-            Válassz legfeljebb 4 kőtípust a product besorolási rendszerből. Ez adja a kártya címét
-            és témáját; a kiemelt termék opcionális, és csak ehhez a kőtípushoz tartozhat.
-          </p>
-          <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
-            Sorrendezéshez húzd a fogantyút, vagy használd a fel/le gombokat. A kártyák
-            összecsukhatók, a mentés pedig az egész válogatásra vonatkozik.
+          <p className="text-sm font-semibold text-[var(--admin-ink-900)]">Kezdőlapi kőtípus válogatás</p>
+          <p className="mt-0.5 text-xs text-[var(--admin-ink-500)]">
+            Max. 4 kőtípus — húzd vagy Fel/Le gombokkal rendezd
           </p>
         </div>
         <button type="submit" className="admin-button-primary admin-control-md shrink-0">
-          Válogatás mentése
+          Mentés
         </button>
       </div>
 
@@ -538,7 +530,7 @@ export function HomepageMaterialPicksEditor({
 
               <div id={`homepage-material-pick-slot-${slot.clientId}`} hidden={isCollapsed}>
                 {isLegacySource ? (
-                  <div className={`mt-3 ${warningPanelClass}`}>
+                  <div className={`mt-2 ${warningPanelClass}`}>
                     Ez a régi kő-adatforrásból mentett elem. Válaszd ki újra a kőtípust, majd mentsd
                     el.
                     {slot.legacyItemId ? (
@@ -549,11 +541,11 @@ export function HomepageMaterialPicksEditor({
                   </div>
                 ) : null}
 
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-2">
+                <div className="mt-2 flex items-center justify-between gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
                   {selectedStoneType ? (
                     <>
                       <div className="flex min-w-0 items-center gap-3">
-                        <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
+                        <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
                           {previewProduct?.imageUrl ? (
                             <Image
                               src={previewProduct.imageUrl}
@@ -565,7 +557,6 @@ export function HomepageMaterialPicksEditor({
                           ) : null}
                         </span>
                         <span className="min-w-0">
-                          <span className="admin-eyebrow block">Gyors preview</span>
                           <span className="block truncate text-sm font-medium text-[var(--admin-ink-900)]">
                             {selectedStoneType.name}
                           </span>
@@ -589,9 +580,9 @@ export function HomepageMaterialPicksEditor({
                   )}
                 </div>
 
-                <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
-                  <div className="grid gap-3">
-                    <label className="grid gap-1.5">
+                <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+                  <div className="grid gap-2">
+                    <label className="grid gap-1">
                       <span className="admin-eyebrow">1. Kőtípus</span>
                       <select
                         value={slot.stoneTypeId}
@@ -620,7 +611,7 @@ export function HomepageMaterialPicksEditor({
                             unavailableFeaturedProductReason: null,
                           });
                         }}
-                        className="admin-input min-h-10 px-3 text-sm"
+                        className="admin-input h-8 px-2.5 text-sm"
                       >
                         <option value="">Válassz meglévő kőtípust</option>
                         {options.stoneTypes.map((stoneType) => (
@@ -629,30 +620,12 @@ export function HomepageMaterialPicksEditor({
                           </option>
                         ))}
                       </select>
-                      <span className={helperTextClass}>
-                        Ez adja a kártya címét és témáját.
-                      </span>
                     </label>
 
-                    {selectedStoneType ? (
-                      <div className="flex items-center justify-between gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-2">
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-[var(--admin-ink-900)]">
-                            {selectedStoneType.name}
-                          </span>
-                          <span className="block truncate text-xs text-[var(--admin-ink-500)]">
-                            Szűrt storefront link: {`/new-in?stone=${selectedStoneType.slug}`}
-                          </span>
-                        </span>
-                      </div>
-                    ) : null}
                   </div>
 
-                  <div className="grid gap-1.5">
+                  <div className="grid gap-1">
                     <span className="admin-eyebrow">2. Kiemelt termék</span>
-                    <span className={helperTextClass}>
-                      Opcionális kiemelt termék ehhez a kőtípushoz.
-                    </span>
                     <ProductSlotPicker
                       disabled={!selectedStoneType}
                       products={compatibleProducts}
