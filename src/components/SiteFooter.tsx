@@ -17,11 +17,11 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
               className="mb-10 font-[family:var(--font-display)] tracking-[-0.03em] text-[#4d2741]"
               style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)" }}
             >
-              Vásároljon karkötőket Féldrágakő, Kristály, Ásványok szerint!
+              Válassz karkötőt kedvenc köved szerint
             </h3>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-              <Link href="/bracelets" className="group block overflow-hidden rounded-md">
+              <Link href="/bracelets?stone=pearl" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #fff0f7 0%, #f5c9e2 50%, #e8a8cc 100%)" }}
@@ -31,12 +31,12 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                     style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
                   >
                     <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
-                    <p className="text-sm font-medium text-white">Rózsakvarc</p>
+                    <p className="text-sm font-medium text-white">Gyöngy</p>
                   </div>
                 </div>
               </Link>
 
-              <Link href="/bracelets" className="group block overflow-hidden rounded-md">
+              <Link href="/bracelets?stone=diamond" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #f4f0ff 0%, #ddd4f5 50%, #c4aee8 100%)" }}
@@ -46,12 +46,12 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                     style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
                   >
                     <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
-                    <p className="text-sm font-medium text-white">Ametiszt</p>
+                    <p className="text-sm font-medium text-white">Gyémánt</p>
                   </div>
                 </div>
               </Link>
 
-              <Link href="/necklaces" className="group block overflow-hidden rounded-md">
+              <Link href="/bracelets?stone=moonstone" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #f8f4ff 0%, #e8dff5 50%, #d4c4e8 100%)" }}
@@ -60,13 +60,13 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                     className="w-full p-4"
                     style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
                   >
-                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Nyaklánc</p>
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
                     <p className="text-sm font-medium text-white">Holdkő</p>
                   </div>
                 </div>
               </Link>
 
-              <Link href="/necklaces" className="group block overflow-hidden rounded-md">
+              <Link href="/bracelets?stone=crystal" className="group block overflow-hidden rounded-md">
                 <div
                   className="flex aspect-[3/4] w-full items-end transition-transform duration-500 group-hover:scale-[1.02]"
                   style={{ background: "linear-gradient(145deg, #fffbf0 0%, #fdefd4 50%, #f5d8a8 100%)" }}
@@ -75,8 +75,8 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                     className="w-full p-4"
                     style={{ background: "linear-gradient(to top, rgba(77,39,65,0.55), transparent)" }}
                   >
-                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Nyaklánc</p>
-                    <p className="text-sm font-medium text-white">Citrin</p>
+                    <p className="mb-0.5 text-[10px] uppercase tracking-[0.3em] text-white/70">Karkötő</p>
+                    <p className="text-sm font-medium text-white">Kristály</p>
                   </div>
                 </div>
               </Link>

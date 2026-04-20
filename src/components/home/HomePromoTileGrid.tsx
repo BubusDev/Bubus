@@ -112,7 +112,7 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
               Kövek és ásványok
             </p>
             <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
-              Vásároljon karkötőket Féldrágakő, Kristály, Ásványok szerint!
+              Válassz karkötőt kedvenc köved szerint
             </h2>
           </div>
 

@@ -344,9 +344,7 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
           sortOrder: pick.sortOrder,
           title: stoneType.name,
           subtitle: compatibleProduct?.name ?? "Kőtípus válogatás",
-          href: compatibleProduct
-            ? `/product/${compatibleProduct.slug}`
-            : `/new-in?stone=${encodeURIComponent(stoneType.slug)}`,
+          href: `/bracelets?stone=${encodeURIComponent(stoneType.slug)}`,
           imageUrl: compatibleProduct ? getProductImageUrl(compatibleProduct) : null,
           imageAlt: compatibleProduct?.name ?? stoneType.name,
           colorHex: null,

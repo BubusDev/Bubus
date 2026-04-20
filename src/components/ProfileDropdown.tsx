@@ -56,7 +56,7 @@ export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
 
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate font-mono text-[13px] font-bold tracking-[0.03em] text-[#1a1a1a]">
+          <p className="truncate font-mono text-[13px] font-bold tracking-[0.03em] text-[#34262b]">
             {coupon.code}
           </p>
           <p className="mt-0.5 text-[10px] font-semibold" style={{ color: urgencyColor }}>
@@ -76,7 +76,7 @@ export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
           type="button"
           onClick={handleCopy}
           className={`inline-flex shrink-0 items-center gap-1 rounded border border-[#e8e5e0] px-2 py-1 text-[10px] font-semibold transition ${
-            copied ? "bg-[#1a1a1a] text-white" : "bg-white text-[#555] hover:text-[#1a1a1a]"
+            copied ? "bg-[#34262b] text-white" : "bg-[#fffdfb] text-[#5b464e] hover:text-[#34262b]"
           }`}
         >
           {copied ? (
@@ -108,10 +108,10 @@ export function MiniProductCard({ product }: { product: HeaderCouponProductPrevi
           />
         ) : null}
       </div>
-      <p className="truncate text-[10px] font-medium leading-[1.3] text-[#1a1a1a]">
+      <p className="truncate text-[10px] font-medium leading-[1.3] text-[#34262b]">
         {product.name}
       </p>
-      <p className="mt-0.5 text-[10px] text-[#888]">{formatPrice(product.price)}</p>
+      <p className="mt-0.5 text-[10px] text-[#756269]">{formatPrice(product.price)}</p>
     </Link>
   );
 }
@@ -155,8 +155,8 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         aria-expanded={isOpen}
         aria-label="Profil menü megnyitása"
         onClick={() => setIsOpen((open) => !open)}
-        className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-transparent text-[#5a4651] transition duration-200 hover:border-[#e8d6dd] hover:bg-white/80 hover:text-[#2f2230] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] ${
-          isOpen ? "border-[#e8d6dd] bg-white/88 text-[#2f2230]" : ""
+        className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-transparent text-[#5f4a51] transition duration-150 hover:border-[#d7c3bc] hover:bg-[#fffdfb] hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] ${
+          isOpen ? "border-[#d7c3bc] bg-[#fffdfb] text-[#34262b]" : ""
         }`}
       >
         <User className="h-[1.1rem] w-[1.1rem]" />
@@ -168,23 +168,23 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
           aria-label="Profil menü"
           className="user-dropdown-wrap dropdown-reveal absolute right-0 top-full z-50 mt-3"
         >
-          <div className="user-menu-left bg-white p-2">
-            <div className="rounded-md border border-[#eee7ea] bg-[#fffdfb] px-4 py-3.5">
+          <div className="user-menu-left rounded-md border border-[#e4d6d0] bg-[#fffdfb] p-2 shadow-[0_18px_42px_rgba(57,39,47,0.10)]">
+            <div className="rounded-md border border-[#eee4df] bg-[#fbf8f5] px-4 py-3.5">
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f4f5] text-[#8e5f79]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3ede9] text-[#7f485c]">
                   <User className="h-5 w-5" />
                 </span>
 
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-[#2d1f28]">
+                  <p className="truncate text-sm font-semibold text-[#34262b]">
                     {user.name}
                   </p>
-                  <p className="truncate text-xs text-[#907585]">{user.email}</p>
+                  <p className="truncate text-xs text-[#756269]">{user.email}</p>
                 </div>
               </div>
             </div>
 
-            <div className="my-2 h-px bg-[#eee7ea]" />
+            <div className="my-2 h-px bg-[#eee4df]" />
 
             <div className="space-y-0.5">
               {menuItems.map(({ href, icon: Icon, label }) => (
@@ -192,30 +192,30 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
                   key={label}
                   href={href}
                   role="menuitem"
-                  className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+                  className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-150 hover:bg-[#fbf8f5] focus-visible:bg-[#fbf8f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba]"
                   onClick={closeMenu}
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee4df] bg-[#fffdfb] text-[#7f485c] transition duration-150 group-hover:border-[#d7c3bc] group-hover:text-[#4a343d]">
                     <Icon className="h-[0.9rem] w-[0.9rem]" />
                   </span>
-                  <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
+                  <span className="font-medium text-[#5b464e] transition-colors duration-150 group-hover:text-[#34262b]">
                     {label}
                   </span>
                 </Link>
               ))}
             </div>
 
-            <div className="my-2 h-px bg-[#eee7ea]" />
+            <div className="my-2 h-px bg-[#eee4df]" />
 
             <form action="/auth/logout" method="post">
               <button
                 type="submit"
-                className="group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-200 hover:bg-[#fff8fb] focus-visible:bg-[#fff8fb] focus-visible:outline-none"
+                className="group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-150 hover:bg-[#fbf8f5] focus-visible:bg-[#fbf8f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba]"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#8e687b] transition duration-200 group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee4df] bg-[#fffdfb] text-[#7f485c] transition duration-150 group-hover:border-[#d7c3bc] group-hover:text-[#4a343d]">
                   <LogOut className="h-[0.9rem] w-[0.9rem]" />
                 </span>
-                <span className="font-medium text-[#5d3350] transition-colors duration-200 group-hover:text-[#2d1f28]">
+                <span className="font-medium text-[#5b464e] transition-colors duration-150 group-hover:text-[#34262b]">
                   Kijelentkezés
                 </span>
               </button>

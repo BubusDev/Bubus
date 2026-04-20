@@ -180,7 +180,7 @@ export function MegaMenu({
       <div
         aria-hidden="true"
         data-state={isOpen ? "open" : "closed"}
-        className="pointer-events-none fixed inset-0 z-[39] bg-black/20 opacity-0 transition-opacity duration-200 data-[state=open]:opacity-100"
+        className="pointer-events-none fixed inset-0 z-[39] bg-[#2f2028]/[0.06] opacity-0 transition-opacity duration-200 data-[state=open]:opacity-100"
       />
 
       {/*
@@ -195,13 +195,19 @@ export function MegaMenu({
           aria-haspopup="true"
           aria-expanded={isOpen}
           aria-controls={panelId}
-          className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-normal leading-5 tracking-[0.02em] text-[#121313] transition-colors duration-300 active:opacity-80 hover:text-white group-hover/category-nav:text-white group-focus-within/category-nav:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1] focus-visible:ring-offset-1"
+          className={`relative inline-flex items-center gap-1 whitespace-nowrap py-1 text-[13px] uppercase leading-5 tracking-[0.08em] transition-colors duration-150 after:absolute after:-bottom-1 after:left-0 after:h-px after:bg-[#7f485c] after:transition-[width] after:duration-150 active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fbf8f5] ${
+            isOpen
+              ? "font-semibold text-[#7f485c] after:w-full"
+              : "font-medium text-[#4a343d] after:w-0 hover:text-[#7f485c] hover:after:w-full"
+          }`}
         >
           <span>{triggerLabel}</span>
           <ChevronDown
             strokeWidth={2}
             aria-hidden="true"
-            className={`h-3 w-3 text-[#8b6d7f] transition-transform duration-200 group-hover/category-nav:text-white group-focus-within/category-nav:text-white ${isOpen ? "rotate-180" : ""}`}
+            className={`h-3 w-3 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-[#7f485c]" : "text-[#8d7780]"
+            }`}
           />
         </button>
 
@@ -212,17 +218,17 @@ export function MegaMenu({
           aria-label={triggerLabel}
           aria-hidden={!isOpen}
           data-state={isOpen ? "open" : "closed"}
-          className="absolute left-0 right-0 top-full z-[41] border-t border-[#f0e8ee] bg-[#fffafd]/98 shadow-[0_28px_64px_rgba(76,43,65,0.18)] backdrop-blur-xl pointer-events-none opacity-0 -translate-y-2 transition-[opacity,transform] duration-[250ms] ease-out data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=open]:translate-y-0"
+          className="pointer-events-none absolute left-0 right-0 top-full z-[41] border-t border-[#e6d8d2] bg-[#fffdfb] opacity-0 shadow-[0_18px_42px_rgba(57,39,47,0.08)] transition-opacity duration-200 ease-out data-[state=open]:pointer-events-auto data-[state=open]:opacity-100"
         >
-          <div className="mx-auto max-w-[1600px] px-4 py-7 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1600px] px-4 py-7 sm:px-6 lg:px-8 xl:py-8">
             <div
-              className="grid divide-x divide-[#f0e8ee]"
-              style={{ gridTemplateColumns: "minmax(180px, 0.82fr) minmax(220px, 1fr) minmax(260px, 1.05fr)" }}
+              className="grid divide-x divide-[#eee4df]"
+              style={{ gridTemplateColumns: "minmax(190px, 0.78fr) minmax(230px, 1fr) minmax(280px, 1.08fr)" }}
             >
 
               {/* ── LEFT: category links (30%) ── */}
-              <div className="min-w-0 pr-5 xl:pr-10">
-                <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b08898]">
+              <div className="min-w-0 pr-6 xl:pr-10">
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9a7c82]">
                   {triggerLabel}
                 </p>
                 <ul role="list" className="space-y-0.5">
@@ -236,19 +242,19 @@ export function MegaMenu({
                         onMouseEnter={() => setHoveredItemId(item.id)}
                         onFocus={() => setHoveredItemId(item.id)}
                         onKeyDown={handleItemKeyDown}
-                        className={`group/link flex min-w-0 items-center gap-2 py-2 font-[family:var(--font-serif)] text-[17px] leading-tight focus-visible:outline-none focus-visible:underline focus-visible:decoration-[#c45a85] focus-visible:text-[#9b3d6e] xl:text-[18px] ${
-                          activeItem?.id === item.id ? "text-[#9b3d6e]" : "text-[#3f2f39]"
+                        className={`group/link flex min-w-0 items-center gap-2 py-2.5 font-[family:var(--font-serif)] text-[17px] leading-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb] xl:text-[18px] ${
+                          activeItem?.id === item.id ? "font-semibold text-[#7f485c]" : "font-medium text-[#4a343d]"
                         }`}
                       >
-                        <span className={`min-w-0 break-words transition-transform duration-150 group-hover/link:translate-x-1 group-hover/link:text-[#9b3d6e] ${
-                          activeItem?.id === item.id ? "translate-x-1" : ""
+                        <span className={`min-w-0 break-words transition-[color,transform] duration-150 group-hover/link:translate-x-0.5 group-hover/link:text-[#7f485c] ${
+                          activeItem?.id === item.id ? "translate-x-0.5" : ""
                         }`}>
                           {item.name}
                         </span>
                         <span
                           aria-hidden="true"
-                          className={`mt-px h-px flex-none bg-[#c45a85] transition-all duration-150 group-hover/link:w-4 ${
-                            activeItem?.id === item.id ? "w-4" : "w-0"
+                          className={`mt-px h-px flex-none bg-[#7f485c] transition-all duration-150 group-hover/link:w-5 ${
+                            activeItem?.id === item.id ? "w-5" : "w-0"
                           }`}
                         />
                       </Link>
@@ -258,23 +264,23 @@ export function MegaMenu({
               </div>
 
               {/* ── MIDDLE: hover preview (35%) ── */}
-              <div className="flex min-w-0 flex-col px-5 xl:px-10">
+              <div className="flex min-w-0 flex-col px-6 xl:px-10">
                 <div
-                  className="relative w-full overflow-hidden rounded-lg bg-[linear-gradient(135deg,#f8edf3_0%,#ead7e4_100%)]"
-                  style={{ aspectRatio: "4/5", maxHeight: 300 }}
+                  className="relative w-full overflow-hidden rounded-md bg-[#f3ede9]"
+                  style={{ aspectRatio: "3/4", maxHeight: 318 }}
                 >
                   {previewSrc ? (
                     <FadingMenuImage
                       key={previewSrc}
                       src={previewSrc}
                       alt={previewAlt}
-                      className="object-cover object-center transition-opacity duration-200"
+                      className="object-cover object-[center_42%] transition-opacity duration-200"
                       sizes="(max-width: 1600px) 35vw"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,#fff7fb_0%,#f2dce9_52%,#dfc0d2_100%)]">
+                    <div className="flex h-full items-center justify-center bg-[#f4eeea]">
                       <span
-                        className="font-[family:var(--font-serif)] text-4xl text-[#b985a1]"
+                        className="font-[family:var(--font-serif)] text-4xl text-[#a98b91]"
                         aria-hidden="true"
                       >
                         ✦
@@ -283,32 +289,32 @@ export function MegaMenu({
                   )}
                 </div>
                 {previewDesc && (
-                  <p key={activeItem?.id ?? "preview-desc"} className="mt-3 line-clamp-3 text-xs leading-relaxed text-[#8a6878] transition-opacity duration-200">
+                  <p key={activeItem?.id ?? "preview-desc"} className="mt-3 line-clamp-3 max-w-[34rem] text-[13px] leading-relaxed text-[#6f5960] transition-opacity duration-200">
                     {previewDesc}
                   </p>
                 )}
               </div>
 
               {/* ── RIGHT: hero / promo block (35%) ── */}
-              <div className="min-w-0 pl-5 xl:pl-10">
+              <div className="min-w-0 pl-6 xl:pl-10">
                 {cardTitle && cardHref ? (
-                  <div className="relative aspect-[4/3] min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+                  <div className="relative aspect-[4/3] min-h-[268px] overflow-hidden rounded-md bg-[#efe6e1]">
                     {cardImageSrc ? (
                       <FadingMenuImage
                         key={cardImageSrc}
                         src={cardImageSrc}
                         alt={cardImageAlt}
-                        className="object-cover object-center"
+                        className="object-cover object-[center_42%]"
                         sizes="(max-width: 1600px) 35vw"
                       />
                     ) : null}
                     {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/78 via-[#2f2028]/28 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 drop-shadow-sm xl:p-6">
-                      <span className="mb-2 self-start rounded border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.28em] text-white/80">
+                      <span className="mb-2 self-start border border-white/35 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/82">
                         Válogatás
                       </span>
-                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-xl font-semibold leading-tight text-white">
+                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-[1.35rem] font-semibold leading-tight text-white">
                         {cardTitle}
                       </h3>
                       {cardDescription && (
@@ -320,7 +326,7 @@ export function MegaMenu({
                         ref={heroCta}
                         href={cardHref}
                         tabIndex={isOpen ? 0 : -1}
-                        className="inline-flex max-w-full items-center gap-1.5 self-start rounded border border-[#e9b7cc]/80 bg-[#3c1428]/18 px-4 py-2 text-xs text-white transition-colors hover:bg-[#c45a85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                        className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/50 bg-white/12 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
                       >
                         <span className="line-clamp-1 min-w-0 break-all">{cardCtaText}</span>
                         <ArrowRight className="h-3 w-3 flex-none" />
@@ -328,24 +334,24 @@ export function MegaMenu({
                     </div>
                   </div>
                 ) : heroConfig ? (
-                  <div className="relative h-full min-h-[260px] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
+                  <div className="relative h-full min-h-[268px] overflow-hidden rounded-md bg-[#efe6e1]">
                     {heroConfig.backgroundImageSrc ? (
                       <FadingMenuImage
                         key={heroConfig.backgroundImageSrc}
                         src={heroConfig.backgroundImageSrc}
                         alt={heroConfig.title}
-                        className="object-cover object-center"
+                        className="object-cover object-[center_42%]"
                         sizes="(max-width: 1600px) 35vw"
                       />
                     ) : null}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2f2028]/78 via-[#2f2028]/28 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col justify-end p-5 xl:p-6">
                       {heroConfig.badge ? (
-                        <span className="mb-2 self-start rounded border border-white/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.28em] text-white/80">
+                        <span className="mb-2 self-start border border-white/35 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/82">
                           {heroConfig.badge}
                         </span>
                       ) : null}
-                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-xl font-semibold leading-tight text-white">
+                      <h3 className="mb-2 line-clamp-2 break-words font-[family:var(--font-display)] text-[1.35rem] font-semibold leading-tight text-white">
                         {heroConfig.title}
                       </h3>
                       {heroConfig.description && (
@@ -358,7 +364,7 @@ export function MegaMenu({
                           ref={heroCta}
                           href={heroConfig.ctaHref}
                           tabIndex={isOpen ? 0 : -1}
-                          className="inline-flex max-w-full items-center gap-1.5 self-start rounded border border-[#e9b7cc]/80 bg-[#3c1428]/18 px-4 py-2 text-xs text-white transition-colors hover:bg-[#c45a85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1b7d1]"
+                          className="inline-flex max-w-full items-center gap-1.5 self-start border border-white/50 bg-white/12 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:border-white/75 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1dce4]"
                         >
                           <span className="line-clamp-1 min-w-0 break-all">{heroConfig.ctaText}</span>
                           <ArrowRight className="h-3 w-3 flex-none" />
@@ -367,7 +373,7 @@ export function MegaMenu({
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full min-h-[260px] rounded-lg bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]" />
+                  <div className="h-full min-h-[268px] rounded-md bg-[#efe6e1]" />
                 )}
               </div>
 
