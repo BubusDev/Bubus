@@ -8,7 +8,6 @@ export default function DragakovekLayout({ children }: { children: ReactNode }) 
       <style>{`
         html, body {
           background: #f3bdc8 !important;
-          scroll-snap-type: y mandatory;
         }
       `}</style>
       <CustomNavbar />
