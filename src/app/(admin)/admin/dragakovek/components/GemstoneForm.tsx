@@ -9,13 +9,13 @@ import type { AdminGemstone } from "./SortableList";
 
 const categories = ["Féldrágakő", "Kristály", "Ásvány"];
 const chakraOptions = [
-  { label: "Crown", value: "crown" },
-  { label: "Third Eye", value: "third-eye" },
-  { label: "Throat", value: "throat" },
-  { label: "Heart", value: "heart" },
-  { label: "Solar Plexus", value: "solar-plexus" },
-  { label: "Sacral", value: "sacral" },
-  { label: "Root", value: "root" },
+  { label: "Korona", value: "crown" },
+  { label: "Harmadik szem", value: "third-eye" },
+  { label: "Torok", value: "throat" },
+  { label: "Szív", value: "heart" },
+  { label: "Napfonat", value: "solar-plexus" },
+  { label: "Szakrális", value: "sacral" },
+  { label: "Gyökér", value: "root" },
 ];
 
 type Props = {
@@ -155,6 +155,23 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
+              Akcentusszín
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                name="accent_color"
+                defaultValue={gemstone?.accentColor ?? "#7a2a3e"}
+                className="h-10 w-16 rounded-lg border border-[var(--admin-line-200)] bg-white p-1"
+              />
+              <p className="text-xs text-[var(--admin-ink-500)]">
+                Finom részletekhez: képszegély, elválasztó és hatás jelölők.
+              </p>
+            </div>
           </div>
 
           <div>

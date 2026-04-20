@@ -69,6 +69,10 @@ export async function upsertGemstoneAction(formData: FormData) {
   const category = String(formData.get("category") || "Féldrágakő").trim();
   const shortPersonality = String(formData.get("short_personality") || "").trim();
   const longPersonality = String(formData.get("long_personality") || "").trim();
+  const submittedAccentColor = String(formData.get("accent_color") || "").trim();
+  const accentColor = /^#[0-9a-fA-F]{6}$/.test(submittedAccentColor)
+    ? submittedAccentColor
+    : null;
   const effects = parseJsonArray(formData.get("effects"));
   const chakras = parseJsonArray(formData.get("chakras"));
 
@@ -104,6 +108,7 @@ export async function upsertGemstoneAction(formData: FormData) {
     effects,
     origin: subtitle || null,
     chakra: chakras.join(", ") || null,
+    accentColor,
     ...(imageUrl !== undefined ? { imageUrl } : {}),
   };
 

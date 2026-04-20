@@ -1,8 +1,16 @@
 "use client";
 
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { getChakraDisplay } from "../lib/chakras";
 
 export type Gemstone = {
   id: string;
@@ -15,29 +23,9 @@ export type Gemstone = {
   chakras: string[];
   pairWith: string[];
   imageUrl: string | null;
+  accentColor: string | null;
   createdAt: string;
 };
-
-const chakraColors: Record<string, string> = {
-  crown: "#f4edf8",
-  "third-eye": "#8f78c8",
-  throat: "#77bad7",
-  heart: "#91bc84",
-  "solar-plexus": "#e8c85b",
-  sacral: "#e98f61",
-  root: "#8e3545",
-  korona: "#f4edf8",
-  "harmadik szem": "#8f78c8",
-  torok: "#77bad7",
-  sziv: "#91bc84",
-  napfonat: "#e8c85b",
-  szakralis: "#e98f61",
-  gyoker: "#8e3545",
-};
-
-function normalizeLabel(value: string) {
-  return value.toLowerCase().trim();
-}
 
 function RelatedThumbs({ gemstones, currentId }: { gemstones: Gemstone[]; currentId: string }) {
   const related = gemstones.filter((gemstone) => gemstone.id !== currentId).slice(0, 8);
@@ -80,21 +68,28 @@ function GemstoneCard({
   gemstones: Gemstone[];
 }) {
   const [open, setOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "center center"],
   });
-  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.75, 1], [0.3, 0.7, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.85, 1, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 1, 1]);
+  const accentColor = gemstone.accentColor || "#7a2a3e";
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <motion.article
       ref={ref}
-      style={{ scale, opacity }}
+      style={isClient && !shouldReduceMotion ? { scale, opacity } : undefined}
       className="snap-center bg-[#f3bdc8]"
     >
-      <div className="grid min-h-[72vh] border-b-2 border-white/40 md:grid-cols-[0.75fr_3fr_0.45fr]">
+      <div className="grid min-h-screen border-b-2 border-white/40 md:grid-cols-[0.75fr_3fr_0.45fr]">
         <div className="flex items-start border-white/40 px-4 py-8 md:border-r-2 md:px-8 md:py-12">
           <span className="font-serif text-7xl font-light leading-none text-[#fdfaf7]/70 sm:text-8xl">
             {index + 1}
@@ -102,7 +97,10 @@ function GemstoneCard({
         </div>
 
         <div className="grid gap-8 border-white/40 px-4 pb-8 md:grid-cols-[minmax(220px,400px)_1fr] md:border-r-2 md:px-8 md:py-12 lg:gap-12">
-          <div className="relative aspect-square w-full max-w-[400px] overflow-hidden bg-[#fdfaf7]/15">
+          <div
+            className="relative aspect-square w-full max-w-[400px] overflow-hidden border bg-[#fdfaf7]/15"
+            style={{ borderColor: `${accentColor}55` }}
+          >
             {gemstone.imageUrl ? (
               <Image
                 src={gemstone.imageUrl}
@@ -131,15 +129,21 @@ function GemstoneCard({
             <p className="mt-5 max-w-xl font-serif text-xl italic leading-snug text-[#7a2a3e]">
               {gemstone.shortPersonality}
             </p>
+            <div className="mt-5 h-0.5 w-16" style={{ backgroundColor: accentColor }} />
 
             <AnimatePresence initial={false}>
               {open && (
                 <motion.div
                   key="content"
-                  initial={{ height: 0, opacity: 0, y: 18 }}
+                  initial={{ height: 0, opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
                   animate={{ height: "auto", opacity: 1, y: 0 }}
-                  exit={{ height: 0, opacity: 0, y: 12 }}
+                  exit={{ height: 0, opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  onAnimationComplete={() => {
+                    if (open && !shouldReduceMotion) {
+                      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
                   className="overflow-hidden"
                 >
                   <div className="mt-8 space-y-7 border-t-2 border-white/40 pt-8">
@@ -154,7 +158,10 @@ function GemstoneCard({
                       <ul className="grid gap-2 text-sm text-[#fdfaf7]/90 sm:grid-cols-2">
                         {gemstone.effects.map((effect) => (
                           <li key={effect} className="flex gap-2 bg-transparent">
-                            <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-[#7a2a3e]" />
+                            <span
+                              className="mt-2 h-1.5 w-1.5 flex-none rounded-full"
+                              style={{ backgroundColor: accentColor }}
+                            />
                             {effect}
                           </li>
                         ))}
@@ -166,8 +173,9 @@ function GemstoneCard({
                         Csakrák
                       </p>
                       <div className="flex flex-wrap gap-3">
-                        {(gemstone.chakras.length ? gemstone.chakras : ["sziv"]).map((chakra) => {
-                          const key = normalizeLabel(chakra);
+                        {(gemstone.chakras.length ? gemstone.chakras : ["heart"]).map((chakra) => {
+                          const display = getChakraDisplay(chakra);
+                          if (!display) return null;
                           return (
                             <span
                               key={chakra}
@@ -175,9 +183,9 @@ function GemstoneCard({
                             >
                               <span
                                 className="h-3 w-3 rounded-full"
-                                style={{ background: chakraColors[key] ?? "#fdfaf7" }}
+                                style={{ background: display.color }}
                               />
-                              {chakra}
+                              {display.label}
                             </span>
                           );
                         })}
@@ -201,9 +209,16 @@ function GemstoneCard({
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
+          aria-label={`${gemstone.title} részleteinek ${open ? "bezárása" : "megnyitása"}`}
           className="flex items-start justify-end px-4 py-8 font-serif text-5xl font-thin leading-none text-[#7a2a3e] transition hover:text-[#fdfaf7] md:px-8 md:py-12"
         >
-          <motion.span animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.3 }}>
+          <span className="mr-4 hidden pt-4 text-xs uppercase tracking-[0.25em] opacity-70 md:inline">
+            Részletek
+          </span>
+          <motion.span
+            animate={{ rotate: open && !shouldReduceMotion ? 45 : 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+          >
             +
           </motion.span>
         </button>
@@ -214,7 +229,7 @@ function GemstoneCard({
 
 export function GemstoneCardList({ gemstones }: { gemstones: Gemstone[] }) {
   return (
-    <section className="mx-auto max-h-none max-w-[1520px] snap-y snap-mandatory overflow-visible bg-[#f3bdc8] md:max-h-[calc(100vh-104px)] md:overflow-y-auto">
+    <section className="mx-auto max-w-[1520px] snap-y snap-proximity overflow-visible bg-[#f3bdc8]">
       {gemstones.map((gemstone, index) => (
         <GemstoneCard
           key={gemstone.id}

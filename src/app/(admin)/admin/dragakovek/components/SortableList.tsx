@@ -33,6 +33,7 @@ export type AdminGemstone = {
   chakras: string[];
   pairWith: string[];
   imageUrl: string | null;
+  accentColor: string | null;
   order: number;
 };
 

@@ -29,6 +29,7 @@ export default async function DragakovekPage() {
       origin: true,
       chakra: true,
       imageUrl: true,
+      accentColor: true,
       createdAt: true,
     },
   });
@@ -49,6 +50,7 @@ export default async function DragakovekPage() {
       : [],
     pairWith: [],
     imageUrl: stone.imageUrl,
+    accentColor: stone.accentColor,
     createdAt: stone.createdAt.toISOString(),
   }));
 
@@ -58,7 +60,7 @@ export default async function DragakovekPage() {
         <section className="mx-auto max-w-[1520px] bg-[#f3bdc8]">
           <div className="grid gap-8 py-10 md:grid-cols-[1fr_2fr_1fr] md:items-end">
             <p className="font-serif text-sm italic uppercase tracking-[0.22em] text-[#7a2a3e]">
-              BY NEWEST →
+              ABC
             </p>
             <h1 className="font-serif text-5xl font-light leading-none tracking-[-0.02em] text-[#fdfaf7] sm:text-7xl lg:text-8xl">
               Drágakövek

@@ -18,6 +18,7 @@ export default async function AdminDragakovekPage() {
       origin: true,
       chakra: true,
       imageUrl: true,
+      accentColor: true,
       sortOrder: true,
     },
   });
@@ -35,6 +36,7 @@ export default async function AdminDragakovekPage() {
       : [],
     pairWith: [],
     imageUrl: stone.imageUrl,
+    accentColor: stone.accentColor,
     order: stone.sortOrder,
   }));
 
