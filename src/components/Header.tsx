@@ -157,16 +157,7 @@ export function Header({
               <span className="max-w-full truncate text-[0.5rem] font-semibold uppercase tracking-[0.16em] text-[#7f485c] min-[390px]:text-[0.56rem] min-[390px]:tracking-[0.24em] sm:text-[0.68rem] sm:tracking-[0.32em]">
                 Boutique ékszer
               </span>
-              <span
-                className="max-w-full truncate font-[family:var(--font-display)] text-[1.18rem] font-semibold tracking-normal min-[390px]:text-[1.42rem] sm:text-[2.1rem] lg:text-[2.28rem]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #7f485c 0%, #5a3845 58%, #a97773 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
+              <span className="relative max-w-full truncate font-[family:var(--font-display)] text-[1.18rem] font-semibold tracking-normal text-[#9b3d6e] after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-6 after:bg-[#a8346a] min-[390px]:text-[1.42rem] sm:text-[2.1rem] lg:text-[2.28rem]">
                 Chicks Jewelry
               </span>
             </div>
