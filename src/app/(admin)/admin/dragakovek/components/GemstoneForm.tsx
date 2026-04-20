@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { upsertGemstoneAction } from "../actions";
 import type { AdminGemstone } from "./SortableList";
 
-const categories = ["Feldragako", "Kristaly", "Asvany"];
+const categories = ["Féldrágakő", "Kristály", "Ásvány"];
 const chakraOptions = [
   { label: "Crown", value: "crown" },
   { label: "Third Eye", value: "third-eye" },
@@ -85,10 +85,10 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
         <div className="flex items-center justify-between border-b border-[var(--admin-line-100)] px-6 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--admin-ink-500)]">
-              Dragako kartya
+              Drágakő kártya
             </p>
             <h2 className="text-lg font-semibold text-[var(--admin-ink-900)]">
-              {gemstone ? "Kartya szerkesztese" : "Uj kartya"}
+              {gemstone ? "Kártya szerkesztése" : "Új kártya"}
             </h2>
           </div>
           <button type="button" onClick={onClose} className="admin-button-secondary admin-control-sm">
@@ -127,18 +127,18 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
-                Cim
+                Cím
               </label>
               <input name="title" defaultValue={gemstone?.title ?? ""} required className={inputClass} />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
-                Alcim / tipus
+                Alcím / típus
               </label>
               <input
                 name="subtitle"
                 defaultValue={gemstone?.subtitle ?? ""}
-                placeholder="AMETISZT / KVARCFELE"
+                placeholder="Chile"
                 className={inputClass}
               />
             </div>
@@ -146,7 +146,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Kategoria
+              Kategória
             </label>
             <select name="category" defaultValue={gemstone?.category ?? categories[0]} className={inputClass}>
               {categories.map((category) => (
@@ -160,7 +160,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <label className="block text-xs font-medium text-[var(--admin-ink-700)]">
-                Rovid szemelyiseg
+                Rövid személyiség
               </label>
               <span className="text-xs text-[var(--admin-ink-500)]">{shortText.length}/140</span>
             </div>
@@ -177,7 +177,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Hosszu szemelyisegleiras
+              Hosszú személyiségleírás
             </label>
             <textarea
               name="long_personality"
@@ -190,7 +190,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Hatasok
+              Hatások
             </label>
             <div className="rounded-lg border border-[var(--admin-line-200)] bg-white p-2">
               <div className="mb-2 flex flex-wrap gap-2">
@@ -217,7 +217,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
                   placeholder="Uj hatas"
                 />
                 <button type="button" onClick={addEffect} className="admin-button-secondary admin-control-sm">
-                  Hozzaad
+                  Hozzáad
                 </button>
               </div>
             </div>
@@ -225,7 +225,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
 
           <div>
             <label className="mb-2 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Csakrak
+              Csakrák
             </label>
             <div className="grid gap-2 sm:grid-cols-2">
               {chakraOptions.map((chakra) => (
@@ -243,7 +243,7 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
 
           <div>
             <label className="mb-2 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Parosithato ezekkel
+              Párosítható ezekkel
             </label>
             <div className="grid gap-2 sm:grid-cols-2">
               {availablePairs.map((item) => (
@@ -257,18 +257,18 @@ export function GemstoneForm({ open, gemstones, gemstone, onClose, onSaved }: Pr
                 </label>
               ))}
               {availablePairs.length === 0 && (
-                <p className="text-sm text-[var(--admin-ink-500)]">Meg nincs masik dragako.</p>
+                <p className="text-sm text-[var(--admin-ink-500)]">Még nincs másik drágakő.</p>
               )}
             </div>
           </div>
 
           <div>
             <label className="mb-2 block text-xs font-medium text-[var(--admin-ink-700)]">
-              Kep
+              Kép
             </label>
             {previewUrl && (
               <div className="mb-3 relative h-24 w-24 overflow-hidden rounded-lg border border-[var(--admin-line-100)] bg-white">
-                <Image src={previewUrl} alt="Dragako elonezet" fill className="object-cover" />
+                <Image src={previewUrl} alt="Drágakő előnézet" fill className="object-cover" />
               </div>
             )}
             <input

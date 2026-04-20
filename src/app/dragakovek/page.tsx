@@ -11,6 +11,11 @@ export const metadata: Metadata = {
     "A köveink személyisége, hatása és finom társításai egy editorial hangulatú drágakövek oldalon.",
 };
 
+function getDisplayCategory(category: string) {
+  if (category === "Feldragako" || category === "FELDRAGAKO") return "Féldrágakő";
+  return category;
+}
+
 export default async function DragakovekPage() {
   const stones = await db.stone.findMany({
     orderBy: { sortOrder: "asc" },
@@ -31,8 +36,8 @@ export default async function DragakovekPage() {
   const gemstones: Gemstone[] = stones.map((stone) => ({
     id: stone.id,
     title: stone.name,
-    subtitle: stone.origin || `${stone.name.toUpperCase()} / KVARCFELE`,
-    category: stone.color || "FELDRAGAKO",
+    subtitle: stone.origin || `${stone.name} / kvarcféle`,
+    category: getDisplayCategory(stone.color || "Féldrágakő"),
     shortPersonality: stone.shortDesc,
     longPersonality: stone.longDesc,
     effects: stone.effects,
@@ -62,7 +67,7 @@ export default async function DragakovekPage() {
               Minden kőnek saját személyisége van - találd meg a tiédet.
             </p>
           </div>
-          <div className="h-px bg-[#fdfaf7]/10" />
+          <div className="h-0.5 bg-[#fdfaf7]/50" />
         </section>
 
         {gemstones.length === 0 ? (

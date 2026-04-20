@@ -66,14 +66,14 @@ export async function upsertGemstoneAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   const title = String(formData.get("title") || "").trim();
   const subtitle = String(formData.get("subtitle") || "").trim();
-  const category = String(formData.get("category") || "Feldragako").trim();
+  const category = String(formData.get("category") || "Féldrágakő").trim();
   const shortPersonality = String(formData.get("short_personality") || "").trim();
   const longPersonality = String(formData.get("long_personality") || "").trim();
   const effects = parseJsonArray(formData.get("effects"));
   const chakras = parseJsonArray(formData.get("chakras"));
 
   if (!title || !shortPersonality || !longPersonality) {
-    return { ok: false, message: "A cim, rovid es hosszu leiras kotelezo." };
+    return { ok: false, message: "A cím, rövid és hosszú leírás kötelező." };
   }
 
   const image = formData.get("image") as File | null;
@@ -119,7 +119,7 @@ export async function upsertGemstoneAction(formData: FormData) {
   }
 
   revalidateGemstones();
-  return { ok: true, message: id ? "Dragako frissitve." : "Dragako letrehozva." };
+  return { ok: true, message: id ? "Drágakő frissítve." : "Drágakő létrehozva." };
 }
 
 export async function updateGemstoneOrderAction(ids: string[]) {
@@ -148,5 +148,5 @@ export async function deleteGemstoneAction(id: string) {
 
   await db.stone.delete({ where: { id } });
   revalidateGemstones();
-  return { ok: true, message: "Dragako torolve." };
+  return { ok: true, message: "Drágakő törölve." };
 }

@@ -131,7 +131,7 @@ export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
   }
 
   function handleDelete(gemstone: AdminGemstone) {
-    if (!window.confirm(`Toroljuk ezt a dragakovet: ${gemstone.title}?`)) return;
+    if (!window.confirm(`Töröljük ezt a drágakövet: ${gemstone.title}?`)) return;
     const previous = items;
     setItems(items.filter((item) => item.id !== gemstone.id));
     setToast("Torles folyamatban...");
@@ -151,7 +151,7 @@ export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--admin-ink-600)]">
-          {items.length} dragako az editorial listaban
+          {items.length} drágakő az editorial listában
         </p>
         <div className="flex gap-2">
           <a href="/dragakovek" target="_blank" className="admin-button-secondary admin-control-md">
@@ -173,7 +173,7 @@ export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
       <div className="admin-table-shell overflow-hidden">
         {items.length === 0 ? (
           <div className="px-5 py-12 text-center text-sm text-[var(--admin-ink-500)]">
-            Meg nincs dragako. Hozd letre az elso kartyat.
+            Még nincs drágakő. Hozd létre az első kártyát.
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

@@ -40,8 +40,8 @@ export default async function AdminDragakovekPage() {
 
   return (
     <AdminShell
-      title="Dragakovek"
-      description="Editorial dragako kartyak, kepek, szemelyisegleirasok es sorrend."
+      title="Drágakövek"
+      description="Editorial drágakő kártyák, képek, személyiségleírások és sorrend."
       actions={
         <Link href="/dragakovek" target="_blank" className="admin-button-secondary admin-control-md">
           Preview as user
