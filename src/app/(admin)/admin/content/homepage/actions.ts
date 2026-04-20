@@ -111,25 +111,27 @@ export async function saveHomepageMaterialPicksAction(formData: FormData) {
   const seen = new Set<string>();
   const submittedPicks = readStringList(formData, "materialPick")
     .map((value) => {
-      const [stoneId, featuredProductId = ""] = value.split(":");
-      if (!stoneId) return null;
+      const [stoneTypeId, featuredProductId = ""] = value.split(":");
+      if (!stoneTypeId) return null;
 
-      if (seen.has(stoneId)) return null;
-      seen.add(stoneId);
+      if (seen.has(stoneTypeId)) return null;
+      seen.add(stoneTypeId);
 
-      return { stoneId, featuredProductId: featuredProductId || null };
+      return { stoneTypeId, featuredProductId: featuredProductId || null };
     })
-    .filter((pick): pick is { stoneId: string; featuredProductId: string | null } => Boolean(pick))
+    .filter(
+      (pick): pick is { stoneTypeId: string; featuredProductId: string | null } => Boolean(pick),
+    )
     .slice(0, 4);
 
-  const stoneIds = submittedPicks.map((pick) => pick.stoneId);
+  const stoneTypeIds = submittedPicks.map((pick) => pick.stoneTypeId);
   const productIds = submittedPicks
     .map((pick) => pick.featuredProductId)
     .filter((id): id is string => Boolean(id));
-  const [stones, products] = await Promise.all([
-    stoneIds.length
-      ? db.stone.findMany({
-          where: { id: { in: stoneIds } },
+  const [stoneTypes, products] = await Promise.all([
+    stoneTypeIds.length
+      ? db.productOption.findMany({
+          where: { type: "STONE_TYPE", id: { in: stoneTypeIds } },
           select: { id: true, slug: true },
         })
       : [],
@@ -138,27 +140,29 @@ export async function saveHomepageMaterialPicksAction(formData: FormData) {
           where: { id: { in: productIds } },
           select: {
             id: true,
+            stoneTypeId: true,
             stoneType: {
-              select: { slug: true },
+              select: { id: true, slug: true },
             },
           },
         })
       : [],
   ]);
-  const stoneById = new Map(stones.map((stone) => [stone.id, stone]));
+  const stoneTypeById = new Map(stoneTypes.map((stoneType) => [stoneType.id, stoneType]));
   const productById = new Map(products.map((product) => [product.id, product]));
 
   const picks = submittedPicks
     .map((pick, index) => {
-      const stone = stoneById.get(pick.stoneId);
-      if (!stone) return null;
+      const stoneType = stoneTypeById.get(pick.stoneTypeId);
+      if (!stoneType) return null;
 
       const product = pick.featuredProductId ? productById.get(pick.featuredProductId) : null;
-      const compatibleProductId = product && productHasStone(product, stone) ? product.id : null;
+      const compatibleProductId =
+        product && productHasStone(product, stoneType) ? product.id : null;
 
       return {
         itemType: "STONE" as HomepageMaterialPickType,
-        itemId: stone.id,
+        itemId: stoneType.id,
         featuredProductId: compatibleProductId,
         sortOrder: index + 1,
       };

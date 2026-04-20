@@ -35,6 +35,8 @@ export type HomepageMaterialPickView = {
   id: string;
   type: HomepageMaterialPickType;
   itemId: string;
+  legacyItemId: string | null;
+  isLegacySource: boolean;
   featuredProductId: string | null;
   storedFeaturedProductId: string | null;
   hasUnavailableFeaturedProduct: boolean;
@@ -49,17 +51,16 @@ export type HomepageMaterialPickView = {
 };
 
 export type HomepageMaterialPickOptions = {
-  stones: {
+  stoneTypes: {
     id: string;
     name: string;
     slug: string;
-    imageUrl: string | null;
-    colorHex: string;
   }[];
   products: {
     id: string;
     name: string;
     slug: string;
+    stoneTypeId: string;
     stoneSlug: string;
     categoryName: string;
     price: number;
@@ -215,15 +216,15 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
     take: 4,
   });
 
-  const stoneIds = picks.filter((pick) => pick.itemType === "STONE").map((pick) => pick.itemId);
+  const stoneTypeIds = picks.filter((pick) => pick.itemType === "STONE").map((pick) => pick.itemId);
   const productIds = picks
     .map((pick) => pick.featuredProductId)
     .filter((id): id is string => Boolean(id));
-  const [stones, storefrontProducts, storedProducts] = await Promise.all([
-    stoneIds.length
-      ? db.stone.findMany({
-          where: { id: { in: stoneIds } },
-          select: { id: true, name: true, slug: true, imageUrl: true, colorHex: true, chakra: true },
+  const [stoneTypes, storefrontProducts, storedProducts] = await Promise.all([
+    stoneTypeIds.length
+      ? db.productOption.findMany({
+          where: { type: "STONE_TYPE", id: { in: stoneTypeIds } },
+          select: { id: true, name: true, slug: true },
         })
       : [],
     productIds.length
@@ -235,8 +236,9 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
             slug: true,
             imageUrl: true,
             collectionLabel: true,
+            stoneTypeId: true,
             stoneType: {
-              select: { slug: true },
+              select: { id: true, slug: true },
             },
             images: {
               select: { url: true },
@@ -261,12 +263,13 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
             badge: true,
             imageUrl: true,
             collectionLabel: true,
+            stoneTypeId: true,
             stockQuantity: true,
             reservedQuantity: true,
             archivedAt: true,
             isOnSale: true,
             stoneType: {
-              select: { slug: true },
+              select: { id: true, slug: true },
             },
             images: {
               select: { url: true },
@@ -277,47 +280,76 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
         })
       : [],
   ]);
-  const stoneById = new Map(stones.map((stone) => [stone.id, stone]));
+  const stoneTypeById = new Map(stoneTypes.map((stoneType) => [stoneType.id, stoneType]));
   const storefrontProductById = new Map(storefrontProducts.map((product) => [product.id, product]));
   const storedProductById = new Map(storedProducts.map((product) => [product.id, product]));
 
   return picks
     .map((pick): HomepageMaterialPickView | null => {
       if (pick.itemType === "STONE") {
-        const stone = stoneById.get(pick.itemId);
-        if (!stone) return null;
+        const stoneType = stoneTypeById.get(pick.itemId);
         const storefrontProduct = pick.featuredProductId
           ? storefrontProductById.get(pick.featuredProductId)
           : null;
         const storedProduct = pick.featuredProductId
           ? storedProductById.get(pick.featuredProductId)
           : null;
-        const isStoredProductCompatible = Boolean(storedProduct && productHasStone(storedProduct, stone));
+        if (!stoneType) {
+          return {
+            id: pick.id,
+            type: "STONE",
+            itemId: "",
+            legacyItemId: pick.itemId,
+            isLegacySource: true,
+            featuredProductId: null,
+            storedFeaturedProductId: pick.featuredProductId,
+            hasUnavailableFeaturedProduct: Boolean(pick.featuredProductId),
+            unavailableFeaturedProductReason: pick.featuredProductId
+              ? "régi kő-adatforrásból mentett kőtípus"
+              : null,
+            sortOrder: pick.sortOrder,
+            title: "Kőtípus újraválasztása szükséges",
+            subtitle: "Régi kő-adatforrásból mentett elem",
+            href: "/new-in",
+            imageUrl: null,
+            imageAlt: "Kőtípus újraválasztása szükséges",
+            colorHex: null,
+          };
+        }
+        const isStoredProductCompatible = Boolean(
+          storedProduct && productHasStone(storedProduct, stoneType),
+        );
         const unavailableProductReason = storedProduct
           ? isStoredProductCompatible
             ? getStorefrontUnavailableProductReason(storedProduct)
-            : "nem ehhez a kőhöz tartozik"
+            : "nem ehhez a kőtípushoz tartozik"
           : pick.featuredProductId
             ? getStorefrontUnavailableProductReason(null)
             : null;
         const compatibleProduct =
-          storefrontProduct && productHasStone(storefrontProduct, stone) ? storefrontProduct : null;
+          storefrontProduct && productHasStone(storefrontProduct, stoneType)
+            ? storefrontProduct
+            : null;
 
         return {
           id: pick.id,
           type: "STONE",
-          itemId: stone.id,
+          itemId: stoneType.id,
+          legacyItemId: null,
+          isLegacySource: false,
           featuredProductId: compatibleProduct?.id ?? null,
           storedFeaturedProductId: pick.featuredProductId,
           hasUnavailableFeaturedProduct: Boolean(pick.featuredProductId && !compatibleProduct),
           unavailableFeaturedProductReason: unavailableProductReason,
           sortOrder: pick.sortOrder,
-          title: stone.name,
-          subtitle: compatibleProduct?.name ?? stone.chakra ?? "Féldrágakő",
-          href: compatibleProduct ? `/product/${compatibleProduct.slug}` : `/stones#${stone.slug}`,
-          imageUrl: compatibleProduct ? getProductImageUrl(compatibleProduct) : stone.imageUrl,
-          imageAlt: compatibleProduct?.name ?? stone.name,
-          colorHex: stone.colorHex,
+          title: stoneType.name,
+          subtitle: compatibleProduct?.name ?? "Kőtípus válogatás",
+          href: compatibleProduct
+            ? `/product/${compatibleProduct.slug}`
+            : `/new-in?stone=${encodeURIComponent(stoneType.slug)}`,
+          imageUrl: compatibleProduct ? getProductImageUrl(compatibleProduct) : null,
+          imageAlt: compatibleProduct?.name ?? stoneType.name,
+          colorHex: null,
         };
       }
 
@@ -348,9 +380,10 @@ export async function getHomepageContent(): Promise<HomepageContentView> {
 }
 
 export async function getHomepageMaterialPickOptions(): Promise<HomepageMaterialPickOptions> {
-  const [stones, products] = await Promise.all([
-    db.stone.findMany({
-      select: { id: true, name: true, slug: true, imageUrl: true, colorHex: true },
+  const [stoneTypes, products] = await Promise.all([
+    db.productOption.findMany({
+      where: { type: "STONE_TYPE", isActive: true },
+      select: { id: true, name: true, slug: true },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     }),
     db.product.findMany({
@@ -361,8 +394,9 @@ export async function getHomepageMaterialPickOptions(): Promise<HomepageMaterial
         slug: true,
         price: true,
         imageUrl: true,
+        stoneTypeId: true,
         stoneType: {
-          select: { slug: true },
+          select: { id: true, slug: true },
         },
         category: {
           select: { name: true },
@@ -378,11 +412,12 @@ export async function getHomepageMaterialPickOptions(): Promise<HomepageMaterial
   ]);
 
   return {
-    stones,
+    stoneTypes,
     products: products.map((product) => ({
       id: product.id,
       name: product.name,
       slug: product.slug,
+      stoneTypeId: product.stoneTypeId,
       stoneSlug: product.stoneType.slug,
       categoryName: product.category?.name ?? "Kategória nélkül",
       price: product.price,

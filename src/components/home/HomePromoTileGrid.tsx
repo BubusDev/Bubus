@@ -96,9 +96,10 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
 
 export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGridProps) {
   const visibleTiles = tiles.filter((tile) => tile.isVisible);
+  const storefrontMaterialPicks = materialPicks.filter((pick) => !pick.isLegacySource);
   const [emphasisTile, ...smallTiles] = visibleTiles;
 
-  if (visibleTiles.length === 0 && materialPicks.length === 0) {
+  if (visibleTiles.length === 0 && storefrontMaterialPicks.length === 0) {
     return null;
   }
 
@@ -114,9 +115,9 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
           </h2>
         </div>
 
-        {materialPicks.length > 0 ? (
+        {storefrontMaterialPicks.length > 0 ? (
           <div className="mx-auto grid max-w-[1224px] gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-            {materialPicks.slice(0, 4).map((pick) => (
+            {storefrontMaterialPicks.slice(0, 4).map((pick) => (
               <MaterialTile key={pick.id} pick={pick} />
             ))}
           </div>

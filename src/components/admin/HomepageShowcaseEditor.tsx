@@ -25,6 +25,7 @@ import {
 } from "@/app/(admin)/admin/content/homepage-showcase/actions";
 import { HomeProductShowcase } from "@/components/home/HomeProductShowcase";
 import { formatPrice } from "@/lib/catalog";
+import { getShowcaseFilterTypeLabel } from "@/lib/homepage-showcase";
 import type {
   AdminShowcaseCategoryOption,
   AdminShowcaseProductOption,
@@ -34,6 +35,19 @@ import type {
 
 type FilterType = (typeof SHOWCASE_FILTER_TYPES)[number]["value"];
 type SaveVisualState = "default" | "saved" | "error";
+
+const helperTextClass = "text-xs leading-5 text-[var(--admin-ink-500)]";
+const mutedStateClass =
+  "rounded-md border border-dashed border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-3 text-sm text-[var(--admin-ink-500)]";
+const previewEmptyStateClass =
+  "rounded-md border border-dashed border-[var(--admin-line-100)] bg-white px-3 py-6 text-center text-sm text-[var(--admin-ink-500)]";
+const warningBadgeClass =
+  "rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700";
+const errorPanelClass = "rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700";
+const secondaryActionClass =
+  "inline-flex min-h-9 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]";
+const previewPanelClass =
+  "rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-4";
 
 type HomepageShowcaseEditorProps = {
   tabs: AdminShowcaseTabRow[];
@@ -61,7 +75,7 @@ function getHeaderSummaryParts(
   products: AdminShowcaseProductOption[],
   previewProductCount: number,
 ) {
-  const sourceType = tab.filterType;
+  const sourceType = getShowcaseFilterTypeLabel(tab.filterType);
   let extra: string | null = null;
 
   switch (tab.filterType) {
@@ -266,7 +280,7 @@ function DuplicateButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex min-h-9 items-center gap-2 rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)] disabled:cursor-not-allowed disabled:opacity-60"
+      className={`${secondaryActionClass} gap-2 disabled:cursor-not-allowed disabled:opacity-60`}
     >
       {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
       {pending ? "Duplikálás..." : "Duplikálás"}
@@ -426,7 +440,7 @@ function ProductPicker({
             ))}
           </div>
         ) : (
-          <div className="rounded-md border border-dashed border-[var(--admin-line-100)] px-4 py-5 text-sm text-[var(--admin-ink-500)]">
+          <div className={mutedStateClass}>
             Keress és adj hozzá termékeket a kézi válogatáshoz.
           </div>
         )}
@@ -612,12 +626,12 @@ function TabEditor({
                 ) : null}
               </h2>
               {dirty ? (
-                <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                <span className={warningBadgeClass}>
                   Módosult
                 </span>
               ) : null}
               {hasNoVisibleProducts ? (
-                <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                <span className={warningBadgeClass}>
                   Nincs megjeleníthető termék
                   {emptyShowcaseReason ? `: ${emptyShowcaseReason}` : ""}
                   {emptyShowcaseAction ? (
@@ -638,7 +652,7 @@ function TabEditor({
               ) : null}
             </div>
             {!hasNoVisibleProducts && showcasePreviewText ? (
-              <p className="mt-1 truncate text-xs text-[var(--admin-ink-500)]">
+              <p className={`mt-1 truncate ${helperTextClass}`}>
                 Preview: {showcasePreviewText}
               </p>
             ) : null}
@@ -650,7 +664,7 @@ function TabEditor({
             href="/#focusban"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-9 items-center gap-2 rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]"
+            className={`${secondaryActionClass} gap-2`}
           >
             <ExternalLink className="h-3.5 w-3.5" />
             Megnyitás az oldalon
@@ -663,7 +677,7 @@ function TabEditor({
             type="button"
             onClick={() => onMove(index, index - 1)}
             disabled={index === 0}
-            className="inline-flex min-h-9 items-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] disabled:cursor-not-allowed disabled:opacity-40"
+            className={`${secondaryActionClass} disabled:cursor-not-allowed disabled:opacity-40`}
           >
             Fel
           </button>
@@ -671,7 +685,7 @@ function TabEditor({
             type="button"
             onClick={() => onMove(index, index + 1)}
             disabled={index === total - 1}
-            className="inline-flex min-h-9 items-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] disabled:cursor-not-allowed disabled:opacity-40"
+            className={`${secondaryActionClass} disabled:cursor-not-allowed disabled:opacity-40`}
           >
             Le
           </button>
@@ -820,12 +834,12 @@ function TabEditor({
         ) : null}
 
         {filterType !== "category" && filterType !== "manual" ? (
-          <div className="admin-panel-muted px-4 py-3 text-sm text-[var(--admin-ink-600)]">
+          <div className="admin-panel-muted px-3 py-3 text-sm text-[var(--admin-ink-600)]">
             Ez a forrás automatikusan tölti a tabot a termékadatok alapján.
           </div>
         ) : null}
 
-        <div className="rounded-md border border-[var(--admin-line-100)] bg-[#fbfaf7] px-4 py-4">
+        <div className={previewPanelClass}>
           <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="admin-eyebrow">Storefront előnézet</p>
@@ -843,20 +857,20 @@ function TabEditor({
               tabs={[{ key: key || tab.key, label: label || "Névtelen tab", products: previewProducts }]}
             />
           ) : (
-            <div className="rounded-md border border-dashed border-[#e8e5e0] bg-white px-4 py-8 text-center text-sm text-[var(--admin-ink-500)]">
+            <div className={previewEmptyStateClass}>
               Ehhez a beállításhoz nincs előnézeti termék.
             </div>
           )}
         </div>
 
         {saveState.status === "error" ? (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className={errorPanelClass}>
             {saveState.message}
           </div>
         ) : null}
 
         {duplicateState.status === "error" ? (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className={errorPanelClass}>
             {duplicateState.message}
           </div>
         ) : null}
@@ -1080,7 +1094,7 @@ function NewTabForm({
         </div>
       ) : null}
 
-      <div className="rounded-md border border-[var(--admin-line-100)] bg-[#fbfaf7] px-4 py-4">
+      <div className={previewPanelClass}>
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="admin-eyebrow">Storefront előnézet</p>
           <span className="text-xs text-[var(--admin-ink-500)]">
@@ -1093,14 +1107,14 @@ function NewTabForm({
             tabs={[{ key: key || "new-tab", label: label || "Új tab", products: previewProducts }]}
           />
         ) : (
-          <div className="rounded-md border border-dashed border-[#e8e5e0] bg-white px-4 py-8 text-center text-sm text-[var(--admin-ink-500)]">
+          <div className={previewEmptyStateClass}>
             Ehhez a beállításhoz nincs előnézeti termék.
           </div>
         )}
       </div>
 
       {saveState.status === "error" ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className={errorPanelClass}>
           {saveState.message}
         </div>
       ) : null}

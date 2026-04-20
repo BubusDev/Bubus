@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { saveHomepageMaterialPicksAction } from "@/app/(admin)/admin/content/homepage/actions";
@@ -14,8 +14,10 @@ import type {
 import { productHasStone } from "@/lib/stone-product";
 
 type PickSlot = {
-  stoneId: string;
+  stoneTypeId: string;
   productId: string;
+  isLegacySource?: boolean;
+  legacyItemId?: string | null;
   hasUnavailableFeaturedProduct?: boolean;
   unavailableFeaturedProductReason?: string | null;
 };
@@ -25,35 +27,64 @@ type HomepageMaterialPicksEditorProps = {
   options: HomepageMaterialPickOptions;
 };
 
+const helperTextClass = "text-xs leading-5 text-[var(--admin-ink-500)]";
+const mutedStateClass =
+  "rounded-md border border-dashed border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-3 text-sm text-[var(--admin-ink-500)]";
+const warningBadgeClass =
+  "rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700";
+const warningPanelClass =
+  "rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800";
+const secondaryActionClass =
+  "inline-flex min-h-8 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]";
+const iconActionClass =
+  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-blue-050)] disabled:cursor-not-allowed disabled:opacity-35";
+
 function buildInitialSlots(picks: HomepageContentView["materialPicks"]): PickSlot[] {
   const filledSlots = picks
     .slice()
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 4)
     .map((pick) => ({
-      stoneId: pick.type === "STONE" ? pick.itemId : "",
+      stoneTypeId: pick.type === "STONE" ? pick.itemId : "",
       productId: pick.storedFeaturedProductId ?? pick.featuredProductId ?? "",
+      isLegacySource: pick.isLegacySource,
+      legacyItemId: pick.legacyItemId,
       hasUnavailableFeaturedProduct: pick.hasUnavailableFeaturedProduct,
       unavailableFeaturedProductReason: pick.unavailableFeaturedProductReason,
     }));
 
   return Array.from(
     { length: 4 },
-    (_, index) => filledSlots[index] ?? { stoneId: "", productId: "" },
+    (_, index) =>
+      filledSlots[index] ?? {
+        stoneTypeId: "",
+        productId: "",
+        isLegacySource: false,
+        legacyItemId: null,
+      },
   );
+}
+
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (fromIndex === toIndex || toIndex < 0 || toIndex >= items.length) return items;
+
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
 }
 
 function ProductSlotPicker({
   disabled,
   productId,
   products,
-  stoneName,
+  stoneTypeName,
   onChange,
 }: {
   disabled: boolean;
   productId: string;
   products: HomepageMaterialPickOptions["products"];
-  stoneName: string;
+  stoneTypeName: string;
   onChange: (productId: string) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -72,21 +103,21 @@ function ProductSlotPicker({
 
   if (disabled) {
     return (
-      <div className="rounded-md border border-dashed border-[var(--admin-line-100)] bg-white px-4 py-5 text-sm text-[var(--admin-ink-500)]">
-        Először válassz Stone-t. Kiemelt termék csak a kiválasztott Stone-hoz adható hozzá.
+      <div className={mutedStateClass}>
+        Először válassz kőtípust.
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-[var(--admin-line-100)] bg-white px-4 py-5 text-sm text-[var(--admin-ink-500)]">
-        <p>Ehhez a kőhöz jelenleg nincs termék.</p>
+      <div className={mutedStateClass}>
+        <p>Ehhez a kőtípushoz jelenleg nincs termék.</p>
         <p className="mt-1">
-          Új termék létrehozása vagy meglévő termék Stone beállítása szükséges.
+          Új termék létrehozása vagy meglévő termék kőtípus beállítása szükséges.
           <Link
             href="/admin/products/new"
-            className="ml-2 font-medium text-[var(--admin-ink-900)] underline underline-offset-2"
+            className="ml-2 font-semibold text-[var(--admin-ink-900)] underline underline-offset-2"
           >
             Új termék
           </Link>
@@ -102,7 +133,7 @@ function ProductSlotPicker({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={`${stoneName} termékei között keresés`}
+          placeholder={`${stoneTypeName} termékei között keresés`}
           className="admin-input min-h-10 pl-9 pr-3 text-sm"
           autoComplete="off"
         />
@@ -175,7 +206,7 @@ function ProductSlotPicker({
           ))
         ) : (
           <span className="px-3 py-4 text-sm text-[var(--admin-ink-500)]">
-            Ehhez a Stone-hoz nincs választható termék.
+            Ehhez a kőtípushoz nincs választható termék.
           </span>
         )}
       </div>
@@ -188,49 +219,57 @@ export function HomepageMaterialPicksEditor({
   options,
 }: HomepageMaterialPicksEditorProps) {
   const [slots, setSlots] = useState<PickSlot[]>(() => buildInitialSlots(picks));
-  const selectedStoneIds = useMemo(() => slots.map((slot) => slot.stoneId), [slots]);
-  const duplicateStoneIds = useMemo(() => {
+  const [draggedSlotIndex, setDraggedSlotIndex] = useState<number | null>(null);
+  const selectedStoneTypeIds = useMemo(() => slots.map((slot) => slot.stoneTypeId), [slots]);
+  const duplicateStoneTypeIds = useMemo(() => {
     const seen = new Set<string>();
     const duplicates = new Set<string>();
-    for (const stoneId of selectedStoneIds) {
-      if (!stoneId) continue;
-      if (seen.has(stoneId)) duplicates.add(stoneId);
-      seen.add(stoneId);
+    for (const stoneTypeId of selectedStoneTypeIds) {
+      if (!stoneTypeId) continue;
+      if (seen.has(stoneTypeId)) duplicates.add(stoneTypeId);
+      seen.add(stoneTypeId);
     }
     return duplicates;
-  }, [selectedStoneIds]);
+  }, [selectedStoneTypeIds]);
 
   function updateSlot(index: number, nextSlot: PickSlot) {
     setSlots((current) => current.map((slot, slotIndex) => (slotIndex === index ? nextSlot : slot)));
   }
 
+  function moveSlot(fromIndex: number, toIndex: number) {
+    setSlots((current) => moveItem(current, fromIndex, toIndex));
+  }
+
   return (
     <form action={saveHomepageMaterialPicksAction} className="admin-panel p-5">
-      <div className="mb-5">
+      <div className="mb-4">
         <p className="admin-eyebrow">Kezdőlapi válogatás</p>
         <h2 className="mt-2 text-lg font-semibold text-[var(--admin-ink-900)]">
-          Stone alapú kezdőlapi cardok
+          Kőtípus alapú kezdőlapi cardok
         </h2>
-        <p className="mt-2 max-w-[68ch] text-sm leading-6 text-[var(--admin-ink-600)]">
-          Válassz legfeljebb 4 Stone-t. A Stone adja a card témáját és címét; a kiemelt Product
-          opcionális, és csak az adott Stone-hoz tartozó termék lehet.
+        <p className="mt-1.5 max-w-[68ch] text-sm leading-6 text-[var(--admin-ink-600)]">
+          Válassz legfeljebb 4 kőtípust a product besorolási rendszerből. Ez adja a kártya címét
+          és témáját; a kiemelt termék opcionális, és csak ehhez a kőtípushoz tartozhat.
         </p>
       </div>
 
       {slots.map((slot, index) => (
         <input
-          key={`${index}-${slot.stoneId}-${slot.productId}`}
+          key={`${index}-${slot.stoneTypeId}-${slot.productId}`}
           type="hidden"
           name="materialPick"
-          value={slot.stoneId ? `${slot.stoneId}:${slot.productId}` : ""}
+          value={slot.stoneTypeId ? `${slot.stoneTypeId}:${slot.productId}` : ""}
         />
       ))}
 
       <div className="grid gap-3">
         {slots.map((slot, index) => {
-          const selectedStone = options.stones.find((stone) => stone.id === slot.stoneId);
-          const compatibleProducts = selectedStone
-            ? options.products.filter((product) => productHasStone(product, selectedStone))
+          const selectedStoneType = options.stoneTypes.find(
+            (stoneType) => stoneType.id === slot.stoneTypeId,
+          );
+          const isLegacySource = Boolean(slot.isLegacySource && !selectedStoneType);
+          const compatibleProducts = selectedStoneType
+            ? options.products.filter((product) => productHasStone(product, selectedStoneType))
             : [];
           const selectedProductIsCompatible = compatibleProducts.some(
             (product) => product.id === slot.productId,
@@ -238,34 +277,74 @@ export function HomepageMaterialPicksEditor({
           const productId = selectedProductIsCompatible ? slot.productId : "";
           const previewProduct = compatibleProducts.find((product) => product.id === productId);
           const isInvalidProduct = Boolean(slot.productId && !selectedProductIsCompatible);
-          const hasNoAvailableProducts = Boolean(selectedStone && compatibleProducts.length === 0);
-          const isDuplicate = Boolean(slot.stoneId && duplicateStoneIds.has(slot.stoneId));
+          const hasNoAvailableProducts = Boolean(
+            selectedStoneType && compatibleProducts.length === 0,
+          );
+          const isDuplicate = Boolean(
+            slot.stoneTypeId && duplicateStoneTypeIds.has(slot.stoneTypeId),
+          );
           const productEditHref = slot.productId ? `/admin/products/${slot.productId}/edit` : null;
+          const showUnavailableFeaturedProductWarning =
+            Boolean(slot.hasUnavailableFeaturedProduct) && !isLegacySource;
           const previewHref = previewProduct
             ? `/product/${previewProduct.slug}`
-            : selectedStone
-              ? `/stones#${selectedStone.slug}`
+            : selectedStoneType
+              ? `/new-in?stone=${encodeURIComponent(selectedStoneType.slug)}`
               : "";
+          const isDragging = draggedSlotIndex === index;
 
           return (
             <section
               key={index}
-              className="rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggedSlotIndex == null) return;
+                moveSlot(draggedSlotIndex, index);
+                setDraggedSlotIndex(null);
+              }}
+              onDragEnd={() => setDraggedSlotIndex(null)}
+              className={`rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-3.5 transition ${
+                isDragging ? "opacity-60 ring-2 ring-[var(--admin-blue-100)]" : ""
+              }`}
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="admin-eyebrow">{index + 1}. card</p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-start gap-2">
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(event) => {
+                      setDraggedSlotIndex(index);
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", String(index));
+                    }}
+                    className={`${iconActionClass} cursor-grab active:cursor-grabbing`}
+                    aria-label={`${index + 1}. card áthelyezése`}
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
+                  <div className="min-w-0">
+                    <p className="admin-eyebrow">{index + 1}. card</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-semibold text-[var(--admin-ink-900)]">
-                      {selectedStone ? selectedStone.name : "Nincs Stone kiválasztva"}
+                      {selectedStoneType
+                        ? selectedStoneType.name
+                        : isLegacySource
+                          ? "Újraválasztandó kőtípus"
+                          : "Nincs kőtípus kiválasztva"}
                     </h3>
+                    {isLegacySource ? (
+                      <span className={warningBadgeClass}>
+                        Legacy adat
+                      </span>
+                    ) : null}
                     {hasNoAvailableProducts ? (
-                      <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                      <span className={warningBadgeClass}>
                         Ehhez a kőhöz nincs elérhető termék
                       </span>
                     ) : null}
-                    {slot.hasUnavailableFeaturedProduct ? (
-                      <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    {showUnavailableFeaturedProductWarning ? (
+                      <span className={warningBadgeClass}>
                         A kiválasztott termék nem jelenik meg a webshopban
                         {slot.unavailableFeaturedProductReason
                           ? `: ${slot.unavailableFeaturedProductReason}`
@@ -281,118 +360,153 @@ export function HomepageMaterialPicksEditor({
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Card headline: {selectedStone ? selectedStone.name : "Stone választás után jelenik meg"}
+                  <p className={`mt-0.5 ${helperTextClass}`}>
+                    {isLegacySource
+                      ? "Ez a slot nem használható, amíg nincs új kőtípus kiválasztva."
+                      : "A kiválasztott kőtípus neve jelenik meg kártyacímként."}
                   </p>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateSlot(index, {
-                      stoneId: "",
-                      productId: "",
-                      hasUnavailableFeaturedProduct: false,
-                      unavailableFeaturedProductReason: null,
-                    })
-                  }
-                  className="inline-flex min-h-9 items-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-blue-050)]"
-                >
-                  Ürítés
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => moveSlot(index, index - 1)}
+                    disabled={index === 0}
+                    className={iconActionClass}
+                    aria-label={`${index + 1}. card feljebb mozgatása`}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveSlot(index, index + 1)}
+                    disabled={index === slots.length - 1}
+                    className={iconActionClass}
+                    aria-label={`${index + 1}. card lejjebb mozgatása`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateSlot(index, {
+                        stoneTypeId: "",
+                        productId: "",
+                        isLegacySource: false,
+                        legacyItemId: null,
+                        hasUnavailableFeaturedProduct: false,
+                        unavailableFeaturedProductReason: null,
+                      })
+                    }
+                    className={secondaryActionClass}
+                  >
+                    Ürítés
+                  </button>
+                </div>
               </div>
 
-              {selectedStone ? (
-                <div className="mt-4 flex flex-col gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
-                      {previewProduct?.imageUrl ? (
-                        <Image
-                          src={previewProduct.imageUrl}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="40px"
-                        />
-                      ) : (
-                        <span
-                          className="block h-full w-full"
-                          style={{ background: selectedStone.colorHex || "#f5f3f0" }}
-                        />
-                      )}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="admin-eyebrow block">Storefront preview</span>
-                      <span className="block truncate text-sm font-medium text-[var(--admin-ink-900)]">
-                        {selectedStone.name}
-                      </span>
-                      <span className="block truncate text-xs text-[var(--admin-ink-500)]">
-                        {previewProduct
-                          ? `Kiemelt termék: ${previewProduct.name}`
-                          : "Stone fallback fog megjelenni"}
-                      </span>
-                    </span>
-                  </div>
-                  {previewHref ? (
-                    <Link
-                      href={previewHref}
-                      className="inline-flex min-h-8 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]"
-                    >
-                      Megnyitás
-                    </Link>
+              {isLegacySource ? (
+                <div className={`mt-3 ${warningPanelClass}`}>
+                  Ez a régi kő-adatforrásból mentett elem. Válaszd ki újra a kőtípust, majd mentsd
+                  el.
+                  {slot.legacyItemId ? (
+                    <span className="ml-1 text-amber-700">Régi azonosító: {slot.legacyItemId}</span>
                   ) : null}
                 </div>
               ) : null}
 
-              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-2">
+                {selectedStoneType ? (
+                  <>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
+                        {previewProduct?.imageUrl ? (
+                          <Image
+                            src={previewProduct.imageUrl}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="40px"
+                          />
+                        ) : null}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="admin-eyebrow block">Gyors preview</span>
+                        <span className="block truncate text-sm font-medium text-[var(--admin-ink-900)]">
+                          {selectedStoneType.name}
+                        </span>
+                        <span className="block truncate text-xs text-[var(--admin-ink-500)]">
+                          {previewProduct
+                            ? `Kiemelt termék: ${previewProduct.name}`
+                            : "Kőtípus alapú fallback lesz"}
+                        </span>
+                      </span>
+                    </div>
+                    {previewHref ? (
+                      <Link href={previewHref} className={secondaryActionClass}>
+                        Megnyitás
+                      </Link>
+                    ) : null}
+                  </>
+                ) : (
+                  <span className="text-sm text-[var(--admin-ink-500)]">
+                    Preview a kőtípus kiválasztása után jelenik meg.
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
                 <div className="grid gap-3">
                   <label className="grid gap-1.5">
-                    <span className="admin-eyebrow">1. Stone, ez adja a card témáját</span>
+                    <span className="admin-eyebrow">1. Kőtípus</span>
                     <select
-                      value={slot.stoneId}
+                      value={slot.stoneTypeId}
                       onChange={(event) => {
-                        const stoneId = event.target.value;
-                        const nextStone = options.stones.find((stone) => stone.id === stoneId);
+                        const stoneTypeId = event.target.value;
+                        const nextStoneType = options.stoneTypes.find(
+                          (stoneType) => stoneType.id === stoneTypeId,
+                        );
                         const currentProduct = options.products.find(
                           (product) => product.id === slot.productId,
                         );
                         const keepProduct =
-                          nextStone && currentProduct && productHasStone(currentProduct, nextStone)
+                          nextStoneType &&
+                          currentProduct &&
+                          productHasStone(currentProduct, nextStoneType)
                             ? slot.productId
                             : "";
 
                         updateSlot(index, {
-                          stoneId,
+                          stoneTypeId,
                           productId: keepProduct,
+                          isLegacySource: false,
+                          legacyItemId: null,
                           hasUnavailableFeaturedProduct: false,
                           unavailableFeaturedProductReason: null,
                         });
                       }}
                       className="admin-input min-h-10 px-3 text-sm"
                     >
-                      <option value="">Válassz meglévő Stone-t</option>
-                      {options.stones.map((stone) => (
-                        <option key={stone.id} value={stone.id}>
-                          {stone.name}
+                      <option value="">Válassz meglévő kőtípust</option>
+                      {options.stoneTypes.map((stoneType) => (
+                        <option key={stoneType.id} value={stoneType.id}>
+                          {stoneType.name}
                         </option>
                       ))}
                     </select>
-                    <span className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                      Ez lesz a kártya címe és témája.
+                    <span className={helperTextClass}>
+                      Ez adja a kártya címét és témáját.
                     </span>
                   </label>
 
-                  {selectedStone ? (
-                    <div className="flex items-center gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-2">
-                      <span
-                        className="h-9 w-9 shrink-0 rounded border border-[var(--admin-line-100)]"
-                        style={{ background: selectedStone.colorHex || "#f5f3f0" }}
-                      />
+                  {selectedStoneType ? (
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-[var(--admin-line-100)] bg-white px-3 py-2">
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium text-[var(--admin-ink-900)]">
-                          {selectedStone.name}
+                          {selectedStoneType.name}
                         </span>
                         <span className="block truncate text-xs text-[var(--admin-ink-500)]">
-                          Storefront headline és fallback link: /stones#{selectedStone.slug}
+                          Szűrt storefront link: {`/new-in?stone=${selectedStoneType.slug}`}
                         </span>
                       </span>
                     </div>
@@ -400,25 +514,27 @@ export function HomepageMaterialPicksEditor({
                 </div>
 
                 <div className="grid gap-1.5">
-                  <span className="admin-eyebrow">2. Kiemelt Product, csak ehhez a Stone-hoz</span>
-                  <span className="text-xs leading-5 text-[var(--admin-ink-500)]">
-                    Opcionális kiemelt termék ehhez a kőhöz.
+                  <span className="admin-eyebrow">2. Kiemelt termék</span>
+                  <span className={helperTextClass}>
+                    Opcionális kiemelt termék ehhez a kőtípushoz.
                   </span>
                   <ProductSlotPicker
-                    disabled={!selectedStone}
+                    disabled={!selectedStoneType}
                     products={compatibleProducts}
                     productId={productId}
-                    stoneName={selectedStone?.name ?? "Stone"}
+                    stoneTypeName={selectedStoneType?.name ?? "Kőtípus"}
                     onChange={(nextProductId) =>
                       updateSlot(index, {
-                        stoneId: slot.stoneId,
+                        stoneTypeId: slot.stoneTypeId,
                         productId: nextProductId,
+                        isLegacySource: false,
+                        legacyItemId: null,
                         hasUnavailableFeaturedProduct: false,
                         unavailableFeaturedProductReason: null,
                       })
                     }
                   />
-                  {slot.hasUnavailableFeaturedProduct ? (
+                  {showUnavailableFeaturedProductWarning ? (
                     <p className="text-xs font-medium text-amber-700">
                       A kiválasztott termék nem jelenik meg a webshopban
                       {slot.unavailableFeaturedProductReason
@@ -436,7 +552,7 @@ export function HomepageMaterialPicksEditor({
                     </p>
                   ) : isInvalidProduct ? (
                     <p className="text-xs font-medium text-amber-700">
-                      A korábbi termék nem ehhez a Stone-hoz tartozik, ezért mentéskor törlődik.
+                      A korábbi termék nem ehhez a kőtípushoz tartozik, ezért mentéskor törlődik.
                       {productEditHref ? (
                         <Link
                           href={productEditHref}
@@ -452,7 +568,7 @@ export function HomepageMaterialPicksEditor({
 
               {isDuplicate ? (
                 <p className="mt-3 text-xs font-medium text-amber-700">
-                  Duplikált Stone. Mentéskor csak az első előfordulás marad meg.
+                  Duplikált kőtípus. Mentéskor csak az első előfordulás marad meg.
                 </p>
               ) : null}
             </section>
