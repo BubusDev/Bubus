@@ -104,46 +104,63 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
   }
 
   return (
-    <section className="bg-[#fbfaf7] px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8">
-      <div className="mx-auto max-w-[1320px]">
-        <div className="mb-8 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
-            Kövek és ásványok
-          </p>
-          <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
-            Vásároljon karkötőket Féldrágakő, Kristály, Ásványok szerint!
-          </h2>
-        </div>
+    <div className="bg-[#fbfaf7] px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8">
+      {storefrontMaterialPicks.length > 0 ? (
+        <section className="mx-auto max-w-[1320px]">
+          <div className="mb-8 text-center">
+            <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
+              Kövek és ásványok
+            </p>
+            <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
+              Vásároljon karkötőket Féldrágakő, Kristály, Ásványok szerint!
+            </h2>
+          </div>
 
-        {storefrontMaterialPicks.length > 0 ? (
           <div className="mx-auto grid max-w-[1224px] gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {storefrontMaterialPicks.slice(0, 4).map((pick) => (
               <MaterialTile key={pick.id} pick={pick} />
             ))}
           </div>
-        ) : (
-        <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-6">
-          <div className="min-h-[360px] sm:min-h-[420px] lg:h-[560px] xl:h-[650px]">
-            <Tile tile={emphasisTile} emphasis />
+        </section>
+      ) : null}
+
+      {visibleTiles.length > 0 ? (
+        <section
+          className={`mx-auto max-w-[1320px] ${
+            storefrontMaterialPicks.length > 0 ? "mt-16 sm:mt-20" : ""
+          }`}
+        >
+          <div className="mb-8 text-center">
+            <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
+              Válogatás
+            </p>
+            <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
+              Saját tervezésű kollekciók
+            </h2>
           </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-2 lg:grid-rows-2 lg:gap-6">
-            {smallTiles.slice(0, 4).map((tile) => (
-              <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
-                <Tile tile={tile} />
-              </div>
-            ))}
-            {smallTiles.length < 4
-              ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
-                  <div
-                    key={`placeholder-${index}`}
-                    className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
-                  />
-                ))
-              : null}
+
+          <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-6">
+            <div className="min-h-[360px] sm:min-h-[420px] lg:h-[560px] xl:h-[650px]">
+              <Tile tile={emphasisTile} emphasis />
+            </div>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-2 lg:grid-rows-2 lg:gap-6">
+              {smallTiles.slice(0, 4).map((tile) => (
+                <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
+                  <Tile tile={tile} />
+                </div>
+              ))}
+              {smallTiles.length < 4
+                ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
+                    <div
+                      key={`placeholder-${index}`}
+                      className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
+                    />
+                  ))
+                : null}
+            </div>
           </div>
-        </div>
-        )}
-      </div>
-    </section>
+        </section>
+      ) : null}
+    </div>
   );
 }
