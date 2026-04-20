@@ -23,6 +23,8 @@ function buildBreadcrumbs(pathname: string): Crumb[] {
     returns: "Visszaküldések",
     activity: "Aktivitás",
     content: "Tartalom",
+    homepage: "Kezdőlap",
+    "homepage-showcase": "Showcase tabok",
     announcement: "Üzenetsáv",
     stones: "Kövek",
     specialties: "Különlegességek menü",

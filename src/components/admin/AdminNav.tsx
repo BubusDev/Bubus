@@ -29,7 +29,6 @@ const contentSubNav = [
   { label: "Kezdőlap", href: "/admin/content/homepage" },
   { label: "Showcase tabok", href: "/admin/content/homepage-showcase" },
   { label: "Üzenetsáv", href: "/admin/content/announcement" },
-  { label: "Kövek szerkesztő", href: "/admin/content/stones" },
   { label: "Különlegességek menü", href: "/admin/content/specialties" },
 ];
 
@@ -56,6 +55,10 @@ export function AdminNav() {
 
   const isSubActive = (href: string) => {
     if (href === "/admin/products") return pathname === "/admin/products";
+    if (href === "/admin/content/homepage") return pathname === "/admin/content/homepage";
+    if (href === "/admin/content/homepage-showcase") {
+      return pathname === "/admin/content/homepage-showcase";
+    }
     return pathname.startsWith(href);
   };
 

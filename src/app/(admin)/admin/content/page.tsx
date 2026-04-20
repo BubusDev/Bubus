@@ -49,12 +49,6 @@ export default function AdminContentPage() {
           description="A kezdőlap kategória-váltós, scrollozható termékcsúszkájának tabjai és szűrőfeltételei."
         />
         <ContentCard
-          href="/admin/content/stones"
-          eyebrow="Féldrágakövek"
-          title="Kövek szerkesztő"
-          description="A féldrágakövek leírásainak, hatásainak és megjelenítési sorrendjének kezelése."
-        />
-        <ContentCard
           href="/admin/content/announcement"
           eyebrow="Kommunikáció"
           title="Üzenetsáv"

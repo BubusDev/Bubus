@@ -11,7 +11,6 @@ import {
   ShoppingCart,
   Clock,
   Truck,
-  Gem,
   Megaphone,
   Menu,
   Image,
@@ -83,9 +82,8 @@ const navGroups: NavGroup[] = [
   {
     label: "Tartalom",
     items: [
-      { label: "Kezdőlap", href: "/admin/content/homepage", icon: LayoutTemplate },
-      { label: "Showcase tabok", href: "/admin/content/homepage-showcase", icon: LayoutGrid },
-      { label: "Kövek", href: "/admin/content/stones", icon: Gem },
+      { label: "Kezdőlap", href: "/admin/content/homepage", icon: LayoutTemplate, exact: true },
+      { label: "Showcase tabok", href: "/admin/content/homepage-showcase", icon: LayoutGrid, exact: true },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
       { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },
       { label: "Kampány bannerek", href: "/admin/special-edition", icon: Image },

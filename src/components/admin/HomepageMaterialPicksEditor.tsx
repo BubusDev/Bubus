@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, GripVertical, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, ChevronUp, GripVertical, Search, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { saveHomepageMaterialPicksAction } from "@/app/(admin)/admin/content/homepage/actions";
 import { formatPrice } from "@/lib/catalog";
@@ -14,6 +14,7 @@ import type {
 import { productHasStone } from "@/lib/stone-product";
 
 type PickSlot = {
+  clientId: string;
   stoneTypeId: string;
   productId: string;
   isLegacySource?: boolean;
@@ -38,6 +39,7 @@ const secondaryActionClass =
   "inline-flex min-h-8 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white px-3 text-xs font-medium text-[var(--admin-ink-700)] transition hover:bg-[var(--admin-blue-050)]";
 const iconActionClass =
   "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-600)] transition hover:bg-[var(--admin-blue-050)] disabled:cursor-not-allowed disabled:opacity-35";
+const unsavedChangesMessage = "Nem mentett módosításaid vannak. Biztosan elnavigálsz?";
 
 function buildInitialSlots(picks: HomepageContentView["materialPicks"]): PickSlot[] {
   const filledSlots = picks
@@ -45,6 +47,7 @@ function buildInitialSlots(picks: HomepageContentView["materialPicks"]): PickSlo
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 4)
     .map((pick) => ({
+      clientId: pick.id,
       stoneTypeId: pick.type === "STONE" ? pick.itemId : "",
       productId: pick.storedFeaturedProductId ?? pick.featuredProductId ?? "",
       isLegacySource: pick.isLegacySource,
@@ -57,6 +60,7 @@ function buildInitialSlots(picks: HomepageContentView["materialPicks"]): PickSlo
     { length: 4 },
     (_, index) =>
       filledSlots[index] ?? {
+        clientId: `empty-${index}`,
         stoneTypeId: "",
         productId: "",
         isLegacySource: false,
@@ -72,6 +76,15 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
   const [item] = next.splice(fromIndex, 1);
   next.splice(toIndex, 0, item);
   return next;
+}
+
+function serializePickSlots(slots: PickSlot[]) {
+  return JSON.stringify(
+    slots.map((slot) => ({
+      stoneTypeId: slot.stoneTypeId,
+      productId: slot.productId,
+    })),
+  );
 }
 
 function ProductSlotPicker({
@@ -218,9 +231,28 @@ export function HomepageMaterialPicksEditor({
   picks,
   options,
 }: HomepageMaterialPicksEditorProps) {
-  const [slots, setSlots] = useState<PickSlot[]>(() => buildInitialSlots(picks));
-  const [draggedSlotIndex, setDraggedSlotIndex] = useState<number | null>(null);
-  const [collapsedSlotIndexes, setCollapsedSlotIndexes] = useState<Set<number>>(() => new Set());
+  const [initialState] = useState(() => {
+    const initialSlots = buildInitialSlots(picks);
+    return {
+      slots: initialSlots,
+      serializedSlots: serializePickSlots(initialSlots),
+      collapsedSlotIds: new Set(
+        initialSlots
+          .filter((slot) => slot.stoneTypeId)
+          .map((slot) => slot.clientId),
+      ),
+    };
+  });
+  const isDirtyRef = useRef(false);
+  const isSubmittingRef = useRef(false);
+  const [slots, setSlots] = useState<PickSlot[]>(() => initialState.slots);
+  const [draggedSlotId, setDraggedSlotId] = useState<string | null>(null);
+  const draggedSlotIdRef = useRef<string | null>(null);
+  const [collapsedSlotIds, setCollapsedSlotIds] = useState<Set<string>>(
+    () => initialState.collapsedSlotIds,
+  );
+  const serializedSlots = useMemo(() => serializePickSlots(slots), [slots]);
+  const isDirty = serializedSlots !== initialState.serializedSlots;
   const selectedStoneTypeIds = useMemo(() => slots.map((slot) => slot.stoneTypeId), [slots]);
   const duplicateStoneTypeIds = useMemo(() => {
     const seen = new Set<string>();
@@ -233,6 +265,58 @@ export function HomepageMaterialPicksEditor({
     return duplicates;
   }, [selectedStoneTypeIds]);
 
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
+
+  useEffect(() => {
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      if (!isDirtyRef.current || isSubmittingRef.current) return;
+
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    function handleDocumentClick(event: MouseEvent) {
+      if (!isDirtyRef.current || isSubmittingRef.current || event.defaultPrevented) return;
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      if (anchor.hasAttribute("download")) return;
+
+      const nextUrl = new URL(anchor.href, window.location.href);
+      const currentUrl = new URL(window.location.href);
+      const isSamePage =
+        nextUrl.origin === currentUrl.origin &&
+        nextUrl.pathname === currentUrl.pathname &&
+        nextUrl.search === currentUrl.search;
+
+      if (isSamePage) return;
+      if (window.confirm(unsavedChangesMessage)) {
+        isDirtyRef.current = false;
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleDocumentClick, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleDocumentClick, true);
+    };
+  }, []);
+
   function updateSlot(index: number, nextSlot: PickSlot) {
     setSlots((current) => current.map((slot, slotIndex) => (slotIndex === index ? nextSlot : slot)));
   }
@@ -241,20 +325,39 @@ export function HomepageMaterialPicksEditor({
     setSlots((current) => moveItem(current, fromIndex, toIndex));
   }
 
-  function toggleCollapsedSlot(index: number) {
-    setCollapsedSlotIndexes((current) => {
+  function moveDraggedSlot(overSlotId: string) {
+    setSlots((current) => {
+      const activeSlotId = draggedSlotIdRef.current;
+      if (!activeSlotId || activeSlotId === overSlotId) return current;
+
+      const fromIndex = current.findIndex((slot) => slot.clientId === activeSlotId);
+      const toIndex = current.findIndex((slot) => slot.clientId === overSlotId);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return current;
+
+      return moveItem(current, fromIndex, toIndex);
+    });
+  }
+
+  function toggleCollapsedSlot(slotId: string) {
+    setCollapsedSlotIds((current) => {
       const next = new Set(current);
-      if (next.has(index)) {
-        next.delete(index);
+      if (next.has(slotId)) {
+        next.delete(slotId);
       } else {
-        next.add(index);
+        next.add(slotId);
       }
       return next;
     });
   }
 
   return (
-    <form action={saveHomepageMaterialPicksAction} className="admin-panel p-5">
+    <form
+      action={saveHomepageMaterialPicksAction}
+      onSubmit={() => {
+        isSubmittingRef.current = true;
+      }}
+      className="admin-panel p-5"
+    >
       <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="admin-eyebrow">Kezdőlapi válogatás</p>
@@ -277,7 +380,7 @@ export function HomepageMaterialPicksEditor({
 
       {slots.map((slot, index) => (
         <input
-          key={`${index}-${slot.stoneTypeId}-${slot.productId}`}
+          key={slot.clientId}
           type="hidden"
           name="materialPick"
           value={slot.stoneTypeId ? `${slot.stoneTypeId}:${slot.productId}` : ""}
@@ -313,12 +416,12 @@ export function HomepageMaterialPicksEditor({
             : selectedStoneType
               ? `/new-in?stone=${encodeURIComponent(selectedStoneType.slug)}`
               : "";
-          const isDragging = draggedSlotIndex === index;
-          const isCollapsed = collapsedSlotIndexes.has(index);
+          const isDragging = draggedSlotId === slot.clientId;
+          const isCollapsed = collapsedSlotIds.has(slot.clientId);
 
           return (
             <section
-              key={index}
+              key={slot.clientId}
               draggable
               onDragStart={(event) => {
                 const target = event.target as HTMLElement;
@@ -326,20 +429,25 @@ export function HomepageMaterialPicksEditor({
                   event.preventDefault();
                   return;
                 }
-                setDraggedSlotIndex(index);
+                draggedSlotIdRef.current = slot.clientId;
+                setDraggedSlotId(slot.clientId);
                 event.dataTransfer.effectAllowed = "move";
-                event.dataTransfer.setData("text/plain", String(index));
+                event.dataTransfer.setData("text/plain", slot.clientId);
               }}
-              onDragOver={(event) => event.preventDefault()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                moveDraggedSlot(slot.clientId);
+              }}
               onDrop={(event) => {
                 event.preventDefault();
-                const sourceIndex = Number(event.dataTransfer.getData("text/plain"));
-                const fromIndex = Number.isInteger(sourceIndex) ? sourceIndex : draggedSlotIndex;
-                if (fromIndex == null) return;
-                moveSlot(fromIndex, index);
-                setDraggedSlotIndex(null);
+                draggedSlotIdRef.current = null;
+                setDraggedSlotId(null);
               }}
-              onDragEnd={() => setDraggedSlotIndex(null)}
+              onDragEnd={() => {
+                draggedSlotIdRef.current = null;
+                setDraggedSlotId(null);
+              }}
               className={`rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-3.5 transition ${
                 isDragging ? "opacity-60 ring-2 ring-[var(--admin-blue-100)]" : ""
               }`}
@@ -353,6 +461,21 @@ export function HomepageMaterialPicksEditor({
                     aria-label={`${index + 1}. card áthelyezése`}
                   >
                     <GripVertical className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleCollapsedSlot(slot.clientId)}
+                    className={iconActionClass}
+                    aria-expanded={!isCollapsed}
+                    aria-controls={`homepage-material-pick-slot-${slot.clientId}`}
+                    aria-label={isCollapsed ? `${index + 1}. card kinyitása` : `${index + 1}. card összecsukása`}
+                    title={isCollapsed ? "Kinyitás" : "Összecsukás"}
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
                   </button>
                   <div className="min-w-0">
                     <p className="admin-eyebrow">{index + 1}. card</p>
@@ -419,17 +542,9 @@ export function HomepageMaterialPicksEditor({
                   </button>
                   <button
                     type="button"
-                    onClick={() => toggleCollapsedSlot(index)}
-                    className={secondaryActionClass}
-                    aria-expanded={!isCollapsed}
-                    aria-controls={`homepage-material-pick-slot-${index}`}
-                  >
-                    {isCollapsed ? "Kinyitás" : "Összecsukás"}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() =>
                       updateSlot(index, {
+                        clientId: slot.clientId,
                         stoneTypeId: "",
                         productId: "",
                         isLegacySource: false,
@@ -438,14 +553,16 @@ export function HomepageMaterialPicksEditor({
                         unavailableFeaturedProductReason: null,
                       })
                     }
-                    className={secondaryActionClass}
+                    className={`${secondaryActionClass} gap-1.5 text-red-600 hover:bg-red-50`}
+                    aria-label={`${index + 1}. card tartalmának törlése`}
                   >
-                    Ürítés
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Törlés
                   </button>
                 </div>
               </div>
 
-              <div id={`homepage-material-pick-slot-${index}`} hidden={isCollapsed}>
+              <div id={`homepage-material-pick-slot-${slot.clientId}`} hidden={isCollapsed}>
                 {isLegacySource ? (
                   <div className={`mt-3 ${warningPanelClass}`}>
                     Ez a régi kő-adatforrásból mentett elem. Válaszd ki újra a kőtípust, majd mentsd
@@ -520,6 +637,7 @@ export function HomepageMaterialPicksEditor({
                               : "";
 
                           updateSlot(index, {
+                            clientId: slot.clientId,
                             stoneTypeId,
                             productId: keepProduct,
                             isLegacySource: false,
@@ -568,6 +686,7 @@ export function HomepageMaterialPicksEditor({
                       stoneTypeName={selectedStoneType?.name ?? "Kőtípus"}
                       onChange={(nextProductId) =>
                         updateSlot(index, {
+                          clientId: slot.clientId,
                           stoneTypeId: slot.stoneTypeId,
                           productId: nextProductId,
                           isLegacySource: false,
@@ -618,16 +737,6 @@ export function HomepageMaterialPicksEditor({
             </section>
           );
         })}
-      </div>
-
-      <div className="sticky bottom-0 -mx-5 mt-5 flex items-center justify-between gap-4 border-t border-[var(--admin-line-100)] bg-[var(--admin-surface-000)] px-5 py-4">
-        <p className="text-xs leading-5 text-[var(--admin-ink-500)]">
-          A sorrend és a kiválasztott kő/termék párok csak mentés után kerülnek ki a storefront
-          válogatásba.
-        </p>
-        <button type="submit" className="admin-button-primary admin-control-md shrink-0">
-          Válogatás mentése
-        </button>
       </div>
     </form>
   );
