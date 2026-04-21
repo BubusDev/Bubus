@@ -543,7 +543,7 @@ function CardShell({
   title: string;
 }) {
   return (
-    <section className="border border-[var(--admin-line-100)] bg-white/82 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.03)] sm:p-5">
+    <section className="rounded-lg border border-gray-200 bg-white p-6">
       <div className="mb-4">
         {eyebrow && <p className={`mb-1 ${eyebrowCls}`}>{eyebrow}</p>}
         <h2 className="text-[1rem] font-semibold tracking-[-0.01em] text-[var(--admin-ink-900)]">
@@ -601,11 +601,11 @@ function StatusPill({
       : tone === "warn"
         ? "border-[#ead6a7] bg-[#fff9e8] text-[#765b18]"
         : tone === "danger"
-          ? "border-[#e8c7d2] bg-[#fff5f8] text-[#9b476f]"
+          ? "border-[#f3c3cf] bg-rose-50 text-rose-700"
           : "border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-700)]";
 
   return (
-    <span className={`inline-flex items-center rounded-sm border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${toneClass}`}>
+    <span className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${toneClass}`}>
       {children}
     </span>
   );
@@ -621,7 +621,7 @@ function SummaryRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[var(--admin-line-100)] py-2.5 last:border-b-0">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--admin-line-100)] py-2.5 last:border-b-0">
       <span className="text-xs text-[var(--admin-ink-500)]">{label}</span>
       <StatusPill tone={tone}>{value}</StatusPill>
     </div>
@@ -1583,432 +1583,465 @@ export function AdminProductForm({
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="mb-3 inline-flex items-center gap-2 border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-[var(--admin-blue-700)]" />
-            <span className={eyebrowCls}>✦ Termékkezelés</span>
-          </div>
-          <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.03em] text-[var(--admin-ink-900)] sm:text-[2.2rem]">
-            {values.id ? "Termék szerkesztése" : "Új termék feltöltése"}
-          </h1>
+    <form onSubmit={handleSubmit} className="flex min-h-full flex-col gap-6">
+      <div>
+        <div className="mb-3 inline-flex items-center gap-2 border border-[var(--admin-line-100)] bg-white px-3 py-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-[var(--admin-blue-700)]" />
+          <span className={eyebrowCls}>✦ Termékkezelés</span>
         </div>
-
-        <div className="flex shrink-0 items-center gap-3 sm:pt-2">
-          <button
-            type="submit"
-            disabled={hasUploadingImages || isSubmitting}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60 sm:w-auto"
-            style={{ background: ctaGradient }}
-          >
-            <Save className="h-4 w-4" />
-            {primarySaveLabel}
-          </button>
-        </div>
+        <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.03em] text-[var(--admin-ink-900)] sm:text-[2.2rem]">
+          {values.id ? "Termék szerkesztése" : "Új termék feltöltése"}
+        </h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
-        <div className="space-y-5">
-          <CardShell
-            eyebrow="Alapadatok"
-            title="Termék azonosítók"
-            subtitle="A név és a slug adja a termék URL-jét. Slug váltáskor a régi link átirányít az újra."
-          >
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
-              <FieldWrap label="Terméknév" error={errors.name} required>
-                <input
-                  name="name"
-                  value={formValues.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Pl. Aurora Ribbon nyaklánc"
-                  className={inputCls}
-                />
-              </FieldWrap>
+      <div className="flex flex-col gap-6">
+        <CardShell
+          eyebrow="Alapadatok"
+          title="Alapadatok"
+          subtitle="A név, a slug és a leírás adják a termék alapjait. Slug váltáskor a régi link átirányít az újra."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FieldWrap label="Terméknév" error={errors.name} required>
+              <input
+                name="name"
+                value={formValues.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Pl. Aurora Ribbon nyaklánc"
+                className={inputCls}
+              />
+            </FieldWrap>
 
-              <FieldWrap
-                label="Slug"
-                error={errors.slug}
-                required
-                helper={slugChanged ? "A régi link átirányít az új URL-re." : "A termék publikus URL-je."}
-              >
-                <input
-                  name="slug"
-                  value={formValues.slug}
-                  onChange={(e) => {
-                    setSlugUserEdited(true);
-                    handleFieldChange("slug", e.target.value);
-                  }}
-                  placeholder="aurora-ribbon-necklace"
-                  className={`${inputCls} font-mono text-xs`}
-                />
-              </FieldWrap>
-            </div>
-
-            <div className="mt-4 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
-              Canonical URL: <span className="font-mono text-[var(--admin-ink-900)]">{canonicalUrl}</span>
-              {slugChanged ? (
-                <span className="ml-2 text-[#765b18]">A régi URL átirányít.</span>
-              ) : null}
-            </div>
-          </CardShell>
-
-          <div className="grid gap-5 lg:grid-cols-2">
-            <CardShell
-              eyebrow="Árazás"
-              title="Ár és akció"
-              subtitle="Aktív terméknél pozitív ár kell. Az eredeti ár legyen magasabb az aktuálisnál."
+            <FieldWrap
+              label="Slug"
+              error={errors.slug}
+              required
+              helper={slugChanged ? "A régi link átirányít az új URL-re." : "A termék publikus URL-je."}
             >
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
-                <FieldWrap label="Aktuális ár" error={errors.price} required={formValues.status === "ACTIVE"}>
-                  <div className="relative">
-                    <input
-                      name="price"
-                      type="number"
-                      min={0}
-                      value={formValues.price}
-                      onChange={(e) => handleFieldChange("price", e.target.value)}
-                      placeholder="0"
-                      className={`${inputCls} pr-12 font-semibold`}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[var(--admin-ink-500)]">
-                      Ft
-                    </span>
-                  </div>
-                </FieldWrap>
-
-                <FieldWrap
-                  label="Eredeti ár"
-                  error={errors.compareAtPrice}
-                  helper={discountPercent !== null ? `Számított kedvezmény: ${discountPercent}%` : "Akciós terméknél kötelező."}
-                >
-                  <div className="relative">
-                    <input
-                      name="compareAtPrice"
-                      type="number"
-                      min={0}
-                      value={formValues.compareAtPrice}
-                      onChange={(e) => handleFieldChange("compareAtPrice", e.target.value)}
-                      placeholder="Opcionális"
-                      className={`${inputCls} pr-12`}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-ink-500)]">
-                      Ft
-                    </span>
-                  </div>
-                </FieldWrap>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between border border-[var(--admin-line-100)] bg-white px-3 py-2">
-                <ToggleSwitch
-                  checked={formValues.isOnSale}
-                  onChange={(v) => handleFieldChange("isOnSale", v)}
-                  label="Akciós termék"
-                />
-                <StatusPill tone={hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic ? "good" : "danger"}>
-                  {hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic ? "Ár rendben" : "Ár hiba"}
-                </StatusPill>
-              </div>
-            </CardShell>
-
-            <CardShell
-              eyebrow="Készlet"
-              title="Készlet és elérhetőség"
-              subtitle="Nulla készlettel a termék látható marad, de nem vásárolható."
-            >
-              <FieldWrap label="Raktárkészlet" error={errors.stockQuantity} required>
-                <input
-                  name="stockQuantity"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={formValues.stockQuantity}
-                  onChange={(e) => handleFieldChange("stockQuantity", e.target.value)}
-                  className={inputCls}
-                />
-              </FieldWrap>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="border border-[var(--admin-line-100)] bg-white px-3 py-3">
-                  <p className={eyebrowCls}>Készletállapot</p>
-                  <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">{stockState}</p>
-                </div>
-                <div className="border border-[var(--admin-line-100)] bg-white px-3 py-3">
-                  <p className={eyebrowCls}>Elérhető</p>
-                  <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
-                    {hasValidStock ? `${Math.max(0, stockValue)} db` : "Hibás"}
-                  </p>
-                </div>
-              </div>
-            </CardShell>
+              <input
+                name="slug"
+                value={formValues.slug}
+                onChange={(e) => {
+                  setSlugUserEdited(true);
+                  handleFieldChange("slug", e.target.value);
+                }}
+                placeholder="aurora-ribbon-necklace"
+                className={`${inputCls} font-mono text-xs`}
+              />
+            </FieldWrap>
           </div>
 
-          <CardShell
-            eyebrow="Média"
-            title="Termékképek"
-            subtitle="Aktív termékhez legalább egy kép kell. Az első kép legyen a fő vizuál, a második a hover kép."
-          >
-            <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-              <div
-                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                onDragLeave={() => setIsDragOver(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className="flex min-h-[170px] cursor-pointer flex-col items-center justify-center gap-3 border px-4 text-center transition-all duration-200"
-                style={{
-                  borderStyle: "dashed",
-                  borderColor: isDragOver ? "#2a63b5" : readyImageCount > 0 ? "var(--admin-line-200)" : "#e8c7d2",
-                  background: isDragOver ? "rgba(238,243,251,0.8)" : "rgba(255,255,255,0.72)",
-                }}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={productImageInputAccept}
-                  multiple
-                  className="hidden"
-                  onChange={handleImageSelection}
-                />
-                <ImagePlus className="h-8 w-8 text-[var(--admin-blue-700)]" />
-                <div>
-                  <p className="text-sm font-medium text-[var(--admin-ink-900)]">
-                    {isDragOver ? "Engedd el a képeket" : "Képek feltöltése"}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-[var(--admin-ink-500)]">
-                    {productImageFormatHelpText}
-                  </p>
-                  <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
-                    A kártyán a kép 3:4 arányban jelenik meg, például 1200 x 1600 px méretben. Fontos részleteket érdemes középen tartani.
-                  </p>
-                </div>
-              </div>
-
-              <div className="min-w-0">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <StatusPill tone={readyImageCount > 0 ? "good" : "danger"}>
-                    {readyImageCount > 0 ? `${readyImageCount} kép` : "Nincs kép"}
-                  </StatusPill>
-                  {hasUploadingImages ? <StatusPill tone="warn">Feltöltés folyamatban</StatusPill> : null}
-                  {hasImageUploadErrors ? <StatusPill tone="danger">Képfeltöltési hiba</StatusPill> : null}
-                </div>
-
-                {hasUploadingImages ? (
-                  <div className="mb-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 text-sm text-[var(--admin-ink-700)]">
-                    Képfeltöltés folyamatban...
-                  </div>
-                ) : null}
-
-                {uploadErrors.length > 0 ? (
-                  <div className="mb-3 border border-[#e3c7cf] bg-[#fbf5f6] px-4 py-3 text-sm text-[#ad4455]">
-                    {uploadErrors[0]}
-                  </div>
-                ) : null}
-
-                {allImages.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {allImages.map((image) => {
-                      const isCover = effectiveCoverImageKey === image.id;
-                      return (
-                        <div
-                          key={image.id}
-                          className="group relative overflow-hidden border bg-white transition-all"
-                          style={{
-                            borderColor: isCover ? "#2a63b5" : "var(--admin-line-200)",
-                            boxShadow: isCover ? "0 0 0 1px rgba(42,99,181,0.2)" : undefined,
-                          }}
-                        >
-                          <div
-                            className="aspect-[3/4] bg-[#f5f3f0]"
-                            role="img"
-                            aria-label={image.name}
-                            style={getCenteredBackgroundFillStyle(image.previewUrl)}
-                          />
-                          <div className="border-t border-[var(--admin-line-100)] bg-white p-2">
-                            <p className="line-clamp-2 text-[11px] leading-4 text-[var(--admin-ink-600)]">
-                              {isCover ? "Fő kép" : "Hover / második kép"}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCoverImageKey(image.id);
-                              setSubmitError(null);
-                            }}
-                            disabled={image.status !== "ready"}
-                            className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border transition"
-                            style={{
-                              background: isCover ? ctaGradient : "rgba(255,255,255,0.95)",
-                              borderColor: isCover ? "#295da8" : "var(--admin-line-200)",
-                            }}
-                            title={isCover ? "Borítókép" : "Beállítás borítóképnek"}
-                          >
-                            <Star
-                              className="h-3 w-3"
-                              style={{ color: isCover ? "white" : "#2a63b5" }}
-                              fill={isCover ? "white" : "none"}
-                            />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeImage(image)}
-                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white/95 text-[var(--admin-ink-600)] transition hover:bg-white"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                          {image.status === "uploading" ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-                              <p className="text-xs text-[#7a6070]">Feltöltés...</p>
-                            </div>
-                          ) : null}
-                          {image.status === "error" ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-[#fff4f7]/80 p-2">
-                              <p className="text-center text-[10px] text-[#9b476f]">Feltöltési hiba</p>
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex min-h-[120px] items-center justify-center border border-[#e8c7d2] bg-[#fff8fb] px-4 text-center text-sm text-[#9b476f]">
-                    Aktív termékhez tölts fel legalább egy képet.
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardShell>
-
-          <CardShell
-            eyebrow="Storefront megjelenés"
-            title="Kártya, címkék és leírások"
-            subtitle="Ezek jelennek meg a termékkártyán és a termékoldalon."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldWrap label="Termék badge" error={errors.badge} required={formValues.status === "ACTIVE"}>
-                <input
-                  name="badge"
-                  value={formValues.badge}
-                  onChange={(e) => handleFieldChange("badge", e.target.value)}
-                  placeholder="Pl. Újdonság"
-                  className={inputCls}
-                />
-              </FieldWrap>
-
-              <FieldWrap label="Kollekció label" error={errors.collectionLabel} required={formValues.status === "ACTIVE"}>
-                <input
-                  name="collectionLabel"
-                  value={formValues.collectionLabel}
-                  onChange={(e) => handleFieldChange("collectionLabel", e.target.value)}
-                  placeholder="Pl. Beach"
-                  className={inputCls}
-                />
-              </FieldWrap>
-            </div>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <FieldWrap label="Rövid leírás" error={errors.shortDescription} required={formValues.status === "ACTIVE"}>
-                <textarea
-                  name="shortDescription"
-                  value={formValues.shortDescription}
-                  onChange={(e) => handleFieldChange("shortDescription", e.target.value)}
-                  placeholder="Rövid leírás a kártyákhoz..."
-                  rows={4}
-                  className={textareaCls}
-                />
-              </FieldWrap>
-
-              <FieldWrap label="Teljes leírás" error={errors.description} required={formValues.status === "ACTIVE"}>
-                <textarea
-                  name="description"
-                  value={formValues.description}
-                  onChange={(e) => handleFieldChange("description", e.target.value)}
-                  placeholder="Anyagok, méret, gondozás, viselési ötletek..."
-                  rows={4}
-                  className={textareaCls}
-                />
-              </FieldWrap>
-            </div>
-          </CardShell>
-
-          <CardShell eyebrow="SEO / URL" title="URL és előnézet">
-            <button
-              type="button"
-              onClick={() => setSeoOpen((o) => !o)}
-              className="flex w-full items-center justify-between border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 text-left"
-            >
-              <div>
-                <p className="text-sm font-medium text-[var(--admin-ink-900)]">{formValues.name || "Terméknév"} - Chicks Jewelry</p>
-                <p className="mt-1 font-mono text-xs text-[var(--admin-blue-700)]">{canonicalUrl}</p>
-              </div>
-              <ChevronDown
-                className="h-5 w-5 shrink-0 text-[var(--admin-ink-500)] transition-transform duration-200"
-                style={{ transform: seoOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <FieldWrap label="Termék badge" error={errors.badge} required={formValues.status === "ACTIVE"}>
+              <input
+                name="badge"
+                value={formValues.badge}
+                onChange={(e) => handleFieldChange("badge", e.target.value)}
+                placeholder="Pl. Újdonság"
+                className={inputCls}
               />
-            </button>
+            </FieldWrap>
 
-            {seoOpen ? (
-              <div className="mt-3 border border-[var(--admin-line-100)] bg-white p-4">
-                <p className={eyebrowCls}>Előnézet</p>
-                <p className="mt-2 text-sm font-medium text-[#1a0dab]">
-                  {formValues.name || "Terméknév"} - Chicks Jewelry
+            <FieldWrap label="Kollekció label" error={errors.collectionLabel} required={formValues.status === "ACTIVE"}>
+              <input
+                name="collectionLabel"
+                value={formValues.collectionLabel}
+                onChange={(e) => handleFieldChange("collectionLabel", e.target.value)}
+                placeholder="Pl. Beach"
+                className={inputCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <FieldWrap label="Rövid leírás" error={errors.shortDescription} required={formValues.status === "ACTIVE"}>
+              <textarea
+                name="shortDescription"
+                value={formValues.shortDescription}
+                onChange={(e) => handleFieldChange("shortDescription", e.target.value)}
+                placeholder="Rövid leírás a kártyákhoz..."
+                rows={4}
+                className={textareaCls}
+              />
+            </FieldWrap>
+
+            <FieldWrap label="Teljes leírás" error={errors.description} required={formValues.status === "ACTIVE"}>
+              <textarea
+                name="description"
+                value={formValues.description}
+                onChange={(e) => handleFieldChange("description", e.target.value)}
+                placeholder="Anyagok, méret, gondozás, viselési ötletek..."
+                rows={4}
+                className={textareaCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
+            Canonical URL: <span className="font-mono text-[var(--admin-ink-900)]">{canonicalUrl}</span>
+            {slugChanged ? <span className="ml-2 text-[#765b18]">A régi URL átirányít.</span> : null}
+          </div>
+        </CardShell>
+
+        <CardShell
+          eyebrow="Média"
+          title="Termékképek"
+          subtitle="Aktív termékhez legalább egy kép kell. Az első kép legyen a fő vizuál, a második a hover kép."
+        >
+          <div className="flex flex-col gap-4">
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex min-h-[170px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border px-4 text-center transition-all duration-200"
+              style={{
+                borderStyle: "dashed",
+                borderColor: isDragOver ? "#2a63b5" : readyImageCount > 0 ? "var(--admin-line-200)" : "#e8c7d2",
+                background: isDragOver ? "rgba(238,243,251,0.8)" : "rgba(255,255,255,0.72)",
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={productImageInputAccept}
+                multiple
+                className="hidden"
+                onChange={handleImageSelection}
+              />
+              <ImagePlus className="h-8 w-8 text-[var(--admin-blue-700)]" />
+              <div>
+                <p className="text-sm font-medium text-[var(--admin-ink-900)]">
+                  {isDragOver ? "Engedd el a képeket" : "Képek feltöltése"}
                 </p>
-                <p className="mt-1 font-mono text-xs text-[#006621]">bubus.hu{canonicalUrl}</p>
-                <p className="mt-2 text-xs leading-5 text-[#545454]">
-                  {formValues.shortDescription || "A rövid leírás itt jelenik meg a keresési előnézetben."}
-                </p>
-                <p className="mt-3 text-xs leading-5 text-[var(--admin-ink-500)]">
-                  Slug váltáskor a régi URL átirányít az új terméklinkre.
+                <p className="mt-1 text-xs leading-5 text-[var(--admin-ink-500)]">{productImageFormatHelpText}</p>
+                <p className="mt-2 text-xs leading-5 text-[var(--admin-ink-500)]">
+                  A kártyán a kép 3:4 arányban jelenik meg, például 1200 x 1600 px méretben. Fontos részleteket érdemes középen tartani.
                 </p>
               </div>
-            ) : null}
-          </CardShell>
-        </div>
-
-        <div className="space-y-4 xl:sticky xl:top-28">
-          <CardShell eyebrow="Állapot" title="Publikálási összefoglaló">
-            <div className="space-y-1">
-              <SummaryRow label="Státusz" value={statusLabels[formValues.status]} tone={lifecycleTone} />
-              <SummaryRow label="Kitöltés" value={isReadinessReady ? "Kész" : "Hiányos"} tone={isReadinessReady ? "good" : "danger"} />
-              <SummaryRow label="Bolt" value={isStorefrontVisible ? "Látható" : "Nem látható"} tone={isStorefrontVisible ? "good" : "warn"} />
-              <SummaryRow label="Vásárolhatóság" value={isPurchasable ? "Megvásárolható" : "Nem megvásárolható"} tone={isPurchasable ? "good" : "warn"} />
-              <SummaryRow label="Készlet" value={stockState} tone={stockTone} />
             </div>
 
-            {readinessBlockers.length > 0 ? (
-              <div className="mt-4 border border-[#e8c7d2] bg-[#fff8fb] p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b476f]">
-                  Még hiányzik
+            <div className="min-w-0">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <StatusPill tone={readyImageCount > 0 ? "good" : "danger"}>
+                  {readyImageCount > 0 ? `${readyImageCount} kép` : "Nincs kép"}
+                </StatusPill>
+                {hasUploadingImages ? <StatusPill tone="warn">Feltöltés folyamatban</StatusPill> : null}
+                {hasImageUploadErrors ? <StatusPill tone="danger">Képfeltöltési hiba</StatusPill> : null}
+                {readyImageCount === 0 ? <StatusPill tone="danger">Aktív termékhez tölts fel legalább egy képet</StatusPill> : null}
+              </div>
+
+              {hasUploadingImages ? (
+                <div className="mb-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 text-sm text-[var(--admin-ink-700)]">
+                  Képfeltöltés folyamatban...
+                </div>
+              ) : null}
+
+              {uploadErrors.length > 0 ? (
+                <div className="mb-3 border border-[#e3c7cf] bg-[#fbf5f6] px-4 py-3 text-sm text-[#ad4455]">
+                  {uploadErrors[0]}
+                </div>
+              ) : null}
+
+              {allImages.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                  {allImages.map((image) => {
+                    const isCover = effectiveCoverImageKey === image.id;
+                    return (
+                      <div
+                        key={image.id}
+                        className="group relative overflow-hidden rounded-lg border bg-white transition-all"
+                        style={{
+                          borderColor: isCover ? "#2a63b5" : "var(--admin-line-200)",
+                          boxShadow: isCover ? "0 0 0 1px rgba(42,99,181,0.2)" : undefined,
+                        }}
+                      >
+                        <div
+                          className="aspect-[3/4] bg-[#f5f3f0]"
+                          role="img"
+                          aria-label={image.name}
+                          style={getCenteredBackgroundFillStyle(image.previewUrl)}
+                        />
+                        <div className="border-t border-[var(--admin-line-100)] bg-white p-2">
+                          <p className="line-clamp-2 text-[11px] leading-4 text-[var(--admin-ink-600)]">
+                            {isCover ? "Fő kép" : "Hover / második kép"}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCoverImageKey(image.id);
+                            setSubmitError(null);
+                          }}
+                          disabled={image.status !== "ready"}
+                          className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border transition"
+                          style={{
+                            background: isCover ? ctaGradient : "rgba(255,255,255,0.95)",
+                            borderColor: isCover ? "#295da8" : "var(--admin-line-200)",
+                          }}
+                          title={isCover ? "Borítókép" : "Beállítás borítóképnek"}
+                        >
+                          <Star
+                            className="h-3 w-3"
+                            style={{ color: isCover ? "white" : "#2a63b5" }}
+                            fill={isCover ? "white" : "none"}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(image)}
+                          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-sm border border-[var(--admin-line-200)] bg-white/95 text-[var(--admin-ink-600)] transition hover:bg-white"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                        {image.status === "uploading" ? (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+                            <p className="text-xs text-[#7a6070]">Feltöltés...</p>
+                          </div>
+                        ) : null}
+                        {image.status === "error" ? (
+                          <div className="absolute inset-0 flex items-center justify-center bg-[#fff4f7]/80 p-2">
+                            <p className="text-center text-[10px] text-[#9b476f]">Feltöltési hiba</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex min-h-[120px] items-center justify-center rounded-lg border border-[#e8c7d2] bg-[#fff8fb] px-4 text-center text-sm text-[#9b476f]">
+                  Aktív termékhez tölts fel legalább egy képet.
+                </div>
+              )}
+            </div>
+          </div>
+        </CardShell>
+
+        <CardShell
+          eyebrow="Árazás és készlet"
+          title="Árazás és készlet"
+          subtitle="Az ár, az eredeti ár és a készlet együtt határozzák meg a vásárolhatóságot."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <FieldWrap label="Aktuális ár" error={errors.price} required={formValues.status === "ACTIVE"}>
+              <div className="relative">
+                <input
+                  name="price"
+                  type="number"
+                  min={0}
+                  value={formValues.price}
+                  onChange={(e) => handleFieldChange("price", e.target.value)}
+                  placeholder="0"
+                  className={`${inputCls} pr-12 font-semibold`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[var(--admin-ink-500)]">
+                  Ft
+                </span>
+              </div>
+            </FieldWrap>
+
+            <FieldWrap
+              label="Eredeti ár"
+              error={errors.compareAtPrice}
+              helper={discountPercent !== null ? `Számított kedvezmény: ${discountPercent}%` : "Akciós terméknél kötelező."}
+            >
+              <div className="relative">
+                <input
+                  name="compareAtPrice"
+                  type="number"
+                  min={0}
+                  value={formValues.compareAtPrice}
+                  onChange={(e) => handleFieldChange("compareAtPrice", e.target.value)}
+                  placeholder="Opcionális"
+                  className={`${inputCls} pr-12`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-ink-500)]">
+                  Ft
+                </span>
+              </div>
+            </FieldWrap>
+
+            <FieldWrap label="Raktárkészlet" error={errors.stockQuantity} required>
+              <input
+                name="stockQuantity"
+                type="number"
+                min={0}
+                step={1}
+                value={formValues.stockQuantity}
+                onChange={(e) => handleFieldChange("stockQuantity", e.target.value)}
+                className={inputCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <StatusPill tone={hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic ? "good" : "danger"}>
+              {hasValidPrice && hasValidCompareAtPrice && hasValidSaleLogic ? "Ár rendben" : "Ár hiba"}
+            </StatusPill>
+            <StatusPill tone={stockTone}>{stockState}</StatusPill>
+            <StatusPill tone={hasValidStock ? "good" : "danger"}>
+              {hasValidStock ? `${Math.max(0, stockValue)} db elérhető` : "Készlet hiba"}
+            </StatusPill>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-4">
+              <ToggleSwitch
+                checked={formValues.isOnSale}
+                onChange={(v) => handleFieldChange("isOnSale", v)}
+                label="Akciós termék"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-[var(--admin-line-100)] bg-white px-3 py-3">
+                <p className={eyebrowCls}>Készletállapot</p>
+                <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">{stockState}</p>
+              </div>
+              <div className="rounded-lg border border-[var(--admin-line-100)] bg-white px-3 py-3">
+                <p className={eyebrowCls}>Elérhető</p>
+                <p className="mt-1 text-sm font-semibold text-[var(--admin-ink-900)]">
+                  {hasValidStock ? `${Math.max(0, stockValue)} db` : "Hibás"}
                 </p>
-                <ul className="mt-2 space-y-1.5 text-xs leading-5 text-[#7a3d58]">
-                  {readinessBlockers.map((item) => (
-                    <li key={item.key}>- {item.message}</li>
-                  ))}
-                </ul>
+              </div>
+            </div>
+          </div>
+        </CardShell>
+
+        <CardShell
+          eyebrow="Besorolás"
+          title="Besorolás"
+          subtitle="A kategóriák és attribútumok határozzák meg, hol és hogyan jelenik meg a termék."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <ManagedOptionSelect
+              label="Kategória"
+              selectedValue={formValues.category}
+              options={localOptions.categories}
+              onChange={(v) => handleFieldChange("category", v)}
+              error={errors.category}
+              required={formValues.status === "ACTIVE"}
+              {...getOptionManagerProps("categories", "category")}
+            />
+            <ManagedOptionSelect
+              label="Kőtípus"
+              selectedValue={formValues.stoneType}
+              options={localOptions.stoneTypes}
+              onChange={(v) => handleFieldChange("stoneType", v)}
+              error={errors.stoneType}
+              required={formValues.status === "ACTIVE"}
+              {...getOptionManagerProps("stoneTypes", "stoneType")}
+            />
+            <ManagedOptionSelect
+              label="Szín / Fém"
+              selectedValue={formValues.color}
+              options={localOptions.colors}
+              onChange={(v) => handleFieldChange("color", v)}
+              error={errors.color}
+              required={formValues.status === "ACTIVE"}
+              {...getOptionManagerProps("colors", "color")}
+            />
+            <ManagedOptionSelect
+              label="Stílus"
+              selectedValue={formValues.style}
+              options={localOptions.styles}
+              onChange={(v) => handleFieldChange("style", v)}
+              error={errors.style}
+              required={formValues.status === "ACTIVE"}
+              {...getOptionManagerProps("styles", "style")}
+            />
+            <ManagedOptionSelect
+              label="Alkalom"
+              selectedValue={formValues.occasion}
+              options={localOptions.occasions}
+              onChange={(v) => handleFieldChange("occasion", v)}
+              error={errors.occasion}
+              required={formValues.status === "ACTIVE"}
+              {...getOptionManagerProps("occasions", "occasion")}
+            />
+            {!isCreateMode ? (
+              <ManagedOptionSelect
+                label="Elérhetőség"
+                selectedValue={formValues.availability}
+                options={localOptions.availability}
+                onChange={(v) => handleFieldChange("availability", v)}
+                error={errors.availability}
+                required={formValues.status === "ACTIVE"}
+                {...getOptionManagerProps("availability", "availability")}
+              />
+            ) : null}
+            {!isCreateMode ? (
+              <ManagedOptionSelect
+                label="Vizuális tónus"
+                selectedValue={formValues.tone}
+                options={localOptions.tones}
+                onChange={(v) => handleFieldChange("tone", v)}
+                error={errors.tone}
+                required={formValues.status === "ACTIVE"}
+                {...getOptionManagerProps("tones", "tone")}
+              />
+            ) : null}
+          </div>
+
+          <div className="mt-5 border-t border-[var(--admin-line-100)] pt-5">
+            <p className={`mb-3 ${eyebrowCls}`}>Különlegességek</p>
+            {localOptions.specialties.length > 0 ? (
+              <div className="space-y-2">
+                {localOptions.specialties.map((specialty) => {
+                  const checked = formValues.specialtyIds.includes(specialty.id);
+
+                  return (
+                    <label
+                      key={specialty.id}
+                      className="flex items-start gap-3 rounded-lg border border-[var(--admin-line-100)] bg-white px-3 py-2 text-sm text-[var(--admin-ink-700)]"
+                    >
+                      <input
+                        type="checkbox"
+                        name="specialtyIds"
+                        checked={checked}
+                        onChange={(event) => {
+                          handleFieldChange(
+                            "specialtyIds",
+                            event.target.checked
+                              ? [...formValues.specialtyIds, specialty.id]
+                              : formValues.specialtyIds.filter((id) => id !== specialty.id),
+                          );
+                        }}
+                        className="mt-0.5 h-4 w-4"
+                      />
+                      <span>
+                        <span className="font-medium">{specialty.name}</span>
+                        <span className="ml-2 font-mono text-[11px] text-[var(--admin-ink-500)]">
+                          /kulonlegessegek/{specialty.slug}
+                        </span>
+                        {!specialty.isVisible ? (
+                          <span className="ml-2 text-[11px] text-[var(--admin-ink-500)]">rejtett</span>
+                        ) : null}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             ) : (
-              <div className="mt-4 border border-[#bdd7c8] bg-[#f2faf5] p-3 text-xs leading-5 text-[#24533a]">
-                A termék aktív státusszal publikálható. Készlet nélkül látható marad, de nem vásárolható.
-              </div>
-            )}
-
-            {submitError ? (
-              <p className="mt-4 border border-[#e3c7cf] bg-[#fbf5f6] px-3 py-2 text-sm text-[#ad4455]">
-                {submitError}
+              <p className="rounded-lg border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
+                Még nincs különlegesség csoport.
               </p>
-            ) : null}
+            )}
+          </div>
+        </CardShell>
 
-            <button
-              type="submit"
-              disabled={hasUploadingImages || isSubmitting}
-              className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
-              style={{ background: ctaGradient }}
-            >
-              <Save className="h-4 w-4" />
-              {primarySaveLabel}
-            </button>
-          </CardShell>
+        <CardShell
+          eyebrow="Állapot"
+          title="Állapot"
+          subtitle="Itt állítható a publikálás, a kezdőlapi kihelyezés és a termék kiemelése."
+        >
+          <div className="space-y-1">
+            <SummaryRow label="Státusz" value={statusLabels[formValues.status]} tone={lifecycleTone} />
+            <SummaryRow label="Kitöltés" value={isReadinessReady ? "Kész" : "Hiányos"} tone={isReadinessReady ? "good" : "danger"} />
+            <SummaryRow label="Bolt" value={isStorefrontVisible ? "Látható" : "Nem látható"} tone={isStorefrontVisible ? "good" : "warn"} />
+            <SummaryRow label="Vásárolhatóság" value={isPurchasable ? "Megvásárolható" : "Nem megvásárolható"} tone={isPurchasable ? "good" : "warn"} />
+            <SummaryRow label="Készlet" value={stockState} tone={stockTone} />
+          </div>
 
-          <CardShell eyebrow="Állapot" title="Publikálás">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <FieldWrap label="Termékstátusz" error={errors.status}>
               <select
                 name="status"
@@ -2049,181 +2082,124 @@ export function AdminProductForm({
                 ))}
               </select>
             </FieldWrap>
+          </div>
 
-            <div className="mt-4 grid gap-3 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
+          <div className="mt-4 grid gap-3 rounded-lg border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] p-4">
+            <ToggleSwitch
+              checked={formValues.isNew}
+              onChange={(v) => handleFieldChange("isNew", v)}
+              label="Új termék"
+            />
+            {!isCreateMode ? (
               <ToggleSwitch
-                checked={formValues.isNew}
-                onChange={(v) => handleFieldChange("isNew", v)}
-                label="Új termék"
+                checked={formValues.isGiftable}
+                onChange={(v) => handleFieldChange("isGiftable", v)}
+                label="Ajándékozható"
               />
-              {!isCreateMode ? (
-                <ToggleSwitch
-                  checked={formValues.isGiftable}
-                  onChange={(v) => handleFieldChange("isGiftable", v)}
-                  label="Ajándékozható"
-                />
-              ) : null}
+            ) : null}
+          </div>
+        </CardShell>
+
+        <CardShell eyebrow="SEO / URL" title="URL és előnézet">
+          <button
+            type="button"
+            onClick={() => setSeoOpen((o) => !o)}
+            className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-4 py-3 text-left"
+          >
+            <div>
+              <p className="text-sm font-medium text-[var(--admin-ink-900)]">{formValues.name || "Terméknév"} - Chicks Jewelry</p>
+              <p className="mt-1 font-mono text-xs text-[var(--admin-blue-700)]">{canonicalUrl}</p>
             </div>
-          </CardShell>
+            <ChevronDown
+              className="h-5 w-5 shrink-0 text-[var(--admin-ink-500)] transition-transform duration-200"
+              style={{ transform: seoOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+            />
+          </button>
 
-          <CardShell eyebrow="Besorolás" title="Kategóriák és attribútumok">
-            <div className="space-y-5">
-              <ManagedOptionSelect
-                label="Kategória"
-                selectedValue={formValues.category}
-                options={localOptions.categories}
-                onChange={(v) => handleFieldChange("category", v)}
-                error={errors.category}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("categories", "category")}
-              />
-              <ManagedOptionSelect
-                label="Kőtípus"
-                selectedValue={formValues.stoneType}
-                options={localOptions.stoneTypes}
-                onChange={(v) => handleFieldChange("stoneType", v)}
-                error={errors.stoneType}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("stoneTypes", "stoneType")}
-              />
-              <ManagedOptionSelect
-                label="Szín / Fém"
-                selectedValue={formValues.color}
-                options={localOptions.colors}
-                onChange={(v) => handleFieldChange("color", v)}
-                error={errors.color}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("colors", "color")}
-              />
-              <ManagedOptionSelect
-                label="Stílus"
-                selectedValue={formValues.style}
-                options={localOptions.styles}
-                onChange={(v) => handleFieldChange("style", v)}
-                error={errors.style}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("styles", "style")}
-              />
-              <ManagedOptionSelect
-                label="Alkalom"
-                selectedValue={formValues.occasion}
-                options={localOptions.occasions}
-                onChange={(v) => handleFieldChange("occasion", v)}
-                error={errors.occasion}
-                required={formValues.status === "ACTIVE"}
-                {...getOptionManagerProps("occasions", "occasion")}
-              />
-              {!isCreateMode ? (
-                <>
-                  <ManagedOptionSelect
-                    label="Elérhetőség"
-                    selectedValue={formValues.availability}
-                    options={localOptions.availability}
-                    onChange={(v) => handleFieldChange("availability", v)}
-                    error={errors.availability}
-                    required={formValues.status === "ACTIVE"}
-                    {...getOptionManagerProps("availability", "availability")}
-                  />
-                  <ManagedOptionSelect
-                    label="Vizuális tónus"
-                    selectedValue={formValues.tone}
-                    options={localOptions.tones}
-                    onChange={(v) => handleFieldChange("tone", v)}
-                    error={errors.tone}
-                    required={formValues.status === "ACTIVE"}
-                    {...getOptionManagerProps("tones", "tone")}
-                  />
-                </>
-              ) : null}
+          {seoOpen ? (
+            <div className="mt-3 rounded-lg border border-[var(--admin-line-100)] bg-white p-4">
+              <p className={eyebrowCls}>Előnézet</p>
+              <p className="mt-2 text-sm font-medium text-[#1a0dab]">
+                {formValues.name || "Terméknév"} - Chicks Jewelry
+              </p>
+              <p className="mt-1 font-mono text-xs text-[#006621]">bubus.hu{canonicalUrl}</p>
+              <p className="mt-2 text-xs leading-5 text-[#545454]">
+                {formValues.shortDescription || "A rövid leírás itt jelenik meg a keresési előnézetben."}
+              </p>
+              <p className="mt-3 text-xs leading-5 text-[var(--admin-ink-500)]">
+                Slug váltáskor a régi URL átirányít az új terméklinkre.
+              </p>
             </div>
-          </CardShell>
-
-          <CardShell eyebrow="Különlegességek" title="Kollekció kapcsolatok">
-            {localOptions.specialties.length > 0 ? (
-              <div className="space-y-2">
-                {localOptions.specialties.map((specialty) => {
-                  const checked = formValues.specialtyIds.includes(specialty.id);
-
-                  return (
-                    <label
-                      key={specialty.id}
-                      className="flex items-start gap-3 border border-[var(--admin-line-100)] bg-white px-3 py-2 text-sm text-[var(--admin-ink-700)]"
-                    >
-                      <input
-                        type="checkbox"
-                        name="specialtyIds"
-                        checked={checked}
-                        onChange={(event) => {
-                          handleFieldChange(
-                            "specialtyIds",
-                            event.target.checked
-                              ? [...formValues.specialtyIds, specialty.id]
-                              : formValues.specialtyIds.filter((id) => id !== specialty.id),
-                          );
-                        }}
-                        className="mt-0.5 h-4 w-4"
-                      />
-                      <span>
-                        <span className="font-medium">{specialty.name}</span>
-                        <span className="ml-2 font-mono text-[11px] text-[var(--admin-ink-500)]">
-                          /kulonlegessegek/{specialty.slug}
-                        </span>
-                        {!specialty.isVisible ? (
-                          <span className="ml-2 text-[11px] text-[var(--admin-ink-500)]">rejtett</span>
-                        ) : null}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
-                Még nincs különlegesség csoport.
-              </p>
-            )}
-          </CardShell>
-
-          {values.id ? (
-            <CardShell eyebrow="Veszélyzóna" title={isPersistedArchived ? "Visszaállítás" : "Archiválás"}>
-              <p className="text-xs leading-5 text-[var(--admin-ink-600)]">
-                {isPersistedArchived
-                  ? "Visszaállítás után a termék draft lesz, így publikálás előtt újra ellenőrizhető."
-                  : "Archiválás után a termék nem látszik és nem vásárolható. Visszaállításkor draftként tér vissza."}
-              </p>
-              <button
-                type="button"
-                disabled={isArchiving}
-                onClick={handleArchiveProduct}
-                className={`mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-semibold transition disabled:opacity-60 ${
-                  isPersistedArchived
-                    ? "border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-800)] hover:bg-[var(--admin-surface-050)]"
-                    : "border-[#d7a9b8] bg-[#fff5f8] text-[#9b476f] hover:bg-[#ffedf3]"
-                }`}
-              >
-                <Archive className="h-4 w-4" />
-                {isArchiving
-                  ? isPersistedArchived
-                    ? "Visszaállítás..."
-                    : "Archiválás..."
-                  : isPersistedArchived
-                    ? "Visszaállítás draftként"
-                    : "Termék archiválása"}
-              </button>
-            </CardShell>
           ) : null}
-        </div>
+        </CardShell>
+
+        {values.id ? (
+          <CardShell eyebrow="Veszélyzóna" title={isPersistedArchived ? "Visszaállítás" : "Archiválás"}>
+            <p className="text-xs leading-5 text-[var(--admin-ink-600)]">
+              {isPersistedArchived
+                ? "Visszaállítás után a termék draft lesz, így publikálás előtt újra ellenőrizhető."
+                : "Archiválás után a termék nem látszik és nem vásárolható. Visszaállításkor draftként tér vissza."}
+            </p>
+            <button
+              type="button"
+              disabled={isArchiving}
+              onClick={handleArchiveProduct}
+              className={`mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-semibold transition disabled:opacity-60 ${
+                isPersistedArchived
+                  ? "border-[var(--admin-line-200)] bg-white text-[var(--admin-ink-800)] hover:bg-[var(--admin-surface-050)]"
+                  : "border-[#d7a9b8] bg-[#fff5f8] text-[#9b476f] hover:bg-[#ffedf3]"
+              }`}
+            >
+              <Archive className="h-4 w-4" />
+              {isArchiving
+                ? isPersistedArchived
+                  ? "Visszaállítás..."
+                  : "Archiválás..."
+                : isPersistedArchived
+                  ? "Visszaállítás draftként"
+                  : "Termék archiválása"}
+            </button>
+          </CardShell>
+        ) : null}
       </div>
 
-      <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t border-[var(--admin-line-100)] bg-[rgba(247,249,252,0.96)] px-4 py-3 shadow-[0_-12px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
-        <button
-          type="submit"
-          disabled={hasUploadingImages || isSubmitting}
-          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60"
-          style={{ background: ctaGradient }}
-        >
-          <Save className="h-4 w-4" />
-          {primarySaveLabel}
-        </button>
+      <div className="sticky bottom-0 z-20 -mx-6 -mb-6 mt-auto border-t border-gray-200 bg-white px-6 py-4 shadow-[0_-12px_24px_rgba(15,23,42,0.08)]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
+            {readinessBlockers.length > 0 ? (
+              <div className="rounded-lg border border-[#e8c7d2] bg-[#fff8fb] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b476f]">
+                  Még hiányzik
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {readinessBlockers.map((item) => (
+                    <StatusPill key={item.key} tone="danger">{item.message}</StatusPill>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-[#bdd7c8] bg-[#f2faf5] p-3 text-xs leading-5 text-[#24533a]">
+                A termék aktív státusszal publikálható. Készlet nélkül látható marad, de nem vásárolható.
+              </div>
+            )}
+
+            {submitError ? (
+              <p className="mt-3 rounded-lg border border-[#e3c7cf] bg-[#fbf5f6] px-3 py-2 text-sm text-[#ad4455]">
+                {submitError}
+              </p>
+            ) : null}
+          </div>
+
+          <button
+            type="submit"
+            disabled={hasUploadingImages || isSubmitting}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-[#295da8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#24579f] disabled:opacity-60 sm:w-auto"
+            style={{ background: ctaGradient }}
+          >
+            <Save className="h-4 w-4" />
+            {primarySaveLabel}
+          </button>
+        </div>
       </div>
     </form>
   );

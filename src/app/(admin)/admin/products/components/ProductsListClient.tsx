@@ -190,7 +190,7 @@ function ProductPanel({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#172033]/35">
-      <div className="ml-auto flex h-full w-full max-w-3xl flex-col bg-[var(--admin-surface-050)] shadow-2xl">
+      <div className="ml-auto flex h-full w-full max-w-[min(900px,92vw)] flex-col bg-[var(--admin-surface-050)] shadow-2xl">
         <div className="flex items-center justify-between border-b border-[var(--admin-line-100)] px-6 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--admin-ink-500)]">
