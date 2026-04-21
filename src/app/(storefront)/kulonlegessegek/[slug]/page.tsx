@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { SpecialtySectionNav } from "@/components/shop/SpecialtySectionNav";
-import { getProductsForSpecialty, getSpecialtyBySlug } from "@/lib/products";
+import { getProductsForSpecialty, getSpecialtyBySlug } from "@/lib/products-server";
 import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 import { siteName } from "@/lib/site";
 

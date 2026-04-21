@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth";
 import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import { db } from "@/lib/db";
-import { slugifyOptionName } from "@/lib/products";
+import { slugifyOptionName } from "@/lib/products-server";
 
 export type SpecialtyActionResult =
   | { ok: true; saved: "created" | "updated" | "deleted"; savedId?: string }

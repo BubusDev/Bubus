@@ -1,3 +1,5 @@
+import "server-only";
+
 const LOCAL_DEV_URL = "http://localhost:3000";
 
 function normalizeUrl(url: string) {
@@ -7,7 +9,6 @@ function normalizeUrl(url: string) {
 
   return `https://${url}`;
 }
-
 export function getAuthBaseUrl() {
   const rawUrl =
     process.env.AUTH_URL ??

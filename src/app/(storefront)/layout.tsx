@@ -7,7 +7,7 @@ import { RouteAwareSiteFooter } from "@/components/RouteAwareSiteFooter";
 import { getHeaderCounts, getHeaderCouponDropdownPreview } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
-import { getNavigationCategories } from "@/lib/products";
+import { getNavigationCategories } from "@/lib/products-server";
 import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 
 export default async function StorefrontLayout({

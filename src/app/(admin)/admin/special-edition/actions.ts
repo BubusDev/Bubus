@@ -9,7 +9,7 @@ import {
   deleteSpecialEditionImageFile,
 } from "@/lib/product-images";
 import { storefrontProductWhere } from "@/lib/product-lifecycle";
-import { getOrCreateSpecialEditionCampaign } from "@/lib/products";
+import { getOrCreateSpecialEditionCampaign } from "@/lib/products-server";
 
 // Re-export check for Next.js redirect errors so we can re-throw them properly
 function isRedirectError(e: unknown): boolean {

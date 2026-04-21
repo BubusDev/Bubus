@@ -10,7 +10,7 @@ import {
 import { AdminBlobImageInput } from "@/components/admin/AdminBlobImageInput";
 import type {
   AdminSpecialEditionCampaignValues,
-} from "@/lib/products";
+} from "@/lib/products-client";
 
 type SelectableProduct = {
   id: string;

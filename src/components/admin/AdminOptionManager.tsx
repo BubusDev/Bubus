@@ -9,7 +9,7 @@ import {
   reorderProductOptionsAction,
   updateProductOptionAction,
 } from "@/app/(admin)/admin/products/actions";
-import { type ProductOptionGroup, type ProductOptionValue } from "@/lib/products";
+import { type ProductOptionGroup, type ProductOptionValue } from "@/lib/products-client";
 
 type AdminOptionManagerProps = {
   groups: ProductOptionGroup[];

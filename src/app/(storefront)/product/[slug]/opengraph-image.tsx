@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { getProductBySlug } from "@/lib/products";
+import { getProductBySlug } from "@/lib/products-server";
 import { getAbsoluteUrl, siteName } from "@/lib/site";
 
 export const size = {

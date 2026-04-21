@@ -9,7 +9,7 @@ import { saveMerchandisingOrderAction } from "@/app/(admin)/admin/merchandising/
 import { formatPrice } from "@/lib/catalog";
 import { getCenteredBackgroundFillStyle } from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
-import type { MerchandisingContext } from "@/lib/products";
+import type { MerchandisingContext } from "@/lib/products-client";
 
 export type MerchandisingBoardProduct = {
   id: string;

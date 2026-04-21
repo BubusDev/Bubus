@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth";
-import { saveMerchandisingOrder } from "@/lib/products";
+import { saveMerchandisingOrder } from "@/lib/products-server";
 
 export async function saveMerchandisingOrderAction(input: {
   listingKey: string;

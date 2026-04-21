@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LimitedEditionDetailPage } from "@/components/shop/LimitedEditionDetailPage";
-import { getSpecialEditionCampaign } from "@/lib/products";
+import { getSpecialEditionCampaign } from "@/lib/products-server";
 import { siteName } from "@/lib/site";
 
 type PageProps = {

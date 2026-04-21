@@ -8,7 +8,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { getChakraDisplay } from "../lib/chakras";
 
@@ -68,7 +68,6 @@ function GemstoneCard({
   gemstones: Gemstone[];
 }) {
   const [open, setOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
@@ -79,14 +78,10 @@ function GemstoneCard({
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.6, 1, 1]);
   const accentColor = gemstone.accentColor || "#7a2a3e";
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   return (
     <motion.article
       ref={ref}
-      style={isClient && !shouldReduceMotion ? { scale, opacity } : undefined}
+      style={!shouldReduceMotion ? { scale, opacity } : undefined}
       className="bg-[#f3bdc8]"
     >
       <div className="grid border-b-2 border-white/40 py-5 md:min-h-[41svh] md:grid-cols-[0.45fr_3fr_0.3fr] md:py-12">

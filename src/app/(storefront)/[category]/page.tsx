@@ -13,7 +13,7 @@ import {
   getFilterGroupsForAvailableFilters,
   getFilterOptionsForCategory,
   getProductsForCategory,
-} from "@/lib/products";
+} from "@/lib/products-server";
 import { siteName } from "@/lib/site";
 
 type CategoryPageProps = {

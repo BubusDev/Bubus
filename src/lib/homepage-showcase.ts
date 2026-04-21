@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getShowcaseTabProducts } from "@/lib/products";
+import { getShowcaseTabProducts } from "@/lib/products-server";
 import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import type { Product } from "@/lib/catalog";
 

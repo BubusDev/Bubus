@@ -17,7 +17,7 @@ import {
 import { requireAccountUser } from "@/lib/auth";
 import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
-import { getCuratedProductRecommendations } from "@/lib/products";
+import { getCuratedProductRecommendations } from "@/lib/products-server";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

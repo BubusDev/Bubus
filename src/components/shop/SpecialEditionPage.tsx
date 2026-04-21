@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { LimitedEditionFeature } from "@/components/shop/LimitedEditionDetailPage";
-import type { SpecialEditionEntryView } from "@/lib/products";
+import type { SpecialEditionEntryView } from "@/lib/products-client";
 
 type SpecialEditionPageProps = {
   entries: SpecialEditionEntryView[];

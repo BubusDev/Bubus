@@ -6,7 +6,7 @@ import { addFavouriteAction } from "@/app/(storefront)/account/actions";
 import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
 import { LimitedEditionTabs } from "@/components/shop/LimitedEditionTabs";
 import { formatPrice, isProductOutOfStock } from "@/lib/catalog";
-import type { SpecialEditionEntryView } from "@/lib/products";
+import type { SpecialEditionEntryView } from "@/lib/products-client";
 
 type Props = {
   entry: SpecialEditionEntryView;

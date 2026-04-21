@@ -1,6 +1,6 @@
 import { AdminMerchandisingBoard, type MerchandisingBoardProduct } from "@/components/admin/AdminMerchandisingBoard";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { getAdminMerchandisingBoard } from "@/lib/products";
+import { getAdminMerchandisingBoard } from "@/lib/products-server";
 
 type AdminMerchandisingPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

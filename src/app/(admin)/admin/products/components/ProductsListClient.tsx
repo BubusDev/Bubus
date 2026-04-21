@@ -28,14 +28,12 @@ import {
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 import { ProductCouponSection } from "@/components/admin/ProductCouponSection";
 import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
-import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 import {
-  getAdminProducts,
-  toAdminProductFormValues,
   type AdminProductFormOptions,
-} from "@/lib/products";
-
-type DbProductWithRelations = Awaited<ReturnType<typeof getAdminProducts>>[number];
+  type AdminProductRecord,
+  toAdminProductFormValues,
+} from "@/lib/admin-products-client";
+import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,7 +56,7 @@ type AvailableCoupon = {
 };
 
 export type ProductsListClientProps = {
-  products: DbProductWithRelations[];
+  products: AdminProductRecord[];
   options: AdminProductFormOptions;
   optionGroups: { type: string; label: string; options: { isActive: boolean; isStorefrontVisible: boolean; showInMainNav: boolean }[] }[];
   allPromoCodes: AvailableCoupon[];
@@ -67,7 +65,7 @@ export type ProductsListClientProps = {
   initialEditProductId: string | null;
 };
 
-type EditingState = "new" | DbProductWithRelations | null;
+type EditingState = "new" | AdminProductRecord | null;
 
 // ─── Helper components ────────────────────────────────────────────────────────
 
@@ -179,7 +177,7 @@ function ProductPanel({
   onSuccess: () => void;
 }) {
   const isNew = editing === "new";
-  const product = isNew ? null : (editing as DbProductWithRelations);
+  const product = isNew ? null : (editing as AdminProductRecord);
 
   // Escape key closes panel
   useEffect(() => {

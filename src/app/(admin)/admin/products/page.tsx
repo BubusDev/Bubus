@@ -1,6 +1,6 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { db } from "@/lib/db";
-import { getAdminProducts, getAdminProductFormOptions, getProductOptionGroups } from "@/lib/products";
+import { getAdminProducts, getAdminProductFormOptions, getProductOptionGroups } from "@/lib/products-server";
 
 import { ProductsListClient } from "./components/ProductsListClient";
 

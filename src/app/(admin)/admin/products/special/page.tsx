@@ -3,7 +3,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import {
   getAdminSelectableProducts,
   getAdminSpecialEditionCampaign,
-} from "@/lib/products";
+} from "@/lib/products-server";
 
 export default async function AdminSpecialEditionPage() {
   const [campaign, products] = await Promise.all([

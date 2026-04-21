@@ -49,7 +49,7 @@ import {
   type AdminProductFormValues,
   type AdminProductImageValue,
   type ProductOptionValue,
-} from "@/lib/products";
+} from "@/lib/admin-products-client";
 import {
   getUnsafeProductImageMessage,
   isHeicImageFile,

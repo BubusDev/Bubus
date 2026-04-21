@@ -1,3 +1,5 @@
+import "server-only";
+
 import { ProductStatus } from "@prisma/client";
 import type {
   HomepagePlacement as DbHomepagePlacement,

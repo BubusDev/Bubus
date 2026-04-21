@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { SpecialEditionPage } from "@/components/shop/SpecialEditionPage";
-import { getCategoryDefinition, getSpecialEditionCampaign } from "@/lib/products";
+import { getCategoryDefinition, getSpecialEditionCampaign } from "@/lib/products-server";
 import { siteName } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {

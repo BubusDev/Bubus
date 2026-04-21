@@ -7,7 +7,7 @@ import {
   getCategoryDefinition,
   getRelatedProducts,
   resolveProductBySlug,
-} from "@/lib/products";
+} from "@/lib/products-server";
 import { getAbsoluteUrl, siteName } from "@/lib/site";
 
 type ProductPageProps = {

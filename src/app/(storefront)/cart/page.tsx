@@ -12,7 +12,7 @@ import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
 import { getHomepageContent } from "@/lib/homepage-content";
-import { getCuratedProductRecommendations } from "@/lib/products";
+import { getCuratedProductRecommendations } from "@/lib/products-server";
 import type { AppliedPromo } from "@/lib/promo-codes";
 
 export const metadata: Metadata = {

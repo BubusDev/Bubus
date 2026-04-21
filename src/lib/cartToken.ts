@@ -1,5 +1,6 @@
-import { randomUUID } from "node:crypto";
+import "server-only";
 
+import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "guest_cart_token";

@@ -30,7 +30,7 @@ import {
   parseProductFormData,
   recordProductSlugChange,
   slugifyOptionName,
-} from "@/lib/products";
+} from "@/lib/products-server";
 import { assertBrowserSafeProductImageUrl } from "@/lib/image-safety";
 
 function revalidateCatalogPaths() {
