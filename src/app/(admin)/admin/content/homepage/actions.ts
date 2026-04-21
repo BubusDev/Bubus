@@ -37,12 +37,12 @@ function readStringList(formData: FormData, key: string) {
     .filter(Boolean);
 }
 
-export async function saveHomepageBlockAction(formData: FormData) {
+export async function saveHomepageBlockAction(formData: FormData): Promise<{ ok: boolean; message: string }> {
   await requireAdminUser("/admin/content/homepage");
 
   const key = readString(formData, "key") as HomepageContentBlockKey;
   if (!["HERO", "INSTAGRAM"].includes(key)) {
-    throw new Error("Érvénytelen kezdőlapi blokk.");
+    return { ok: false, message: "Érvénytelen kezdőlapi blokk." };
   }
 
   // newImageUrl is set by the client-side Blob upload (AdminBlobImageInput).
@@ -70,15 +70,15 @@ export async function saveHomepageBlockAction(formData: FormData) {
   }
 
   revalidateHomepageContent();
-  redirect("/admin/content/homepage?saved=block");
+  return { ok: true, message: "A kezdőlapi blokk mentve." };
 }
 
-export async function saveHomepagePromoTileAction(formData: FormData) {
+export async function saveHomepagePromoTileAction(formData: FormData): Promise<{ ok: boolean; message: string }> {
   await requireAdminUser("/admin/content/homepage");
 
   const slotIndex = Number(readString(formData, "slotIndex"));
   if (!Number.isInteger(slotIndex) || slotIndex < 4 || slotIndex > 8) {
-    throw new Error("Érvénytelen promó csempe pozíció.");
+    return { ok: false, message: "Érvénytelen promó csempe pozíció." };
   }
 
   const newImageUrl = readString(formData, "newImageUrl");
@@ -102,7 +102,7 @@ export async function saveHomepagePromoTileAction(formData: FormData) {
   }
 
   revalidateHomepageContent();
-  redirect("/admin/content/homepage?saved=tile");
+  return { ok: true, message: "A promó csempe mentve." };
 }
 
 export async function saveHomepageMaterialPicksAction(formData: FormData) {

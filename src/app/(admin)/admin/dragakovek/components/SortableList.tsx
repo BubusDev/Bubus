@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { deleteGemstoneAction, updateGemstoneOrderAction } from "../actions";
@@ -97,6 +98,7 @@ function SortableRow({
 }
 
 export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
+  const router = useRouter();
   const [items, setItems] = useState(gemstones);
   const [editing, setEditing] = useState<AdminGemstone | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -200,7 +202,7 @@ export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
         onClose={() => setFormOpen(false)}
         onSaved={(message) => {
           setToast(message);
-          window.location.reload();
+          router.refresh();
         }}
       />
     </div>

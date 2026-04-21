@@ -61,7 +61,8 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type AdminProductFormProps = {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<void | { ok: boolean; message: string }> | void;
+  onSuccess?: () => void;
   options: AdminProductFormOptions;
   submitLabel: string;
   values: AdminProductFormValues;
@@ -962,6 +963,7 @@ function ManagedOptionSelect({
 
 export function AdminProductForm({
   action,
+  onSuccess,
   options,
   values,
 }: AdminProductFormProps) {
@@ -1496,7 +1498,14 @@ export function AdminProductForm({
 
     startSubmitTransition(async () => {
       try {
-        await action(formData);
+        const result = await action(formData);
+        if (result && typeof result === "object" && "ok" in result) {
+          if (result.ok) {
+            onSuccess?.();
+          } else {
+            setSubmitError(result.message);
+          }
+        }
       } catch (err) {
         setSubmitError(err instanceof Error ? err.message : "A termék mentése nem sikerült.");
       }

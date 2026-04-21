@@ -89,16 +89,16 @@ function GemstoneCard({
       style={isClient && !shouldReduceMotion ? { scale, opacity } : undefined}
       className="bg-[#f3bdc8]"
     >
-      <div className="grid border-b-2 border-white/40 py-10 md:min-h-[82svh] md:grid-cols-[0.75fr_3fr_0.45fr] md:py-24">
-        <div className="flex items-start border-white/40 px-4 md:border-r-2 md:px-8">
-          <span className="font-serif text-7xl font-light leading-none text-[#fdfaf7]/70 sm:text-8xl">
+      <div className="grid border-b-2 border-white/40 py-5 md:min-h-[41svh] md:grid-cols-[0.45fr_3fr_0.3fr] md:py-12">
+        <div className="flex items-start border-white/40 px-4 md:border-r-2 md:px-5">
+          <span className="font-serif text-4xl font-light leading-none text-[#fdfaf7]/70 sm:text-5xl">
             {index + 1}
           </span>
         </div>
 
-        <div className="grid gap-8 border-white/40 px-4 md:grid-cols-[minmax(220px,400px)_1fr] md:border-r-2 md:px-8 lg:gap-12">
+        <div className="grid gap-4 border-white/40 px-4 md:grid-cols-[minmax(140px,200px)_1fr] md:border-r-2 md:px-5 lg:gap-6">
           <div
-            className="relative mx-auto aspect-square w-full max-w-[min(75vw,300px)] overflow-hidden border bg-[#fdfaf7]/15 md:mx-0 md:max-w-[360px]"
+            className="relative mx-auto aspect-square w-full max-w-[min(55vw,150px)] overflow-hidden border bg-[#fdfaf7]/15 md:mx-0 md:max-w-[180px]"
             style={{ borderColor: `${accentColor}55` }}
           >
             {gemstone.imageUrl ? (
@@ -106,30 +106,30 @@ function GemstoneCard({
                 src={gemstone.imageUrl}
                 alt={gemstone.title}
                 fill
-                sizes="(min-width: 768px) 360px, min(75vw, 300px)"
+                sizes="(min-width: 768px) 180px, min(55vw, 150px)"
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[#fdfaf7]/15 font-serif text-5xl italic text-[#7a2a3e]/50">
+              <div className="flex h-full w-full items-center justify-center bg-[#fdfaf7]/15 font-serif text-3xl italic text-[#7a2a3e]/50">
                 {gemstone.title.slice(0, 1)}
               </div>
             )}
           </div>
 
           <div className="flex min-w-0 flex-col justify-center">
-            <p className="text-xs uppercase tracking-[0.26em] text-[#7a2a3e]">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-[#7a2a3e]">
               {gemstone.category}
             </p>
-            <p className="mt-4 text-xs uppercase tracking-[0.18em] text-[#fdfaf7]/70">
+            <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[#fdfaf7]/70">
               {gemstone.subtitle}
             </p>
-            <h2 className="mt-5 font-serif text-5xl font-light leading-none tracking-[-0.02em] text-[#fdfaf7] sm:text-7xl lg:text-8xl">
+            <h2 className="mt-3 font-serif text-3xl font-light leading-none tracking-[-0.02em] text-[#fdfaf7] sm:text-4xl lg:text-5xl">
               {gemstone.title}
             </h2>
-            <p className="mt-5 max-w-xl font-serif text-xl italic leading-snug text-[#7a2a3e]">
+            <p className="mt-3 max-w-lg font-serif text-base italic leading-snug text-[#7a2a3e]">
               {gemstone.shortPersonality}
             </p>
-            <div className="mt-5 h-0.5 w-16" style={{ backgroundColor: accentColor }} />
+            <div className="mt-3 h-0.5 w-8" style={{ backgroundColor: accentColor }} />
 
             <AnimatePresence initial={false}>
               {open && (
@@ -141,8 +141,8 @@ function GemstoneCard({
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-8 space-y-7 border-t-2 border-white/40 pt-8">
-                    <p className="max-w-3xl text-base leading-8 text-[#fdfaf7]/90">
+                  <div className="mt-5 space-y-5 border-t-2 border-white/40 pt-5">
+                    <p className="max-w-3xl text-sm leading-7 text-[#fdfaf7]/90">
                       {gemstone.longPersonality}
                     </p>
 
@@ -205,9 +205,9 @@ function GemstoneCard({
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-label={`${gemstone.title} részleteinek ${open ? "bezárása" : "megnyitása"}`}
-          className="flex items-start justify-end px-4 pt-8 font-serif text-5xl font-thin leading-none text-[#7a2a3e] transition hover:text-[#fdfaf7] md:px-8 md:pt-0"
+          className="flex items-start justify-end px-4 pt-5 font-serif text-3xl font-thin leading-none text-[#7a2a3e] transition hover:text-[#fdfaf7] md:px-5 md:pt-0"
         >
-          <span className="mr-4 hidden pt-4 text-xs uppercase tracking-[0.25em] opacity-70 md:inline">
+          <span className="mr-3 hidden pt-2 text-[10px] uppercase tracking-[0.22em] opacity-70 md:inline">
             Részletek
           </span>
           <motion.span

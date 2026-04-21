@@ -278,7 +278,7 @@ function buildProductImageRecords(
   };
 }
 
-export async function createProductAction(formData: FormData) {
+export async function createProductAction(formData: FormData): Promise<{ ok: boolean; message: string }> {
   await requireAdminUser("/admin/products/new");
   const { data, specialtyIds } = await parseProductFormData(formData);
   const { uploadedImages, coverImageKey } = buildProductImageRecords(formData, data.name);
@@ -355,10 +355,10 @@ export async function createProductAction(formData: FormData) {
 
   revalidateCatalogPaths();
   revalidatePath(`/product/${product.slug}`);
-  redirect("/admin/products");
+  return { ok: true, message: "Termék létrehozva." };
 }
 
-export async function updateProductAction(formData: FormData) {
+export async function updateProductAction(formData: FormData): Promise<{ ok: boolean; message: string }> {
   await requireAdminUser("/admin/products");
 
   const productId = readProductId(formData);
@@ -544,8 +544,7 @@ export async function updateProductAction(formData: FormData) {
   revalidateCatalogPaths();
   revalidatePath(`/product/${existingProduct.slug}`);
   revalidatePath(`/product/${data.slug}`);
-  revalidatePath(`/admin/products/${productId}/edit`);
-  redirect("/admin/products");
+  return { ok: true, message: "Termék frissítve." };
 }
 
 export async function deleteProductAction(formData: FormData) {

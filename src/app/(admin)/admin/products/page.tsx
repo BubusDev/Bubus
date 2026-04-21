@@ -1,339 +1,78 @@
-import { Archive, Gift, Pencil, Percent, Sparkles, Trash2 } from "lucide-react";
-import Image from "next/image";
-
-import {
-  deleteProductAction,
-  toggleProductArchiveAction,
-  toggleProductFlagAction,
-} from "@/app/(admin)/admin/products/actions";
-import {
-  AdminActionButton,
-  AdminActionLink,
-} from "@/components/admin/AdminActionButton";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { formatPrice, homepagePlacementLabels } from "@/lib/catalog";
-import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
-import { getAdminProducts, getProductOptionGroups } from "@/lib/products";
+import { db } from "@/lib/db";
+import { getAdminProducts, getAdminProductFormOptions, getProductOptionGroups } from "@/lib/products";
 
-export default async function AdminProductsPage() {
-  const [products, optionGroups] = await Promise.all([
-    getAdminProducts(),
-    getProductOptionGroups(true),
-  ]);
+import { ProductsListClient } from "./components/ProductsListClient";
+
+type AdminProductsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminProductsPage({ searchParams }: AdminProductsPageProps) {
+  const [products, options, optionGroups, allPromoCodes, allAssignedCoupons, params] =
+    await Promise.all([
+      getAdminProducts(),
+      getAdminProductFormOptions(),
+      getProductOptionGroups(true),
+      db.promoCode.findMany({
+        select: {
+          id: true,
+          code: true,
+          discountPercent: true,
+          validFrom: true,
+          validUntil: true,
+          isActive: true,
+        },
+        orderBy: { code: "asc" },
+      }),
+      db.promoCodeProduct.findMany({
+        include: {
+          promoCode: {
+            select: {
+              id: true,
+              code: true,
+              discountPercent: true,
+              validFrom: true,
+              validUntil: true,
+              isActive: true,
+            },
+          },
+        },
+      }),
+      searchParams,
+    ]);
+
+  const assignedCouponsByProductId: Record<
+    string,
+    { promoCodeId: string; code: string; discountPercent: number; validFrom: Date; validUntil: Date | null; isActive: boolean }[]
+  > = {};
+  for (const row of allAssignedCoupons) {
+    const list = assignedCouponsByProductId[row.productId] ?? [];
+    list.push({
+      promoCodeId: row.promoCode.id,
+      code: row.promoCode.code,
+      discountPercent: row.promoCode.discountPercent,
+      validFrom: row.promoCode.validFrom,
+      validUntil: row.promoCode.validUntil,
+      isActive: row.promoCode.isActive,
+    });
+    assignedCouponsByProductId[row.productId] = list;
+  }
+
+  const editParam = typeof params.edit === "string" ? params.edit : null;
+  const isNew = params.new === "1";
 
   return (
-    <AdminShell
-      title="Termékek"
-    >
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <OptionSummary groups={optionGroups} />
-        <AdminActionLink href="/admin/products/new" variant="primary">
-          Új termék
-        </AdminActionLink>
-      </div>
-
-      <div className="space-y-3 md:hidden">
-        {products.map((product) => {
-          const coverImageUrl =
-            product.images.find((image) => image.isCover)?.url ??
-            product.images[0]?.url ??
-            product.imageUrl;
-
-          return (
-            <article key={product.id} className="admin-panel-soft p-4">
-              {(() => {
-                const snapshot = getProductAvailabilitySnapshot(product);
-                const statusLabel =
-                  snapshot.lifecycleStatus === "active"
-                    ? "Aktív"
-                    : snapshot.lifecycleStatus === "draft"
-                      ? "Draft"
-                    : snapshot.lifecycleStatus === "sold_out"
-                      ? "Elfogyott"
-                      : "Hiányos";
-
-                return (
-                  <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <span className="admin-badge-neutral admin-pill">{statusLabel}</span>
-                    <span className="text-xs text-[var(--admin-ink-500)]">
-                      Készlet: {product.stockQuantity} db
-                    </span>
-                    {snapshot.readinessIssues.length > 0 ? (
-                      <span className="text-xs text-[#9b476f]">
-                        {snapshot.readinessIssues[0]?.message}
-                      </span>
-                    ) : null}
-                  </div>
-                );
-              })()}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-3">
-                  <ProductThumbnail src={coverImageUrl} alt={product.name} />
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold leading-snug text-[var(--admin-ink-900)]">
-                      {product.name}
-                    </p>
-                    <p className="mt-1 break-all text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
-                  </div>
-                </div>
-                <p className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
-                  {formatPrice(product.price)}
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-2 text-sm text-[var(--admin-ink-700)]">
-                <div className="flex justify-between gap-3">
-                  <span className="text-[var(--admin-ink-500)]">Kategória</span>
-                  <span className="font-medium text-[var(--admin-ink-900)]">{product.category.name}</span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-[var(--admin-ink-500)]">Kihelyezés</span>
-                  <span className="text-right font-medium text-[var(--admin-ink-900)]">
-                    {
-                      homepagePlacementLabels[
-                        product.homepagePlacement.toLowerCase() as keyof typeof homepagePlacementLabels
-                      ]
-                    }
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-[var(--admin-line-100)] pt-4">
-                <p className="mb-2 text-xs font-medium text-[var(--admin-ink-500)]">Jelölések</p>
-                <div className="flex flex-wrap gap-1.5">
-                  <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
-                  <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
-                  <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
-                  <ProductArchiveToggle productId={product.id} />
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--admin-line-100)] pt-4">
-                <AdminActionLink href={`/admin/products/${product.id}/edit`} size="sm" className="!h-9 !w-9 !p-0" title="Szerkesztés">
-                  <Pencil className="h-4 w-4" />
-                </AdminActionLink>
-                <form action={deleteProductAction}>
-                  <input type="hidden" name="productId" value={product.id} />
-                  <AdminActionButton type="submit" variant="danger" size="sm" className="!h-9 !w-9 !p-0" title="Törlés">
-                    <Trash2 className="h-4 w-4" />
-                  </AdminActionButton>
-                </form>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-
-      <div className="admin-table-shell hidden md:block">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left">
-            <thead className="admin-table-head text-[10px] uppercase tracking-[0.28em] text-[var(--admin-ink-500)]">
-              <tr>
-                <th className="px-5 py-4">Termék</th>
-                <th className="px-5 py-4">Kategória</th>
-                <th className="px-5 py-4">Ár</th>
-                <th className="px-5 py-4">Állapot</th>
-                <th className="px-5 py-4">Kihelyezés</th>
-                <th className="px-5 py-4">Jelölések</th>
-                <th className="px-5 py-4">Műveletek</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => {
-                const snapshot = getProductAvailabilitySnapshot(product);
-                const coverImageUrl =
-                  product.images.find((image) => image.isCover)?.url ??
-                  product.images[0]?.url ??
-                  product.imageUrl;
-                const statusLabel =
-                  snapshot.lifecycleStatus === "active"
-                    ? "Aktív"
-                    : snapshot.lifecycleStatus === "draft"
-                      ? "Draft"
-                    : snapshot.lifecycleStatus === "sold_out"
-                      ? "Elfogyott"
-                      : "Hiányos";
-
-                return (
-                  <tr key={product.id} className="admin-table-row last:border-b-0">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <ProductThumbnail src={coverImageUrl} alt={product.name} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-[var(--admin-ink-900)]">{product.name}</p>
-                        <p className="mt-1 text-sm text-[var(--admin-ink-600)]">/{product.slug}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
-                    {product.category.name}
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
-                    {formatPrice(product.price)}
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium text-[var(--admin-ink-900)]">{statusLabel}</span>
-                      <span className="text-xs text-[var(--admin-ink-500)]">
-                        {product.stockQuantity} db készlet
-                      </span>
-                      {snapshot.readinessIssues.length > 0 ? (
-                        <span className="text-xs text-[#9b476f]">
-                          {snapshot.readinessIssues[0]?.message}
-                        </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
-                    {
-                      homepagePlacementLabels[
-                        product.homepagePlacement.toLowerCase() as keyof typeof homepagePlacementLabels
-                      ]
-                    }
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <ProductFlagToggle productId={product.id} flag="isNew" active={product.isNew} />
-                      <ProductFlagToggle productId={product.id} flag="isGiftable" active={product.isGiftable} />
-                      <ProductFlagToggle productId={product.id} flag="isOnSale" active={product.isOnSale} />
-                      <ProductArchiveToggle productId={product.id} />
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <AdminActionLink
-                        href={`/admin/products/${product.id}/edit`}
-                        size="sm"
-                        className="!h-8 !w-8 !p-0"
-                        title="Szerkesztés"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </AdminActionLink>
-                      <form action={deleteProductAction}>
-                        <input type="hidden" name="productId" value={product.id} />
-                        <AdminActionButton type="submit" variant="danger" size="sm" className="!h-8 !w-8 !p-0" title="Törlés">
-                          <Trash2 className="h-4 w-4" />
-                        </AdminActionButton>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <AdminShell title="Termékek">
+      <ProductsListClient
+        products={products}
+        options={options}
+        optionGroups={optionGroups}
+        allPromoCodes={allPromoCodes}
+        assignedCouponsByProductId={assignedCouponsByProductId}
+        initialMode={isNew ? "new" : null}
+        initialEditProductId={editParam}
+      />
     </AdminShell>
-  );
-}
-
-function ProductThumbnail({ src, alt }: { src?: string | null; alt: string }) {
-  return (
-    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          className="object-cover"
-          sizes="56px"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-[var(--admin-ink-400)]">
-          Nincs kép
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OptionSummary({
-  groups,
-}: {
-  groups: Awaited<ReturnType<typeof getProductOptionGroups>>;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2 text-xs text-[var(--admin-ink-600)]">
-      {groups.map((group) => {
-        const activeCount = group.options.filter((option) => option.isActive).length;
-        const navCount =
-          group.type === "CATEGORY"
-            ? group.options.filter(
-                (option) =>
-                  option.isActive &&
-                  option.isStorefrontVisible &&
-                  option.showInMainNav,
-              ).length
-            : null;
-
-        return (
-          <span key={group.type} className="admin-badge-neutral admin-pill">
-            {group.label}: {activeCount}
-            {navCount !== null ? ` / főmenü: ${navCount}` : ""}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-const flagIconMap = {
-  isNew: Sparkles,
-  isGiftable: Gift,
-  isOnSale: Percent,
-} as const;
-
-const flagTitleMap = {
-  isNew: "Új",
-  isGiftable: "Ajándékozható",
-  isOnSale: "Akciós",
-} as const;
-
-function ProductFlagToggle({
-  productId,
-  flag,
-  active,
-}: {
-  productId: string;
-  flag: "isNew" | "isGiftable" | "isOnSale";
-  active: boolean;
-}) {
-  const Icon = flagIconMap[flag];
-  const title = flagTitleMap[flag];
-  return (
-    <form action={toggleProductFlagAction}>
-      <input type="hidden" name="productId" value={productId} />
-      <input type="hidden" name="flag" value={flag} />
-      <input type="hidden" name="nextValue" value={String(!active)} />
-      <AdminActionButton
-        type="submit"
-        size="sm"
-        variant={active ? "primary" : "secondary"}
-        className="!h-8 !w-8 !p-0"
-        title={title}
-      >
-        <Icon className="h-4 w-4" />
-      </AdminActionButton>
-    </form>
-  );
-}
-
-function ProductArchiveToggle({ productId }: { productId: string }) {
-  return (
-    <form action={toggleProductArchiveAction}>
-      <input type="hidden" name="productId" value={productId} />
-      <input type="hidden" name="nextArchived" value="true" />
-      <input type="hidden" name="archiveReason" value="DISCONTINUED" />
-      <AdminActionButton
-        type="submit"
-        size="sm"
-        variant="danger"
-        className="!h-8 !w-8 !p-0"
-        title="Archiválás"
-      >
-        <Archive className="h-4 w-4" />
-      </AdminActionButton>
-    </form>
   );
 }
