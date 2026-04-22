@@ -1,6 +1,7 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
+import { createPortal } from "react-dom";
 import {
   useEffect,
   useMemo,
@@ -8,6 +9,7 @@ import {
   useState,
   useTransition,
   type ChangeEvent,
+  type CSSProperties,
   type DragEvent,
   type FormEvent,
   type ReactNode,
@@ -711,6 +713,9 @@ function ManagedOptionSelect({
   selectedValue: string;
 }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
   const filteredOptions = useMemo(() => {
     const query = managerState.query.trim().toLocaleLowerCase("hu-HU");
     if (!query) return options;
@@ -722,12 +727,15 @@ function ManagedOptionSelect({
   const pendingDelete = isPending && managerState.status === "deleting";
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!managerState.isOpen) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (wrapperRef.current?.contains(event.target as Node)) {
-        return;
-      }
+      if (wrapperRef.current?.contains(event.target as Node)) return;
+      if (panelRef.current?.contains(event.target as Node)) return;
       onClose();
     }
 
@@ -735,8 +743,59 @@ function ManagedOptionSelect({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [managerState.isOpen, onClose]);
 
+  // Capture-phase Escape: closes taxonomy panel without bubbling to the product panel's handler
+  useEffect(() => {
+    if (!managerState.isOpen) return;
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape, { capture: true });
+    return () => document.removeEventListener("keydown", handleEscape, { capture: true });
+  }, [managerState.isOpen, onClose]);
+
+  // Recalculate portal position when the panel opens or the viewport changes
+  useEffect(() => {
+    if (!managerState.isOpen || !mounted) return;
+
+    function updatePosition() {
+      if (!wrapperRef.current) return;
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+
+      if (vw >= 1024) {
+        // lg: panel appears to the LEFT of the field, aligned to its top
+        setPortalStyle({
+          position: "fixed",
+          top: Math.max(8, rect.top),
+          right: vw - rect.left + 12,
+        });
+      } else {
+        // <lg: panel appears BELOW the field
+        const panelWidth = Math.min(352, vw - 32);
+        setPortalStyle({
+          position: "fixed",
+          top: rect.bottom + 8,
+          left: Math.max(8, Math.min(rect.left, vw - panelWidth - 8)),
+        });
+      }
+    }
+
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [managerState.isOpen, mounted]);
+
   return (
-    <div ref={wrapperRef} className="relative isolate">
+    <div ref={wrapperRef} className="relative">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className={eyebrowCls}>
           {label}
@@ -770,9 +829,11 @@ function ManagedOptionSelect({
           ))}
         </select>
       </div>
-      {managerState.isOpen ? (
+      {mounted && managerState.isOpen ? createPortal(
         <div
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-40 w-[min(22rem,calc(100vw-2rem))] rounded-md border border-[#bfd0ea] bg-white p-2.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)] [animation:option-panel-in_150ms_ease-out] lg:left-auto lg:right-[calc(100%+0.75rem)] lg:top-0"
+          ref={panelRef}
+          style={portalStyle}
+          className="z-[110] w-[min(22rem,calc(100vw-2rem))] rounded-md border border-[#bfd0ea] bg-white p-2.5 shadow-[0_18px_40px_rgba(15,23,42,0.14)] [animation:option-panel-in_150ms_ease-out]"
           aria-label={`${label} opciókezelő panel`}
         >
           <span className="absolute -right-2 top-9 hidden h-4 w-4 rotate-45 border-r border-t border-[#bfd0ea] bg-white lg:block" />
@@ -953,7 +1014,7 @@ function ManagedOptionSelect({
             </p>
           )}
         </div>
-      ) : null}
+      , document.body) : null}
       {error && <p className="mt-1.5 text-xs text-[#9b476f]">{error}</p>}
     </div>
   );
