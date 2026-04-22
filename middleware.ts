@@ -10,7 +10,6 @@ const AUTH_SECRET =
   (process.env.NODE_ENV === "development" ? "bubus-dev-auth-secret-change-me" : undefined);
 
 const PUBLIC_STORE_PATHS = new Set([
-  "/",
   "/coming-soon",
   "/early-access-pending",
   "/sign-in",
