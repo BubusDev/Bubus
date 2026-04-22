@@ -42,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           role: user.role,
           emailVerifiedAt: user.emailVerifiedAt.toISOString(),
+          earlyAccess: user.earlyAccess,
         };
       },
     }),
@@ -52,6 +53,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = user.id;
         token.role = user.role;
         token.emailVerifiedAt = user.emailVerifiedAt;
+        token.earlyAccess = user.earlyAccess;
       }
 
       return token;
@@ -62,6 +64,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as "USER" | "ADMIN";
         session.user.emailVerifiedAt =
           typeof token.emailVerifiedAt === "string" ? token.emailVerifiedAt : null;
+        session.user.earlyAccess = token.earlyAccess === true;
       }
 
       return session;

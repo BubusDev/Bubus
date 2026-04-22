@@ -15,12 +15,14 @@ const localAccounts = [
     email: "local-admin@bubus.test",
     password: "LocalAdmin123!",
     role: "ADMIN" as const,
+    earlyAccess: true,
   },
   {
     name: "Local User",
     email: "local-user@bubus.test",
     password: "LocalUser123!",
     role: "USER" as const,
+    earlyAccess: false,
   },
 ];
 
@@ -62,6 +64,7 @@ async function main() {
         name: account.name,
         passwordHash,
         role: account.role,
+        earlyAccess: account.earlyAccess,
         emailVerifiedAt,
         newsletterSubscribed: false,
       },
@@ -70,6 +73,7 @@ async function main() {
         email: account.email,
         passwordHash,
         role: account.role,
+        earlyAccess: account.earlyAccess,
         emailVerifiedAt,
         newsletterSubscribed: false,
       },

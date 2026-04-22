@@ -95,6 +95,7 @@ model User {
   passwordHash           String
   emailVerifiedAt        DateTime?
   role                   UserRole   @default(USER)
+  earlyAccess            Boolean    @default(false)
   phone                  String?
   birthDate              DateTime?
   profileImageUrl        String?

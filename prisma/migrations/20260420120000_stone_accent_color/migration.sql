@@ -1,4 +1,29 @@
-ALTER TABLE "Stone" ADD COLUMN "accent_color" TEXT;
+CREATE TABLE IF NOT EXISTS "Stone" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "color" TEXT NOT NULL,
+    "colorHex" TEXT NOT NULL,
+    "shortDesc" TEXT NOT NULL,
+    "longDesc" TEXT NOT NULL,
+    "effects" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    "origin" TEXT,
+    "chakra" TEXT,
+    "imageUrl" TEXT,
+    "accent_color" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Stone_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Stone_name_key" ON "Stone"("name");
+CREATE UNIQUE INDEX IF NOT EXISTS "Stone_slug_key" ON "Stone"("slug");
+CREATE INDEX IF NOT EXISTS "Stone_sortOrder_idx" ON "Stone"("sortOrder");
+
+ALTER TABLE "Stone"
+    ADD COLUMN IF NOT EXISTS "accent_color" TEXT;
 
 UPDATE "Stone"
 SET "accent_color" = CASE

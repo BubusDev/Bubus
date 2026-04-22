@@ -22,6 +22,7 @@ import {
   Activity,
   TicketPercent,
   Gem,
+  ShieldCheck,
   X,
 } from "lucide-react";
 
@@ -95,6 +96,7 @@ const navGroups: NavGroup[] = [
     label: "Beállítások",
     items: [
       { label: "Általános", href: "/admin/settings", icon: Settings },
+      { label: "Early access", href: "/admin/settings/early-access", icon: ShieldCheck },
       { label: "Profil", href: "/profile", icon: User },
     ],
   },

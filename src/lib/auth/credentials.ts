@@ -8,6 +8,7 @@ export type VerifiedCredentialsUser = {
   name: string | null;
   role: "USER" | "ADMIN";
   emailVerifiedAt: Date;
+  earlyAccess: boolean;
 };
 
 export async function verifyCredentials(email: string, password: string) {
@@ -24,6 +25,7 @@ export async function verifyCredentials(email: string, password: string) {
       email: true,
       name: true,
       role: true,
+      earlyAccess: true,
       passwordHash: true,
       emailVerifiedAt: true,
     },
@@ -45,5 +47,6 @@ export async function verifyCredentials(email: string, password: string) {
     name: user.name,
     role: user.role,
     emailVerifiedAt: user.emailVerifiedAt,
+    earlyAccess: user.earlyAccess,
   } satisfies VerifiedCredentialsUser;
 }
