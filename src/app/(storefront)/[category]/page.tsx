@@ -79,7 +79,7 @@ export default async function CategoryPage({
   ]);
   const filteredProducts = filterProducts(baseProducts, state);
   const sortedProducts = sortProducts(filteredProducts, state.sort);
-  const filterGroups = await getFilterGroupsForAvailableFilters(availableFilters);
+  const filterGroups = await getFilterGroupsForAvailableFilters(availableFilters, baseProducts);
 
   return (
     <CollectionPage

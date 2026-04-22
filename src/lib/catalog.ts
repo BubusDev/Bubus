@@ -134,6 +134,7 @@ export type FilterKey =
 export type FilterOption = {
   label: string;
   value: string;
+  count?: number;
 };
 
 export type FilterGroup = {

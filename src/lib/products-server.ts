@@ -937,32 +937,53 @@ export async function getCategorySlugs() {
 
 export async function getFilterGroupsForAvailableFilters(
   availableFilters: Awaited<ReturnType<typeof getFilterOptionsForCategory>>,
+  products?: Product[],
 ): Promise<FilterGroup[]> {
   const optionGroups = await getProductOptionGroups();
   const optionsByType = new Map(optionGroups.map((group) => [group.type, group.options]));
+  const countValues = (values: string[]) =>
+    values.reduce<Map<string, number>>((counts, value) => {
+      counts.set(value, (counts.get(value) ?? 0) + 1);
+      return counts;
+    }, new Map<string, number>());
 
-  const pickOptions = (type: ProductOptionType, values: string[]) => {
+  const categoryCounts = countValues(products?.map((product) => product.category) ?? []);
+  const stoneCounts = countValues(products?.map((product) => product.stoneType) ?? []);
+  const colorCounts = countValues(products?.map((product) => product.color) ?? []);
+  const styleCounts = countValues(products?.map((product) => product.style) ?? []);
+  const occasionCounts = countValues(products?.map((product) => product.occasion) ?? []);
+  const availabilityCounts = countValues(products?.map((product) => product.availability) ?? []);
+
+  const pickOptions = (
+    type: ProductOptionType,
+    values: string[],
+    counts: Map<string, number>,
+  ) => {
     const options = optionsByType.get(type) ?? [];
     const selectedValues = new Set(values);
     return options
       .filter((option) => selectedValues.has(option.slug))
-      .map((option) => ({ label: option.name, value: option.slug }));
+      .map((option) => ({
+        label: option.name,
+        value: option.slug,
+        count: counts.get(option.slug),
+      }));
   };
 
   return filterGroupDefinitions.map((group) => ({
     ...group,
     options:
       group.key === "category"
-        ? pickOptions("CATEGORY", availableFilters.categories)
+        ? pickOptions("CATEGORY", availableFilters.categories, categoryCounts)
         : group.key === "stone"
-          ? pickOptions("STONE_TYPE", availableFilters.stones)
+          ? pickOptions("STONE_TYPE", availableFilters.stones, stoneCounts)
           : group.key === "color"
-            ? pickOptions("COLOR", availableFilters.colors)
+            ? pickOptions("COLOR", availableFilters.colors, colorCounts)
             : group.key === "style"
-              ? pickOptions("STYLE", availableFilters.styles)
+              ? pickOptions("STYLE", availableFilters.styles, styleCounts)
               : group.key === "occasion"
-                ? pickOptions("OCCASION", availableFilters.occasions)
-                : pickOptions("AVAILABILITY", availableFilters.availability),
+                ? pickOptions("OCCASION", availableFilters.occasions, occasionCounts)
+                : pickOptions("AVAILABILITY", availableFilters.availability, availabilityCounts),
   }));
 }
 

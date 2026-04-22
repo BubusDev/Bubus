@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
+import { ArrowRight, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import {
   formatPrice,
@@ -22,310 +23,415 @@ type FilterSidebarProps = {
 
 type AccordionGroupKey = FilterGroup["key"] | "price";
 
-// ── PRICE OPTIONS (right panel content) ────────────────────────────────────
-function PriceOptions({
-  state,
-  availableFilters,
-}: {
-  state: ParsedCollectionState;
-  availableFilters: CatalogFilters;
-}) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+const FILTER_PARAM_KEYS = [
+  "category",
+  "stone",
+  "color",
+  "style",
+  "occasion",
+  "availability",
+  "priceMin",
+  "priceMax",
+  "special",
+] as const;
 
+function getActiveFilterCount(state: ParsedCollectionState) {
+  return (
+    Object.values(state.selected).reduce((sum, values) => sum + values.length, 0) +
+    (typeof state.priceMin === "number" || typeof state.priceMax === "number" ? 1 : 0) +
+    (state.special ? 1 : 0)
+  );
+}
+
+function getDefaultExpandedKeys(groups: FilterGroup[]) {
+  return groups
+    .filter((group) => group.options.length > 0)
+    .slice(0, 2)
+    .map((group) => group.key as AccordionGroupKey);
+}
+
+function getPricePresets(availableFilters: CatalogFilters) {
   const [priceMin, priceMax] = availableFilters.priceRange;
-  const low  = Math.round((priceMin + (priceMax - priceMin) * 0.33) / 1000) * 1000;
+  const low = Math.round((priceMin + (priceMax - priceMin) * 0.33) / 1000) * 1000;
   const high = Math.round((priceMin + (priceMax - priceMin) * 0.66) / 1000) * 1000;
 
-  const presets = [
-    { label: `${formatPrice(low)} alatt`,                    min: undefined, max: low  },
-    { label: `${formatPrice(low)} – ${formatPrice(high)}`,   min: low,       max: high },
-    { label: `${formatPrice(high)} felett`,                  min: high,      max: undefined },
+  return [
+    { label: `${formatPrice(low)} alatt`, min: undefined, max: low },
+    { label: `${formatPrice(low)} – ${formatPrice(high)}`, min: low, max: high },
+    { label: `${formatPrice(high)} felett`, min: high, max: undefined },
   ];
-
-  return (
-    <div className="fp-rb">
-      <p className="fp-rl">Aktuális ársáv</p>
-      <p className="fp-prange">
-        {formatPrice(availableFilters.priceRange[0])} – {formatPrice(availableFilters.priceRange[1])}
-      </p>
-      <p className="fp-rl" style={{ marginTop: 14 }}>Gyors választás</p>
-      {presets.map((preset) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete("priceMin");
-        params.delete("priceMax");
-        if (typeof preset.min === "number") params.set("priceMin", String(preset.min));
-        if (typeof preset.max === "number") params.set("priceMax", String(preset.max));
-        const isActive = state.priceMin === preset.min && state.priceMax === preset.max;
-        return (
-          <Link
-            key={preset.label}
-            href={params.size > 0 ? `${pathname}?${params.toString()}` : pathname}
-            className={`fp-ro ${isActive ? "fp-ro-active" : ""}`}
-          >
-            <span>{preset.label}</span>
-            {isActive && <span className="fp-check">✓</span>}
-          </Link>
-        );
-      })}
-    </div>
-  );
 }
 
-// ── GROUP OPTIONS (right panel content) ────────────────────────────────────
-function GroupOptions({ group, state }: { group: FilterGroup; state: ParsedCollectionState }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  return (
-    <div className="fp-rb">
-      {group.options.map((option) => {
-        const params = new URLSearchParams(searchParams.toString());
-        const currentValues = params.getAll(group.key);
-        const active = currentValues.includes(option.value);
-        if (active) {
-          params.delete(group.key);
-          currentValues.filter((v) => v !== option.value).forEach((v) => params.append(group.key, v));
-        } else {
-          params.append(group.key, option.value);
-        }
-        const href = params.size > 0 ? `${pathname}?${params.toString()}` : pathname;
-        return (
-          <Link key={option.value} href={href} className={`fp-ro ${active ? "fp-ro-active" : ""}`}>
-            <span>{option.label}</span>
-            {active && <span className="fp-check">✓</span>}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── FILTER PANEL (two-column) ───────────────────────────────────────────────
-function FilterPanel({
+function FilterContent({
   availableFilters,
   filterGroups,
   state,
   onClose,
-}: FilterSidebarProps & { onClose?: () => void }) {
+}: FilterSidebarProps & { onClose: () => void }) {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [activeGroup, setActiveGroup] = useState<AccordionGroupKey | null>(null);
-  const [search, setSearch] = useState("");
+  const visibleGroups = filterGroups.filter((group) => group.options.length > 0);
+  const [expandedGroups, setExpandedGroups] = useState<AccordionGroupKey[]>(() =>
+    getDefaultExpandedKeys(filterGroups),
+  );
+  const hasPriceFilter = typeof state.priceMin === "number" || typeof state.priceMax === "number";
+  const pricePresets = getPricePresets(availableFilters);
 
-  const visibleGroups = filterGroups.filter((g) => g.options.length > 0);
-  const hasActivePriceRange = typeof state.priceMin === "number" || typeof state.priceMax === "number";
+  const updateParams = (params: URLSearchParams) => {
+    router.replace(params.size > 0 ? `${pathname}?${params.toString()}` : pathname, {
+      scroll: false,
+    });
+  };
 
-  type GroupMeta = { key: AccordionGroupKey; label: string; count: number };
-  const allGroups: GroupMeta[] = [
-    ...visibleGroups.map((g) => ({ key: g.key as AccordionGroupKey, label: g.label, count: state.selected[g.key].length })),
-    { key: "price", label: "Ár", count: hasActivePriceRange ? 1 : 0 },
-  ];
+  const clearAllFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    FILTER_PARAM_KEYS.forEach((key) => params.delete(key));
+    updateParams(params);
+  };
 
-  const filtered = search.trim()
-    ? allGroups.filter((g) => g.label.toLowerCase().includes(search.toLowerCase()))
-    : allGroups;
+  const toggleGroup = (groupKey: AccordionGroupKey) => {
+    setExpandedGroups((current) =>
+      current.includes(groupKey)
+        ? current.filter((key) => key !== groupKey)
+        : [...current, groupKey],
+    );
+  };
 
-  const activeFilterGroup = visibleGroups.find((g) => g.key === activeGroup) ?? null;
-  const activeLabel = allGroups.find((g) => g.key === activeGroup)?.label ?? "";
+  const toggleOption = (groupKey: FilterGroup["key"], value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const currentValues = params.getAll(groupKey);
+    const nextValues = currentValues.includes(value)
+      ? currentValues.filter((entry) => entry !== value)
+      : [...currentValues, value];
 
-  return (
-    <div className="fp-wrap">
+    params.delete(groupKey);
+    nextValues.forEach((entry) => params.append(groupKey, entry));
+    updateParams(params);
+  };
 
-      {/* ── LEFT RAIL ── */}
-      <div className="fp-left">
-        <div className="fp-lh">
-          <div>
-            <h2 className="fp-htitle">SZŰRŐK</h2>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            {searchParams.size > 0 && (
-              <Link href={pathname} className="fp-xbtn" title="Összes törlése">
-                <X style={{ width:12, height:12 }} />
-              </Link>
-            )}
-            {onClose && (
-              <button type="button" onClick={onClose} className="fp-xbtn">
-                <X style={{ width:14, height:14 }} />
-              </button>
-            )}
-          </div>
-        </div>
+  const setPricePreset = (nextMin?: number, nextMax?: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const isActive = state.priceMin === nextMin && state.priceMax === nextMax;
 
-        <div className="fp-search">
-          <Search className="fp-search-ico" />
-          <input
-            type="text"
-            placeholder="Szűrő keresése…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="fp-search-inp"
-          />
-        </div>
+    params.delete("priceMin");
+    params.delete("priceMax");
 
-        <nav className="fp-nav">
-          {filtered.map((g) => {
-            const isActive = activeGroup === g.key;
+    if (!isActive) {
+      if (typeof nextMin === "number") params.set("priceMin", String(nextMin));
+      if (typeof nextMax === "number") params.set("priceMax", String(nextMax));
+    }
+
+    updateParams(params);
+  };
+
+  const sections: Array<{
+    key: AccordionGroupKey;
+    label: string;
+    activeCount: number;
+    content: React.ReactNode;
+  }> = [
+    ...visibleGroups.map((group) => ({
+      key: group.key as AccordionGroupKey,
+      label: group.label,
+      activeCount: searchParams.getAll(group.key).length,
+      content: (
+        <div className="space-y-1 px-5 py-2">
+          {group.options.map((option) => {
+            const checked = searchParams.getAll(group.key).includes(option.value);
+
             return (
-              <button
-                key={g.key}
-                type="button"
-                onClick={() => setActiveGroup(isActive ? null : g.key)}
-                className={`fp-ni ${isActive ? "fp-ni-active" : ""}`}
+              <label
+                key={option.value}
+                className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2 transition hover:bg-[#fbf7f5]"
               >
-                <span className="fp-nl">{g.label}</span>
-                <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-                  {g.count > 0 && <span className="fp-badge">{g.count}</span>}
-                  <ChevronRight className={`fp-chev ${isActive ? "fp-chev-active" : ""}`} />
+                <span className="flex min-w-0 items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleOption(group.key, option.value)}
+                    className="h-4 w-4 rounded border border-black/15 accent-[#d45890]"
+                  />
+                  <span className="truncate text-sm text-[#2f2930]">{option.label}</span>
                 </span>
-              </button>
+                {typeof option.count === "number" ? (
+                  <span className="shrink-0 text-xs text-black/45">({option.count})</span>
+                ) : null}
+              </label>
             );
           })}
-        </nav>
-
-        {searchParams.size > 0 && (
-          <div className="fp-lf">
-            <Link href={pathname} className="fp-clr">
-              <X style={{ width:11, height:11 }} />
-              Összes törlése
-            </Link>
+        </div>
+      ),
+    })),
+    {
+      key: "price",
+      label: "Ár",
+      activeCount: hasPriceFilter ? 1 : 0,
+      content: (
+        <div className="space-y-1 px-5 py-2">
+          <div className="rounded-lg border border-black/[0.05] bg-[#fcfbfa] px-3 py-3">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-[#cf5a90]">
+              Aktuális ársáv
+            </p>
+            <p className="mt-1 text-sm font-medium text-[#2f2930]">
+              {formatPrice(availableFilters.priceRange[0])} – {formatPrice(availableFilters.priceRange[1])}
+            </p>
           </div>
-        )}
+          {pricePresets.map((preset) => {
+            const checked = state.priceMin === preset.min && state.priceMax === preset.max;
+
+            return (
+              <label
+                key={preset.label}
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-[#fbf7f5]"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => setPricePreset(preset.min, preset.max)}
+                  className="h-4 w-4 rounded border border-black/15 accent-[#d45890]"
+                />
+                <span className="text-sm text-[#2f2930]">{preset.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex max-h-[inherit] min-h-0 flex-col">
+      <div className="border-b border-gray-100 px-5 pb-3 pt-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#cf5a90]">
+          Szűrők
+        </p>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
-      {activeGroup !== null && (
-        <div className="fp-right">
-          <div className="fp-rh">
-            <span className="fp-rtitle">{activeLabel}</span>
-            <button type="button" onClick={() => setActiveGroup(null)} className="fp-xbtn">
-              <X style={{ width:14, height:14 }} />
-            </button>
-          </div>
-          {activeGroup === "price"
-            ? <PriceOptions state={state} availableFilters={availableFilters} />
-            : activeFilterGroup
-              ? <GroupOptions group={activeFilterGroup} state={state} />
-              : null}
-        </div>
-      )}
+      <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        {sections.map((section) => {
+          const expanded = expandedGroups.includes(section.key);
 
-      <style>{`
-        .fp-wrap{display:flex;width:100%;min-height:300px;overflow:hidden;}
+          return (
+            <div key={section.key} className="border-b border-gray-100 last:border-b-0">
+              <button
+                type="button"
+                onClick={() => toggleGroup(section.key)}
+                className="flex w-full items-center justify-between px-5 py-3 text-left"
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-[#2f2930]">
+                  <span>{section.label}</span>
+                  {section.activeCount > 0 ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#f9dce8] px-1.5 py-0.5 text-[10px] font-semibold text-[#c2457e]">
+                      {section.activeCount}
+                    </span>
+                  ) : null}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-black/45 transition-transform duration-200 ${
+                    expanded ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-        /* left */
-        .fp-left{display:flex;flex-direction:column;width:196px;flex-shrink:0;border-right:1px solid #f5e2eb;}
-        .fp-lh{display:flex;align-items:flex-start;justify-content:space-between;padding:15px 14px 11px;border-bottom:1px solid #f5e2eb;}
-        .fp-eye{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3em;color:#c0517a;margin-bottom:3px;}
-        .fp-htitle{font-size:1rem;font-weight:600;color:#2f1a27;line-height:1;}
-        .fp-xbtn{display:flex;align-items:center;justify-content:center;min-width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:#b08898;cursor:pointer;transition:background .15s;}
-        .fp-xbtn:hover{background:#fdf0f5;color:#4d2741;}
+              <AnimatePresence initial={false}>
+                {expanded ? (
+                  <motion.div
+                    key={`${section.key}-content`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    {section.content}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
 
-        /* search */
-        .fp-search{position:relative;padding:9px 11px;border-bottom:1px solid #f5e2eb;}
-        .fp-search-ico{position:absolute;left:20px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:#c0a0b4;pointer-events:none;}
-        .fp-search-inp{width:100%;box-sizing:border-box;min-height:40px;border:1.5px solid #f0d4e0;border-radius:9px;background:rgba(255,255,255,.85);padding:0 10px 0 28px;font-size:12px;color:#2f1a27;outline:none;transition:border-color .2s;font-family:inherit;}
-        .fp-search-inp::placeholder{color:#c4a0b4;}
-        .fp-search-inp:focus{border-color:#c45a85;}
-
-        /* nav */
-        .fp-nav{flex:1;overflow-y:auto;padding:4px 0;}
-        .fp-ni{display:flex;align-items:center;width:100%;min-height:44px;padding:9px 12px;border:none;border-left:2px solid transparent;background:transparent;cursor:pointer;text-align:left;transition:background .12s;font-family:inherit;gap:8px;}
-        .fp-ni:hover{background:rgba(253,240,245,.6);}
-        .fp-ni-active{background:rgba(253,240,245,.9);border-left-color:#c45a85;}
-        .fp-nl{flex:1;font-size:13px;font-weight:500;color:#5a3a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .fp-ni-active .fp-nl{color:#c45a85;}
-        .fp-badge{min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(135deg,#c45a85,#e07a70);color:#fff;font-size:9px;font-weight:700;padding:0 4px;}
-        .fp-chev{width:12px;height:12px;color:#c0a0b4;transition:transform .15s,color .15s;}
-        .fp-chev-active{color:#c45a85;transform:rotate(90deg);}
-
-        /* left footer */
-        .fp-lf{padding:9px 12px;border-top:1px solid #f5e2eb;}
-        .fp-clr{display:inline-flex;min-height:36px;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#c0517a;text-decoration:none;transition:color .15s;}
-        .fp-clr:hover{color:#8f456d;}
-
-        /* right */
-        .fp-right{flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fp-in .18s ease-out;}
-        @keyframes fp-in{from{opacity:0;transform:translateX(8px);}to{opacity:1;transform:translateX(0);}}
-        .fp-rh{display:flex;align-items:center;justify-content:space-between;padding:15px 14px 11px;border-bottom:1px solid #f5e2eb;}
-        .fp-rtitle{font-size:14px;font-weight:600;color:#2f1a27;}
-        .fp-rb{flex:1;overflow-y:auto;padding:10px 12px;}
-        .fp-rl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.26em;color:#c0517a;margin-bottom:6px;}
-        .fp-prange{font-size:14px;font-weight:600;color:#3a1f2d;margin-bottom:4px;}
-        .fp-ro{display:flex;min-height:44px;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:9px;font-size:13px;color:#7a5a6c;text-decoration:none;transition:background .12s,color .12s;margin-bottom:2px;}
-        .fp-ro:hover{background:rgba(253,240,245,.7);color:#3a1f2d;}
-        .fp-ro-active{background:rgba(196,90,133,.08);color:#c45a85;font-weight:500;}
-        .fp-ro-active:hover{background:rgba(196,90,133,.13);}
-        .fp-check{font-size:11px;color:#c45a85;font-weight:700;}
-      `}</style>
+      <div className="sticky bottom-0 flex items-center justify-between border-t border-gray-100 bg-white px-5 py-3">
+        <button
+          type="button"
+          onClick={clearAllFilters}
+          className="text-sm font-medium text-[#9c4a71] transition hover:text-[#7f355a]"
+        >
+          Törlés
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-1 rounded-full bg-[#1f1a1c] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#352d31]"
+        >
+          Alkalmaz <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
 
-// ── SIDEBAR SHELL ──────────────────────────────────────────────────────────
 export function FilterSidebar(props: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const mode = props.mode ?? "both";
-  const compact = props.compact ?? false;
+  const activeCount = getActiveFilterCount(props.state);
   const showTrigger = mode !== "desktop-sidebar";
-  const showDesktopSidebar = mode !== "mobile-trigger" && mode !== "drawer";
-  const drawerAllScreens = mode === "drawer";
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+    return () => mediaQuery.removeEventListener("change", syncViewport);
+  }, [mounted]);
+
+  useEffect(() => {
+    if (!isOpen || !mounted || isMobileViewport) return;
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
+
+      const rect = triggerRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const panelWidth = Math.min(360, viewportWidth - 16);
+
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom + 10,
+        left: Math.max(8, Math.min(rect.left, viewportWidth - panelWidth - 8)),
+        width: panelWidth,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [isOpen, isMobileViewport, mounted]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    document.body.style.overflow = isOpen && isMobileViewport ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isMobileViewport, mounted]);
 
   return (
     <>
-      {showTrigger && (
-        <div className={drawerAllScreens ? undefined : "lg:hidden"}>
+      {showTrigger ? (
+        <div ref={triggerRef} className="relative">
           <button
             type="button"
-            onClick={() => setIsOpen(true)}
-            className={
-              compact
-                ? "inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#d4a0b8] bg-white text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
-                : "inline-flex items-center gap-2 rounded-full border border-[#d4a0b8] bg-white px-4 py-2 text-sm font-medium text-[#5a3a4a] shadow-sm transition hover:bg-[#fdf0f5] hover:border-[#c45a85] hover:text-[#c45a85]"
-            }
+            onClick={() => setIsOpen((current) => !current)}
+            aria-expanded={isOpen}
+            className={`inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-[#352c31] transition ${
+              activeCount > 0
+                ? "border-[#e7bfd2] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
+                : "border-[#e8e5e0] hover:border-[#d8ccd2]"
+            }`}
           >
-            <SlidersHorizontal className="h-4 w-4" strokeWidth={1.5} />
-            {!compact && "Szűrők"}
+            <span className="relative inline-flex h-4 w-4 items-center justify-center">
+              <SlidersHorizontal className="h-4 w-4" strokeWidth={1.6} />
+              {activeCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#d45890]" />
+              ) : null}
+            </span>
+            <span>Szűrők{activeCount > 0 ? ` (${activeCount})` : ""}</span>
           </button>
         </div>
-      )}
+      ) : null}
 
-      {showDesktopSidebar && (
-        <aside className="hidden lg:block lg:shrink-0">
-          <div
-            className="sticky top-28 rounded-[1.6rem] border border-white/80 bg-white/65 backdrop-blur-xl overflow-hidden"
-            style={{ boxShadow: "0 4px 24px rgba(196,90,133,.1)" }}
-          >
-            <FilterPanel {...props} />
-          </div>
-        </aside>
-      )}
-
-      {showTrigger && isOpen && (
-        <div
-          className={`fixed inset-0 z-[200]${drawerAllScreens ? "" : " lg:hidden"}`}
-          style={{ background: "rgba(42,18,30,.4)" }}
-          onClick={() => setIsOpen(false)}
-        >
-          <div
-            className="h-full overflow-y-auto animate-[slideInLeft_.3s_ease-out]"
-            style={{
-              width: "min(380px, 92vw)",
-              background: "#fff",
-              boxShadow: "16px 0 48px -8px rgba(196,90,133,.18)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FilterPanel {...props} onClose={() => setIsOpen(false)} />
-          </div>
-        </div>
-      )}
+      {mounted
+        ? createPortal(
+            <AnimatePresence>
+              {isOpen ? (
+                isMobileViewport ? (
+                  <motion.div
+                    key="filter-mobile-sheet"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.12, ease: "easeIn" }}
+                    className="fixed inset-0 z-[120] bg-black/20 md:hidden"
+                  >
+                    <motion.div
+                      ref={panelRef}
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 24 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className="absolute bottom-0 left-0 right-0 h-[85vh] overflow-hidden rounded-t-[1.6rem] border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
+                    >
+                      <div className="flex justify-center pb-2 pt-3">
+                        <span className="h-1.5 w-12 rounded-full bg-black/10" />
+                      </div>
+                      <div className="h-[calc(85vh-1.25rem)] min-h-0">
+                        <FilterContent {...props} onClose={() => setIsOpen(false)} />
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="filter-desktop-popover"
+                    ref={panelRef}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    style={panelStyle}
+                    className="z-[120] max-h-[70vh] overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
+                  >
+                    <FilterContent {...props} onClose={() => setIsOpen(false)} />
+                  </motion.div>
+                )
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

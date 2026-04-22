@@ -18,6 +18,10 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const activeCount =
+    Object.values(state.selected).reduce((sum, values) => sum + values.length, 0) +
+    (typeof state.priceMin === "number" || typeof state.priceMax === "number" ? 1 : 0) +
+    (state.special ? 1 : 0);
 
   const getLabel = (key: string, value: string) =>
     filterGroups
@@ -46,6 +50,12 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
     return null;
   }
 
+  const navigate = (params: URLSearchParams) => {
+    router.replace(params.size > 0 ? `${pathname}?${params.toString()}` : pathname, {
+      scroll: false,
+    });
+  };
+
   const clearChip = (chip: { key: string; value: string }) => {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -60,7 +70,23 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
       next.forEach((value) => params.append(chip.key, value));
     }
 
-    router.push(params.size > 0 ? `${pathname}?${params.toString()}` : pathname);
+    navigate(params);
+  };
+
+  const clearAllFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    [
+      "category",
+      "stone",
+      "color",
+      "style",
+      "occasion",
+      "availability",
+      "priceMin",
+      "priceMax",
+      "special",
+    ].forEach((key) => params.delete(key));
+    navigate(params);
   };
 
   return (
@@ -76,6 +102,15 @@ export function ActiveFilterChips({ filterGroups = [], state }: ActiveFilterChip
           <X className="h-3.5 w-3.5" />
         </button>
       ))}
+      {activeCount > 0 ? (
+        <button
+          type="button"
+          onClick={clearAllFilters}
+          className="inline-flex min-h-10 items-center rounded-full border border-transparent px-3 py-2 text-[0.82rem] font-medium text-[#b04c78] transition hover:text-[#8e395f]"
+        >
+          Törlés
+        </button>
+      ) : null}
     </div>
   );
 }
