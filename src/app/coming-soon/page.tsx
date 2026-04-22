@@ -57,10 +57,6 @@ export default async function ComingSoonPage({ searchParams }: ComingSoonPagePro
     redirect(nextPath);
   }
 
-  if (user) {
-    redirect(`/early-access-pending?next=${encodeURIComponent(nextPath)}`);
-  }
-
   return (
     <main className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,#fce4ec_0%,#fdf2f8_50%,#f8d7ea_100%)] text-[#3d1a2e]">
       <div className="mx-auto flex min-h-screen max-w-[1600px] items-stretch px-6 py-8 sm:px-10 lg:px-14 lg:py-0">
