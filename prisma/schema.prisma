@@ -130,6 +130,17 @@ model NewsletterSubscription {
   @@index([createdAt])
 }
 
+model ConsentLog {
+  id        String   @id @default(cuid())
+  state     Json
+  version   Int
+  userAgent String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model EmailVerificationToken {
   id        String   @id @default(cuid())
   userId    String

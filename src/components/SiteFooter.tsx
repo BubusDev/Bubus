@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
+
 type SiteFooterProps = {
   showCategoryDiscovery?: boolean;
 };
@@ -170,7 +172,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                 {[
                   { label: "Általános feltételek", href: "/terms" },
                   { label: "Adatvédelmi szabályzat", href: "/privacy" },
-                  { label: "Süti beállítások", href: "/cookies" },
+                  { label: "Cookie tájékoztató", href: "/cookies" },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white">
@@ -178,6 +180,11 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <CookieSettingsButton className="inline-flex min-h-7 items-center text-sm text-[#aaa] underline underline-offset-2 transition hover:text-white hover:no-underline">
+                    Cookie beállítások
+                  </CookieSettingsButton>
+                </li>
               </ul>
             </div>
           </div>

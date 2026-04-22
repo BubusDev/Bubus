@@ -727,6 +727,7 @@ function ManagedOptionSelect({
   const pendingDelete = isPending && managerState.status === "deleting";
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Required to defer portal mount until after hydration; setting state in this effect is intentional.
     setMounted(true);
   }, []);
 
