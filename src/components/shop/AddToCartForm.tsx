@@ -21,13 +21,16 @@ type AddToCartFormProps = {
 export function AddToCartIcon({
   justAdded,
   className = "h-5 w-5",
+  bagStrokeWidth = 2,
 }: {
   justAdded: boolean;
   className?: string;
+  bagStrokeWidth?: number;
 }) {
   return (
     <span className={`relative inline-flex items-center justify-center ${className}`}>
       <ShoppingBagIcon
+        strokeWidth={bagStrokeWidth}
         className={`absolute inset-0 h-full w-full transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           justAdded ? "scale-[0.82] opacity-0" : "scale-100 opacity-100"
         }`}
@@ -42,8 +45,14 @@ export function AddToCartIcon({
   );
 }
 
-function ShoppingBagIcon({ className }: { className: string }) {
-  return <ShoppingBag className={className} aria-hidden="true" />;
+function ShoppingBagIcon({
+  className,
+  strokeWidth,
+}: {
+  className: string;
+  strokeWidth: number;
+}) {
+  return <ShoppingBag className={className} aria-hidden="true" strokeWidth={strokeWidth} />;
 }
 
 export function AddToCartForm({

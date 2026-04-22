@@ -330,36 +330,39 @@ function CartRecommendationCard({ product }: { product: Product }) {
   const [from, via, to] = product.imagePalette;
 
   return (
-    <article className="group flex h-full flex-col rounded-[1.5rem] border border-[#f1dfe8] bg-white p-3 sm:p-4">
-      <Link href={productHref} className="block overflow-hidden rounded-[1.1rem]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_2px_4px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.06)] active:scale-[0.98] active:shadow-sm">
+      <Link
+        href={productHref}
+        className="mx-3 mt-3 block overflow-hidden rounded-[16px] ring-1 ring-black/[0.04] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+      >
         <ProductImageFrame
           alt={product.name}
           imageUrl={product.imageUrl}
           soldOut={isOutOfStock}
           palette={[from, via, to]}
-          className="relative aspect-[4/5] overflow-hidden bg-[#f9f3f6]"
+          className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-[#f9f3f6]"
           imageClassName={`h-full w-full object-cover transition duration-500 ${
             isOutOfStock ? "" : "group-hover:scale-[1.02]"
           }`}
         />
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 px-1 pt-3">
+      <div className="flex flex-1 flex-col px-4 py-3.5">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#b484a6]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-pink-400/80">
             {product.collectionLabel}
           </p>
           <Link
             href={productHref}
-            className="line-clamp-2 text-[1rem] leading-[1.2] tracking-[-0.02em] text-[#2f2230] transition hover:text-[#7d4a69]"
+            className="line-clamp-2 text-[15px] font-medium leading-[1.2] tracking-[-0.01em] text-gray-900 transition hover:text-[#7d4a69] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
           >
             {product.name}
           </Link>
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
-          <div>
-            <p className="text-[0.95rem] font-medium leading-none text-[#2f2230]">
+        <div className="mt-auto mt-2 flex items-center justify-between gap-3 border-t border-black/[0.06] pt-3">
+          <div className="min-w-0">
+            <p className="text-[15px] font-semibold leading-none tracking-tight text-gray-900">
               {formatPrice(product.price)}
             </p>
             {product.compareAtPrice ? (
@@ -376,11 +379,12 @@ function CartRecommendationCard({ product }: { product: Product }) {
             disabled={isOutOfStock}
             ariaLabel={`Kosárba: ${product.name}`}
             soldOutAriaLabel={`${product.name} elfogyott`}
-            iconClassName="h-4 w-4 translate-y-[1px]"
-            baseClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
+            iconClassName="h-4 w-4"
+            bagStrokeWidth={1.8}
+            baseClassName="inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 active:scale-95"
             disabledClassName="cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
             addedClassName="bg-[#f3e3eb] text-[#7d4a69]"
-            idleClassName="text-[#2f2230] hover:bg-[#f8eef4] hover:text-[#d45c9c]"
+            idleClassName="text-gray-700 hover:bg-black/[0.08] hover:text-gray-900"
           />
         </div>
       </div>
@@ -391,19 +395,19 @@ function CartRecommendationCard({ product }: { product: Product }) {
 function CartRecommendations({ products }: { products: Product[] }) {
   return (
     <section className="mt-12 border-t border-[#f1dfe8] pt-8 sm:mt-14 sm:pt-10">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
             Kurált ajánlás
           </p>
-          <h2 className="mt-2 font-[family:var(--font-display)] text-[1.7rem] leading-none text-[#4d2741] sm:text-[2rem]">
+          <h2 className="mt-2 font-[family:var(--font-display)] text-[1.7rem] leading-none tracking-tight text-[#4d2741] sm:text-[2rem]">
             Ezek is tetszhetnek
           </h2>
         </div>
       </div>
 
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 lg:gap-5">
           {products.map((product) => (
             <CartRecommendationCard key={product.id} product={product} />
           ))}
