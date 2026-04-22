@@ -16,6 +16,12 @@ const PUBLIC_STORE_PATHS = new Set([
   "/sign-up",
   "/login",
   "/verify-email",
+  "/terms",
+  "/privacy",
+  "/cookies",
+  "/faq",
+  "/about",
+  "/contact",
 ]);
 
 const EXCLUDED_PREFIXES = ["/admin", "/api", "/auth", "/_next"];
