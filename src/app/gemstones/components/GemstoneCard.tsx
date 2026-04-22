@@ -142,26 +142,23 @@ function GemstoneCard({
                     </p>
 
                     <div>
-                      <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[#7a2a3e]">
+                      <h3 className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em] text-[#5a1a2e]">
                         Hatások
-                      </p>
-                      <ul className="grid gap-2 text-sm text-[#fdfaf7]/90 sm:grid-cols-2">
+                      </h3>
+                      <ul className="grid gap-3 sm:grid-cols-2">
                         {gemstone.effects.map((effect) => (
-                          <li key={effect} className="flex gap-2 bg-transparent">
-                            <span
-                              className="mt-2 h-1.5 w-1.5 flex-none rounded-full"
-                              style={{ backgroundColor: accentColor }}
-                            />
-                            {effect}
+                          <li key={effect} className="flex items-start gap-3 text-[#fdfaf7]">
+                            <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#7a2a3e]" />
+                            <span className="text-[15px] font-light leading-relaxed">{effect}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
                     <div>
-                      <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[#7a2a3e]">
+                      <h3 className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em] text-[#5a1a2e]">
                         Csakrák
-                      </p>
+                      </h3>
                       <div className="flex flex-wrap gap-3">
                         {(gemstone.chakras.length ? gemstone.chakras : ["heart"]).map((chakra) => {
                           const display = getChakraDisplay(chakra);
@@ -169,13 +166,12 @@ function GemstoneCard({
                           return (
                             <span
                               key={chakra}
-                              className="inline-flex items-center gap-2 rounded-full border border-[#fdfaf7]/15 px-3 py-1.5 text-xs uppercase tracking-[0.14em] text-[#fdfaf7]"
+                              className="inline-flex items-center gap-2.5 rounded-full border-2 border-[#fdfaf7]/70 bg-white/10 px-5 py-2.5 backdrop-blur-sm"
                             >
-                              <span
-                                className="h-3 w-3 rounded-full"
-                                style={{ background: display.color }}
-                              />
-                              {display.label}
+                              <span className="h-2.5 w-2.5 rounded-full" style={{ background: display.color }} />
+                              <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#fdfaf7]">
+                                {display.label}
+                              </span>
                             </span>
                           );
                         })}

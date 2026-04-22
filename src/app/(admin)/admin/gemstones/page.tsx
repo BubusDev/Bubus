@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 
 import { SortableList, type AdminGemstone } from "./components/SortableList";
 
-export default async function AdminDragakovekPage() {
+export default async function AdminGemstonesPage() {
   const stones = await db.stone.findMany({
     orderBy: { sortOrder: "asc" },
     select: {
@@ -45,7 +45,7 @@ export default async function AdminDragakovekPage() {
       title="Drágakövek"
       description="Editorial drágakő kártyák, képek, személyiségleírások és sorrend."
       actions={
-        <Link href="/dragakovek" target="_blank" className="admin-button-secondary admin-control-md">
+        <Link href="/gemstones" target="_blank" className="admin-button-secondary admin-control-md">
           Preview as user
         </Link>
       }

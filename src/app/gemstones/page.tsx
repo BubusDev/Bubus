@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 
 import { GemstoneCardList, type Gemstone } from "./components/GemstoneCard";
+import { BraceletIcon } from "./components/icons/BraceletIcon";
+import { LipsIcon } from "./components/icons/LipsIcon";
 import { SmoothScroll } from "./components/SmoothScroll";
 
 export const metadata: Metadata = {
@@ -16,7 +18,7 @@ function getDisplayCategory(category: string) {
   return category;
 }
 
-export default async function DragakovekPage() {
+export default async function GemstonesPage() {
   const stones = await db.stone.findMany({
     orderBy: { sortOrder: "asc" },
     select: {
@@ -59,9 +61,10 @@ export default async function DragakovekPage() {
       <main className="bg-[#f3bdc8] px-4 pb-24 pt-8 font-light text-[#fdfaf7] sm:px-8 lg:px-12">
         <section className="mx-auto max-w-[1520px] bg-[#f3bdc8]">
           <div className="grid gap-8 py-10 md:grid-cols-[1fr_2fr_1fr] md:items-end">
-            <p className="font-serif text-sm italic uppercase tracking-[0.22em] text-[#7a2a3e]">
-              ABC
-            </p>
+            <div className="flex items-center gap-3 text-[#7a2a3e]/70">
+              <LipsIcon className="h-5 w-5" />
+              <BraceletIcon className="h-5 w-5" />
+            </div>
             <h1 className="font-serif text-5xl font-light leading-none tracking-[-0.02em] text-[#fdfaf7] sm:text-7xl lg:text-8xl">
               Drágakövek
             </h1>

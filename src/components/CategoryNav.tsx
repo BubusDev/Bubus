@@ -46,6 +46,10 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
           </Link>
         ))}
 
+        <Link href="/gemstones" className={topLevelNavItemClassName}>
+          Drágakövek
+        </Link>
+
         {megaItems.length > 0 && (
           <MegaMenu
             triggerLabel="Különlegességek"

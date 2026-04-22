@@ -1,10 +1,24 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { siteDescription, siteName, siteUrl } from "@/lib/site";
 
 import "./globals.css";
+
+const sans = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-ui-sans",
+  display: "swap",
+});
+
+const serif = Cormorant_Garamond({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-display-serif",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -18,16 +32,8 @@ export default async function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="hu">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
+    <html lang="hu" className={`${sans.variable} ${serif.variable}`}>
+      <body className={sans.className}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>

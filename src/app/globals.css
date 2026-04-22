@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-ui-sans), system-ui, sans-serif;
+  --font-serif: var(--font-display-serif), Georgia, 'Times New Roman', serif;
 }
 
 @keyframes float {
@@ -127,8 +128,8 @@
 
 :root {
   color-scheme: light;
-  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  --font-body: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-serif);
+  --font-body: var(--font-sans);
   --admin-blue-700: #1f4f96;
   --admin-blue-600: #2a63b5;
   --admin-blue-500: #3f7ad2;
@@ -154,6 +155,15 @@ body {
   background: #FDF8F6;
   color: #31192d;
   font-family: var(--font-body);
+}
+
+.storefront-shell h1,
+.storefront-shell h2,
+.storefront-shell h3,
+.storefront-shell .heading {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  letter-spacing: -0.01em;
 }
 
 * {

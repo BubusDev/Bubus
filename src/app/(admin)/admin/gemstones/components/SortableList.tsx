@@ -157,7 +157,7 @@ export function SortableList({ gemstones }: { gemstones: AdminGemstone[] }) {
           {items.length} drágakő az editorial listában
         </p>
         <div className="flex gap-2">
-          <a href="/dragakovek" target="_blank" className="admin-button-secondary admin-control-md">
+          <a href="/gemstones" target="_blank" className="admin-button-secondary admin-control-md">
             Preview as user
           </a>
           <button type="button" onClick={openCreate} className="admin-button-primary admin-control-md">

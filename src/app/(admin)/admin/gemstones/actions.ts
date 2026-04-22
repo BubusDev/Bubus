@@ -56,8 +56,8 @@ async function getUniqueSlug(title: string, currentId?: string) {
 }
 
 function revalidateGemstones() {
-  revalidatePath("/dragakovek");
-  revalidatePath("/admin/dragakovek");
+  revalidatePath("/gemstones");
+  revalidatePath("/admin/gemstones");
 }
 
 export async function upsertGemstoneAction(formData: FormData) {

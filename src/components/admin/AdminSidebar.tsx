@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Activity,
   TicketPercent,
+  Gem,
   X,
 } from "lucide-react";
 
@@ -86,6 +87,7 @@ const navGroups: NavGroup[] = [
       { label: "Showcase tabok", href: "/admin/content/homepage-showcase", icon: LayoutGrid, exact: true },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
       { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },
+      { label: "Drágakövek", href: "/admin/gemstones", icon: Gem, exact: true },
       { label: "Kampány bannerek", href: "/admin/special-edition", icon: Image },
     ],
   },

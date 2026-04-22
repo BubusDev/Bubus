@@ -10,8 +10,8 @@ export function CustomNavbar() {
         >
           ← Vissza a webshophoz
         </Link>
-        <p className="font-serif text-lg uppercase tracking-[0.34em] text-[#fdfaf7] sm:text-xl">
-          DRÁGAKÖVEK
+        <p className="font-serif text-lg tracking-wide text-[#fdfaf7] sm:text-xl">
+          Chicks Jewelry
         </p>
         <div className="justify-self-end font-serif text-2xl italic text-[#7a2a3e]/60">•</div>
       </nav>

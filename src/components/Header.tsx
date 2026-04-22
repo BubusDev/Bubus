@@ -364,6 +364,15 @@ export function Header({
               </Link>
             ))}
 
+            <Link
+              href="/gemstones"
+              onClick={() => setMobileMenuPath(null)}
+              className="flex items-center justify-between border-b border-[#eee4df] py-4 text-[15px] font-semibold uppercase tracking-[0.06em] text-[#4a343d] transition hover:text-[#7f485c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
+            >
+              Drágakövek
+              <ChevronRight className="h-4 w-4 text-[#b8a7a9]" strokeWidth={1.5} />
+            </Link>
+
             {/* Specialty items */}
             {specialtyItems.length > 0 && (
               <>

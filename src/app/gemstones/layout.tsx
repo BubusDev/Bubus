@@ -2,21 +2,21 @@ import type { ReactNode } from "react";
 
 import { CustomNavbar } from "./components/CustomNavbar";
 
-export default function DragakovekLayout({ children }: { children: ReactNode }) {
+export default function GemstonesLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="dragakovek-page min-h-screen bg-[#f3bdc8] text-[#fdfaf7]">
+    <div className="gemstones-page min-h-screen bg-[#f3bdc8] text-[#fdfaf7]">
       <style>{`
         html, body {
           background: #f3bdc8 !important;
         }
 
-        .dragakovek-page article,
-        .dragakovek-page button[aria-expanded] {
+        .gemstones-page article,
+        .gemstones-page button[aria-expanded] {
           overflow-anchor: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
-          html:has(.dragakovek-page) {
+          html:has(.gemstones-page) {
             scroll-behavior: auto;
           }
         }

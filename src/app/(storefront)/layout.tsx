@@ -25,7 +25,7 @@ export default async function StorefrontLayout({
   ]);
 
   return (
-    <>
+    <div className="storefront-shell">
       <AnnouncementBar announcement={announcement} />
       <Header
         user={user ?? undefined}
@@ -38,6 +38,6 @@ export default async function StorefrontLayout({
       <CategoryNav navigationCategories={navigationCategories} specialtyItems={specialtyItems} />
       {children}
       <RouteAwareSiteFooter />
-    </>
+    </div>
   );
 }

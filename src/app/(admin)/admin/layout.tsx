@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { requireAdminUser } from "@/lib/auth";
 import { AdminResponsiveShell } from "@/components/admin/AdminResponsiveShell";
@@ -13,6 +13,16 @@ export default async function AdminLayout({
   await requireAdminUser("/admin");
 
   return (
-    <AdminResponsiveShell>{children}</AdminResponsiveShell>
+    <div
+      className="font-sans"
+      style={
+        {
+          ["--font-display" as string]: "var(--font-sans)",
+          ["--font-serif" as string]: "var(--font-sans)",
+        } as CSSProperties
+      }
+    >
+      <AdminResponsiveShell>{children}</AdminResponsiveShell>
+    </div>
   );
 }
