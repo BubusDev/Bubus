@@ -12,7 +12,6 @@ type SharedAddToCartButtonProps = {
   addedClassName: string;
   disabledClassName: string;
   iconClassName?: string;
-  bagStrokeWidth?: number;
 };
 
 type AddToCartTextButtonProps = SharedAddToCartButtonProps & {
@@ -39,7 +38,6 @@ export function AddToCartTextButton({
   addedClassName,
   disabledClassName,
   iconClassName = "h-4 w-4",
-  bagStrokeWidth = 2,
 }: AddToCartTextButtonProps) {
   return (
     <AddToCartForm
@@ -63,7 +61,6 @@ export function AddToCartTextButton({
           <AddToCartIcon
             justAdded={justAdded}
             className={iconClassName}
-            bagStrokeWidth={bagStrokeWidth}
           />
           {disabled ? soldOutLabel : justAdded ? addedLabel : idleLabel}
         </button>
@@ -84,7 +81,6 @@ export function AddToCartIconButton({
   addedClassName,
   disabledClassName,
   iconClassName = "h-4 w-4 translate-y-[1px]",
-  bagStrokeWidth = 2,
 }: AddToCartIconButtonProps) {
   return (
     <AddToCartForm
@@ -109,7 +105,6 @@ export function AddToCartIconButton({
           <AddToCartIcon
             justAdded={justAdded}
             className={iconClassName}
-            bagStrokeWidth={bagStrokeWidth}
           />
         </button>
       )}

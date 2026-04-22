@@ -20,6 +20,7 @@ type ProductCardProps = {
   onFavouriteToggle?: (productId: string, isFavourite: boolean) => Promise<void> | void;
   redirectTo?: string;
   showAddToCart?: boolean;
+  showWishlistToggle?: boolean;
   wishlistPlacement?: "inline" | "image";
 };
 
@@ -52,6 +53,7 @@ export function ProductCard({
   onFavouriteToggle,
   redirectTo = "/",
   showAddToCart = true,
+  showWishlistToggle = true,
   wishlistPlacement = "inline",
 }: ProductCardProps) {
   const [isWishlistPending, startWishlistTransition] = useTransition();
@@ -195,7 +197,7 @@ export function ProductCard({
             </div>
           )}
         </Link>
-        {wishlistPlacement === "image" ? (
+        {showWishlistToggle && wishlistPlacement === "image" ? (
           <div className="absolute right-3 top-3 z-10">{wishlistButton}</div>
         ) : null}
       </div>
@@ -218,7 +220,7 @@ export function ProductCard({
         ) : null}
         <p className="mt-0.5 text-[10px] font-semibold text-[#1a1a1a] sm:mt-1 sm:text-[13px] sm:text-sm">{formatPrice(product.price)}</p>
         <div className="hidden sm:flex mt-1.5 min-h-9 items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:min-h-10 sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
-          {wishlistPlacement === "inline" ? wishlistButton : <span aria-hidden="true" />}
+          {showWishlistToggle && wishlistPlacement === "inline" ? wishlistButton : <span aria-hidden="true" />}
 
           {showAddToCart ? (
             <AddToCartIconButton

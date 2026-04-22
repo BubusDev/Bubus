@@ -7,8 +7,8 @@ import {
   updateCartItemQuantityAction,
 } from "@/app/(storefront)/account/actions";
 import { PromoCodeForm } from "@/components/cart/PromoCodeForm";
-import { AddToCartIconButton } from "@/components/shop/AddToCartButtons";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
+import { ProductGridClient } from "@/components/shop/ProductGridClient";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
 import { getHomepageContent } from "@/lib/homepage-content";
@@ -324,74 +324,6 @@ function CartSummary({
   );
 }
 
-function CartRecommendationCard({ product }: { product: Product }) {
-  const isOutOfStock = isProductOutOfStock(product);
-  const productHref = `/product/${product.slug}?redirectTo=/cart`;
-  const [from, via, to] = product.imagePalette;
-
-  return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_2px_4px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.06)] active:scale-[0.98] active:shadow-sm">
-      <Link
-        href={productHref}
-        className="mx-3 mt-3 block overflow-hidden rounded-[16px] ring-1 ring-black/[0.04] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
-      >
-        <ProductImageFrame
-          alt={product.name}
-          imageUrl={product.imageUrl}
-          soldOut={isOutOfStock}
-          palette={[from, via, to]}
-          className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-[#f9f3f6]"
-          imageClassName={`h-full w-full object-cover transition duration-500 ${
-            isOutOfStock ? "" : "group-hover:scale-[1.02]"
-          }`}
-        />
-      </Link>
-
-      <div className="flex flex-1 flex-col px-4 py-3.5">
-        <div className="space-y-1">
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-pink-400/80">
-            {product.collectionLabel}
-          </p>
-          <Link
-            href={productHref}
-            className="line-clamp-2 text-[15px] font-medium leading-[1.2] tracking-[-0.01em] text-gray-900 transition hover:text-[#7d4a69] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2"
-          >
-            {product.name}
-          </Link>
-        </div>
-
-        <div className="mt-auto mt-2 flex items-center justify-between gap-3 border-t border-black/[0.06] pt-3">
-          <div className="min-w-0">
-            <p className="text-[15px] font-semibold leading-none tracking-tight text-gray-900">
-              {formatPrice(product.price)}
-            </p>
-            {product.compareAtPrice ? (
-              <p className="mt-1 text-[11px] text-[#bb95ac] line-through">
-                {formatPrice(product.compareAtPrice)}
-              </p>
-            ) : null}
-          </div>
-
-          <AddToCartIconButton
-            productId={product.id}
-            quantity={1}
-            redirectTo="/cart"
-            disabled={isOutOfStock}
-            ariaLabel={`Kosárba: ${product.name}`}
-            soldOutAriaLabel={`${product.name} elfogyott`}
-            iconClassName="h-4 w-4"
-            bagStrokeWidth={1.8}
-            baseClassName="inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d45c9c] focus-visible:ring-offset-2 active:scale-95"
-            disabledClassName="cursor-not-allowed bg-[#f5edf1] text-[#b197a7]"
-            addedClassName="bg-[#f3e3eb] text-[#7d4a69]"
-            idleClassName="text-gray-700 hover:bg-black/[0.08] hover:text-gray-900"
-          />
-        </div>
-      </div>
-    </article>
-  );
-}
-
 function CartRecommendations({ products }: { products: Product[] }) {
   return (
     <section className="mt-12 border-t border-[#f1dfe8] pt-8 sm:mt-14 sm:pt-10">
@@ -407,11 +339,12 @@ function CartRecommendations({ products }: { products: Product[] }) {
       </div>
 
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 lg:gap-5">
-          {products.map((product) => (
-            <CartRecommendationCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductGridClient
+          products={products}
+          redirectTo="/cart"
+          showWishlistToggle={false}
+          className="grid grid-cols-2 gap-6 sm:grid-cols-4"
+        />
       ) : (
         <div className="rounded-[1.4rem] border border-[#f0e4ea] bg-[#fcfafb] px-4 py-4 text-sm text-[#8b7080]">
           Jelenleg nincs a kosárhoz illő további akciós, limitált vagy új darab.

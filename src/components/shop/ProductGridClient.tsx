@@ -12,6 +12,7 @@ type ProductGridClientProps = {
   redirectTo?: string;
   className?: string;
   showAddToCart?: boolean;
+  showWishlistToggle?: boolean;
   wishlistPlacement?: "inline" | "image";
 };
 
@@ -20,6 +21,7 @@ export function ProductGridClient({
   redirectTo = "/",
   className = "grid grid-cols-4 gap-x-2 gap-y-3 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-4",
   showAddToCart = true,
+  showWishlistToggle = true,
   wishlistPlacement = "inline",
 }: ProductGridClientProps) {
   const { status } = useSession();
@@ -125,6 +127,7 @@ export function ProductGridClient({
           onFavouriteToggle={handleFavouriteToggle}
           redirectTo={redirectTo}
           showAddToCart={showAddToCart}
+          showWishlistToggle={showWishlistToggle}
           wishlistPlacement={wishlistPlacement}
         />
       ))}
