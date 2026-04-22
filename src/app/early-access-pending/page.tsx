@@ -53,7 +53,7 @@ export default async function EarlyAccessPendingPage({
         <form action="/auth/logout" method="post">
           <button
             type="submit"
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#d95587] px-6 text-sm font-medium text-white transition hover:bg-[#c84d7c]"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#3d1a2e]/30 px-6 py-2.5 text-sm font-medium text-[#3d1a2e] transition hover:border-[#3d1a2e]/50 hover:bg-white/20"
           >
             Kijelentkezés
           </button>
