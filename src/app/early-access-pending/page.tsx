@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { EarlyAccessGatePage } from "@/components/early-access/EarlyAccessGatePage";
 import { getCurrentUser } from "@/lib/auth";
-
-const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
 
 export const metadata: Metadata = {
   title: "Hozzáférés folyamatban — Chicks Jewelry",
@@ -12,39 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-type EarlyAccessPendingPageProps = {
-  searchParams: Promise<{ next?: string }>;
-};
-
-function normalizeNextPath(nextPath: string | null | undefined) {
-  if (!nextPath || !nextPath.startsWith("/")) {
-    return "/";
-  }
-
-  return nextPath;
-}
-
-export default async function EarlyAccessPendingPage({
-  searchParams,
-}: EarlyAccessPendingPageProps) {
+export default async function EarlyAccessPendingPage() {
   const user = await getCurrentUser();
-  const resolvedSearchParams = await searchParams;
-  const nextPath = normalizeNextPath(resolvedSearchParams.next);
-
-  if (!EARLY_ACCESS_MODE) {
-    redirect(nextPath);
-  }
-
-  if (!user) {
-    redirect(`/coming-soon?next=${encodeURIComponent(nextPath)}`);
-  }
 
   return (
     <EarlyAccessGatePage
       eyebrow="Korai hozzáférés"
       title="Köszönjük a regisztrációt!"
       description="Fiókod létrejött, hamarosan jóváhagyjuk a hozzáférésed. Értesítünk e-mailben."
-      email={user.email}
+      email={user?.email ?? null}
       primaryAction={
         <form action="/auth/logout" method="post">
           <button

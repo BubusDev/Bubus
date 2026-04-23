@@ -1,9 +1,7 @@
-import { neon } from "@neondatabase/serverless";
 import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
 const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
-const DB_URL = process.env.Bubus_DATABASE_URL ?? process.env.DATABASE_URL;
 const AUTH_SECRET =
   process.env.AUTH_SECRET ??
   process.env.NEXTAUTH_SECRET ??
@@ -20,32 +18,21 @@ const PUBLIC_STORE_PATHS = new Set([
   "/privacy",
   "/cookies",
   "/faq",
-  "/about",
   "/contact",
 ]);
 
 const EXCLUDED_PREFIXES = ["/admin", "/api", "/auth", "/_next"];
 
-const sql = DB_URL ? neon(DB_URL) : null;
-
 function isStaticAsset(pathname: string) {
   return pathname.includes(".") || pathname === "/favicon.ico" || pathname === "/robots.txt";
 }
 
-function isProtectedStorefrontPath(pathname: string) {
-  if (PUBLIC_STORE_PATHS.has(pathname)) {
-    return false;
-  }
+function isPublicPath(pathname: string) {
+  return PUBLIC_STORE_PATHS.has(pathname);
+}
 
-  if (EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-    return false;
-  }
-
-  if (isStaticAsset(pathname)) {
-    return false;
-  }
-
-  return true;
+function isExcludedPath(pathname: string) {
+  return EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 function redirectWithNext(request: NextRequest, pathname: string) {
@@ -60,35 +47,26 @@ function redirectWithNext(request: NextRequest, pathname: string) {
 }
 
 export async function middleware(request: NextRequest) {
-  if (!EARLY_ACCESS_MODE || !isProtectedStorefrontPath(request.nextUrl.pathname)) {
+  const { pathname } = request.nextUrl;
+
+  if (isPublicPath(pathname) || isExcludedPath(pathname) || isStaticAsset(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (!EARLY_ACCESS_MODE) {
     return NextResponse.next();
   }
 
   const token = await getToken({ req: request, secret: AUTH_SECRET });
-  const userId = typeof token?.sub === "string" ? token.sub : null;
 
-  if (!userId) {
+  if (typeof token?.sub !== "string") {
     return redirectWithNext(request, "/coming-soon");
   }
 
-  if (!sql) {
-    console.error("[middleware] Bubus_DATABASE_URL/DATABASE_URL is not configured; early access check skipped.");
-    return NextResponse.next();
-  }
+  const isAdmin = token.role === "ADMIN";
+  const isApproved = token.earlyAccess === true;
 
-  const users = (await sql`
-    SELECT "role", "earlyAccess"
-    FROM "User"
-    WHERE "id" = ${userId}
-    LIMIT 1
-  `) as Array<{ role: "USER" | "ADMIN"; earlyAccess: boolean }>;
-  const user = users[0];
-
-  if (!user) {
-    return redirectWithNext(request, "/coming-soon");
-  }
-
-  if (user.role === "ADMIN" || user.earlyAccess) {
+  if (isAdmin || isApproved) {
     return NextResponse.next();
   }
 

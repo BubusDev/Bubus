@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
-import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -35,12 +33,9 @@ function getErrorMessage(error?: string, message?: string) {
 }
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
-  const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
   const errorMessage = getErrorMessage(resolvedSearchParams.error, resolvedSearchParams.message);
-
-  if (user?.emailVerifiedAt) redirect(nextPath);
 
   return (
     <AuthLayout

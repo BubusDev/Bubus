@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { AdminAuthShell } from "@/components/admin/AdminAuthShell";
-import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -22,17 +20,8 @@ function normalizeNextPath(nextPath: string | null | undefined) {
 }
 
 export default async function AdminSignInPage({ searchParams }: AdminSignInPageProps) {
-  const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
-
-  if (user?.emailVerifiedAt && user.role === "ADMIN") {
-    redirect(nextPath);
-  }
-
-  if (user?.emailVerifiedAt) {
-    redirect("/");
-  }
 
   return (
     <AdminAuthShell

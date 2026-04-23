@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
-import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -19,12 +17,8 @@ function normalizeNextPath(nextPath: string | null | undefined) {
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
-
-  if (user?.emailVerifiedAt) redirect(nextPath);
-  if (user) redirect("/verify-email");
 
   return (
     <AuthLayout

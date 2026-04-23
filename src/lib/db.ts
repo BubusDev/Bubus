@@ -7,10 +7,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function getValidatedDatabaseUrl() {
-  const databaseUrl = process.env.Bubus_DATABASE_URL;
+  const databaseUrl = process.env.Bubus_DATABASE_URL ?? process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error("Bubus_DATABASE_URL is not set.");
+    throw new Error("Bubus_DATABASE_URL or DATABASE_URL is not set.");
   }
 
   if (databaseUrl.includes("YOUR-NEON-HOST.neon.tech")) {
@@ -20,6 +20,12 @@ function getValidatedDatabaseUrl() {
   }
 
   return databaseUrl;
+}
+
+function applyDatabaseUrlFallback(databaseUrl: string) {
+  if (!process.env.Bubus_DATABASE_URL) {
+    process.env.Bubus_DATABASE_URL = databaseUrl;
+  }
 }
 
 function getSafeDatabaseIdentity(databaseUrl: string) {
@@ -35,6 +41,7 @@ export const db =
   globalForPrisma.prisma ??
   (() => {
     const databaseUrl = getValidatedDatabaseUrl();
+    applyDatabaseUrlFallback(databaseUrl);
 
     if (process.env.DEBUG_DATABASE_IDENTITY === "true") {
       console.info("[db] Prisma runtime database identity", getSafeDatabaseIdentity(databaseUrl));

@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { AtmosphereVisual } from "@/components/AtmosphereVisual";
-
-const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
 
 export const metadata: Metadata = {
   title: "Hamarosan — Chicks Jewelry",
@@ -46,10 +43,6 @@ function normalizeNextPath(nextPath: string | null | undefined) {
 export default async function ComingSoonPage({ searchParams }: ComingSoonPageProps) {
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
-
-  if (!EARLY_ACCESS_MODE) {
-    redirect(nextPath);
-  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,#fce4ec_0%,#fdf2f8_50%,#f8d7ea_100%)] text-[#3d1a2e]">

@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 
 import { getAuthBaseUrl, getAuthSecret, getTrustHost } from "./src/lib/env";
 import { verifyCredentials } from "./src/lib/auth/credentials";
+import { db } from "@/lib/db";
 
 const authSecret = getAuthSecret();
 
@@ -48,12 +49,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.sub = user.id;
         token.role = user.role;
         token.emailVerifiedAt = user.emailVerifiedAt;
         token.earlyAccess = user.earlyAccess;
+      }
+
+      if (trigger === "update" && token.sub) {
+        const freshUser = await db.user.findUnique({
+          where: { id: token.sub },
+          select: {
+            role: true,
+            earlyAccess: true,
+            emailVerifiedAt: true,
+          },
+        });
+
+        if (freshUser) {
+          token.role = freshUser.role;
+          token.earlyAccess = freshUser.earlyAccess;
+          token.emailVerifiedAt = freshUser.emailVerifiedAt?.toISOString() ?? null;
+        }
       }
 
       return token;
