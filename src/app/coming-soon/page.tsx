@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AtmosphereVisual } from "@/components/AtmosphereVisual";
-import { getCurrentUser } from "@/lib/auth";
 
 const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
 
@@ -45,15 +44,10 @@ function normalizeNextPath(nextPath: string | null | undefined) {
 }
 
 export default async function ComingSoonPage({ searchParams }: ComingSoonPageProps) {
-  const user = await getCurrentUser();
   const resolvedSearchParams = await searchParams;
   const nextPath = normalizeNextPath(resolvedSearchParams.next);
 
   if (!EARLY_ACCESS_MODE) {
-    redirect(nextPath);
-  }
-
-  if (user?.role === "ADMIN" || user?.earlyAccess) {
     redirect(nextPath);
   }
 

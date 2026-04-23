@@ -39,10 +39,6 @@ export default async function EarlyAccessPendingPage({
     redirect(`/coming-soon?next=${encodeURIComponent(nextPath)}`);
   }
 
-  if (user.role === "ADMIN" || user.earlyAccess) {
-    redirect(nextPath);
-  }
-
   return (
     <EarlyAccessGatePage
       eyebrow="Korai hozzáférés"
