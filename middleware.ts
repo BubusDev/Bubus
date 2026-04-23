@@ -3,7 +3,9 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
 const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
-const DB_URL = process.env.Bubus_DATABASE_URL;
+const DB_URL = process.env.Bubus_DATABASE_URL ?? process.env.DATABASE_URL;
+console.log("[middleware] DB_URL configured:", !!DB_URL);
+console.log("[middleware] EARLY_ACCESS_MODE:", process.env.EARLY_ACCESS_MODE);
 const AUTH_SECRET =
   process.env.AUTH_SECRET ??
   process.env.NEXTAUTH_SECRET ??
@@ -72,7 +74,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!sql) {
-    console.error("[middleware] Bubus_DATABASE_URL is not configured; early access check skipped.");
+    console.error("[middleware] Bubus_DATABASE_URL/DATABASE_URL is not configured; early access check skipped.");
     return NextResponse.next();
   }
 
