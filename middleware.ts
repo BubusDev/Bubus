@@ -57,7 +57,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req: request, secret: AUTH_SECRET });
+  const token = await getToken({
+    req: request,
+    secret: AUTH_SECRET,
+    secureCookie: request.nextUrl.protocol === "https:",
+  });
 
   if (typeof token?.sub !== "string") {
     return redirectWithNext(request, "/coming-soon");

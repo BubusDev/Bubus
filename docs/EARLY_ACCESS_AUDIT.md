@@ -320,6 +320,20 @@ Why this conflicts:
 - If only `DATABASE_URL` is configured, middleware can work while Prisma-backed auth/session lookups fail.
 - That creates another source-of-truth split between middleware and the rest of the app.
 
+### 8. Middleware `getToken()` uses the default non-secure cookie name
+
+Current behavior:
+
+- `middleware.ts` calls `getToken({ req, secret })` without `secureCookie`.
+- Auth.js uses `__Secure-authjs.session-token` on HTTPS deployments.
+- `getToken()` defaults to `authjs.session-token` unless `secureCookie` is set.
+
+Why this conflicts:
+
+- Production browsers authenticate with the secure cookie name.
+- Middleware can treat an authenticated production user as logged out if it looks for the non-secure cookie.
+- That directly breaks the approved/admin storefront flows even when the JWT itself is correct.
+
 ## Pre-Rewrite Conclusion
 
 The bug source is not one redirect. It is the combination of:
