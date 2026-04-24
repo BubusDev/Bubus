@@ -82,7 +82,16 @@ export function StripeCheckoutForm({
             paymentMethods: {
               applePay: "always",
               googlePay: "always",
+              link: "auto",
+              paypal: "never",
+              amazonPay: "never",
             },
+            layout: {
+              maxColumns: 1,
+              maxRows: 5,
+              overflow: "never",
+            },
+            buttonHeight: 48,
           }}
         />
       </div>
