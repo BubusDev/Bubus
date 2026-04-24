@@ -19,6 +19,7 @@ export function StripeCheckoutForm({
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasExpressMethods, setHasExpressMethods] = useState<boolean | null>(null);
 
   async function confirmPayment() {
     if (!stripe || !elements) {
@@ -71,9 +72,24 @@ export function StripeCheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-      <div className="rounded-[1.6rem] border border-[#eed7e3] bg-[#fffafb] p-4 shadow-[0_18px_40px_rgba(198,129,167,0.08)]">
+      <div
+        className={`rounded-[1.6rem] border border-[#eed7e3] bg-[#fffafb] p-4 shadow-[0_18px_40px_rgba(198,129,167,0.08)] ${
+          hasExpressMethods === false ? "hidden" : ""
+        }`}
+      >
         <ExpressCheckoutElement
           onConfirm={handleExpressCheckoutConfirm}
+          onReady={(event) => {
+            const methods = event.availablePaymentMethods;
+
+            if (methods) {
+              console.log("Available express methods:", methods);
+            } else {
+              console.log("No express payment methods available on this device/browser");
+            }
+
+            setHasExpressMethods(Object.values(methods ?? {}).some(Boolean));
+          }}
           options={{
             buttonType: {
               applePay: "buy",
@@ -88,19 +104,20 @@ export function StripeCheckoutForm({
             },
             layout: {
               maxColumns: 1,
-              maxRows: 5,
-              overflow: "never",
+              maxRows: 3,
             },
             buttonHeight: 48,
           }}
         />
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-[#ead8e1]" />
-        <span className="text-xs uppercase tracking-[0.24em] text-[#8f7181]">vagy</span>
-        <div className="h-px flex-1 bg-[#ead8e1]" />
-      </div>
+      {hasExpressMethods ? (
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-[#ead8e1]" />
+          <span className="text-xs uppercase tracking-[0.24em] text-[#8f7181]">vagy</span>
+          <div className="h-px flex-1 bg-[#ead8e1]" />
+        </div>
+      ) : null}
 
       <div className="rounded-[1.6rem] border border-[#eed7e3] bg-[#fffafb] p-4 shadow-[0_18px_40px_rgba(198,129,167,0.08)]">
         <PaymentElement
