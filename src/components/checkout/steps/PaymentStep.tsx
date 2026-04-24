@@ -207,6 +207,7 @@ export function PaymentStep({
           stripe={stripePromise}
           options={{
             clientSecret,
+            locale: "hu",
             appearance: {
               theme: "stripe",
               variables: {

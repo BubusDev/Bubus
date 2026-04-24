@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { ExpressCheckoutElement, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { LoaderCircle, LockKeyhole, PencilLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -20,11 +20,9 @@ export function StripeCheckoutForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function confirmPayment() {
     if (!stripe || !elements) {
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
@@ -46,7 +44,7 @@ export function StripeCheckoutForm({
     if (result.error) {
       setErrorMessage(result.error.message ?? "A fizetés megerősítése nem sikerült.");
       setIsSubmitting(false);
-      return;
+      return false;
     }
 
     const paymentIntentId = result.paymentIntent?.id;
@@ -59,10 +57,42 @@ export function StripeCheckoutForm({
 
     nextUrl.searchParams.set("redirect_status", redirectStatus);
     router.push(nextUrl.toString());
+    return true;
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await confirmPayment();
+  }
+
+  async function handleExpressCheckoutConfirm() {
+    await confirmPayment();
   }
 
   return (
     <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+      <div className="rounded-[1.6rem] border border-[#eed7e3] bg-[#fffafb] p-4 shadow-[0_18px_40px_rgba(198,129,167,0.08)]">
+        <ExpressCheckoutElement
+          onConfirm={handleExpressCheckoutConfirm}
+          options={{
+            buttonType: {
+              applePay: "buy",
+              googlePay: "buy",
+            },
+            paymentMethods: {
+              applePay: "always",
+              googlePay: "always",
+            },
+          }}
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-[#ead8e1]" />
+        <span className="text-xs uppercase tracking-[0.24em] text-[#8f7181]">vagy</span>
+        <div className="h-px flex-1 bg-[#ead8e1]" />
+      </div>
+
       <div className="rounded-[1.6rem] border border-[#eed7e3] bg-[#fffafb] p-4 shadow-[0_18px_40px_rgba(198,129,167,0.08)]">
         <PaymentElement
           options={{
