@@ -2,6 +2,7 @@ import { OrderPaymentStatus, type Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { createDurationTracker, logCheckoutEvent } from "@/lib/checkout-observability";
+import { releaseOrderInventoryReservation } from "@/lib/inventory";
 
 export const STALE_CHECKOUT_WINDOW_MS = 1000 * 60 * 60 * 24;
 export const REUSABLE_DRAFT_STATUSES = [
@@ -43,20 +44,45 @@ export async function expireStaleCheckoutOrders(
 ) {
   const duration = createDurationTracker();
   const staleCutoff = getStaleCheckoutCutoff(now);
+  const staleWhere = {
+    ...buildStaleCheckoutOwnerWhere(owner),
+    paymentStatus: {
+      in: [
+        OrderPaymentStatus.PENDING,
+        OrderPaymentStatus.PROCESSING,
+        OrderPaymentStatus.FAILED,
+      ],
+    },
+    paidAt: null,
+    OR: [
+      {
+        updatedAt: {
+          lt: staleCutoff,
+        },
+      },
+      {
+        stockReservedAt: { not: null },
+        stockReservationReleasedAt: null,
+        stockReservationCompletedAt: null,
+        stockReservationExpiresAt: {
+          lte: now,
+        },
+      },
+    ],
+  } satisfies Prisma.OrderWhereInput;
+
+  const staleOrders = await tx.order.findMany({
+    where: staleWhere,
+    select: { id: true },
+  });
+
+  for (const order of staleOrders) {
+    await releaseOrderInventoryReservation(tx, { orderId: order.id, releasedAt: now });
+  }
+
   const result = await tx.order.updateMany({
     where: {
-      ...buildStaleCheckoutOwnerWhere(owner),
-      paymentStatus: {
-        in: [
-          OrderPaymentStatus.PENDING,
-          OrderPaymentStatus.PROCESSING,
-          OrderPaymentStatus.FAILED,
-        ],
-      },
-      paidAt: null,
-      updatedAt: {
-        lt: staleCutoff,
-      },
+      id: { in: staleOrders.map((order) => order.id) },
     },
     data: {
       paymentStatus: OrderPaymentStatus.CANCELED,

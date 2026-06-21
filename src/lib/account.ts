@@ -1,4 +1,5 @@
 import {
+  OrderPaymentStatus,
   PromoCodeApplicabilityScope,
   PromoCodeEligibilityRule,
   type Prisma,
@@ -254,9 +255,22 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
     return createEmptyCart();
   }
 
+  const ownReservedByProductId = await getActiveReservationQuantitiesForOwner(
+    owner,
+    cart.items.map((item) => item.productId),
+  );
+
   const items = cart.items.map((item): CartItemSummary => {
     const coverImage = getCoverImage(item.product);
-    const availability = getProductAvailabilitySnapshot(item.product);
+    const ownReservedQuantity = ownReservedByProductId.get(item.productId) ?? 0;
+    const availabilityProduct =
+      ownReservedQuantity > 0
+        ? {
+            ...item.product,
+            reservedQuantity: Math.max(0, item.product.reservedQuantity - ownReservedQuantity),
+          }
+        : item.product;
+    const availability = getProductAvailabilitySnapshot(availabilityProduct);
     const unavailableReason =
       availability.lifecycleStatus === "archived"
         ? "archived"
@@ -328,6 +342,55 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
     appliedPromo,
     total: Math.max(0, subtotal + shipping - discount),
   } satisfies CartSummary;
+}
+
+async function getActiveReservationQuantitiesForOwner(owner: CartOwner, productIds: string[]) {
+  const quantities = new Map<string, number>();
+
+  if (productIds.length === 0) {
+    return quantities;
+  }
+
+  const orders = await db.order.findMany({
+    where: {
+      ...("userId" in owner ? { userId: owner.userId } : { guestCartToken: owner.guestToken }),
+      paymentStatus: {
+        in: [
+          OrderPaymentStatus.PENDING,
+          OrderPaymentStatus.PROCESSING,
+          OrderPaymentStatus.FINALIZING,
+        ],
+      },
+      stockReservedAt: { not: null },
+      stockReservationReleasedAt: null,
+      stockReservationCompletedAt: null,
+      stockReservationExpiresAt: { gt: new Date() },
+      items: {
+        some: {
+          productId: { in: productIds },
+        },
+      },
+    },
+    select: {
+      items: {
+        where: {
+          productId: { in: productIds },
+        },
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  for (const order of orders) {
+    for (const item of order.items) {
+      quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+    }
+  }
+
+  return quantities;
 }
 
 export async function getFavouriteProducts(userId: string) {

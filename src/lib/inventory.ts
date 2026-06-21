@@ -1,6 +1,7 @@
-import { ProductStatus, type Prisma } from "@prisma/client";
+import { OrderPaymentStatus, ProductStatus, type Prisma } from "@prisma/client";
 
 export const LOW_STOCK_THRESHOLD = 3;
+export const STOCK_RESERVATION_TTL_MS = 1000 * 60 * 30;
 
 export class InsufficientStockError extends Error {
   readonly code = "INSUFFICIENT_STOCK";
@@ -45,7 +46,7 @@ export function isProductArchived(product: Partial<Pick<InventoryLike, "archived
 export function isInStock(
   product: Pick<InventoryLike, "stockQuantity" | "reservedQuantity"> & Partial<Pick<InventoryLike, "archivedAt" | "status">>,
 ) {
-  return !isProductArchived(product) && product.stockQuantity > 0;
+  return !isProductArchived(product) && getAvailableToSell(product) > 0;
 }
 
 export function isProductPurchasable(
@@ -97,9 +98,213 @@ type CompleteOrderInput = {
   items: CompleteOrderItem[];
 };
 
-export async function applyCompletedOrderInventory(
+function getStockReservationExpiry(now = new Date()) {
+  return new Date(now.getTime() + STOCK_RESERVATION_TTL_MS);
+}
+
+async function getOrderReservationItems(tx: Prisma.TransactionClient, orderId: string) {
+  return tx.orderItem.findMany({
+    where: { orderId },
+    select: {
+      productId: true,
+      quantity: true,
+    },
+  });
+}
+
+async function reserveProductQuantity(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  quantity: number,
+) {
+  const updated = await tx.$executeRaw`
+    UPDATE "Product"
+    SET "reservedQuantity" = "reservedQuantity" + ${quantity},
+        "updatedAt" = NOW()
+    WHERE "id" = ${productId}
+      AND "status" = ${ProductStatus.ACTIVE}::"ProductStatus"
+      AND "archivedAt" IS NULL
+      AND ("stockQuantity" - "reservedQuantity") >= ${quantity}
+  `;
+
+  if (updated !== 1) {
+    throw new InsufficientStockError();
+  }
+}
+
+async function releaseProductReservation(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  quantity: number,
+) {
+  const updated = await tx.product.updateMany({
+    where: {
+      id: productId,
+      reservedQuantity: { gte: quantity },
+    },
+    data: {
+      reservedQuantity: {
+        decrement: quantity,
+      },
+    },
+  });
+
+  if (updated.count !== 1) {
+    throw new InsufficientStockError("Reserved stock is lower than the requested release quantity.");
+  }
+}
+
+export async function reserveOrderInventory(
+  tx: Prisma.TransactionClient,
+  { orderId, expiresAt = getStockReservationExpiry() }: { orderId: string; expiresAt?: Date },
+) {
+  const order = await tx.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      stockReservedAt: true,
+      stockReservationReleasedAt: true,
+      stockReservationCompletedAt: true,
+      items: {
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("ORDER_NOT_FOUND");
+  }
+
+  if (
+    order.stockReservedAt &&
+    !order.stockReservationReleasedAt &&
+    !order.stockReservationCompletedAt
+  ) {
+    return false;
+  }
+
+  for (const item of order.items) {
+    await reserveProductQuantity(tx, item.productId, item.quantity);
+  }
+
+  await tx.order.update({
+    where: { id: order.id },
+    data: {
+      stockReservedAt: new Date(),
+      stockReservationExpiresAt: expiresAt,
+      stockReservationReleasedAt: null,
+      stockReservationCompletedAt: null,
+    },
+  });
+
+  return true;
+}
+
+export async function releaseOrderInventoryReservation(
+  tx: Prisma.TransactionClient,
+  { orderId, releasedAt = new Date() }: { orderId: string; releasedAt?: Date },
+) {
+  const order = await tx.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      paymentStatus: true,
+      stockReservedAt: true,
+      stockReservationReleasedAt: true,
+      stockReservationCompletedAt: true,
+    },
+  });
+
+  if (
+    !order ||
+    order.paymentStatus === OrderPaymentStatus.PAID ||
+    !order.stockReservedAt ||
+    order.stockReservationReleasedAt ||
+    order.stockReservationCompletedAt
+  ) {
+    return false;
+  }
+
+  const items = await getOrderReservationItems(tx, order.id);
+  const claimed = await tx.order.updateMany({
+    where: {
+      id: order.id,
+      paymentStatus: { not: OrderPaymentStatus.PAID },
+      stockReservedAt: { not: null },
+      stockReservationReleasedAt: null,
+      stockReservationCompletedAt: null,
+    },
+    data: {
+      stockReservationReleasedAt: releasedAt,
+    },
+  });
+
+  if (claimed.count !== 1) {
+    return false;
+  }
+
+  for (const item of items) {
+    await releaseProductReservation(tx, item.productId, item.quantity);
+  }
+
+  return true;
+}
+
+export async function completeReservedOrderInventory(
   tx: Prisma.TransactionClient,
   { orderId, items }: CompleteOrderInput,
+) {
+  const order = await tx.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      stockReservedAt: true,
+      stockReservationReleasedAt: true,
+      stockReservationCompletedAt: true,
+    },
+  });
+
+  if (!order?.stockReservedAt) {
+    return applyCompletedOrderInventory(tx, { orderId, items });
+  }
+
+  if (order.stockReservationCompletedAt) {
+    return [];
+  }
+
+  if (order.stockReservationReleasedAt) {
+    throw new InsufficientStockError("Stock reservation was already released.");
+  }
+
+  const claimed = await tx.order.updateMany({
+    where: {
+      id: order.id,
+      stockReservedAt: { not: null },
+      stockReservationReleasedAt: null,
+      stockReservationCompletedAt: null,
+    },
+    data: {
+      stockReservationCompletedAt: new Date(),
+    },
+  });
+
+  if (claimed.count !== 1) {
+    return [];
+  }
+
+  return applyCompletedOrderInventory(tx, { orderId, items, useReservation: true });
+}
+
+export async function applyCompletedOrderInventory(
+  tx: Prisma.TransactionClient,
+  {
+    orderId,
+    items,
+    useReservation = false,
+  }: CompleteOrderInput & { useReservation?: boolean },
 ) {
   const adjustments: {
     productId: string;
@@ -126,22 +331,43 @@ export async function applyCompletedOrderInventory(
       throw new ProductUnavailableError(item.productId);
     }
 
-    if (getAvailableToSell(currentProduct) < item.quantity) {
+    if (useReservation) {
+      if (currentProduct.reservedQuantity < item.quantity || currentProduct.stockQuantity < item.quantity) {
+        throw new InsufficientStockError();
+      }
+    } else if (getAvailableToSell(currentProduct) < item.quantity) {
       throw new InsufficientStockError();
     }
 
-    const updated = await tx.product.updateMany({
-      where: {
-        id: item.productId,
-        archivedAt: null,
-        stockQuantity: { gte: item.quantity },
-      },
-      data: {
-        stockQuantity: {
-          decrement: item.quantity,
-        },
-      },
-    });
+    const updated = useReservation
+      ? await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            archivedAt: null,
+            stockQuantity: { gte: item.quantity },
+            reservedQuantity: { gte: item.quantity },
+          },
+          data: {
+            stockQuantity: {
+              decrement: item.quantity,
+            },
+            reservedQuantity: {
+              decrement: item.quantity,
+            },
+          },
+        })
+      : await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            archivedAt: null,
+            stockQuantity: { gte: item.quantity },
+          },
+          data: {
+            stockQuantity: {
+              decrement: item.quantity,
+            },
+          },
+        });
 
     if (updated.count === 0) {
       throw new InsufficientStockError();

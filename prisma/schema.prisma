@@ -528,6 +528,7 @@ model Order {
   id              String      @id @default(cuid())
   userId          String?
   guestEmail      String?
+  guestCartToken  String?
   guestAccessTokenHash String?    @unique
   orderNumber     String      @unique
   status          String
@@ -551,6 +552,10 @@ model Order {
   paymentMethod   String
   stripePaymentIntentId String? @unique
   paidAt          DateTime?
+  stockReservedAt DateTime?
+  stockReservationExpiresAt DateTime?
+  stockReservationReleasedAt DateTime?
+  stockReservationCompletedAt DateTime?
   confirmationEmailSendingAt DateTime?
   confirmationEmailSentAt DateTime?
   adminNewOrderNotificationSendingAt DateTime?
@@ -572,8 +577,10 @@ model Order {
   updatedAt       DateTime    @updatedAt
 
   @@index([userId, createdAt])
+  @@index([guestCartToken, createdAt])
   @@index([promoCodeId])
   @@index([paymentStatus, createdAt])
+  @@index([stockReservationExpiresAt])
   @@index([internalStatus, createdAt])
   @@index([assignedToId, createdAt])
 }
@@ -686,6 +693,16 @@ model GuestOrderRecoveryRequest {
   createdAt DateTime @default(now())
 
   @@index([ipHash, createdAt])
+}
+
+model AuthRateLimitEvent {
+  id             String   @id @default(cuid())
+  scope          String
+  identifierHash String
+  createdAt      DateTime @default(now())
+
+  @@index([scope, identifierHash, createdAt])
+  @@index([createdAt])
 }
 
 model OrderItem {

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { formatPrice } from "@/lib/catalog";
@@ -76,6 +77,15 @@ export default async function AdminOrderDetailPage({
 
   const cfg = orderStatusConfig[order.internalStatus] ?? orderStatusConfig.received;
   const statusLabel = internalOrderStatuses.find((s) => s.value === order.internalStatus)?.label ?? order.internalStatus;
+  const reservationState = order.stockReservationCompletedAt
+    ? "Eladásként lezárva"
+    : order.stockReservationReleasedAt
+      ? "Felengedve"
+      : order.stockReservedAt && order.stockReservationExpiresAt && order.stockReservationExpiresAt < new Date()
+        ? "Lejárt"
+        : order.stockReservedAt
+          ? "Aktív foglalás"
+          : "Nincs foglalás";
 
   return (
     <AdminShell title={`Rendelés — ${order.orderNumber}`}>
@@ -182,12 +192,15 @@ export default async function AdminOrderDetailPage({
                 const coverImg = item.product.images[0];
                 return (
                   <div key={item.id} className="flex items-center gap-4 px-4 py-4 sm:px-5">
-                    <div className="h-14 w-14 flex-shrink-0 overflow-hidden bg-[#f5f3f0]">
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden bg-[#f5f3f0]">
                       {coverImg && (
-                        <img
+                        <Image
                           src={coverImg.url}
                           alt={item.productName}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                          unoptimized
                         />
                       )}
                     </div>
@@ -380,6 +393,34 @@ export default async function AdminOrderDetailPage({
 
         {/* Jobb oszlop — státusz kezelés */}
         <div className="space-y-5">
+          <section className="border border-[#e8e5e0] bg-white p-5">
+            <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Készletfoglalás</h2>
+            <div className="space-y-3 text-[13px]">
+              <div>
+                <p className="text-[11px] text-[#888]">Állapot</p>
+                <p className="mt-1 font-medium text-[#1a1a1a]">{reservationState}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Foglalva</p>
+                <p className="mt-1 text-[#1a1a1a]">
+                  {order.stockReservedAt ? order.stockReservedAt.toLocaleString("hu-HU") : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Lejárat</p>
+                <p className="mt-1 text-[#1a1a1a]">
+                  {order.stockReservationExpiresAt ? order.stockReservationExpiresAt.toLocaleString("hu-HU") : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Felengedve / lezárva</p>
+                <p className="mt-1 text-[#1a1a1a]">
+                  {(order.stockReservationReleasedAt ?? order.stockReservationCompletedAt)?.toLocaleString("hu-HU") ?? "—"}
+                </p>
+              </div>
+            </div>
+          </section>
+
           <section className="border border-[#e8e5e0] bg-white p-5">
             <h2 className="mb-4 text-[11px] font-medium uppercase tracking-[.14em] text-[#888]">Státusz kezelés</h2>
 

@@ -39,7 +39,7 @@ function buildErrorMessage(
     case "INVALID_SHIPPING":
       return "Kérjük, tölts ki minden szükséges szállítási mezőt a fizetés indításához.";
     case "INSUFFICIENT_STOCK":
-      return "Az egyik termék időközben elfogyott vagy már nincs elegendő készleten.";
+      return "Egy vagy több termék időközben elfogyott vagy már nincs elegendő szabad készleten. Frissítsd a kosarat, és ellenőrizd a mennyiségeket.";
     case "UNAVAILABLE_CART_ITEMS":
       return "A kosárban lévő egyik termék már nem elérhető. Térj vissza a kosárhoz és távolítsd el.";
     case "CART_EMPTY":
@@ -146,14 +146,14 @@ export function PaymentStep({
   }
 
   return (
-    <div className="max-w-[540px] mx-auto">
-      <h2 className="text-lg font-semibold text-[#1a1a1a] mb-1">Fizetés</h2>
-      <p className="text-sm text-[#666] mb-6">
-        A fizetés biztonságosan, Stripe-on keresztül történik.
+    <div className="mx-auto max-w-[540px]">
+      <h2 className="mb-1 text-lg font-semibold text-[#1a1a1a]">Fizetés</h2>
+      <p className="mb-6 text-sm leading-6 text-[#666]">
+        Ellenőrizd az adatokat, majd megnyitjuk a biztonságos Stripe fizetési felületet.
       </p>
 
       {/* Szállítási összefoglaló */}
-      <div className="border border-[#e8e5e0] bg-[#faf9f7] px-4 py-3 mb-5 text-sm">
+      <div className="mb-5 rounded-md border border-[#e8e5e0] bg-[#faf9f7] px-4 py-3 text-sm">
         <p className="text-[10px] uppercase tracking-[.18em] text-[#888] mb-1">Szállítási adatok</p>
         <p className="text-[#1a1a1a] font-medium">{shippingName}</p>
         <p className="text-[#555]">{shippingAddress}</p>
@@ -162,7 +162,7 @@ export function PaymentStep({
           <button
             type="button"
             onClick={onBack}
-            className="mt-2 text-xs text-[#888] underline underline-offset-2"
+            className="mt-2 text-xs text-[#888] underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             Módosítás
           </button>
@@ -170,19 +170,19 @@ export function PaymentStep({
       </div>
 
       {errorMessage && (
-        <div className="border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f] mb-4">
+        <div className="mb-4 rounded-md border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
           {errorMessage}
         </div>
       )}
 
       {hasUnavailableItems && (
-        <div className="border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f] mb-4">
+        <div className="mb-4 rounded-md border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
           A kosárban jelenleg van már nem elérhető tétel vagy túl magas mennyiség. Távolítsd el vagy módosítsd a fizetés előtt.
         </div>
       )}
 
       {!stripeConfigured && (
-        <div className="border border-[#e8e5e0] bg-[#faf9f7] px-4 py-3 text-sm text-[#555] mb-4">
+        <div className="mb-4 rounded-md border border-[#e8e5e0] bg-[#faf9f7] px-4 py-3 text-sm text-[#555]">
           A Stripe fizetés ebben a környezetben még nincs konfigurálva.
         </div>
       )}
@@ -194,11 +194,11 @@ export function PaymentStep({
         </div>
       )}
 
-      <div className="flex items-start gap-3 border border-[#e8e5e0] bg-[#faf9f7] p-4 text-sm text-[#555] mb-5">
+      <div className="mb-5 flex items-start gap-3 rounded-md border border-[#e8e5e0] bg-[#faf9f7] p-4 text-sm text-[#555]">
         <ShieldCheck className="mt-0.5 h-4 w-4 text-[#888] shrink-0" />
         <p>
-          A fizetési összeget a szerver a kosár aktuális tartalmából számolja HUF pénznemben. A
-          végösszeg: <span className="font-semibold text-[#1a1a1a]">{formatPrice(cartTotal)}</span>
+          A fizetési összeget a kosár aktuális tartalmából számoljuk. A végösszeg:{" "}
+          <span className="font-semibold text-[#1a1a1a]">{formatPrice(cartTotal)}</span>
         </p>
       </div>
 
@@ -228,14 +228,14 @@ export function PaymentStep({
           type="button"
           onClick={initializePayment}
           disabled={!stripeConfigured || hasUnavailableItems || isInitializing}
-          className={`w-full py-3.5 text-sm font-medium transition flex items-center justify-center gap-2 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-md py-3.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 ${
             !stripeConfigured || hasUnavailableItems || isInitializing
               ? "bg-[#ccc] text-white cursor-not-allowed"
               : "bg-[#1a1a1a] text-white hover:bg-[#333]"
           }`}
         >
           {isInitializing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-          Fizetési felület megnyitása
+          {isInitializing ? "Fizetési felület előkészítése..." : "Fizetési felület megnyitása"}
         </button>
       )}
     </div>

@@ -23,12 +23,13 @@ import {
   toStripeAmount,
 } from "@/lib/catalog";
 import {
-  applyCompletedOrderInventory,
-  getAvailableToSell,
+  completeReservedOrderInventory,
   hasBecomeOutOfStock,
   hasCrossedIntoLowStock,
   InsufficientStockError,
   ProductUnavailableError,
+  releaseOrderInventoryReservation,
+  reserveOrderInventory,
 } from "@/lib/inventory";
 import { getProductAvailabilitySnapshot } from "@/lib/product-lifecycle";
 import {
@@ -269,26 +270,49 @@ async function upsertPendingOrderRecord(
   );
   const staleCutoff = getStaleCheckoutCutoff();
 
+  const reusableDraftWhere = {
+    ...(actor.userId
+      ? { userId: actor.userId }
+      : {
+          userId: null,
+          OR: [
+            actor.guestToken ? { guestCartToken: actor.guestToken } : null,
+            { guestEmail: email },
+          ].filter(Boolean) as Prisma.OrderWhereInput[],
+        }),
+    paymentStatus: {
+      in: [...REUSABLE_DRAFT_STATUSES],
+    },
+    paidAt: null,
+    stockReservationCompletedAt: null,
+    updatedAt: {
+      gte: staleCutoff,
+    },
+  } satisfies Prisma.OrderWhereInput;
+
   const existingOrder = input.orderId
     ? await tx.order.findFirst({
         where: {
           id: input.orderId,
-          ...(actor.userId
-            ? { userId: actor.userId }
-            : {
-                userId: null,
-                guestEmail: email,
-              }),
-          paymentStatus: {
-            in: [...REUSABLE_DRAFT_STATUSES],
-          },
-          updatedAt: {
-            gte: staleCutoff,
-          },
+          ...reusableDraftWhere,
         },
       })
-    : null;
+    : await tx.order.findFirst({
+        where: reusableDraftWhere,
+        orderBy: { updatedAt: "desc" },
+      });
+
+  if (existingOrder) {
+    await releaseOrderInventoryReservation(tx, { orderId: existingOrder.id });
+  }
+
   const cart = await getCheckoutCartSnapshot(tx, actor);
+  const stripeAmount = toStripeAmount(cart.total, STRIPE_CURRENCY);
+
+  if (isStripeAmountBelowMinimum(stripeAmount, STRIPE_CURRENCY)) {
+    throw new CheckoutAmountTooLowError(stripeAmount, STRIPE_CURRENCY);
+  }
+
   const guestAccessToken = actor.userId
     ? null
     : createRawToken();
@@ -304,6 +328,7 @@ async function upsertPendingOrderRecord(
     total: cart.total,
     currency: "HUF",
     guestEmail: actor.userId ? null : email,
+    guestCartToken: actor.userId ? null : actor.guestToken ?? null,
     guestAccessTokenHash,
     shippingName: customer.shippingName,
     shippingPhone: customer.shippingPhone,
@@ -312,6 +337,10 @@ async function upsertPendingOrderRecord(
     foxpostPointCode: input.foxpostPointCode ?? null,
     paymentMethod: "Stripe",
     paidAt: null,
+    stockReservedAt: null,
+    stockReservationExpiresAt: null,
+    stockReservationReleasedAt: null,
+    stockReservationCompletedAt: null,
     items: {
       deleteMany: existingOrder ? {} : undefined,
       create: cart.items.map((item) => ({
@@ -343,6 +372,8 @@ async function upsertPendingOrderRecord(
           ...orderData,
         },
       });
+
+  await reserveOrderInventory(tx, { orderId: order.id });
 
   logCheckoutEvent(
     "log",
@@ -795,17 +826,35 @@ export async function markOrderPaymentState(
   statusLabel: string,
   correlationId?: string,
 ) {
-  const result = await db.order.updateMany({
-    where: {
-      stripePaymentIntentId: paymentIntentId,
-      paymentStatus: {
-        not: OrderPaymentStatus.PAID,
+  const result = await db.$transaction(async (tx) => {
+    if (state === OrderPaymentStatus.FAILED || state === OrderPaymentStatus.CANCELED) {
+      const orders = await tx.order.findMany({
+        where: {
+          stripePaymentIntentId: paymentIntentId,
+          paymentStatus: {
+            not: OrderPaymentStatus.PAID,
+          },
+        },
+        select: { id: true },
+      });
+
+      for (const order of orders) {
+        await releaseOrderInventoryReservation(tx, { orderId: order.id });
+      }
+    }
+
+    return tx.order.updateMany({
+      where: {
+        stripePaymentIntentId: paymentIntentId,
+        paymentStatus: {
+          not: OrderPaymentStatus.PAID,
+        },
       },
-    },
-    data: {
-      paymentStatus: state,
-      status: statusLabel,
-    },
+      data: {
+        paymentStatus: state,
+        status: statusLabel,
+      },
+    });
   });
 
   logCheckoutEvent(
@@ -933,7 +982,7 @@ export async function finalizePaidOrder({
   cartId,
 }: FinalizePaidOrderInput, correlationId?: string) {
   const duration = createDurationTracker();
-  let lowStockAdjustments: Awaited<ReturnType<typeof applyCompletedOrderInventory>> = [];
+  let lowStockAdjustments: Awaited<ReturnType<typeof completeReservedOrderInventory>> = [];
   const result = await db.$transaction(async (tx) => {
     const order = await findOrderForFinalization(tx, { paymentIntentId, orderId }, correlationId);
 
@@ -1044,6 +1093,7 @@ export async function finalizePaidOrder({
     }, { correlationId });
 
     if (stripeAmount != null && stripeAmount !== expectedStripeAmount) {
+      await releaseOrderInventoryReservation(tx, { orderId: order.id });
       await tx.order.update({
         where: { id: order.id },
         data: {
@@ -1087,6 +1137,7 @@ export async function finalizePaidOrder({
         : ({ ok: false, error: "invalid_code" } as const);
 
       if (!promoValidation.ok) {
+        await releaseOrderInventoryReservation(tx, { orderId: order.id });
         await tx.order.update({
           where: { id: order.id },
           data: {
@@ -1108,7 +1159,7 @@ export async function finalizePaidOrder({
     }
 
     try {
-      lowStockAdjustments = await applyCompletedOrderInventory(tx, {
+      lowStockAdjustments = await completeReservedOrderInventory(tx, {
         orderId: order.id,
         items: order.items.map((item) => ({
           productId: item.productId,
@@ -1117,6 +1168,7 @@ export async function finalizePaidOrder({
       });
     } catch (error) {
       if (error instanceof InsufficientStockError || error instanceof ProductUnavailableError) {
+        await releaseOrderInventoryReservation(tx, { orderId: order.id });
         await tx.order.update({
           where: { id: order.id },
           data: {
