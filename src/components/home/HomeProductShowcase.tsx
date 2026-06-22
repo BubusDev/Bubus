@@ -13,6 +13,8 @@ export type HomeShowcaseProduct = {
   slug: string;
   name: string;
   price: number;
+  compareAtPrice?: number;
+  isOnSale?: boolean;
   imageUrl?: string | null;
 };
 
@@ -100,17 +102,17 @@ function ScrollProgressBar({
   }, [resetKey, scrollerRef, updateProgress]);
 
   return (
-    <div style={{ padding: compactPreview ? "0" : "0 40px", marginTop: 8 }}>
-      <div style={{ position: "relative", height: 2, background: "#e8e5e0" }}>
+    <div style={{ padding: compactPreview ? "0" : "0", marginTop: 14 }}>
+      <div style={{ position: "relative", height: 1, background: "#e7e1d7" }}>
         <div
           ref={barRef}
           style={{
             position: "absolute",
             top: -1,
-            height: 4,
+            height: 3,
             left: "0%",
             width: "30%",
-            background: "#1a1a1a",
+            background: "#22231f",
             transition: prefersReducedMotion ? "none" : "left .15s ease-out",
           }}
         />
@@ -121,7 +123,7 @@ function ScrollProgressBar({
 
 export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }: Props) {
   const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.key);
-  const [isVisible, setIsVisible] = useState(compactPreview);
+  const [isVisible, setIsVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -161,9 +163,10 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`showcase-tab ${activeTab === tab.key ? "showcase-tab-active" : ""}`}
-          >
+          onClick={() => setActiveTab(tab.key)}
+          className={`showcase-tab ${activeTab === tab.key ? "showcase-tab-active" : ""}`}
+          aria-pressed={activeTab === tab.key}
+        >
             {tab.label}
           </button>
         ))}
@@ -193,12 +196,23 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
                       alt={product.name}
                       fill
                       className="showcase-img"
-                      sizes="(max-width: 640px) 160px, 220px"
+                      sizes="(max-width: 640px) 72vw, (max-width: 1280px) 292px, 315px"
                     />
                   ) : null}
                 </div>
                 <p className="showcase-name">{product.name}</p>
-                <p className="showcase-price">{formatPrice(product.price)}</p>
+                <p className="showcase-price">
+                  {product.isOnSale && product.compareAtPrice ? (
+                    <>
+                      <span>{formatPrice(product.price)}</span>
+                      <span className="showcase-compare-price">
+                        {formatPrice(product.compareAtPrice)}
+                      </span>
+                    </>
+                  ) : (
+                    formatPrice(product.price)
+                  )}
+                </p>
               </Link>
             </article>
           ))}
@@ -222,11 +236,11 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
       <style>{`
         .showcase-section {
-          padding: 36px 0 28px;
-          max-width: 1240px;
+          padding: 0 0 6px;
+          max-width: none;
           margin: 0 auto;
-          opacity: 0;
-          transform: translateY(32px);
+          opacity: 1;
+          transform: translateY(0);
           transition: opacity .7s ease-out, transform .7s ease-out;
         }
         .showcase-visible {
@@ -242,11 +256,13 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
         .showcase-tabs {
           display: flex;
-          gap: 28px;
-          padding: 0 32px;
-          margin-bottom: 22px;
-          border-bottom: 1px solid #e8e5e0;
+          gap: 12px;
+          padding: 0;
+          margin-bottom: 24px;
+          overflow-x: auto;
+          scrollbar-width: none;
         }
+        .showcase-tabs::-webkit-scrollbar { display: none; }
         .showcase-preview .showcase-tabs {
           gap: 24px;
           padding: 0;
@@ -254,30 +270,38 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
         }
         .showcase-tab {
           position: relative;
+          flex: 0 0 auto;
           padding: 10px 0;
-          font-size: 14px;
-          font-weight: 500;
-          color: #999;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          color: #8b867d;
           background: none;
           border: none;
           cursor: pointer;
           transition: color .2s;
           font-family: inherit;
         }
-        .showcase-tab:hover { color: #1a1a1a; }
-        .showcase-tab-active { color: #1a1a1a; }
+        .showcase-tab + .showcase-tab { margin-left: 18px; }
+        .showcase-tab:hover { color: #22231f; }
+        .showcase-tab:focus-visible {
+          outline: 2px solid #6f775d;
+          outline-offset: 4px;
+        }
+        .showcase-tab-active { color: #22231f; }
         .showcase-tab-active::after {
           content: '';
           position: absolute;
-          bottom: -1px;
+          bottom: 5px;
           left: 0; right: 0;
-          height: 2px;
-          background: #1a1a1a;
+          height: 1px;
+          background: #22231f;
         }
 
         .showcase-scroll-wrap {
           position: relative;
-          padding: 0 32px;
+          padding: 0;
         }
         .showcase-preview .showcase-scroll-wrap {
           padding: 0;
@@ -290,15 +314,15 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           scroll-snap-type: x mandatory;
           scrollbar-width: none;
           -ms-overflow-style: none;
-          padding-bottom: 14px;
+          padding-bottom: 16px;
         }
         .showcase-scroller::-webkit-scrollbar { display: none; }
 
         .showcase-card {
-          flex: 0 0 220px;
+          flex: 0 0 min(72vw, 315px);
           scroll-snap-align: start;
-          opacity: 0;
-          transform: translateY(20px);
+          opacity: 1;
+          transform: translateY(0);
           transition: opacity .6s ease-out, transform .6s ease-out;
         }
         .showcase-preview .showcase-card {
@@ -313,10 +337,10 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
 
         .showcase-img-wrap {
           position: relative;
-          aspect-ratio: 1 / 1;
+          aspect-ratio: 3 / 4;
           background: #f5f3f0;
           overflow: hidden;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
         }
         .showcase-img {
           object-fit: cover;
@@ -326,48 +350,68 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           transform: scale(1.04);
         }
         .showcase-name {
-          font-size: 13px;
-          color: #1a1a1a;
+          font-size: 14px;
+          color: #22231f;
           margin-bottom: 4px;
-          line-height: 1.3;
+          line-height: 1.35;
         }
         .showcase-price {
           font-size: 13px;
-          color: #1a1a1a;
+          color: #5f5a52;
           font-weight: 500;
+          display: flex;
+          gap: 8px;
+          align-items: baseline;
+          flex-wrap: wrap;
+        }
+        .showcase-compare-price {
+          color: #948d82;
+          font-weight: 400;
+          text-decoration: line-through;
         }
 
         .showcase-nav-btn {
           position: absolute;
-          top: calc(50% - 24px);
+          top: calc(50% - 32px);
           z-index: 10;
-          width: 38px; height: 38px;
+          width: 42px; height: 42px;
           display: flex; align-items: center; justify-content: center;
-          background: white;
-          border: 1px solid #e8e5e0;
-          color: #1a1a1a;
+          background: rgba(255,255,255,.92);
+          border: 1px solid #e7e1d7;
+          color: #22231f;
           cursor: pointer;
           transition: background .2s, border-color .2s, color .2s;
-          box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
         .showcase-nav-btn:hover {
-          background: #1a1a1a;
+          background: #22231f;
           color: white;
-          border-color: #1a1a1a;
+          border-color: #22231f;
         }
-        .showcase-nav-prev { left: 12px; }
-        .showcase-nav-next { right: 12px; }
+        .showcase-nav-btn:focus-visible {
+          outline: 2px solid #6f775d;
+          outline-offset: 3px;
+        }
+        .showcase-nav-prev { left: -14px; }
+        .showcase-nav-next { right: -14px; }
         .showcase-preview .showcase-nav-btn {
           display: none;
         }
 
         @media (max-width: 640px) {
-          .showcase-tabs { gap: 18px; padding: 0 16px; margin-bottom: 18px; }
-          .showcase-tab { font-size: 13px; }
-          .showcase-scroll-wrap { padding: 0 16px; }
+          .showcase-tabs { gap: 0; margin-bottom: 18px; }
+          .showcase-tab { font-size: 10px; letter-spacing: .16em; }
+          .showcase-scroll-wrap { padding: 0; }
           .showcase-scroller { gap: 14px; }
-          .showcase-card { flex: 0 0 160px; }
+          .showcase-card { flex: 0 0 72vw; }
           .showcase-nav-btn { display: none; }
+        }
+
+        @media (min-width: 900px) {
+          .showcase-card { flex-basis: 292px; }
+        }
+
+        @media (min-width: 1280px) {
+          .showcase-card { flex-basis: 315px; }
         }
 
         @media (prefers-reduced-motion: reduce) {

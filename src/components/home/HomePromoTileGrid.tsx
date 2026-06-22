@@ -25,7 +25,7 @@ function Tile({
         alt={tile.imageAlt}
         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
         fill
-        unoptimized
+        sizes={emphasis ? "(max-width: 1024px) 100vw, 690px" : "(max-width: 1024px) 50vw, 315px"}
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(22,24,20,0.02),rgba(22,24,20,0.58))]" />
       <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6 lg:p-7">
@@ -46,7 +46,7 @@ function Tile({
   );
 
   const className =
-    "group relative block h-full overflow-hidden rounded-md bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]";
+    "group relative block h-full overflow-hidden bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]";
 
   if (!tile.href) {
     return <div className={className}>{content}</div>;
@@ -63,7 +63,7 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
   return (
     <Link
       href={pick.href}
-      className="group relative block aspect-square overflow-hidden rounded-md bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]"
+      className="group relative block aspect-[4/5] overflow-hidden bg-[#e5e2da] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b8566]"
     >
       {pick.imageUrl ? (
         <Image
@@ -71,7 +71,7 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
           alt={pick.imageAlt}
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
           fill
-          unoptimized
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 315px"
         />
       ) : (
         <div
@@ -104,19 +104,25 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
   }
 
   return (
-    <div className="bg-[#fbfaf7] px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8">
+    <div className="bg-[#fbfaf7] px-4 pb-6 pt-8 sm:px-6 sm:pt-10 lg:px-8">
       {storefrontMaterialPicks.length > 0 ? (
-        <section className="mx-auto max-w-[1320px]">
-          <div className="mb-8 text-center">
-            <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
-              Kövek és ásványok
+        <section className="mx-auto max-w-[1320px] py-12 sm:py-16">
+          <div className="mb-8 grid gap-4 sm:mb-10 sm:grid-cols-[0.72fr_1fr] sm:items-end">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
+                Kurált fókusz
+              </p>
+              <h2 className="mt-4 max-w-[11ch] font-[family:var(--font-display)] text-[2.5rem] leading-[0.95] tracking-[-0.035em] text-[#22231f] sm:text-[3.55rem]">
+                Kő szerint válogatva.
+              </h2>
+            </div>
+            <p className="max-w-[52ch] text-sm leading-7 text-[#69645b] sm:justify-self-end sm:text-right">
+              Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás
+              személyesebb legyen egy egyszerű kategórialistánál.
             </p>
-            <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
-              Válassz karkötőt kedvenc köved szerint
-            </h2>
           </div>
 
-          <div className="mx-auto grid max-w-[1224px] gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          <div className="mx-auto grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5">
             {storefrontMaterialPicks.slice(0, 4).map((pick) => (
               <MaterialTile key={pick.id} pick={pick} />
             ))}
@@ -125,25 +131,26 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
       ) : null}
 
       {visibleTiles.length > 0 ? (
-        <section
-          className={`mx-auto max-w-[1320px] ${
-            storefrontMaterialPicks.length > 0 ? "mt-16 sm:mt-20" : ""
-          }`}
-        >
-          <div className="mb-8 text-center">
-            <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
-              Válogatás
+        <section className="mx-auto max-w-[1320px] py-12 sm:py-16">
+          <div className="mb-8 grid gap-4 sm:mb-10 sm:grid-cols-[0.72fr_1fr] sm:items-end">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
+                Kategóriák
+              </p>
+              <h2 className="mt-4 max-w-[12ch] font-[family:var(--font-display)] text-[2.5rem] leading-[0.95] tracking-[-0.035em] text-[#22231f] sm:text-[3.55rem]">
+                Vonalak, amik együtt is működnek.
+              </h2>
+            </div>
+            <p className="max-w-[48ch] text-sm leading-7 text-[#69645b] sm:justify-self-end sm:text-right">
+              Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban.
             </p>
-            <h2 className="mt-4 font-[family:var(--font-display)] text-[2.2rem] leading-none tracking-[-0.03em] text-[#22231f] sm:text-[2.75rem] xl:text-[3.2rem]">
-              Saját tervezésű kollekciók
-            </h2>
           </div>
 
-          <div className="mx-auto grid max-w-[1224px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-6">
-            <div className="min-h-[360px] sm:min-h-[420px] lg:h-[560px] xl:h-[650px]">
+          <div className="mx-auto grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch lg:gap-5">
+            <div className="min-h-[390px] sm:min-h-[470px] lg:h-[620px] xl:h-[700px]">
               <Tile tile={emphasisTile} emphasis />
             </div>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-2 lg:grid-rows-2 lg:gap-6">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-2 lg:grid-rows-2 lg:gap-5">
               {smallTiles.slice(0, 4).map((tile) => (
                 <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
                   <Tile tile={tile} />
@@ -153,7 +160,7 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
                 ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
                     <div
                       key={`placeholder-${index}`}
-                      className="hidden aspect-square rounded-md bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
+                      className="hidden aspect-square bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
                     />
                   ))
                 : null}

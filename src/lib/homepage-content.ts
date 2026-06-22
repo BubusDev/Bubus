@@ -77,71 +77,85 @@ export type HomepageContentView = {
 
 const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id" | "key">> = {
   HERO: {
-    title: "Limitált darabok, váratlan részletekkel",
-    eyebrow: "Különleges válogatás",
-    body: "Féldrágakövekből, kézzel készített ékszerek szerkesztett kampánya.",
+    title: "Ékszerek, amelyek csendben válnak személyessé",
+    eyebrow: "Limitált butik válogatás",
+    body: "Limitált ékszerek gondosan válogatott anyagokból, finom részletekkel és kis szériás ritmusban.",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
-    imageAlt: "Különleges kampányékszer",
-    buttonText: "Lepődj meg!",
+    imageAlt: "Limitált Chicks Jewelry kampányékszer",
+    buttonText: "Fedezd fel a válogatást",
     buttonHref: "/special-edition",
     isVisible: true,
   },
   INSTAGRAM: {
     title: "@chicksjewelry",
     eyebrow: "Instagram",
-    body: "Látogass meg minket és fedezd fel ötleteinket az Instagramon!",
+    body: "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket.",
     imageUrl: "/images/book-hands.png",
     imageAlt: "Zöld tónusú Instagram kampánykép",
-    buttonText: "Irány az Instagram!",
+    buttonText: "Kövess Instagramon",
     buttonHref: "https://instagram.com/chicksjewelry",
     isVisible: true,
+  },
+};
+
+const legacyDefaultBlockValues: Partial<
+  Record<HomepageContentBlockKey, Partial<Omit<HomepageBlockView, "id" | "key" | "isVisible">>>
+> = {
+  HERO: {
+    title: "Limitált darabok, váratlan részletekkel",
+    eyebrow: "Különleges válogatás",
+    body: "Féldrágakövekből, kézzel készített ékszerek szerkesztett kampánya.",
+  },
+  INSTAGRAM: {
+    body: "Látogass meg minket és fedezd fel ötleteinket az Instagramon!",
+    buttonText: "Irány az Instagram!",
   },
 };
 
 const defaultPromoTiles = [
   {
     slotIndex: 4,
-    title: "Holdfény",
-    subtitle: "Finom fényű kövek",
+    title: "Limitált vonalak",
+    subtitle: "Új darabok kis szériában",
     href: "/special-edition",
-    imageUrl: "/seed/opal-necklace.svg",
-    imageAlt: "Holdfény kollekció",
+    imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
+    imageAlt: "Limitált Chicks Jewelry válogatás",
     isVisible: true,
   },
   {
     slotIndex: 5,
-    title: "Partvonal",
-    subtitle: "Karkötők rétegezéshez",
+    title: "Rétegezhető darabok",
+    subtitle: "Karkötők mindennapi viseléshez",
     href: "/bracelets",
     imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
-    imageAlt: "Partvonal kollekció",
+    imageAlt: "Rétegezhető Chicks Jewelry karkötő",
     isVisible: true,
   },
   {
     slotIndex: 6,
-    title: "Gyöngy",
-    subtitle: "Visszafogott ragyogás",
+    title: "Újdonságok",
+    subtitle: "Friss színek és finom részletek",
     href: "/new-in",
-    imageUrl: "/seed/pearl-bracelet.svg",
-    imageAlt: "Gyöngy kollekció",
+    imageUrl: "/uploads/products/8-210510-opacity-armband-blauermarmor-rose-cv-q-23-040c9dc8-6af6-47b8-be1c-ca1d2dd7dda2.jpg",
+    imageAlt: "Új Chicks Jewelry karkötő kék márvány tónusban",
     isVisible: true,
   },
   {
     slotIndex: 7,
-    title: "Szirom",
-    subtitle: "Lágy formák",
+    title: "Kövek szerint",
+    subtitle: "Válogatás anyag és árnyalat alapján",
     href: "/new-in",
-    imageUrl: "/seed/petal-hoops.svg",
-    imageAlt: "Szirom kollekció",
+    imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
+    imageAlt: "Chicks Jewelry anyagválogatás részletfotó",
     isVisible: true,
   },
   {
     slotIndex: 8,
-    title: "Aranyóra",
-    subtitle: "Meleg tónusok",
+    title: "Kedvezményes darabok",
+    subtitle: "Elérhető modellek limitált készletről",
     href: "/sale",
-    imageUrl: "/seed/gold-earrings.svg",
-    imageAlt: "Aranyóra kollekció",
+    imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
+    imageAlt: "Chicks Jewelry kedvezményes karkötő válogatás",
     isVisible: true,
   },
 ] satisfies Omit<HomepagePromoTileView, "id">[];
@@ -174,17 +188,57 @@ function normalizeBlock(
   block?: NullableHomepageBlockInput | null,
 ): HomepageBlockView {
   const fallback = defaultBlocks[key];
+  const legacyValues = legacyDefaultBlockValues[key] ?? {};
+  const normalizeLegacyText = (value: string) =>
+    value
+      .toLocaleLowerCase("hu")
+      .replace(/\s+/g, " ")
+      .trim();
+  const isLegacyText = (
+    field: keyof Omit<HomepageBlockView, "id" | "key" | "isVisible">,
+    value: string,
+  ) => {
+    const normalizedValue = normalizeLegacyText(value);
+    const legacyValue = legacyValues[field];
+
+    if (legacyValue && normalizedValue === normalizeLegacyText(legacyValue)) {
+      return true;
+    }
+
+    return (
+      (key === "HERO" &&
+        ((field === "title" && normalizedValue.includes("váratlan részletekkel")) ||
+          (field === "eyebrow" && normalizedValue.includes("különleges válogatás")) ||
+          (field === "body" && normalizedValue.includes("szerkesztett kampánya")) ||
+          (field === "buttonText" && normalizedValue.includes("lepődj")))) ||
+      (key === "INSTAGRAM" &&
+        ((field === "body" && normalizedValue.includes("ötleteinket az instagramon")) ||
+          (field === "buttonText" && normalizedValue.includes("irány az instagram"))))
+    );
+  };
+  const readText = (
+    field: keyof Omit<HomepageBlockView, "id" | "key" | "isVisible">,
+    value: string | null | undefined,
+  ) => {
+    const trimmed = value?.trim();
+
+    if (!trimmed || isLegacyText(field, trimmed)) {
+      return fallback[field];
+    }
+
+    return trimmed;
+  };
 
   return {
     id: block?.id ?? key,
     key,
-    title: block?.title?.trim() || fallback.title,
-    eyebrow: block?.eyebrow?.trim() || fallback.eyebrow,
-    body: block?.body?.trim() || fallback.body,
-    imageUrl: block?.imageUrl?.trim() || fallback.imageUrl,
-    imageAlt: block?.imageAlt?.trim() || fallback.imageAlt,
-    buttonText: block?.buttonText?.trim() || fallback.buttonText,
-    buttonHref: block?.buttonHref?.trim() || fallback.buttonHref,
+    title: readText("title", block?.title),
+    eyebrow: readText("eyebrow", block?.eyebrow),
+    body: readText("body", block?.body),
+    imageUrl: readText("imageUrl", block?.imageUrl),
+    imageAlt: readText("imageAlt", block?.imageAlt),
+    buttonText: readText("buttonText", block?.buttonText),
+    buttonHref: readText("buttonHref", block?.buttonHref),
     isVisible: block?.isVisible ?? fallback.isVisible,
   };
 }
