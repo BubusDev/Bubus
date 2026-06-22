@@ -15,6 +15,8 @@ import {
   upsertHomepageBlock,
   upsertHomepagePromoTile,
 } from "@/lib/homepage-content";
+import { replaceInlineFeaturedProducts } from "@/lib/homepage-showcase";
+import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { productHasStone } from "@/lib/stone-product";
 import type { HomepageMaterialPickType } from "@/lib/homepage-content";
 
@@ -43,7 +45,10 @@ function readStringList(formData: FormData, key: string) {
 type InlineHomepageContentInput = Pick<
   HomepageContentView,
   "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter" | "promoTiles"
->;
+> & {
+  featuredProductIds?: string[];
+  materialProductIds?: string[];
+};
 
 function isAllowedHref(value: string) {
   if (!value) return true;
@@ -133,6 +138,23 @@ function toTileValues(tile: HomepagePromoTileView) {
   };
 }
 
+function normalizeProductIds(value: unknown, limit: number) {
+  if (!Array.isArray(value)) return [];
+
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const id = item.trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+    if (ids.length >= limit) break;
+  }
+
+  return ids;
+}
+
 export async function updateHomepageContentAction(
   input: InlineHomepageContentInput,
 ): Promise<{ ok: boolean; message: string }> {
@@ -168,6 +190,25 @@ export async function updateHomepageContentAction(
       assertImageUrl(tile.imageUrl, `Promó csempe ${tile.slotIndex} kép`);
     }
 
+    const shouldUpdateFeaturedProducts = Array.isArray(input.featuredProductIds);
+    const shouldUpdateMaterialProducts = Array.isArray(input.materialProductIds);
+    const featuredProductIds = shouldUpdateFeaturedProducts
+      ? normalizeProductIds(input.featuredProductIds, 12)
+      : [];
+    const materialProductIds = shouldUpdateMaterialProducts
+      ? normalizeProductIds(input.materialProductIds, 5)
+      : [];
+    const selectedProductIds = Array.from(new Set([...featuredProductIds, ...materialProductIds]));
+    const selectedProducts = selectedProductIds.length
+      ? await db.product.findMany({
+          where: { AND: [storefrontProductWhere, { id: { in: selectedProductIds } }] },
+          select: { id: true },
+        })
+      : [];
+    const availableProductIds = new Set(selectedProducts.map((product) => product.id));
+    const safeFeaturedProductIds = featuredProductIds.filter((id) => availableProductIds.has(id));
+    const safeMaterialProductIds = materialProductIds.filter((id) => availableProductIds.has(id));
+
     await Promise.all([
       upsertHomepageBlock("HERO", toBlockValues(input.hero)),
       upsertHomepageBlock("HERO_FEATURE_BAR", toBlockValues(input.heroFeatureBar)),
@@ -176,6 +217,19 @@ export async function updateHomepageContentAction(
       upsertHomepageBlock("INSTAGRAM", toBlockValues(input.instagram)),
       upsertHomepageBlock("NEWSLETTER", toBlockValues(input.newsletter)),
       ...input.promoTiles.map((tile) => upsertHomepagePromoTile(tile.slotIndex, toTileValues(tile))),
+      ...(shouldUpdateFeaturedProducts ? [replaceInlineFeaturedProducts(safeFeaturedProductIds)] : []),
+      ...(shouldUpdateMaterialProducts
+        ? [
+            replaceHomepageMaterialPicks(
+              safeMaterialProductIds.map((productId, index) => ({
+                itemType: "PRODUCT" as HomepageMaterialPickType,
+                itemId: productId,
+                featuredProductId: productId,
+                sortOrder: index + 1,
+              })),
+            ),
+          ]
+        : []),
     ]);
   } catch (error) {
     return {

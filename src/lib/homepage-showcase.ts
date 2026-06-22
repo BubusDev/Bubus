@@ -39,6 +39,8 @@ export type AdminShowcaseProductOption = {
   isGiftable: boolean;
 };
 
+export const INLINE_FEATURED_SHOWCASE_KEY = "inline-featured";
+
 export {
   SHOWCASE_FILTER_TYPE_LABELS,
   SHOWCASE_FILTER_TYPES,
@@ -95,6 +97,11 @@ export async function getAdminShowcaseProducts(): Promise<AdminShowcaseProductOp
       isOnSale: true,
       isGiftable: true,
       category: { select: { name: true, slug: true } },
+      images: {
+        select: { url: true },
+        orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+        take: 1,
+      },
     },
     orderBy: [{ name: "asc" }],
   }).then((products) =>
@@ -102,7 +109,7 @@ export async function getAdminShowcaseProducts(): Promise<AdminShowcaseProductOp
       id: product.id,
       name: product.name,
       slug: product.slug,
-      imageUrl: product.imageUrl,
+      imageUrl: product.images[0]?.url ?? product.imageUrl,
       price: product.price,
       categoryName: product.category.name,
       categorySlug: product.category.slug,
@@ -111,6 +118,53 @@ export async function getAdminShowcaseProducts(): Promise<AdminShowcaseProductOp
       isGiftable: product.isGiftable,
     })),
   );
+}
+
+export async function getInlineFeaturedProductIds(): Promise<string[]> {
+  const tab = await db.homeShowcaseTab.findUnique({
+    where: { key: INLINE_FEATURED_SHOWCASE_KEY },
+    select: { filterType: true, filterValue: true },
+  });
+
+  if (!tab || tab.filterType !== "manual") return [];
+
+  try {
+    const parsed = JSON.parse(tab.filterValue ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function replaceInlineFeaturedProducts(productIds: string[]) {
+  const normalizedIds = Array.from(new Set(productIds)).slice(0, 12);
+
+  if (normalizedIds.length === 0) {
+    await db.homeShowcaseTab.deleteMany({ where: { key: INLINE_FEATURED_SHOWCASE_KEY } });
+    return;
+  }
+
+  await db.homeShowcaseTab.upsert({
+    where: { key: INLINE_FEATURED_SHOWCASE_KEY },
+    create: {
+      key: INLINE_FEATURED_SHOWCASE_KEY,
+      label: "Kiemelt",
+      sortOrder: 0,
+      isActive: true,
+      filterType: "manual",
+      filterValue: JSON.stringify(normalizedIds),
+      maxItems: normalizedIds.length,
+    },
+    update: {
+      sortOrder: 0,
+      isActive: true,
+      filterType: "manual",
+      filterValue: JSON.stringify(normalizedIds),
+      maxItems: normalizedIds.length,
+    },
+  });
 }
 
 export async function upsertShowcaseTab(data: {

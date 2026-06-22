@@ -148,8 +148,8 @@ export function HomePromoTileGrid({
             </p>
           </div>
 
-          <div className="mx-auto grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-            {storefrontMaterialPicks.slice(0, 4).map((pick) => (
+          <div className="mx-auto grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
+            {storefrontMaterialPicks.slice(0, 5).map((pick) => (
               <MaterialTile key={pick.id} pick={pick} />
             ))}
           </div>

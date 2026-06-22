@@ -369,18 +369,18 @@ function normalizePromoTile(tile: NullableHomepageTileInput) {
 }
 
 function getProductImageUrl(product: { imageUrl: string | null; images: { url: string }[] }) {
-  return product.imageUrl || product.images[0]?.url || null;
+  return product.images[0]?.url ?? product.imageUrl ?? null;
 }
 
 async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
   const picks = await db.homepageMaterialPick.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    take: 4,
+    take: 5,
   });
 
   const stoneTypeIds = picks.filter((pick) => pick.itemType === "STONE").map((pick) => pick.itemId);
   const productIds = picks
-    .map((pick) => pick.featuredProductId)
+    .flatMap((pick) => [pick.featuredProductId, pick.itemType === "PRODUCT" ? pick.itemId : null])
     .filter((id): id is string => Boolean(id));
   const [stoneTypes, storefrontProducts, storedProducts] = await Promise.all([
     stoneTypeIds.length
@@ -400,11 +400,11 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
             collectionLabel: true,
             stoneTypeId: true,
             stoneType: {
-              select: { id: true, slug: true },
+              select: { id: true, name: true, slug: true },
             },
             images: {
               select: { url: true },
-              orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+              orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
               take: 1,
             },
           },
@@ -431,11 +431,11 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
             archivedAt: true,
             isOnSale: true,
             stoneType: {
-              select: { id: true, slug: true },
+              select: { id: true, name: true, slug: true },
             },
             images: {
               select: { url: true },
-              orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+              orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
               take: 1,
             },
           },
@@ -513,6 +513,30 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
         };
       }
 
+      if (pick.itemType === "PRODUCT") {
+        const product = storefrontProductById.get(pick.itemId) ?? null;
+        if (!product) return null;
+
+        return {
+          id: pick.id,
+          type: "PRODUCT",
+          itemId: product.id,
+          legacyItemId: null,
+          isLegacySource: false,
+          featuredProductId: product.id,
+          storedFeaturedProductId: pick.itemId,
+          hasUnavailableFeaturedProduct: false,
+          unavailableFeaturedProductReason: null,
+          sortOrder: pick.sortOrder,
+          title: product.stoneType?.name ?? "Termék",
+          subtitle: product.name,
+          href: `/product/${product.slug}`,
+          imageUrl: getProductImageUrl(product),
+          imageAlt: product.name,
+          colorHex: null,
+        };
+      }
+
       return null;
     })
     .filter((pick): pick is HomepageMaterialPickView => Boolean(pick));
@@ -567,7 +591,7 @@ export async function getHomepageMaterialPickOptions(): Promise<HomepageMaterial
         },
         images: {
           select: { url: true },
-          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
           take: 1,
         },
       },
@@ -631,7 +655,7 @@ export async function replaceHomepageMaterialPicks(
 ) {
   await db.$transaction([
     db.homepageMaterialPick.deleteMany(),
-    ...picks.slice(0, 4).map((pick) =>
+    ...picks.slice(0, 5).map((pick) =>
       db.homepageMaterialPick.create({
         data: pick,
       }),

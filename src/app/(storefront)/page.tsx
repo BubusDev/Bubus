@@ -9,7 +9,11 @@ import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { HomepageInlineEditor } from "@/components/admin/homepage-inline/HomepageInlineEditor";
 import { getCurrentUser } from "@/lib/auth";
 import { getHomepageContent } from "@/lib/homepage-content";
-import { getHomeShowcaseTabs } from "@/lib/homepage-showcase";
+import {
+  getAdminShowcaseProducts,
+  getHomeShowcaseTabs,
+  getInlineFeaturedProductIds,
+} from "@/lib/homepage-showcase";
 import { getAbsoluteUrl, siteDescription, siteName } from "@/lib/site";
 
 const homepageTitle = `${siteName} | Limitált ékszerek kis szériában`;
@@ -79,6 +83,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const isAdmin = currentUser?.emailVerifiedAt && currentUser.role === "ADMIN";
 
   if (isAdmin) {
+    const [productOptions, inlineFeaturedProductIds] = await Promise.all([
+      getAdminShowcaseProducts(),
+      getInlineFeaturedProductIds(),
+    ]);
+    const materialProductIds = homepageContent.materialPicks
+      .map((pick) => pick.storedFeaturedProductId ?? pick.featuredProductId)
+      .filter((id): id is string => Boolean(id));
+
     return (
       <>
         <script
@@ -92,6 +104,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <HomepageInlineEditor
           initialContent={homepageContent}
           showcaseTabs={showcaseTabs}
+          productOptions={productOptions}
+          initialFeaturedProductIds={inlineFeaturedProductIds}
+          initialMaterialProductIds={materialProductIds}
           newsletterStatus={newsletterStatus}
         />
       </>

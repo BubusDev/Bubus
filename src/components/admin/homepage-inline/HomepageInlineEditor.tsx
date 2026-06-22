@@ -1,7 +1,7 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
-import { Edit3, ImageIcon, Save, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit3, ImageIcon, Save, Search, Trash2, X } from "lucide-react";
 import { useMemo, useState, type ChangeEvent, type ReactNode } from "react";
 
 import { updateHomepageContentAction } from "@/app/(admin)/admin/content/homepage/actions";
@@ -12,8 +12,9 @@ import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
+import { formatPrice } from "@/lib/catalog";
 import type { HomepageBlockView, HomepageContentView, HomepagePromoTileView } from "@/lib/homepage-content";
-import type { ShowcaseTab } from "@/lib/homepage-showcase";
+import type { AdminShowcaseProductOption, ShowcaseTab } from "@/lib/homepage-showcase";
 import { browserSafeProductImageAccept, getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type EditableSection = "hero" | "featureBar" | "categoryGrid" | "featuredSlider" | "social" | "newsletter";
@@ -22,6 +23,9 @@ type HomepageInlineEditorProps = {
   initialContent: HomepageContentView;
   newsletterStatus?: string;
   showcaseTabs: ShowcaseTab[];
+  productOptions: AdminShowcaseProductOption[];
+  initialFeaturedProductIds: string[];
+  initialMaterialProductIds: string[];
 };
 
 const sectionLabels: Record<EditableSection, string> = {
@@ -210,6 +214,158 @@ function ImageField({
   );
 }
 
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (toIndex < 0 || toIndex >= items.length) return items;
+
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+}
+
+function ProductSelectionField({
+  title,
+  emptyText,
+  maxItems,
+  products,
+  selectedIds,
+  onChange,
+}: {
+  title: string;
+  emptyText: string;
+  maxItems: number;
+  products: AdminShowcaseProductOption[];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selectedProducts = selectedIds
+    .map((id) => products.find((product) => product.id === id))
+    .filter((product): product is AdminShowcaseProductOption => Boolean(product));
+  const normalizedQuery = query.trim().toLocaleLowerCase("hu");
+  const matches = products
+    .filter((product) => !selectedSet.has(product.id))
+    .filter((product) => {
+      if (!normalizedQuery) return true;
+      return [product.name, product.categoryName]
+        .join(" ")
+        .toLocaleLowerCase("hu")
+        .includes(normalizedQuery);
+    })
+    .slice(0, 10);
+
+  function addProduct(productId: string) {
+    if (selectedIds.includes(productId) || selectedIds.length >= maxItems) return;
+    onChange([...selectedIds, productId]);
+    setQuery("");
+  }
+
+  function removeProduct(productId: string) {
+    onChange(selectedIds.filter((id) => id !== productId));
+  }
+
+  function moveProduct(index: number, direction: -1 | 1) {
+    onChange(moveItem(selectedIds, index, index + direction));
+  }
+
+  return (
+    <section className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-[#2D1A16]">{title}</p>
+          <p className="mt-1 text-xs leading-5 text-[#8f5367]">
+            {selectedProducts.length}/{maxItems} termék. Csak aktív, publikus termékek választhatók.
+          </p>
+        </div>
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8f5367]" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Termék keresése név alapján"
+          className="w-full rounded-md border border-[#e4c8d2] bg-white py-2 pl-9 pr-3 text-sm text-[#2D1A16] outline-none focus:border-[#E0157A] focus:ring-2 focus:ring-[#E0157A]/15"
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="grid max-h-56 gap-1 overflow-auto rounded-md border border-[#f0c0d8] bg-[#fffafc] p-1">
+        {matches.length > 0 ? (
+          matches.map((product) => {
+            const displayUrl = getBrowserDisplayImageUrl(product.imageUrl);
+
+            return (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => addProduct(product.id)}
+                disabled={selectedIds.length >= maxItems}
+                className="flex items-center gap-3 rounded-md px-2.5 py-2 text-left transition hover:bg-[#FDF0F6] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <span className="h-10 w-10 shrink-0 overflow-hidden rounded border border-[#f0c0d8] bg-white">
+                  {displayUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={displayUrl} alt="" className="h-full w-full object-cover" />
+                  ) : null}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-[#2D1A16]">{product.name}</span>
+                  <span className="block truncate text-xs text-[#8f5367]">
+                    {product.categoryName} · {formatPrice(product.price)}
+                  </span>
+                </span>
+              </button>
+            );
+          })
+        ) : (
+          <span className="px-3 py-4 text-sm text-[#8f5367]">Nincs találat.</span>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        {selectedProducts.length > 0 ? (
+          selectedProducts.map((product, index) => {
+            const displayUrl = getBrowserDisplayImageUrl(product.imageUrl);
+
+            return (
+              <div key={product.id} className="flex items-center gap-2 rounded-md border border-[#f0c0d8] bg-[#fff7fb] p-2">
+                <span className="w-5 shrink-0 text-center text-xs font-semibold text-[#8f5367]">{index + 1}</span>
+                <span className="h-11 w-11 shrink-0 overflow-hidden rounded border border-[#f0c0d8] bg-white">
+                  {displayUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={displayUrl} alt="" className="h-full w-full object-cover" />
+                  ) : null}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-[#2D1A16]">{product.name}</span>
+                  <span className="block truncate text-xs text-[#8f5367]">
+                    {formatPrice(product.price)} · {product.categoryName}
+                  </span>
+                </span>
+                <button type="button" onClick={() => moveProduct(index, -1)} disabled={index === 0} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} feljebb mozgatása`}>
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+                <button type="button" onClick={() => moveProduct(index, 1)} disabled={index === selectedProducts.length - 1} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} lejjebb mozgatása`}>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                <button type="button" onClick={() => removeProduct(product.id)} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-red-600" aria-label={`${product.name} eltávolítása`}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-md border border-dashed border-[#e4c8d2] bg-[#fffafc] px-3 py-4 text-sm leading-6 text-[#8f5367]">
+            {emptyText}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function EditableWrap({
   section,
   isEditing,
@@ -253,14 +409,42 @@ export function HomepageInlineEditor({
   initialContent,
   newsletterStatus,
   showcaseTabs,
+  productOptions,
+  initialFeaturedProductIds,
+  initialMaterialProductIds,
 }: HomepageInlineEditorProps) {
   const [savedContent, setSavedContent] = useState(() => cloneContent(initialContent));
   const [draft, setDraft] = useState(() => cloneContent(initialContent));
+  const [savedFeaturedProductIds, setSavedFeaturedProductIds] = useState(initialFeaturedProductIds);
+  const [draftFeaturedProductIds, setDraftFeaturedProductIds] = useState(initialFeaturedProductIds);
+  const [savedMaterialProductIds, setSavedMaterialProductIds] = useState(initialMaterialProductIds);
+  const [draftMaterialProductIds, setDraftMaterialProductIds] = useState(initialMaterialProductIds);
+  const [featuredProductsDirty, setFeaturedProductsDirty] = useState(false);
+  const [materialProductsDirty, setMaterialProductsDirty] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [activeSection, setActiveSection] = useState<EditableSection | null>(null);
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const visibleContent = isEditing ? draft : savedContent;
+  const currentFeaturedProductIds = isEditing ? draftFeaturedProductIds : savedFeaturedProductIds;
+  const visibleShowcaseTabs = useMemo(() => {
+    if (currentFeaturedProductIds.length === 0) return showcaseTabs;
+
+    const products = currentFeaturedProductIds
+      .map((id) => productOptions.find((product) => product.id === id))
+      .filter((product): product is AdminShowcaseProductOption => Boolean(product));
+
+    if (products.length === 0) return showcaseTabs;
+
+    return [
+      {
+        key: "inline-featured-preview",
+        label: "Kiemelt",
+        products,
+      },
+      ...showcaseTabs.filter((tab) => tab.key !== "inline-featured"),
+    ];
+  }, [currentFeaturedProductIds, productOptions, showcaseTabs]);
 
   const inlinePayload = useMemo(
     () => ({
@@ -271,8 +455,10 @@ export function HomepageInlineEditor({
       instagram: draft.instagram,
       newsletter: draft.newsletter,
       promoTiles: draft.promoTiles,
+      ...(featuredProductsDirty ? { featuredProductIds: draftFeaturedProductIds } : {}),
+      ...(materialProductsDirty ? { materialProductIds: draftMaterialProductIds } : {}),
     }),
-    [draft],
+    [draft, draftFeaturedProductIds, draftMaterialProductIds, featuredProductsDirty, materialProductsDirty],
   );
 
   function updateBlock(key: keyof Pick<HomepageContentView, "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter">, patch: Partial<HomepageBlockView>) {
@@ -306,6 +492,10 @@ export function HomepageInlineEditor({
     setStatus(result.message);
     if (result.ok) {
       setSavedContent(cloneContent(draft));
+      setSavedFeaturedProductIds(draftFeaturedProductIds);
+      setSavedMaterialProductIds(draftMaterialProductIds);
+      setFeaturedProductsDirty(false);
+      setMaterialProductsDirty(false);
       setIsEditing(false);
       setActiveSection(null);
     }
@@ -313,6 +503,10 @@ export function HomepageInlineEditor({
 
   function handleCancel() {
     setDraft(cloneContent(savedContent));
+    setDraftFeaturedProductIds(savedFeaturedProductIds);
+    setDraftMaterialProductIds(savedMaterialProductIds);
+    setFeaturedProductsDirty(false);
+    setMaterialProductsDirty(false);
     setIsEditing(false);
     setActiveSection(null);
     setStatus("");
@@ -330,9 +524,9 @@ export function HomepageInlineEditor({
           categoryBlock={visibleContent.categoryGrid}
         />
       </EditableWrap>
-      {showcaseTabs.length > 0 ? (
+      {visibleShowcaseTabs.length > 0 ? (
         <EditableWrap section="featuredSlider" isEditing={isEditing} onEdit={setActiveSection}>
-          <FeaturedSlider tabs={showcaseTabs} contentBlock={visibleContent.featuredSlider} />
+          <FeaturedSlider tabs={visibleShowcaseTabs} contentBlock={visibleContent.featuredSlider} />
         </EditableWrap>
       ) : null}
       <HomeEditorialSection />
@@ -388,6 +582,17 @@ export function HomepageInlineEditor({
           updateBlock={updateBlock}
           updateBlockMetadata={updateBlockMetadata}
           updateTile={updateTile}
+          productOptions={productOptions}
+          featuredProductIds={draftFeaturedProductIds}
+          materialProductIds={draftMaterialProductIds}
+          onFeaturedProductIdsChange={(ids) => {
+            setDraftFeaturedProductIds(ids);
+            setFeaturedProductsDirty(true);
+          }}
+          onMaterialProductIdsChange={(ids) => {
+            setDraftMaterialProductIds(ids);
+            setMaterialProductsDirty(true);
+          }}
         />
       ) : null}
     </main>
@@ -402,6 +607,11 @@ function EditDrawer({
   updateBlock,
   updateBlockMetadata,
   updateTile,
+  productOptions,
+  featuredProductIds,
+  materialProductIds,
+  onFeaturedProductIdsChange,
+  onMaterialProductIdsChange,
 }: {
   section: EditableSection;
   draft: HomepageContentView;
@@ -410,6 +620,11 @@ function EditDrawer({
   updateBlock: (key: "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter", patch: Partial<HomepageBlockView>) => void;
   updateBlockMetadata: (key: "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter", metadata: Record<string, unknown>) => void;
   updateTile: (slotIndex: number, patch: Partial<HomepagePromoTileView>) => void;
+  productOptions: AdminShowcaseProductOption[];
+  featuredProductIds: string[];
+  materialProductIds: string[];
+  onFeaturedProductIdsChange: (ids: string[]) => void;
+  onMaterialProductIdsChange: (ids: string[]) => void;
 }) {
   const features = getFeatures(draft.heroFeatureBar);
   const perks = getPerks(draft.newsletter);
@@ -495,6 +710,14 @@ function EditDrawer({
               <TextField label="Material headline" value={getMetadataString(draft.categoryGrid, "materialTitle")} onChange={(value) => updateBlockMetadata("categoryGrid", { materialTitle: value })} />
               <TextField label="Material description" value={getMetadataString(draft.categoryGrid, "materialBody")} onChange={(value) => updateBlockMetadata("categoryGrid", { materialBody: value })} multiline />
             </div>
+            <ProductSelectionField
+              title="Kő fókusz termékei"
+              emptyText="Nincs kézi termék kiválasztva. Mentéskor üres kézi lista esetén a meglévő fallback viselkedés marad."
+              maxItems={5}
+              products={productOptions}
+              selectedIds={materialProductIds}
+              onChange={onMaterialProductIdsChange}
+            />
             {draft.promoTiles.map((tile) => (
               <div key={tile.slotIndex} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <p className="text-sm font-semibold text-[#2D1A16]">Csempe {tile.slotIndex}</p>
@@ -514,7 +737,14 @@ function EditDrawer({
             <TextField label="Section eyebrow" value={draft.featuredSlider.eyebrow} onChange={(value) => updateBlock("featuredSlider", { eyebrow: value })} />
             <TextField label="Headline" value={draft.featuredSlider.title} onChange={(value) => updateBlock("featuredSlider", { title: value })} />
             <TextField label="Description" value={draft.featuredSlider.body} onChange={(value) => updateBlock("featuredSlider", { body: value })} multiline />
-            <p className="rounded-md bg-[#FDF0F6] px-3 py-2 text-xs leading-5 text-[#6B3D52]">Termékválogatás most nem része az inline editnek; a meglévő showcase admin logika változatlan.</p>
+            <ProductSelectionField
+              title="Kiemelt termékek"
+              emptyText="Nincs kézi termék kiválasztva. Ilyenkor a meglévő showcase tabok automatikus/fallback terméklistája jelenik meg."
+              maxItems={12}
+              products={productOptions}
+              selectedIds={featuredProductIds}
+              onChange={onFeaturedProductIdsChange}
+            />
           </>
         ) : null}
 
