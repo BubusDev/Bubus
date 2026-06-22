@@ -60,6 +60,45 @@ function assertImageUrl(value: string, label: string) {
   if (typeof value !== "string") {
     throw new Error(`${label}: érvénytelen kép URL.`);
   }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return;
+  }
+
+  if (trimmed.startsWith("data:")) {
+    throw new Error(`${label}: base64/data URL nem menthető, csak feltöltött kép URL.`);
+  }
+
+  if (
+    !trimmed.startsWith("/") &&
+    !trimmed.startsWith("https://") &&
+    !trimmed.startsWith("http://localhost")
+  ) {
+    throw new Error(`${label}: csak relatív vagy https:// kép URL menthető.`);
+  }
+}
+
+function assertMetadataImageUrls(value: unknown, label: string) {
+  if (typeof value === "string") {
+    assertImageUrl(value, label);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertMetadataImageUrls(item, `${label} ${index + 1}`));
+    return;
+  }
+
+  if (value && typeof value === "object") {
+    for (const [key, nestedValue] of Object.entries(value)) {
+      if (key.toLowerCase().includes("imageurl")) {
+        assertImageUrl(typeof nestedValue === "string" ? nestedValue : "", `${label} ${key}`);
+      } else if (Array.isArray(nestedValue) || (nestedValue && typeof nestedValue === "object")) {
+        assertMetadataImageUrls(nestedValue, `${label} ${key}`);
+      }
+    }
+  }
 }
 
 function assertHref(value: string, label: string) {
@@ -116,6 +155,7 @@ export async function updateHomepageContentAction(
     }
     assertImageUrl(input.hero.imageUrl, "Hero kép");
     assertImageUrl(input.instagram.imageUrl, "Social kép");
+    assertMetadataImageUrls(input.instagram.metadata.teamMembers, "Csapattag kép");
 
     for (const tile of input.promoTiles) {
       if (!Number.isInteger(tile.slotIndex) || tile.slotIndex < 4 || tile.slotIndex > 8) {

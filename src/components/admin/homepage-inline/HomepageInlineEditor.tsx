@@ -11,8 +11,6 @@ import { HomeEditorialSection, HomeFinalCta } from "@/components/home/HomeEditor
 import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
-import BrandPhilosophy from "@/components/home/BrandPhilosophy";
-import StoneFocus from "@/components/home/StoneFocus";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
 import type { HomepageBlockView, HomepageContentView, HomepagePromoTileView } from "@/lib/homepage-content";
 import type { ShowcaseTab } from "@/lib/homepage-showcase";
@@ -149,6 +147,7 @@ function ImageField({
   onChange: (value: string) => void;
 }) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -157,18 +156,24 @@ function ImageField({
     if (!file) return;
 
     setIsUploading(true);
+    setUploadProgress(null);
     setError("");
 
     try {
       const blob = await upload(createAdminImageUploadPathname("homepage", file.name), file, {
         access: "public",
+        contentType: file.type || undefined,
         handleUploadUrl: "/api/admin/product-images/upload",
+        onUploadProgress: ({ percentage }) => {
+          setUploadProgress(percentage);
+        },
       });
       onChange(blob.url);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "A képfeltöltés nem sikerült.");
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -184,6 +189,9 @@ function ImageField({
         {isUploading ? "Feltöltés..." : "Kép cseréje"}
         <input type="file" accept={browserSafeProductImageAccept} onChange={handleFileChange} className="sr-only" />
       </label>
+      {isUploading && uploadProgress !== null ? (
+        <p className="text-xs font-medium text-[#6B3D52]">Feltöltés... {uploadProgress}%</p>
+      ) : null}
       {error ? <p className="text-xs text-[#9f263f]">{error}</p> : null}
     </div>
   );
@@ -302,7 +310,6 @@ export function HomepageInlineEditor({
       <EditableWrap section="hero" isEditing={isEditing} onEdit={setActiveSection}>
         <HeroBanner block={visibleContent.hero} featureBlock={visibleContent.heroFeatureBar} />
       </EditableWrap>
-      <BrandPhilosophy />
       <EditableWrap section="categoryGrid" isEditing={isEditing} onEdit={setActiveSection}>
         <HomePromoTileGrid
           tiles={visibleContent.promoTiles}
@@ -310,7 +317,6 @@ export function HomepageInlineEditor({
           categoryBlock={visibleContent.categoryGrid}
         />
       </EditableWrap>
-      <StoneFocus />
       {showcaseTabs.length > 0 ? (
         <EditableWrap section="featuredSlider" isEditing={isEditing} onEdit={setActiveSection}>
           <FeaturedSlider tabs={showcaseTabs} contentBlock={visibleContent.featuredSlider} />
