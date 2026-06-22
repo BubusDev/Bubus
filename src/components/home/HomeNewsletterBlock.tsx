@@ -13,44 +13,60 @@ export function HomeNewsletterBlock({ status }: HomeNewsletterBlockProps) {
         : "";
 
   return (
-    <section id="newsletter" className="bg-[#fbfaf7] px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-      <div className="mx-auto grid max-w-[1320px] gap-8 border-t border-[#dedbd2] py-12 sm:py-14 lg:grid-cols-[0.85fr_1fr] lg:items-center">
-        <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
-            Hírlevél
-          </p>
-          <h2 className="mt-4 max-w-[12ch] font-[family:var(--font-display)] text-[2.5rem] leading-[0.96] tracking-[-0.035em] text-[#22231f] sm:text-[3.7rem]">
-            Elsőként a limitált darabokról.
-          </h2>
-        </div>
-        <div>
-          <p className="max-w-[62ch] text-sm leading-8 text-[#615f58]">
-            Elsőként értesítünk az új kollekciókról, friss színekről és különleges
-            ajánlatokról. Rövid leveleket küldünk, csak akkor, amikor valóban van mit
-            megmutatni.
-          </p>
-          <form
-            action={subscribeNewsletterAction}
-            className="mt-8 flex max-w-[620px] flex-col gap-3 sm:flex-row"
-          >
-            <input
-              type="email"
-              name="email"
-              required
-              placeholder="Email címed"
-              className="min-h-12 flex-1 border border-[#d8d5cc] bg-white px-4 text-sm text-[#22231f] outline-none transition placeholder:text-[#9a958b] focus:border-[#22231f] focus:ring-2 focus:ring-[#22231f]/10"
-            />
-            <button
-              type="submit"
-              className="min-h-12 bg-[#22231f] px-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition hover:bg-[#42463c] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22231f] focus-visible:ring-offset-2"
+    <section
+      id="newsletter"
+      className="relative overflow-hidden bg-[#FDF6F3] px-6 py-[72px] sm:px-12"
+    >
+      <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-[#FDF0F6]" />
+      <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-[#F7DED8]" />
+      <div className="relative mx-auto max-w-[840px] text-center">
+        <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#9C6B63]">
+          Hírlevél
+        </p>
+        <h2 className="mx-auto mt-4 max-w-[11ch] font-[family:var(--font-display)] text-[3rem] leading-[0.96] text-[#2D1A16] sm:text-[4.4rem]">
+          Elsőként a <em className="font-normal italic text-[#E0157A]">limitált darabokról.</em>
+        </h2>
+        <p className="mx-auto mt-6 max-w-[68ch] text-sm leading-8 text-[#9C6B63]">
+          Elsőként értesítünk az új kollekciókról, friss színekről és különleges
+          ajánlatokról. Rövid leveleket küldünk, csak akkor, amikor valóban van mit
+          megmutatni.
+        </p>
+
+        <div className="mt-7 flex flex-wrap justify-center gap-2.5">
+          {["Új kollekciók előre", "Limitált darabok", "Különleges ajánlatok"].map((perk) => (
+            <span
+              key={perk}
+              className="border border-[#E8C9C0] bg-white/55 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C6B63]"
             >
-              Feliratkozom
-            </button>
-          </form>
-          {statusMessage ? (
-            <p className="mt-4 text-sm leading-6 text-[#615f58]">{statusMessage}</p>
-          ) : null}
+              {perk}
+            </span>
+          ))}
         </div>
+
+        <form
+          action={subscribeNewsletterAction}
+          className="mx-auto mt-9 flex max-w-[640px] flex-col gap-3 sm:flex-row"
+        >
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Email címed"
+            className="min-h-12 flex-1 border border-[#E8C9C0] bg-white px-4 text-sm text-[#2D1A16] outline-none transition placeholder:text-[#9C6B63]/72 focus:border-[#E0157A] focus:ring-2 focus:ring-[#E0157A]/10"
+          />
+          <button
+            type="submit"
+            className="min-h-12 bg-[#E0157A] px-6 text-[11px] font-medium uppercase tracking-[0.22em] text-white transition hover:bg-[#C0006A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0157A] focus-visible:ring-offset-2"
+          >
+            Feliratkozom
+          </button>
+        </form>
+        {statusMessage ? (
+          <p className="mt-4 text-sm leading-6 text-[#9C6B63]">{statusMessage}</p>
+        ) : null}
+        <p className="mt-4 text-xs leading-6 text-[#9C6B63]">
+          Nincs spam. Bármikor leiratkozhatsz.
+        </p>
       </div>
     </section>
   );
