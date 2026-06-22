@@ -42,6 +42,23 @@ export function buildGuestOrderRecoveryUrl(token: string) {
   return new URL(`/order-status/recover?token=${encodeURIComponent(token)}`, baseUrl).toString();
 }
 
+export function buildPasswordResetUrl(token: string) {
+  const baseUrl = getAuthBaseUrl();
+  const parsedBaseUrl = new URL(baseUrl);
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    (parsedBaseUrl.hostname === "localhost" || parsedBaseUrl.hostname === "127.0.0.1")
+  ) {
+    throw new EmailDeliveryError(
+      "Password reset URL must not point to localhost in production.",
+      "email_not_configured",
+    );
+  }
+
+  return new URL(`/reset-password?token=${encodeURIComponent(token)}`, baseUrl).toString();
+}
+
 function getEmailFromAddress() {
   return process.env.AUTH_EMAIL_FROM ?? process.env.EMAIL_FROM;
 }
@@ -150,17 +167,37 @@ export async function sendVerificationEmail(
   return {};
 }
 
-export async function sendPasswordResetEmailPreview(token: string): Promise<EmailPreviewResult> {
-  const baseUrl = getAuthBaseUrl();
-  const previewUrl = new URL(
-    `/reset-password?token=${encodeURIComponent(token)}`,
-    baseUrl,
-  ).toString();
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+): Promise<EmailPreviewResult> {
+  const resetUrl = buildPasswordResetUrl(token);
+  const subject = "Jelszó visszaállítása – Chicks Jewelry";
 
   if (isDevelopment()) {
-    console.info(`[auth] Password reset URL: ${previewUrl}`);
-    return { previewUrl };
+    console.info(`[auth] Password reset URL: ${resetUrl}`);
+    return { previewUrl: resetUrl };
   }
+
+  await sendEmail({
+    to: email,
+    subject,
+    text: [
+      "Jelszó-visszaállítást kértél a Chicks Jewelry fiókodhoz.",
+      "",
+      `A jelszó visszaállításához nyisd meg ezt a linket: ${resetUrl}`,
+      "",
+      "A link 2 óráig érvényes.",
+      "Ha nem te kérted, hagyd figyelmen kívül.",
+    ].join("\n"),
+    html: [
+      "<p>Jelszó-visszaállítást kértél a Chicks Jewelry fiókodhoz.</p>",
+      `<p><a href="${resetUrl}">Jelszó visszaállítása</a></p>`,
+      `<p>Ha a gomb nem nyílik meg, használd ezt a linket:<br />${resetUrl}</p>`,
+      "<p>A link 2 óráig érvényes.</p>",
+      "<p>Ha nem te kérted, hagyd figyelmen kívül.</p>",
+    ].join(""),
+  });
 
   return {};
 }

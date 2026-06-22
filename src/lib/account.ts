@@ -36,6 +36,20 @@ export type FavouriteProduct = {
   soldOutAt?: Date | null;
   inStock: boolean;
   imageUrl?: string | null;
+  images: {
+    id: string;
+    url: string;
+    alt?: string | null;
+    isCover: boolean;
+    cardCropX: number;
+    cardCropY: number;
+    cardCropZoom: number;
+    cardCropAspectRatio: number;
+    cardCropAreaX: number;
+    cardCropAreaY: number;
+    cardCropAreaWidth: number;
+    cardCropAreaHeight: number;
+  }[];
 };
 
 export type CartItemSummary = {
@@ -419,6 +433,7 @@ export async function getFavouriteProducts(userId: string) {
       soldOutAt: entry.product.soldOutAt,
       inStock: isInStock(entry.product),
       imageUrl: coverImage?.url ?? entry.product.imageUrl,
+      images: entry.product.images,
     };
   });
 }

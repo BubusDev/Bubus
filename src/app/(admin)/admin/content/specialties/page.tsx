@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import {
   ExternalLink,
@@ -175,10 +176,13 @@ function SpecialtyPreview({
             </p>
             <div className="flex aspect-[4/5] max-h-64 items-center justify-center overflow-hidden rounded-sm border border-[var(--admin-line-100)] bg-[#f7f9fc]">
               {previewImage ? (
-                <img
+                <Image
                   src={previewImage}
                   alt={item.previewImageAlt || item.imageAlt || item.name}
+                  width={640}
+                  height={800}
                   className="h-full w-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <ImageIcon className="h-8 w-8 text-[var(--admin-ink-500)]" />
@@ -193,10 +197,13 @@ function SpecialtyPreview({
             </p>
             <div className="relative aspect-[4/3] min-h-64 overflow-hidden rounded-sm bg-[radial-gradient(circle_at_70%_15%,#9b5a79_0%,#63324f_45%,#351925_100%)]">
               {cardImage ? (
-                <img
+                <Image
                   src={cardImage}
                   alt={item.cardImageAlt || item.previewImageAlt || item.name}
+                  fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="absolute inset-0 h-full w-full object-cover"
+                  unoptimized
                 />
               ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-[#2e1020]/90 via-[#3c1428]/52 to-[#3c1428]/10" />

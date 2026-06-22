@@ -93,6 +93,9 @@ const productWithImagesAndOptions = {
   occasion: true,
   availability: true,
   tone: true,
+  _count: {
+    select: { orderItems: true },
+  },
 } satisfies Prisma.ProductInclude;
 
 type DbProductWithRelations = Prisma.ProductGetPayload<{
@@ -797,6 +800,33 @@ export async function getCuratedProductRecommendations(
     });
 
     for (const candidate of mapStorefrontProducts(bucket)) {
+      if (selectedIds.has(candidate.id) || !candidate.inStock) {
+        continue;
+      }
+
+      selectedIds.add(candidate.id);
+      picks.push(candidate);
+
+      if (picks.length >= limit) {
+        break;
+      }
+    }
+  }
+
+  if (picks.length < limit) {
+    const fallback = await db.product.findMany({
+      where: withStorefrontProducts({
+        id: { notIn: Array.from(selectedIds) },
+      }),
+      include: productWithImagesAndOptions,
+      orderBy: [
+        { homepagePlacement: "desc" },
+        { updatedAt: "desc" },
+      ],
+      take: Math.max((limit - picks.length) * 2, 6),
+    });
+
+    for (const candidate of mapStorefrontProducts(fallback)) {
       if (selectedIds.has(candidate.id) || !candidate.inStock) {
         continue;
       }

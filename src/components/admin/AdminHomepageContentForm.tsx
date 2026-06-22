@@ -42,7 +42,7 @@ function BlockPanel({
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const sectionLabel = block.key === "HERO" ? "Campaign" : "Social";
+  const sectionLabel = block.key === "HERO" ? "Hero" : "Instagram";
   const title = block.key === "HERO" ? "Hero kampány blokk" : "Instagram promó blokk";
 
   return (
@@ -324,7 +324,7 @@ function BlockOverviewCard({
               className="admin-button-secondary admin-control-md shrink-0"
             >
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              Szerkesztés
             </button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -453,7 +453,7 @@ export function AdminHomepageContentForm({
 
       <BlockOverviewCard
         block={content.hero}
-        label="Campaign"
+        label="Hero"
         title="Hero kampány blokk"
         onEdit={() => setPanel({ type: "block", block: content.hero })}
       />
@@ -469,13 +469,13 @@ export function AdminHomepageContentForm({
 
       <section className="admin-panel p-5">
         <div className="mb-5">
-          <p className="admin-eyebrow">Promo grid</p>
+          <p className="admin-eyebrow">Promó csempék</p>
           <h2 className="mt-2 text-lg font-semibold text-[var(--admin-ink-900)]">
             Saját tervezésű kollekciók
           </h2>
           <p className="mt-2 max-w-[64ch] text-sm leading-6 text-[var(--admin-ink-600)]">
-            Az öt kép slotja explicit 4-8 pozícióval kezelhető, így a storefront elrendezése stabil
-            marad kampánycsere közben is.
+            Az öt képes csempe fix pozíciókban jelenik meg a kezdőlapon. Cserénél a kép, szöveg,
+            link és láthatóság külön menthető.
           </p>
         </div>
         <div className="grid gap-4 xl:grid-cols-2">

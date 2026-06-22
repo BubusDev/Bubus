@@ -293,6 +293,23 @@ export async function moveFavouriteToCartAction(formData: FormData) {
   revalidatePath("/favourites");
 }
 
+export async function addFavouriteToCartAction(productId: string) {
+  const user = await requireAccountUser("/favourites");
+  if (productId) {
+    await addProductToCart(user.id, productId, 1);
+  }
+  revalidatePath("/");
+  revalidatePath("/cart");
+  revalidatePath("/favourites");
+}
+
+export async function deleteFavouriteAction(productId: string) {
+  const user = await requireAccountUser("/favourites");
+  await db.favourite.deleteMany({ where: { userId: user.id, productId } });
+  revalidatePath("/");
+  revalidatePath("/favourites");
+}
+
 export async function saveProfileAction(formData: FormData) {
   const user = await requireAccountUser("/profile");
   const name = readString(formData, "name");

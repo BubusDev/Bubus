@@ -3,7 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, LoaderCircle, RefreshCcw, ShoppingBag } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  LoaderCircle,
+  Mail,
+  MessageCircle,
+  RefreshCcw,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 
 import {
   isPendingPaymentStatus,
@@ -189,7 +198,7 @@ export function ConfirmationStatusCard({
           tone="success"
           eyebrow="Fizetés sikeres"
           title="Köszönjük a rendelésedet"
-          description="A fizetés beérkezett, a készlet frissült, a rendelés részleteit pedig a fiókodban bármikor újra megnyithatod."
+          description="A fizetés beérkezett, a rendelést rögzítettük, a részletekről pedig emailben is küldünk visszaigazolást."
         />
       ) : isUnableToVerify ? (
         <ConfirmationContent
@@ -240,6 +249,23 @@ export function ConfirmationStatusCard({
         </div>
       </div>
 
+      {isPaid ? (
+        <div className="mt-5 grid gap-3 rounded-[1.8rem] border border-[#f0d8e5] bg-white/80 p-5 text-sm leading-6 text-[#7a6070] sm:grid-cols-3">
+          <div className="flex gap-3">
+            <Mail className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
+            <p>Emailben elküldjük a rendelés visszaigazolását.</p>
+          </div>
+          <div className="flex gap-3">
+            <Truck className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
+            <p>A feldolgozás és szállítás állapotát a rendelési oldalon követheted.</p>
+          </div>
+          <div className="flex gap-3">
+            <MessageCircle className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
+            <p>Ha kérdésed van, írj nekünk, és segítünk.</p>
+          </div>
+        </div>
+      ) : null}
+
       {pollingError ? (
         <div className="mt-5 rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
           {pollingError}
@@ -254,7 +280,7 @@ export function ConfirmationStatusCard({
               void refreshPaymentStatus();
             }}
             disabled={isRefreshing}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRefreshing ? (
               <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -270,21 +296,21 @@ export function ConfirmationStatusCard({
         {isPaid && canViewOrder ? (
           <Link
             href={`/orders/${orderId}`}
-            className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             Rendelés megtekintése
           </Link>
         ) : isPaid ? (
           <Link
-            href="/"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
+            href="/order-status"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Tovább válogatok
+            Rendelés állapotának követése
           </Link>
         ) : (
           <Link
             href="/checkout"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             <ShoppingBag className="h-4 w-4" />
             Vissza a pénztárhoz
@@ -292,9 +318,9 @@ export function ConfirmationStatusCard({
         )}
         <Link
           href="/"
-          className="inline-flex h-12 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-6 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+          className="inline-flex h-12 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-6 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
         >
-          Tovább válogatok
+          Vissza a webshopba
         </Link>
       </div>
     </section>

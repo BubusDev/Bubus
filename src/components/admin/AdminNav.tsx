@@ -22,7 +22,8 @@ const productSubNav = [
   { label: "Összes termék", href: "/admin/products" },
   { label: "Új termék", href: "/admin/products/new" },
   { label: "Archívum", href: "/admin/products/archive" },
-  { label: "Special Edition", href: "/admin/products/special" },
+  { label: "Terméksorrend", href: "/admin/merchandising" },
+  { label: "Special Edition kampány", href: "/admin/special-edition" },
 ];
 
 const contentSubNav = [
@@ -30,15 +31,19 @@ const contentSubNav = [
   { label: "Showcase tabok", href: "/admin/content/homepage-showcase" },
   { label: "Üzenetsáv", href: "/admin/content/announcement" },
   { label: "Különlegességek menü", href: "/admin/content/specialties" },
+  { label: "Drágakő lexikon", href: "/admin/gemstones" },
 ];
 
 export function AdminNav() {
   const pathname = usePathname();
 
   const isProductsSection =
-    pathname.startsWith("/admin/products");
+    pathname.startsWith("/admin/products") ||
+    pathname.startsWith("/admin/merchandising") ||
+    pathname.startsWith("/admin/special-edition");
   const isContentSection =
-    pathname.startsWith("/admin/content");
+    pathname.startsWith("/admin/content") ||
+    pathname.startsWith("/admin/gemstones");
 
   const subNav = isProductsSection
     ? productSubNav
@@ -59,6 +64,9 @@ export function AdminNav() {
     if (href === "/admin/content/homepage-showcase") {
       return pathname === "/admin/content/homepage-showcase";
     }
+    if (href === "/admin/merchandising") return pathname.startsWith("/admin/merchandising");
+    if (href === "/admin/special-edition") return pathname.startsWith("/admin/special-edition");
+    if (href === "/admin/gemstones") return pathname.startsWith("/admin/gemstones");
     return pathname.startsWith(href);
   };
 

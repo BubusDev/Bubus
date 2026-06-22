@@ -1,4 +1,4 @@
-import { ChevronDown, CreditCard, Heart, RotateCcw, Sparkles, Truck } from "lucide-react";
+import { ChevronDown, CreditCard, Heart, PackageCheck, RotateCcw, Sparkles, Truck } from "lucide-react";
 import Link from "next/link";
 
 import { addFavouriteAction } from "@/app/(storefront)/account/actions";
@@ -24,6 +24,30 @@ function getDisplayValue(value?: string | null, fallback = "Nincs megadva") {
   return normalizedValue || fallback;
 }
 
+function getStockTone(product: Product, isOutOfStock: boolean) {
+  if (isOutOfStock) {
+    return {
+      label: "Elfogyott",
+      description: "Ez a darab jelenleg nem rendelhető.",
+      className: "border-[#ead6dd] bg-[#faf7f8] text-[#7b6f74]",
+    };
+  }
+
+  if (product.availableToSell > 0 && product.availableToSell <= 3) {
+    return {
+      label: `Már csak ${product.availableToSell} db`,
+      description: "Kis szériás darab, korlátozott készlettel.",
+      className: "border-[#ead8c3] bg-[#fff9ef] text-[#7a5631]",
+    };
+  }
+
+  return {
+    label: "Készleten",
+    description: "Rendelhető, gyors feldolgozással.",
+    className: "border-[#dbe7dc] bg-[#f6fbf6] text-[#496747]",
+  };
+}
+
 export function ProductDetailView({
   product,
   categoryTitle,
@@ -40,17 +64,25 @@ export function ProductDetailView({
     "A termék részletes leírása hamarosan elérhető lesz.";
   const detailText =
     description && description !== introText ? description : null;
+  const stockTone = getStockTone(product, isOutOfStock);
+  const discountPercent =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : null;
 
   const metaRows = [
+    { label: "Kategória", value: product.labels.category || categoryTitle, clickable: false },
+    { label: "Kollekció", value: product.collectionLabel, clickable: false },
+    { label: "Kő", value: product.labels.stoneType, clickable: false },
     { label: "Szín", value: product.labels.color, clickable: false },
     { label: "Stílus", value: product.labels.style, clickable: false },
     { label: "Alkalom", value: product.labels.occasion, clickable: false },
   ].filter((r) => r.value);
   const reassuranceItems = [
-    { label: "2–4 napos szállítás", icon: Truck },
-    { label: "14 napos visszaküldés", icon: RotateCcw },
-    { label: "Biztonságos fizetés", icon: CreditCard },
-    { label: "Kézzel készült, limitált darabok", icon: Sparkles },
+    { label: "2-4 munkanapos szállítás", icon: Truck },
+    { label: "14 napos visszaküldés nem egyedi darabokra", icon: RotateCcw },
+    { label: "Biztonságos Stripe fizetés", icon: CreditCard },
+    { label: "Kis szériás válogatás", icon: Sparkles },
   ];
 
   return (
@@ -70,64 +102,118 @@ export function ProductDetailView({
         <div className="space-y-4 sm:space-y-5 xl:pt-1">
 
           {/* 1. Fejléc */}
-          <div>
+          <div className="space-y-3">
             <p className="mb-1 text-[10px] uppercase tracking-[.22em] text-[#888] sm:tracking-[.28em]">
               {categoryTitle}
             </p>
             <h1 className="font-[family:var(--font-display)] text-[1.55rem] leading-[1.12] tracking-[-0.03em] text-[#1a1a1a] sm:text-[1.9rem]">
               {product.name}
             </h1>
+            <p className="max-w-[48ch] text-sm leading-7 text-[#5f555a]">
+              {introText}
+            </p>
           </div>
 
           {/* 2. Ár */}
-          <div className="flex items-baseline gap-3">
-            <span className="text-lg font-semibold text-[#1a1a1a] sm:text-xl">
-              {formatPrice(product.price)}
-            </span>
-            {product.compareAtPrice && (
-              <span className="text-sm text-[#888] line-through">
-                {formatPrice(product.compareAtPrice)}
+          <div className="rounded-lg border border-[#e8e5e0] bg-white px-4 py-3">
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className="text-2xl font-semibold tracking-[-0.04em] text-[#1a1a1a] sm:text-[1.7rem]">
+                {formatPrice(product.price)}
               </span>
-            )}
+              {product.compareAtPrice && (
+                <span className="text-sm text-[#888] line-through">
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+              )}
+              {discountPercent ? (
+                <span className="rounded-full bg-[#4d2741] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-white">
+                  -{discountPercent}%
+                </span>
+              ) : product.isOnSale ? (
+                <span className="rounded-full bg-[#4d2741] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-white">
+                  Akció
+                </span>
+              ) : null}
+            </div>
+            <div className={`mt-3 rounded-md border px-3 py-2 text-sm ${stockTone.className}`}>
+              <div className="flex items-start gap-2">
+                <PackageCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold">{stockTone.label}</p>
+                  <p className="mt-0.5 text-xs opacity-85">{stockTone.description}</p>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {(product.badge || product.collectionLabel || product.specialtyKey) && (
+            <div className="flex flex-wrap gap-2">
+              {product.badge ? (
+                <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
+                  {product.badge}
+                </span>
+              ) : null}
+              {product.collectionLabel ? (
+                <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
+                  {product.collectionLabel}
+                </span>
+              ) : null}
+              {product.specialtyKey ? (
+                <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
+                  Limitált válogatás
+                </span>
+              ) : null}
+            </div>
+          )}
 
           {/* 3. Szállítás */}
           <div
-            className="flex min-h-10 items-center gap-2 px-3 py-2 text-[13px] text-[#555] sm:min-h-11 sm:text-sm"
+            className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-[#555] sm:min-h-11 sm:text-sm"
             style={{ border: "1px solid #e8e5e0" }}
           >
             <Truck className="h-4 w-4 flex-shrink-0 text-[#888]" />
-            <span>Ingyenes szállítás · 3–5 munkanap</span>
+            <span>2-4 munkanapos szállítás raktáron lévő darabokra</span>
           </div>
 
           {/* 4. Kosárba */}
-          <div className="flex flex-col gap-2">
-            <AddToCartTextButton
-              productId={product.id}
-              redirectTo={`/product/${product.slug}`}
-              disabled={isOutOfStock}
-              idleLabel="Kosárba rakom"
-              addedLabel="Kosárban"
-              soldOutLabel="Elfogyott"
-              iconClassName="h-4 w-4"
-              baseClassName="inline-flex h-12 w-full items-center justify-center gap-2 text-[13px] font-medium transition"
-              disabledClassName="cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
-              addedClassName="bg-[#4d2741] text-white"
-              idleClassName="bg-[#1a1a1a] text-white hover:bg-[#333]"
-            />
+          <div className="flex flex-col gap-2 sm:sticky sm:top-24">
+            <div className="rounded-lg border border-[#e8e5e0] bg-white p-3">
+              <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+                <span className="text-[#756a70]">Mennyiség</span>
+                <span className="font-medium text-[#1a1a1a]">1 db</span>
+              </div>
+              <AddToCartTextButton
+                productId={product.id}
+                redirectTo={`/product/${product.slug}`}
+                disabled={isOutOfStock}
+                idleLabel="Kosárba teszem"
+                addedLabel="Kosárban"
+                soldOutLabel="Elfogyott"
+                iconClassName="h-4 w-4"
+                baseClassName="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
+                disabledClassName="cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
+                addedClassName="bg-[#4d2741] text-white"
+                idleClassName="bg-[#1a1a1a] text-white hover:bg-[#333]"
+              />
+            </div>
 
             <form action={addFavouriteAction}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="redirectTo" value="/favourites" />
               <button
                 type="submit"
-                className="inline-flex h-12 w-full items-center justify-center gap-2 text-[13px] font-medium text-[#4d2741] transition hover:text-[#1a1a1a]"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium text-[#4d2741] transition hover:text-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
                 style={{ border: "1px solid #e7dde3", background: "white" }}
               >
                 <Heart className="h-4 w-4" />
                 Kedvencekhez adom
               </button>
             </form>
+
+            <p className="text-xs leading-5 text-[#756a70]">
+              Biztonságos fizetés, átlátható rendelési folyamat. A rendelésedről emailben is
+              küldünk visszaigazolást.
+            </p>
 
             <div className="grid gap-2 border-t border-[#e8e5e0] pt-3 sm:grid-cols-2">
               {reassuranceItems.map(({ label, icon: Icon }) => (
@@ -140,8 +226,7 @@ export function ProductDetailView({
           </div>
 
           {/* 5. Kőtípus + attribútumok */}
-          <div className="border-t border-[#e8e5e0] pt-4 space-y-2">
-            {/* Kőtípus */}
+          <div className="space-y-2 border-t border-[#e8e5e0] pt-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-[#888]">Kő</span>
               <StoneInfoButton
@@ -150,20 +235,22 @@ export function ProductDetailView({
               />
             </div>
 
-            {metaRows.map((row) => (
-              <div key={row.label} className="flex items-center justify-between text-sm">
-                <span className="text-[#888]">{row.label}</span>
-                <span className="font-medium text-[#1a1a1a]">
-                  {getDisplayValue(row.value)}
-                </span>
-              </div>
-            ))}
+            {metaRows
+              .filter((row) => row.label !== "Kő")
+              .map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-4 text-sm">
+                  <span className="text-[#888]">{row.label}</span>
+                  <span className="text-right font-medium text-[#1a1a1a]">
+                    {getDisplayValue(row.value)}
+                  </span>
+                </div>
+              ))}
 
             {availabilityLabel && (
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between gap-4 text-sm">
                 <span className="text-[#888]">Elérhetőség</span>
                 <span
-                  className={`font-medium ${
+                  className={`text-right font-medium ${
                     isOutOfStock ? "text-[#7f7078]" : "text-[#1a1a1a]"
                   }`}
                 >
@@ -198,10 +285,10 @@ export function ProductDetailView({
               <div>
                 <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-1">Ajánlott</p>
                 <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
-                  Ez is érdekelheti Önt
+                  További darabok a kollekcióból
                 </h2>
               </div>
-              <Link href="/new-in" className="inline-flex min-h-10 items-center text-sm text-[#888] transition hover:text-[#1a1a1a]">
+              <Link href="/new-in" className="inline-flex min-h-10 items-center text-sm text-[#888] transition hover:text-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2">
                 Összes termék →
               </Link>
             </div>

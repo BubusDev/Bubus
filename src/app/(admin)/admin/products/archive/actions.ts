@@ -36,6 +36,16 @@ export async function permanentlyDeleteProduct(id: string) {
 
   if (!product) return;
 
+  const orderItemCount = await db.orderItem.count({
+    where: { productId: id },
+  });
+
+  if (product.status !== ProductStatus.DRAFT || orderItemCount > 0) {
+    throw new Error(
+      "A termék nem törölhető véglegesen. Végleges törlés csak draft és rendelés nélküli terméknél engedélyezett.",
+    );
+  }
+
   await db.product.delete({ where: { id } });
   await Promise.all(
     product.images.map((img) =>

@@ -14,8 +14,17 @@ export function getAuthBaseUrl() {
     process.env.AUTH_URL ??
     process.env.NEXTAUTH_URL ??
     process.env.APP_URL ??
-    process.env.VERCEL_URL ??
-    LOCAL_DEV_URL;
+    process.env.VERCEL_URL;
+
+  if (!rawUrl) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "A public app URL is required in production. Set APP_URL or AUTH_URL, for example https://www.chicksjewelry.com.",
+      );
+    }
+
+    return LOCAL_DEV_URL;
+  }
 
   return normalizeUrl(rawUrl);
 }

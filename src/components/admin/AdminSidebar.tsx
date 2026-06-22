@@ -13,7 +13,7 @@ import {
   Truck,
   Megaphone,
   Menu,
-  Image,
+  Images,
   LayoutTemplate,
   LayoutGrid,
   Settings,
@@ -55,10 +55,10 @@ const navGroups: NavGroup[] = [
     label: "Termékek",
     items: [
       { label: "Összes termék", href: "/admin/products", icon: Package, exact: true },
-      { label: "Merchandising", href: "/admin/merchandising", icon: LayoutGrid },
       { label: "Új termék", href: "/admin/products/new", icon: PackagePlus },
       { label: "Archívum", href: "/admin/products/archive", icon: Archive },
-      { label: "Special Edition", href: "/admin/special-edition", icon: Sparkles },
+      { label: "Terméksorrend", href: "/admin/merchandising", icon: LayoutGrid },
+      { label: "Special Edition kampány", href: "/admin/special-edition", icon: Sparkles },
     ],
   },
   {
@@ -73,11 +73,6 @@ const navGroups: NavGroup[] = [
       { label: "Lezárva", href: "/admin/orders?status=closed", icon: ShoppingCart },
       { label: "Problémás", href: "/admin/orders?status=exceptions", icon: RotateCcw },
       { label: "Visszaküldések", href: "/admin/returns", icon: RotateCcw, exact: true },
-    ],
-  },
-  {
-    label: "Promóciók",
-    items: [
       { label: "Kuponkódok", href: "/admin/promo-codes", icon: TicketPercent, exact: true },
     ],
   },
@@ -88,8 +83,19 @@ const navGroups: NavGroup[] = [
       { label: "Showcase tabok", href: "/admin/content/homepage-showcase", icon: LayoutGrid, exact: true },
       { label: "Üzenetsáv", href: "/admin/content/announcement", icon: Megaphone },
       { label: "Különlegességek menü", href: "/admin/content/specialties", icon: Menu },
-      { label: "Drágakövek", href: "/admin/gemstones", icon: Gem, exact: true },
-      { label: "Kampány bannerek", href: "/admin/special-edition", icon: Image },
+      { label: "Drágakő lexikon", href: "/admin/gemstones", icon: Gem, exact: true },
+    ],
+  },
+  {
+    label: "Média",
+    items: [
+      { label: "Média", href: "/admin/media", icon: Images, exact: true },
+    ],
+  },
+  {
+    label: "Vásárlók",
+    items: [
+      { label: "Vásárlók", href: "/admin/customers", icon: User, exact: true },
     ],
   },
   {

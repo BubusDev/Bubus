@@ -22,9 +22,13 @@ async function getArchivedProducts() {
       name: true,
       imageUrl: true,
       collectionLabel: true,
+      status: true,
       archivedAt: true,
       archiveReason: true,
       slug: true,
+      _count: {
+        select: { orderItems: true },
+      },
     },
     orderBy: { archivedAt: "desc" },
   });

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { ArrowRight, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 
 import {
   formatPrice,
@@ -60,6 +60,26 @@ function getPricePresets(availableFilters: CatalogFilters) {
     { label: `${formatPrice(low)} – ${formatPrice(high)}`, min: low, max: high },
     { label: `${formatPrice(high)} felett`, min: high, max: undefined },
   ];
+}
+
+function subscribeToClientSnapshot() {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribeToClientSnapshot,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
 }
 
 function FilterContent({
@@ -274,8 +294,8 @@ function FilterContent({
 }
 
 export function FilterSidebar(props: FilterSidebarProps) {
+  const isClient = useIsClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
   const triggerRef = useRef<HTMLDivElement | null>(null);
@@ -285,22 +305,16 @@ export function FilterSidebar(props: FilterSidebarProps) {
   const showTrigger = mode !== "desktop-sidebar";
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
     const mediaQuery = window.matchMedia("(max-width: 767px)");
     const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
 
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
     return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, [mounted]);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen || !mounted || isMobileViewport) return;
+    if (!isOpen || isMobileViewport) return;
 
     const updatePosition = () => {
       if (!triggerRef.current) return;
@@ -325,7 +339,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, isMobileViewport, mounted]);
+  }, [isOpen, isMobileViewport]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -352,12 +366,11 @@ export function FilterSidebar(props: FilterSidebarProps) {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!mounted) return;
     document.body.style.overflow = isOpen && isMobileViewport ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, isMobileViewport, mounted]);
+  }, [isOpen, isMobileViewport]);
 
   return (
     <>
@@ -384,52 +397,52 @@ export function FilterSidebar(props: FilterSidebarProps) {
         </div>
       ) : null}
 
-      {mounted
+      {isClient
         ? createPortal(
-            <AnimatePresence>
-              {isOpen ? (
-                isMobileViewport ? (
-                  <motion.div
-                    key="filter-mobile-sheet"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.12, ease: "easeIn" }}
-                    className="fixed inset-0 z-[120] bg-black/20 md:hidden"
-                  >
-                    <motion.div
-                      ref={panelRef}
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 24 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                      className="absolute bottom-0 left-0 right-0 h-[85vh] overflow-hidden rounded-t-[1.6rem] border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
-                    >
-                      <div className="flex justify-center pb-2 pt-3">
-                        <span className="h-1.5 w-12 rounded-full bg-black/10" />
-                      </div>
-                      <div className="h-[calc(85vh-1.25rem)] min-h-0">
-                        <FilterContent {...props} onClose={() => setIsOpen(false)} />
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="filter-desktop-popover"
-                    ref={panelRef}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    style={panelStyle}
-                    className="z-[120] max-h-[70vh] overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
-                  >
+        <AnimatePresence>
+          {isOpen ? (
+            isMobileViewport ? (
+              <motion.div
+                key="filter-mobile-sheet"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12, ease: "easeIn" }}
+                className="fixed inset-0 z-[120] bg-black/20 md:hidden"
+              >
+                <motion.div
+                  ref={panelRef}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 24 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute bottom-0 left-0 right-0 h-[85vh] overflow-hidden rounded-t-[1.6rem] border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
+                >
+                  <div className="flex justify-center pb-2 pt-3">
+                    <span className="h-1.5 w-12 rounded-full bg-black/10" />
+                  </div>
+                  <div className="h-[calc(85vh-1.25rem)] min-h-0">
                     <FilterContent {...props} onClose={() => setIsOpen(false)} />
-                  </motion.div>
-                )
-              ) : null}
-            </AnimatePresence>,
-            document.body,
+                  </div>
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="filter-desktop-popover"
+                ref={panelRef}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                style={panelStyle}
+                className="z-[120] max-h-[70vh] overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
+              >
+                <FilterContent {...props} onClose={() => setIsOpen(false)} />
+              </motion.div>
+            )
+          ) : null}
+        </AnimatePresence>,
+        document.body,
           )
         : null}
     </>

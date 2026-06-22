@@ -4,6 +4,11 @@ import { AuthError } from "next-auth";
 import { signIn } from "../../../../auth";
 import { mergeGuestCartIntoUserCart } from "@/lib/account";
 import { verifyCredentials } from "@/lib/auth/credentials";
+import {
+  assertAuthRateLimit,
+  AuthRateLimitExceededError,
+  getRateLimitIp,
+} from "@/lib/auth/rate-limit";
 import { normalizeEmail } from "@/lib/auth/validation";
 import { getGuestCartToken } from "@/lib/cartToken";
 
@@ -30,8 +35,20 @@ export async function POST(request: Request) {
     typeof formData.get("next") === "string" ? String(formData.get("next")) : "/new-in";
   const normalizedNextPath = normalizeNextPath(nextPath);
   const normalizedEmail = normalizeEmail(email);
+  const ip = getRateLimitIp(request);
 
   try {
+    await assertAuthRateLimit({
+      scope: "auth:login",
+      identifiers: [
+        `ip:${ip}`,
+        `email:${normalizedEmail}`,
+        `email-ip:${normalizedEmail}:${ip}`,
+      ],
+      limit: 5,
+      windowMs: 10 * 60 * 1000,
+    });
+
     const [guestToken, user] = await Promise.all([
       getGuestCartToken(),
       verifyCredentials(normalizedEmail, password),
@@ -48,6 +65,16 @@ export async function POST(request: Request) {
       redirectTo: normalizedNextPath,
     });
   } catch (error) {
+    if (error instanceof AuthRateLimitExceededError) {
+      return NextResponse.redirect(
+        new URL(
+          `${getSignInPath(normalizedNextPath)}?error=invalid&next=${encodeURIComponent(normalizedNextPath)}`,
+          request.url,
+        ),
+        { status: 303 },
+      );
+    }
+
     if (error instanceof AuthError) {
       const errorParam = error.type === "CredentialsSignin" ? "invalid" : "service";
 

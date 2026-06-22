@@ -129,7 +129,7 @@ export function StripeCheckoutForm({
       </div>
 
       {errorMessage ? (
-        <div className="rounded-[1.4rem] border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
+        <div className="rounded-md border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
           {errorMessage}
         </div>
       ) : null}
@@ -138,21 +138,21 @@ export function StripeCheckoutForm({
         <button
           type="submit"
           disabled={!stripe || !elements || isSubmitting}
-          className={`inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition ${
+          className={`inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 ${
             !stripe || !elements || isSubmitting
               ? "cursor-not-allowed bg-[#d8c1cc] shadow-none"
               : "bg-[#f183bc] hover:bg-[#ea6fb0]"
           }`}
         >
           {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4" />}
-          Fizetés véglegesítése
+          {isSubmitting ? "Fizetés megerősítése..." : "Fizetés véglegesítése"}
         </button>
 
         <button
           type="button"
           onClick={onEditShipping}
           disabled={isSubmitting}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 disabled:opacity-60"
         >
           <PencilLine className="h-4 w-4" />
           Adatok módosítása

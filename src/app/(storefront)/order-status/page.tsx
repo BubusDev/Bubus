@@ -26,32 +26,35 @@ export default async function GuestOrderStatusPage() {
           Rendelési állapot
         </h1>
         <p className="mx-auto mt-4 max-w-[52ch] text-center text-sm leading-7 text-[#7a6070]">
-          Itt látod az ezen a böngészőn elérhető vendég rendeléseid aktuális állapotát, tracking
+          Itt látod az ezen a böngészőn elérhető vendég rendeléseid állapotát, szállítási
           adatait és legutóbbi frissítéseit.
         </p>
 
         {orders.length === 0 ? (
           <div className="mt-8 rounded-[1.8rem] border border-[#f0d8e5] bg-[#fff9fc] p-6 text-center">
+            <h2 className="font-[family:var(--font-display)] text-2xl leading-none text-[#4d2741]">
+              Nincs megjeleníthető rendelés
+            </h2>
             <p className="text-sm text-[#7a6070]">
-              Jelenleg nincs elérhető vendég rendelés ezen az eszközön. A checkout után ide
-              később is vissza tudsz térni ugyanarról a böngészőről.
+              Ezen az eszközön most nem találtunk vendég rendelést. Ha másik böngészőből
+              vásároltál, kérhetsz hozzáférési linket, vagy írj nekünk.
             </p>
             <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
               >
-                Tovább válogatok
+                Vissza a webshopba
               </Link>
               <Link
                 href="/order-status/recover"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
               >
                 Másik eszközről keresem
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
               >
                 Kapcsolat
               </Link>
@@ -62,7 +65,7 @@ export default async function GuestOrderStatusPage() {
               <div className="flex sm:justify-end">
               <Link
                 href="/order-status/recover"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
               >
                 Másik eszközről nyitnám meg
               </Link>
@@ -92,6 +95,10 @@ export default async function GuestOrderStatusPage() {
                       </h2>
                       <p className="mt-2 max-w-[52ch] text-sm leading-7 text-[#7a6070]">
                         {customerStatus.detail}
+                      </p>
+                      <p className="mt-2 text-xs leading-5 text-[#947889]">
+                        Ha a státusz nem frissül, az email visszaigazolásban szereplő adatokkal
+                        tudunk segíteni.
                       </p>
                     </div>
                     <div className="sm:text-right">
@@ -127,7 +134,7 @@ export default async function GuestOrderStatusPage() {
                   <div className="mt-4">
                     <Link
                       href={`/order-status/${order.id}`}
-                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#ead0df] bg-white/90 px-5 text-sm font-medium text-[#6b425a] transition hover:border-[#e6b4cf] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
                     >
                       Részletek megnyitása
                     </Link>

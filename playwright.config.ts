@@ -1,8 +1,10 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, type LaunchOptions } from "@playwright/test";
 
-const chromeExecutable =
-  process.env.PLAYWRIGHT_CHROME_PATH ??
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+const shouldStartLocalServer = !process.env.E2E_BASE_URL;
+const launchOptions: LaunchOptions | undefined = process.env.PLAYWRIGHT_CHROME_PATH
+  ? { executablePath: process.env.PLAYWRIGHT_CHROME_PATH }
+  : undefined;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -11,17 +13,17 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     browserName: "chromium",
-    launchOptions: {
-      executablePath: chromeExecutable,
-    },
+    launchOptions,
     trace: "on-first-retry",
   },
-  webServer: {
-    command: "npm run start",
-    url: "http://localhost:3000",
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: shouldStartLocalServer
+    ? {
+        command: "npm run start",
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120_000,
+      }
+    : undefined,
 });

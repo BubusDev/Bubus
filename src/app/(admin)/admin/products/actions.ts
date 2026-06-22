@@ -561,6 +561,34 @@ export async function deleteProductAction(formData: FormData) {
     throw new Error("A termék nem található.");
   }
 
+  const orderItemCount = await db.orderItem.count({
+    where: { productId },
+  });
+
+  if (existingProduct.status !== ProductStatus.DRAFT || orderItemCount > 0) {
+    await db.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: {
+          archivedAt: existingProduct.archivedAt ?? new Date(),
+          archiveReason: existingProduct.archiveReason ?? "ADMIN_DELETE_REQUEST",
+          status: ProductStatus.ARCHIVED,
+          homepagePlacement: "NONE",
+        },
+      });
+
+      await tx.cartItem.deleteMany({
+        where: { productId },
+      });
+    });
+
+    revalidateCatalogPaths();
+    revalidatePath(`/product/${existingProduct.slug}`);
+    revalidatePath("/cart");
+    revalidatePath("/checkout");
+    redirect("/admin/products");
+  }
+
   await db.product.delete({
     where: { id: productId },
   });

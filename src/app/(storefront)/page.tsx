@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 
-import { HomeHero } from "@/components/home/HomeHero";
+import BrandPhilosophy from "@/components/home/BrandPhilosophy";
+import FeaturedSlider from "@/components/home/FeaturedSlider";
+import HeroBanner from "@/components/home/HeroBanner";
 import { HomeEditorialSection, HomeFinalCta } from "@/components/home/HomeEditorialSection";
 import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
-import { HomeProductShowcase } from "@/components/home/HomeProductShowcase";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
+import StoneFocus from "@/components/home/StoneFocus";
 import { ValueStrip } from "@/components/home/ValueStrip";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getHomeShowcaseTabs } from "@/lib/homepage-showcase";
@@ -85,33 +87,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
-      <HomeHero block={homepageContent.hero} />
+      <HeroBanner block={homepageContent.hero} />
       <ValueStrip />
-      {showcaseTabs.length > 0 ? (
-        <section id="focusban" className="scroll-mt-24 bg-[#fbfaf7] px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="mx-auto max-w-[1320px]">
-            <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#6f775d]">
-                  Fókuszban
-                </p>
-                <h2 className="mt-4 max-w-[11ch] font-[family:var(--font-display)] text-[2.7rem] leading-[0.94] tracking-[-0.035em] text-[#22231f] sm:text-[4rem]">
-                  Szerkesztett darabok.
-                </h2>
-              </div>
-              <p className="max-w-[42ch] text-sm leading-7 text-[#69645b] sm:text-right">
-                Újdonságok, ajándéknak választott kedvencek és limitált darabok egy
-                letisztult válogatásban.
-              </p>
-            </div>
-            <HomeProductShowcase tabs={showcaseTabs} />
-          </div>
-        </section>
-      ) : null}
+      <BrandPhilosophy />
       <HomePromoTileGrid
         tiles={homepageContent.promoTiles}
         materialPicks={homepageContent.materialPicks}
       />
+      <StoneFocus />
+      {showcaseTabs.length > 0 ? <FeaturedSlider tabs={showcaseTabs} /> : null}
       <HomeEditorialSection />
       <HomeInstagramPromo block={homepageContent.instagram} />
       <HomeNewsletterBlock status={newsletterStatus} />

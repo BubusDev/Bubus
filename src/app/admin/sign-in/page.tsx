@@ -26,7 +26,7 @@ export default async function AdminSignInPage({ searchParams }: AdminSignInPageP
   return (
     <AdminAuthShell
       title="Admin bejelentkezés"
-      description="Jelentkezz be rendszergazdai fiókkal az admin felület eléréséhez. Ez a belépési útvonal külön admin shellt használ, nem a storefront felületet."
+      description="Jelentkezz be admin jogosultságú, ellenőrzött fiókkal. Ez az oldal csak az admin felülethez tartozik."
       aside={
         <div className="border-t border-[var(--admin-line-100)] pt-6">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--admin-ink-500)]">
@@ -50,7 +50,7 @@ export default async function AdminSignInPage({ searchParams }: AdminSignInPageP
             Hozzáférés
           </p>
           <p className="mt-2 text-sm leading-7 text-[var(--admin-ink-600)]">
-            Add meg az admin felhasználó e-mail-címét és jelszavát.
+            Add meg az admin fiók e-mail-címét és jelszavát.
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export default async function AdminSignInPage({ searchParams }: AdminSignInPageP
             name="email"
             required
             className="h-11 w-full border border-[var(--admin-line-200)] bg-white px-3.5 text-sm text-[var(--admin-ink-900)] outline-none transition placeholder:text-[var(--admin-ink-500)] focus:border-[var(--admin-blue-600)] focus:shadow-[0_0_0_3px_rgba(63,122,210,0.12)]"
-            placeholder="admin@pelda.hu"
+            placeholder="admin@chicksjewelry.hu"
           />
         </label>
 

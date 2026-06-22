@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import {
   createSpecialEditionEntryAction,
@@ -32,7 +33,7 @@ function ProductSelect({
 }) {
   return (
     <label className="space-y-2">
-      <span className="text-sm font-medium text-[#5a374e]">Product</span>
+      <span className="text-sm font-medium text-[#5a374e]">Termék</span>
       <select
         name="productId"
         defaultValue={defaultValue ?? products[0]?.id ?? ""}
@@ -61,7 +62,7 @@ function ImagePreview({
     <div className="space-y-2">
       <p className="text-sm font-medium text-[#5a374e]">{label}</p>
       <div className="overflow-hidden rounded-[1.5rem] border border-[#f0d8e5] bg-[#fff7fb]">
-        <img src={src} alt={alt} className="aspect-[4/3] w-full object-cover" />
+        <Image src={src} alt={alt} width={960} height={720} className="aspect-[4/3] w-full object-cover" unoptimized />
       </div>
     </div>
   );
@@ -104,12 +105,12 @@ export function AdminSpecialEditionManager({
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">
-              Campaign State
+              Kampány állapota
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Special Edition</h2>
             <p className="mt-2 max-w-[54ch] text-sm leading-7 text-[#765f6d]">
-              Control whether the Special Edition campaign is live in the storefront navigation.
-              When inactive, the category link and the page both disappear.
+              Itt állítható, hogy a Special Edition kampány látszik-e a storefront navigációban.
+              Inaktív állapotban a kategórialink és a kampányoldal sem jelenik meg.
             </p>
           </div>
 
@@ -121,23 +122,23 @@ export function AdminSpecialEditionManager({
                 defaultChecked={campaign.isActive}
                 className="h-4 w-4 rounded border-[#d7a8c1] text-[#5E0034]"
               />
-              Campaign active
+              Kampány aktív
             </label>
             <button
               type="submit"
               className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#5E0034] px-5 text-sm font-medium text-white transition hover:opacity-90"
             >
-              Save campaign state
+              Kampányállapot mentése
             </button>
           </form>
         </div>
       </section>
 
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">Campaign Banner</p>
-        <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Special Edition Banner Image</h2>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">Kampány banner</p>
+        <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Special Edition bannerkép</h2>
         <p className="mt-2 max-w-[54ch] text-sm leading-7 text-[#765f6d]">
-          Upload the single full-width banner shown above the Special Edition content. This image is stored separately from product gallery images and only applies to the Special Edition campaign.
+          Ez az egy teljes szélességű kép jelenik meg a Special Edition tartalom felett. Külön tárolódik a termékképektől, és csak erre a kampányra vonatkozik.
         </p>
 
         <form action={updateSpecialEditionBannerAction} className="mt-6 space-y-5">
@@ -145,13 +146,13 @@ export function AdminSpecialEditionManager({
 
           {hasBannerImage ? (
             <ImagePreview
-              label="Current banner image"
+              label="Jelenlegi bannerkép"
               src={campaign.bannerImageUrl}
               alt={campaign.bannerImageAlt || "Special Edition banner"}
             />
           ) : (
             <div className="border border-dashed border-[#ebcede] bg-[#fff8fb] px-5 py-4 text-sm text-[#765f6d]">
-              No campaign image set
+              Nincs kampánykép beállítva
             </div>
           )}
 
@@ -159,23 +160,23 @@ export function AdminSpecialEditionManager({
             <div className="space-y-3">
               <AdminBlobImageInput
                 name="newBannerImageUrl"
-                label="Special Edition Banner Image"
+                label="Új Special Edition bannerkép"
                 folder="special-edition"
               />
               <AltTextField
                 name="bannerImageAlt"
                 label="Banner"
                 defaultValue={campaign.bannerImageAlt}
-                placeholder="Wide editorial banner displayed directly below the category navigation."
+                placeholder="Széles editorial banner a kategória navigáció alatt."
               />
               <p className="text-xs leading-5 text-[#7a6070]">
-                Wide editorial banner displayed directly below the category navigation.
+                Széles editorial banner a kategória navigáció alatt.
               </p>
             </div>
             <div className="border border-dashed border-[#ebcede] bg-[#fff8fb] px-5 py-4 text-sm leading-7 text-[#765f6d]">
               {!hasBannerImage
-                ? "Preferred: upload a banner image so the storefront campaign opens with a full-width visual."
-                : "Leave the file empty to keep the current banner image."}
+                ? "Javasolt bannerképet feltölteni, hogy a kampány teljes szélességű vizuállal induljon."
+                : "Hagyd üresen a fájlmezőt, ha a jelenlegi bannerképet szeretnéd megtartani."}
             </div>
           </div>
 
@@ -183,24 +184,24 @@ export function AdminSpecialEditionManager({
             type="submit"
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#5E0034] px-5 text-sm font-medium text-white transition hover:opacity-90"
           >
-            Save banner image
+            Bannerkép mentése
           </button>
         </form>
       </section>
 
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_20px_45px_rgba(191,117,162,0.1)] backdrop-blur-xl">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">New Entry</p>
-        <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Add campaign entry</h2>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">Új elem</p>
+        <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Kampányelem hozzáadása</h2>
         <p className="mt-2 max-w-[54ch] text-sm leading-7 text-[#765f6d]">
-          This form is separate from the main product admin. Pick the product, upload the left
-          promo image, upload the right product image, and define the display order.
+          Ez a forma külön kezeli a kampány megjelenését a fő termékadmintól. Válassz terméket,
+          tölts fel bal oldali promóképet és jobb oldali termékképet, majd add meg a sorrendet.
         </p>
 
         <form action={createSpecialEditionEntryAction} className="mt-6 space-y-5">
           <div className="grid gap-5 lg:grid-cols-2">
             <ProductSelect products={products} />
             <label className="space-y-2">
-              <span className="text-sm font-medium text-[#5a374e]">Sort order</span>
+              <span className="text-sm font-medium text-[#5a374e]">Sorrend</span>
               <input
                 type="number"
                 name="sortOrder"
@@ -214,31 +215,31 @@ export function AdminSpecialEditionManager({
             <div className="space-y-3">
               <AdminBlobImageInput
                 name="promoImageUrl"
-                label="Left-side promo image"
+                label="Bal oldali promókép"
                 folder="special-edition"
               />
               <AltTextField
                 name="promoImageAlt"
                 label="Promo"
-                placeholder="Shown on the left side of the Special Edition layout."
+                placeholder="A Special Edition layout bal oldalán jelenik meg."
               />
               <p className="text-xs leading-5 text-[#7a6070]">
-                Shown on the left side of the Special Edition layout.
+                A Special Edition layout bal oldalán jelenik meg.
               </p>
             </div>
             <div className="space-y-3">
               <AdminBlobImageInput
                 name="productImageUrl"
-                label="Right-side product image"
+                label="Jobb oldali termékkép"
                 folder="special-edition"
               />
               <AltTextField
                 name="productImageAlt"
-                label="Product"
-                placeholder="Shown on the right side above the product details."
+                label="Termék"
+                placeholder="A jobb oldalon, a termékrészletek felett jelenik meg."
               />
               <p className="text-xs leading-5 text-[#7a6070]">
-                Shown on the right side above the product details.
+                A jobb oldalon, a termékrészletek felett jelenik meg.
               </p>
             </div>
           </div>
@@ -247,7 +248,7 @@ export function AdminSpecialEditionManager({
             type="submit"
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-5 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0]"
           >
-            Create entry
+            Kampányelem létrehozása
           </button>
         </form>
       </section>
@@ -256,17 +257,17 @@ export function AdminSpecialEditionManager({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-[#af7795]">
-              Existing Entries
+              Meglévő elemek
             </p>
-            <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Manage entries</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-[#4d2741]">Kampányelemek kezelése</h2>
           </div>
-          <p className="text-sm text-[#765f6d]">{campaign.entries.length} entries</p>
+          <p className="text-sm text-[#765f6d]">{campaign.entries.length} elem</p>
         </div>
 
         <div className="mt-6 space-y-6">
           {campaign.entries.length === 0 ? (
             <div className="rounded-[1.6rem] border border-dashed border-[#ebcede] bg-[#fff8fb] px-6 py-10 text-center text-sm leading-7 text-[#765f6d]">
-              No Special Edition entries yet.
+              Még nincs Special Edition kampányelem.
             </div>
           ) : null}
 
@@ -285,7 +286,7 @@ export function AdminSpecialEditionManager({
                     href={`/product/${entry.productSlug}`}
                     className="inline-flex h-10 items-center justify-center rounded-full border border-[#ecd3e3] bg-white px-4 text-sm font-medium text-[#6b425a] transition hover:border-[#e9b6d0]"
                   >
-                    View product
+                    Termék megnyitása
                   </Link>
                   <form action={deleteSpecialEditionEntryAction}>
                     <input type="hidden" name="entryId" value={entry.id} />
@@ -293,7 +294,7 @@ export function AdminSpecialEditionManager({
                       type="submit"
                       className="inline-flex h-10 items-center justify-center rounded-full border border-[#f1cedf] bg-[#fff3f8] px-4 text-sm font-medium text-[#9b476f] transition hover:bg-[#ffe8f2]"
                     >
-                      Delete
+                      Törlés
                     </button>
                   </form>
                 </div>
@@ -307,7 +308,7 @@ export function AdminSpecialEditionManager({
                 <div className="grid gap-5 lg:grid-cols-2">
                   <ProductSelect defaultValue={entry.productId} products={products} />
                   <label className="space-y-2">
-                    <span className="text-sm font-medium text-[#5a374e]">Sort order</span>
+                    <span className="text-sm font-medium text-[#5a374e]">Sorrend</span>
                     <input
                       type="number"
                       name="sortOrder"
@@ -319,12 +320,12 @@ export function AdminSpecialEditionManager({
 
                 <div className="grid gap-5 lg:grid-cols-2">
                   <ImagePreview
-                    label="Current left promo image"
+                    label="Jelenlegi bal oldali promókép"
                     src={entry.promoImageUrl}
                     alt={entry.promoImageAlt}
                   />
                   <ImagePreview
-                    label="Current right product image"
+                    label="Jelenlegi jobb oldali termékkép"
                     src={entry.productImageUrl}
                     alt={entry.productImageAlt}
                   />
@@ -334,33 +335,33 @@ export function AdminSpecialEditionManager({
                   <div className="space-y-3">
                     <AdminBlobImageInput
                       name="newPromoImageUrl"
-                      label="Replace left-side promo image"
+                      label="Bal oldali promókép cseréje"
                       folder="special-edition"
                     />
                     <AltTextField
                       name="promoImageAlt"
-                      label="Promo"
+                      label="Promó"
                       defaultValue={entry.promoImageAlt}
-                      placeholder="Leave the file empty to keep the current left-side promo image."
+                      placeholder="Hagyd üresen, ha a jelenlegi bal oldali promóképet megtartanád."
                     />
                     <p className="text-xs leading-5 text-[#7a6070]">
-                      Leave the file empty to keep the current left-side promo image.
+                      Hagyd üresen, ha a jelenlegi bal oldali promóképet megtartanád.
                     </p>
                   </div>
                   <div className="space-y-3">
                     <AdminBlobImageInput
                       name="newProductImageUrl"
-                      label="Replace right-side product image"
+                      label="Jobb oldali termékkép cseréje"
                       folder="special-edition"
                     />
                     <AltTextField
                       name="productImageAlt"
-                      label="Product"
+                      label="Termék"
                       defaultValue={entry.productImageAlt}
-                      placeholder="Leave the file empty to keep the current right-side product image."
+                      placeholder="Hagyd üresen, ha a jelenlegi jobb oldali termékképet megtartanád."
                     />
                     <p className="text-xs leading-5 text-[#7a6070]">
-                      Leave the file empty to keep the current right-side product image.
+                      Hagyd üresen, ha a jelenlegi jobb oldali termékképet megtartanád.
                     </p>
                   </div>
                 </div>
@@ -369,7 +370,7 @@ export function AdminSpecialEditionManager({
                   type="submit"
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#5E0034] px-5 text-sm font-medium text-white transition hover:opacity-90"
                 >
-                  Save entry
+                  Kampányelem mentése
                 </button>
               </form>
             </article>

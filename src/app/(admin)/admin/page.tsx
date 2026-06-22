@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { BlobCleanupStatus, ProductStatus } from "@prisma/client";
 
 import { AdminRecentActivityList } from "@/components/admin/AdminRecentActivityList";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getRecentAdminActivity } from "@/lib/admin-activity";
 import { db } from "@/lib/db";
+import { getHomepageContent } from "@/lib/homepage-content";
+import { getAdminShowcaseTabs } from "@/lib/homepage-showcase";
 import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { formatPrice } from "@/lib/catalog";
+import { getShowcaseTabProducts } from "@/lib/products-server";
 
 const statusConfig: Record<string, { label: string; bg: string; color: string; border: string }> = {
   received:      { label: "Beérkezett",   bg: "#f0f0f0", color: "#555", border: "#ddd" },
@@ -30,11 +34,79 @@ function StatusBadge({ status }: { status: string }) {
 
 type OrderWithInternalStatus = any;
 
+type HealthTone = "good" | "warn" | "danger" | "neutral";
+
+type DashboardHealthCard = {
+  title: string;
+  value: string;
+  tone: HealthTone;
+  description: string;
+  href?: string;
+  linkLabel?: string;
+  details: string[];
+};
+
+const healthToneClass: Record<HealthTone, string> = {
+  good: "border-[#bdd7c8] bg-[#f6fbf7] text-[#24533a]",
+  warn: "border-[#ead6a7] bg-[#fff9e8] text-[#765b18]",
+  danger: "border-[#e3c7cf] bg-[#fff1f3] text-[#99283d]",
+  neutral: "border-[var(--admin-line-100)] bg-white text-[var(--admin-ink-700)]",
+};
+
+function HealthCard({ card }: { card: DashboardHealthCard }) {
+  return (
+    <section className="admin-panel p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="admin-eyebrow">{card.title}</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--admin-ink-900)]">{card.value}</p>
+        </div>
+        <span className={`rounded-sm border px-2.5 py-1 text-xs font-medium ${healthToneClass[card.tone]}`}>
+          {card.tone === "good" ? "OK" : card.tone === "danger" ? "Figyelem" : card.tone === "warn" ? "Ellenőrizd" : "Info"}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-[var(--admin-ink-600)]">{card.description}</p>
+      {card.details.length > 0 ? (
+        <ul className="mt-4 space-y-1.5 text-sm text-[var(--admin-ink-700)]">
+          {card.details.map((detail) => (
+            <li key={detail} className="flex gap-2">
+              <span aria-hidden="true">-</span>
+              <span>{detail}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {card.href ? (
+        <Link href={card.href} className="admin-inline-link mt-4 inline-flex text-sm font-medium">
+          {card.linkLabel ?? "Megnyitás"} →
+        </Link>
+      ) : (
+        <p className="mt-4 text-xs text-[var(--admin-ink-500)]">Dedikált admin oldal Phase 3.2-ben.</p>
+      )}
+    </section>
+  );
+}
+
+async function getEmptyShowcaseTabCount() {
+  const tabs = await getAdminShowcaseTabs();
+  const activeTabs = tabs.filter((tab) => tab.isActive);
+  const productCounts = await Promise.all(
+    activeTabs.map(async (tab) => {
+      const products = await getShowcaseTabProducts(tab.filterType, tab.filterValue, tab.maxItems);
+      return products.length;
+    }),
+  );
+
+  return productCounts.filter((count) => count === 0).length;
+}
+
 export default async function AdminPage() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekStart = new Date(todayStart);
   weekStart.setDate(weekStart.getDate() - 6);
+  const promoExpiryThreshold = new Date(now);
+  promoExpiryThreshold.setDate(promoExpiryThreshold.getDate() + 7);
 
   const [
     productCount,
@@ -43,6 +115,17 @@ export default async function AdminPage() {
     pendingOrderCount,
     recentOrders,
     recentActivity,
+    lowStockCount,
+    outOfStockCount,
+    openReturnCount,
+    failedRefundCount,
+    homepageContent,
+    emptyShowcaseTabCount,
+    pendingCleanupCount,
+    failedCleanupCount,
+    keptCleanupCount,
+    expiringPromoCount,
+    limitedPromoCodes,
   ] = await Promise.all([
     db.product.count({ where: storefrontProductWhere }),
     db.order.count({
@@ -62,9 +145,113 @@ export default async function AdminPage() {
       include: { user: { select: { email: true } } },
     }),
     getRecentAdminActivity(8),
+    db.product.count({
+      where: { status: ProductStatus.ACTIVE, archivedAt: null, stockQuantity: { lte: 3 } },
+    }),
+    db.product.count({
+      where: { status: ProductStatus.ACTIVE, archivedAt: null, stockQuantity: { lte: 0 } },
+    }),
+    db.returnRequest.count({
+      where: { status: { in: ["new", "in_review", "approved"] } },
+    }),
+    db.returnRequest.count({
+      where: { refundStatus: "failed" },
+    }),
+    getHomepageContent(),
+    getEmptyShowcaseTabCount(),
+    db.blobCleanupQueueItem.count({ where: { status: BlobCleanupStatus.PENDING } }),
+    db.blobCleanupQueueItem.count({ where: { status: BlobCleanupStatus.FAILED } }),
+    db.blobCleanupQueueItem.count({ where: { status: BlobCleanupStatus.KEPT } }),
+    db.promoCode.count({
+      where: {
+        isActive: true,
+        validFrom: { lte: now },
+        validUntil: { gte: now, lte: promoExpiryThreshold },
+      },
+    }),
+    db.promoCode.findMany({
+      where: { isActive: true, totalUsageLimit: { not: null } },
+      select: { id: true, redeemedCount: true, totalUsageLimit: true },
+    }),
   ]);
 
   const weekRevenue = weekOrders.reduce((sum, o) => sum + o.total, 0);
+  const promoNearLimitCount = limitedPromoCodes.filter((promo) => {
+    if (!promo.totalUsageLimit || promo.totalUsageLimit <= 0) return false;
+    return promo.redeemedCount / promo.totalUsageLimit >= 0.8;
+  }).length;
+  const homepageIssues = [
+    !homepageContent.hero.imageUrl ? "Hiányzik a hero kép" : null,
+    !homepageContent.hero.isVisible ? "A hero blokk rejtett" : null,
+    !homepageContent.instagram.isVisible ? "Az Instagram blokk rejtett" : null,
+    emptyShowcaseTabCount > 0 ? `${emptyShowcaseTabCount} aktív showcase tab üres` : null,
+    homepageContent.materialPicks.filter((pick) => pick.hasUnavailableFeaturedProduct).length > 0
+      ? `${homepageContent.materialPicks.filter((pick) => pick.hasUnavailableFeaturedProduct).length} material pick nem elérhető termékre mutat`
+      : null,
+    homepageContent.promoTiles.filter((tile) => tile.isVisible && (!tile.imageUrl || !tile.href)).length > 0
+      ? `${homepageContent.promoTiles.filter((tile) => tile.isVisible && (!tile.imageUrl || !tile.href)).length} látható promó csempén hiányzik kép vagy link`
+      : null,
+  ].filter((issue): issue is string => Boolean(issue));
+  const healthCards: DashboardHealthCard[] = [
+    {
+      title: "Low stock",
+      value: `${lowStockCount} termék`,
+      tone: outOfStockCount > 0 ? "danger" : lowStockCount > 0 ? "warn" : "good",
+      description: "Aktív, nem archivált termékek 3 db vagy alacsonyabb készlettel.",
+      href: "/admin/products",
+      linkLabel: "Termékek",
+      details: [
+        `${lowStockCount} aktív termék stock <= 3`,
+        `${outOfStockCount} aktív termék stock <= 0`,
+      ],
+    },
+    {
+      title: "Returns needing action",
+      value: `${openReturnCount + failedRefundCount} ügy`,
+      tone: failedRefundCount > 0 ? "danger" : openReturnCount > 0 ? "warn" : "good",
+      description: "Nyitott visszaküldések és sikertelen refundok.",
+      href: "/admin/returns",
+      linkLabel: "Visszaküldések",
+      details: [
+        `${openReturnCount} nyitott vagy feldolgozás alatt álló request`,
+        `${failedRefundCount} sikertelen refund`,
+      ],
+    },
+    {
+      title: "Homepage health",
+      value: homepageIssues.length === 0 ? "OK" : `${homepageIssues.length} jelzés`,
+      tone: homepageIssues.length > 0 ? "warn" : "good",
+      description: "Kezdőlapi blokkok, showcase tabok, material pickek és promó csempék gyors ellenőrzése.",
+      href: homepageIssues.some((issue) => issue.includes("showcase")) ? "/admin/content/homepage-showcase" : "/admin/content/homepage",
+      linkLabel: "Kezdőlap tartalom",
+      details: homepageIssues.length > 0 ? homepageIssues : ["Nincs látható kezdőlapi tartalomhiba."],
+    },
+    {
+      title: "Media cleanup",
+      value: `${pendingCleanupCount + failedCleanupCount} aktív`,
+      tone: failedCleanupCount > 0 ? "danger" : pendingCleanupCount > 0 ? "neutral" : "good",
+      description: "Vercel Blob cleanup queue és média inventory állapot.",
+      href: "/admin/media",
+      linkLabel: "Média",
+      details: [
+        `${pendingCleanupCount} pending cleanup item`,
+        `${failedCleanupCount} failed cleanup item`,
+        `${keptCleanupCount} kept/skipped item`,
+      ],
+    },
+    {
+      title: "Promo health",
+      value: `${expiringPromoCount + promoNearLimitCount} jelzés`,
+      tone: expiringPromoCount + promoNearLimitCount > 0 ? "warn" : "good",
+      description: "Aktív kuponok lejárata és usage limit telítettsége.",
+      href: "/admin/promo-codes",
+      linkLabel: "Kuponkódok",
+      details: [
+        `${expiringPromoCount} aktív promo code 7 napon belül lejár`,
+        `${promoNearLimitCount} aktív promo code legalább 80%-os usage limitnél jár`,
+      ],
+    },
+  ];
 
   const metrics = [
     { label: "Aktív termékek",    value: productCount,              delta: null },
@@ -104,6 +291,21 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+
+      <section className="mb-8">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <p className="admin-eyebrow">Health</p>
+            <h2 className="mt-2 text-lg font-semibold text-[var(--admin-ink-900)]">Napi ellenőrzések</h2>
+          </div>
+          <p className="text-xs text-[var(--admin-ink-500)]">Stock, returns, homepage, media cleanup és promo állapot.</p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+          {healthCards.map((card) => (
+            <HealthCard key={card.title} card={card} />
+          ))}
+        </div>
+      </section>
 
       {/* Recent orders table */}
       <div className="admin-table-shell">

@@ -30,6 +30,11 @@ export type AdminProductRecord = Prisma.ProductGetPayload<{
     occasion: true;
     availability: true;
     tone: true;
+    _count: {
+      select: {
+        orderItems: true;
+      };
+    };
   };
 }>;
 

@@ -12,9 +12,13 @@ type ArchivedProduct = {
   name: string;
   imageUrl: string | null;
   collectionLabel: string;
+  status: string;
   archivedAt: Date;
   archiveReason: string | null;
   slug: string;
+  _count: {
+    orderItems: number;
+  };
 };
 
 type FilterKey = "all" | "sold_out" | "seasonal" | "discontinued";
@@ -161,13 +165,19 @@ export function ArchiveProductList({ products }: { products: ArchivedProduct[] }
                     <RotateCcw className="h-3.5 w-3.5" />
                     Visszaállítás
                   </button>
-                  <button
-                    onClick={() => setConfirm({ id: product.id, name: product.name })}
-                    className="admin-button-danger admin-control-sm inline-flex items-center gap-1.5"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Törlés
-                  </button>
+                  {product.status === "DRAFT" && product._count.orderItems === 0 ? (
+                    <button
+                      onClick={() => setConfirm({ id: product.id, name: product.name })}
+                      className="admin-button-danger admin-control-sm inline-flex items-center gap-1.5"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Törlés
+                    </button>
+                  ) : (
+                    <span className="admin-badge-neutral admin-pill inline-flex min-h-9 items-center">
+                      Végleges törlés tiltva
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -191,7 +201,8 @@ export function ArchiveProductList({ products }: { products: ArchivedProduct[] }
             </h3>
             <p className="mt-2 text-sm leading-7 text-[var(--admin-ink-600)]">
               A <strong className="text-[var(--admin-ink-900)]">{confirm.name}</strong> terméket véglegesen
-              törlöd az adatbázisból. Ez a művelet nem visszavonható.
+              törlöd az adatbázisból. Ez csak draft és rendelés nélküli terméknél engedélyezett,
+              és a művelet nem visszavonható.
             </p>
             <div className="mt-5 flex gap-3">
               <button

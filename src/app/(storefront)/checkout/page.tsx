@@ -1,4 +1,4 @@
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock, Mail, RotateCcw, Truck } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
@@ -46,25 +46,38 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     <div className="min-h-screen bg-[#f8f7f5]">
 
       {/* Checkout header — logo centered, security right */}
-      <header className="border-b border-[#e8e5e0] bg-white px-8 py-4 flex items-center justify-between">
-        <div className="w-32" />
-        <Link href="/" className="text-center">
+      <header className="flex items-center justify-between gap-3 border-b border-[#e8e5e0] bg-white px-4 py-4 sm:px-8">
+        <div className="hidden w-32 sm:block" />
+        <Link href="/" className="text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2">
           <span className="font-[family:var(--font-display)] text-xl tracking-[-0.02em] text-[#1a1a1a]">
             Chicks Jewelry
           </span>
         </Link>
-        <div className="flex items-center gap-2 text-[12px] text-[#888]">
+        <div className="flex items-center gap-2 text-[11px] text-[#888] sm:text-[12px]">
           <Lock className="h-3.5 w-3.5" />
           Biztonságos fizetés
         </div>
       </header>
 
       {/* Content */}
-      <div className="mx-auto max-w-[1000px] px-6 py-10">
-        <div className="grid grid-cols-1 gap-10 items-start lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto max-w-[1040px] px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mb-7">
+          <p className="text-[10px] uppercase tracking-[0.28em] text-[#888]">
+            Pénztár
+          </p>
+          <h1 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none tracking-[-0.03em] text-[#1a1a1a] sm:text-[2.45rem]">
+            Rendelés véglegesítése
+          </h1>
+          <p className="mt-3 max-w-[60ch] text-sm leading-7 text-[#666]">
+            Add meg az elérhetőséget és a szállítási adatokat, majd a fizetési felületet
+            biztonságosan nyitjuk meg.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10">
 
           {/* Left: checkout steps */}
-          <div className="bg-white border border-[#e8e5e0] p-8">
+          <div className="rounded-lg border border-[#e8e5e0] bg-white p-5 sm:p-8">
             <CheckoutClient
               cart={cart}
               initialStep={initialStep}
@@ -83,7 +96,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
           </div>
 
           {/* Right: order summary — sticky */}
-          <div className="sticky top-6 bg-white border border-[#e8e5e0]">
+          <div className="rounded-lg border border-[#e8e5e0] bg-white lg:sticky lg:top-6">
 
             <div className="bg-[#1a1a1a] px-6 py-5">
               <p className="text-[10px] uppercase tracking-[.28em] text-[#999] mb-1">
@@ -151,6 +164,20 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#aaa]">
                 <Lock className="h-3.5 w-3.5" />
                 Biztonságos fizetés · Stripe
+              </div>
+              <div className="mt-4 grid gap-2 rounded-md border border-[#eee6ea] bg-[#faf9f7] p-3 text-xs leading-5 text-[#6c6166]">
+                <div className="flex gap-2">
+                  <Truck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
+                  <span>2-4 munkanapos szállítás raktáron lévő darabokra.</span>
+                </div>
+                <div className="flex gap-2">
+                  <RotateCcw className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
+                  <span>14 napos visszaküldés nem egyedi, viseletlen darabokra.</span>
+                </div>
+                <div className="flex gap-2">
+                  <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
+                  <span>A rendelésedről emailben is küldünk visszaigazolást.</span>
+                </div>
               </div>
             </div>
           </div>

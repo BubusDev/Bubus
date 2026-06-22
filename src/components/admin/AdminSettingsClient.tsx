@@ -276,7 +276,7 @@ function NotificationsPanel({
 }) {
   const toggles = [
     { key: "adminNotifyNewOrder", Icon: ShoppingBag, label: "Új rendelés", desc: "Értesítés minden beérkező rendelésről" },
-    { key: "adminNotifyReturnRequest", Icon: RefreshCw, label: "Visszaállítási kérés", desc: "Ha egy vásárló visszaküldési kérelmet nyújt be" },
+    { key: "adminNotifyReturnRequest", Icon: RefreshCw, label: "Visszaküldési kérelem", desc: "Ha egy vásárló visszaküldési kérelmet nyújt be" },
     { key: "adminNotifyLowStock", Icon: Package, label: "Alacsony készlet", desc: "Ha egy termék 3 db alá csökken" },
     { key: "adminNotifyWeeklySummary", Icon: BarChart2, label: "Heti összesítő", desc: "Rendelések és forgalom minden hétfőn" },
   ];

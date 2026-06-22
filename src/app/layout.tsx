@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: siteName,
   description: siteDescription,
+  icons: {
+    icon: "/images/book-hands.png",
+  },
 };
 
 export default async function RootLayout({

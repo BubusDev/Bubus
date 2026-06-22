@@ -12,5 +12,5 @@ export function RouteAwareSiteFooter() {
     return null;
   }
 
-  return <SiteFooter showCategoryDiscovery={pathname === "/"} />;
+  return <SiteFooter showCategoryDiscovery={false} />;
 }

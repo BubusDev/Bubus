@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "test:e2e:admin": "playwright test tests/e2e/admin-authenticated-smoke.spec.ts",
+    "smoke:admin": "npm run test:e2e:admin",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, Lightbulb, ShoppingBag, TicketPercent, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CreditCard,
+  Lightbulb,
+  Mail,
+  RotateCcw,
+  ShoppingBag,
+  TicketPercent,
+  Trash2,
+} from "lucide-react";
 
 import {
   removeCartItemAction,
@@ -30,17 +39,17 @@ function CartEmptyState() {
             <ShoppingBag className="h-7 w-7" />
           </div>
           <h2 className="font-[family:var(--font-display)] text-[2rem] leading-none text-[#4d2741]">
-            Még nincs kiválasztott termék
+            Még nincs darab a kosárban
           </h2>
           <p className="mt-4 text-sm leading-7 text-[#7a6070]">
-            Nézz körül az újdonságok és kiemelt darabok között, és építsd fel a saját
-            válogatásodat.
+            Nézd meg a friss válogatást, és tedd félre azt a darabot, amelyik illik a
+            következő rendelésedhez.
           </p>
           <Link
-            href="/"
-            className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+            href="/new-in"
+            className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Vásárlás folytatása
+            Friss darabok megnézése
           </Link>
         </div>
       </div>
@@ -52,8 +61,11 @@ function CartPageHeading() {
   return (
     <header className="mx-auto mb-7 max-w-[720px] text-center sm:mb-8">
       <h1 className="font-[family:var(--font-display)] text-[2.15rem] leading-none tracking-[-0.03em] text-[#4d2741] sm:text-[2.55rem]">
-        Az Ön kosara
+        A kosarad
       </h1>
+      <p className="mx-auto mt-3 max-w-[52ch] text-sm leading-7 text-[#7a6070]">
+        Ellenőrizd a kiválasztott darabokat, majd folytasd a biztonságos pénztárhoz.
+      </p>
     </header>
   );
 }
@@ -137,7 +149,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                       decrementDisabled
                         ? "cursor-not-allowed bg-[#f7f0f4] text-[#d2c1cb]"
                         : "text-[#8d6f80] hover:bg-[#f8eef4] hover:text-[#4d2741]"
-                    }`}
+                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2`}
                   >
                     −
                   </button>
@@ -154,7 +166,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                       incrementDisabled
                         ? "cursor-not-allowed bg-[#f7f0f4] text-[#d2c1cb]"
                         : "text-[#8d6f80] hover:bg-[#f8eef4] hover:text-[#4d2741]"
-                    }`}
+                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2`}
                   >
                     +
                   </button>
@@ -168,7 +180,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                 <button
                   type="submit"
                   aria-label={`${item.name} törlése`}
-                  className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-[12px] font-medium transition ${
+                  className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-[12px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 ${
                     isUnavailable
                       ? "border-[#c45a85] bg-[#fff4f8] text-[#c45a85] hover:bg-[#ffeaf3] hover:text-[#a03d68]"
                       : "border-[#eadce3] text-[#7a6070] hover:border-[#d7becb] hover:bg-[#fff7fa] hover:text-[#4d2741]"
@@ -268,15 +280,31 @@ function CartSummary({
         ) : (
           <Link
             href="/checkout"
-            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0]"
+            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             Tovább a pénztárhoz
           </Link>
         )}
 
         <p className="mt-4 text-xs leading-6 text-[#8b7080]">
-          A rendelés következő lépésében megadhatod a szállítási és fizetési adatokat.
+          A szállítási és fizetési adatokat a következő lépésben adod meg. A szállítási díjat a
+          pénztár oldalon látod véglegesítve.
         </p>
+
+        <div className="mt-5 grid gap-2 rounded-lg border border-[#f1dfe8] bg-[#fff9fc] p-3 text-xs leading-5 text-[#7a6070]">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
+            <span>Biztonságos fizetés Stripe-on keresztül.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <RotateCcw className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
+            <span>14 napos visszaküldés nem egyedi, viseletlen darabokra.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Mail className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
+            <span>Ha kérdésed van, írj nekünk, és segítünk.</span>
+          </div>
+        </div>
 
         <div className="mt-6 border-t border-[#f1dfe8] pt-5">
           <PromoCodeForm appliedPromo={appliedPromo} />
@@ -310,7 +338,7 @@ function CartSummary({
                 href={instagramHref}
                 target="_blank"
                 rel="noreferrer"
-                className="font-semibold text-[#4d2741] underline decoration-[#d7a1bd] underline-offset-4 transition hover:text-[#b7608f]"
+                className="font-semibold text-[#4d2741] underline decoration-[#d7a1bd] underline-offset-4 transition hover:text-[#b7608f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
               >
                 Instagram
               </a>

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 type SignInPageProps = {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; reset?: string }>;
 };
 
 function normalizeNextPath(nextPath: string | null | undefined) {
@@ -67,6 +67,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             A bejelentkezés átmenetileg nem elérhető. Ellenőrizd a konfigurációt és a szerverlógokat.
           </div>
         )}
+        {resolvedSearchParams.reset === "success" && (
+          <div className="auth-success-box">
+            A jelszavad frissült. Most már bejelentkezhetsz az új jelszóval.
+          </div>
+        )}
 
         <label className="auth-field">
           <span className="auth-field-label">E-mail-cím</span>
@@ -74,7 +79,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         </label>
 
         <label className="auth-field">
-          <span className="auth-field-label">Jelszó</span>
+          <span className="flex items-center justify-between gap-3">
+            <span className="auth-field-label">Jelszó</span>
+            <Link href="/forgot-password" className="text-xs font-medium text-[#7d5b75] underline-offset-4 hover:underline">
+              Elfelejtetted a jelszavad?
+            </Link>
+          </span>
           <input type="password" name="password" required className="auth-input" placeholder="••••••••" />
         </label>
 

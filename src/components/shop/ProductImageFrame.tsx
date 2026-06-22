@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import Image from "next/image";
 
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
@@ -6,6 +7,7 @@ type ProductImageFrameProps = {
   alt: string;
   imageUrl?: string | null;
   imageClassName?: string;
+  imageSizes?: string;
   overlayLabel?: string;
   palette?: readonly [string, string, string];
   soldOut?: boolean;
@@ -29,6 +31,7 @@ export function ProductImageFrame({
   alt,
   imageUrl,
   imageClassName = "h-full w-full object-cover",
+  imageSizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
   overlayLabel = "Elfogyott",
   palette,
   soldOut = false,
@@ -40,16 +43,18 @@ export function ProductImageFrame({
 
   return (
     <div
-      className={className}
+      className={["relative", className].filter(Boolean).join(" ")}
       style={{
         ...buildBackground(palette),
         ...style,
       }}
     >
       {displayImageUrl ? (
-        <img
+        <Image
           src={displayImageUrl}
           alt={alt}
+          fill
+          sizes={imageSizes}
           className={`${imageClassName} transition duration-700 ${
             soldOut
               ? "scale-[1.008] saturate-[0.76] brightness-[0.96]"

@@ -63,8 +63,8 @@ export default function AdminContentPage() {
         <ContentCard
           href="/admin/special-edition"
           eyebrow="Kampány"
-          title="Kampány bannerek"
-          description="A Special Edition és kampányfelületek termékes, képes megjelenéseinek kezelése."
+          title="Special Edition kampány"
+          description="A Special Edition kampány állapota, bannerképe és kampánybelépőinek képes megjelenése."
         />
       </div>
     </AdminShell>

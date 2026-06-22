@@ -69,6 +69,18 @@ type EditingState = "new" | AdminProductRecord | null;
 
 // ─── Helper components ────────────────────────────────────────────────────────
 
+function canHardDeleteProduct(product: AdminProductRecord) {
+  return product.status === "DRAFT" && product._count.orderItems === 0;
+}
+
+function getProductDeleteConfirmation(product: AdminProductRecord) {
+  if (canHardDeleteProduct(product)) {
+    return `Véglegesen törlöd a(z) "${product.name}" draft terméket? Ez a művelet nem visszavonható.`;
+  }
+
+  return `A(z) "${product.name}" termék nem törlődik véglegesen. Archiválva lesz, lekerül a storefrontból, és eltávolítjuk a kosarakból. Folytatod?`;
+}
+
 function ProductThumbnail({ src, alt }: { src?: string | null; alt: string }) {
   return (
     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)]">
@@ -380,14 +392,21 @@ export function ProductsListClient({
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
-                <form action={deleteProductAction}>
+                <form
+                  action={deleteProductAction}
+                  onSubmit={(event) => {
+                    if (!window.confirm(getProductDeleteConfirmation(product))) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
                   <input type="hidden" name="productId" value={product.id} />
                   <AdminActionButton
                     type="submit"
                     variant="danger"
                     size="sm"
                     className="!h-9 !w-9 !p-0"
-                    title="Törlés"
+                    title={canHardDeleteProduct(product) ? "Végleges törlés" : "Archiválás"}
                   >
                     <Trash2 className="h-4 w-4" />
                   </AdminActionButton>
@@ -480,14 +499,21 @@ export function ProductsListClient({
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <form action={deleteProductAction}>
+                        <form
+                          action={deleteProductAction}
+                          onSubmit={(event) => {
+                            if (!window.confirm(getProductDeleteConfirmation(product))) {
+                              event.preventDefault();
+                            }
+                          }}
+                        >
                           <input type="hidden" name="productId" value={product.id} />
                           <AdminActionButton
                             type="submit"
                             variant="danger"
                             size="sm"
                             className="!h-8 !w-8 !p-0"
-                            title="Törlés"
+                            title={canHardDeleteProduct(product) ? "Végleges törlés" : "Archiválás"}
                           >
                             <Trash2 className="h-4 w-4" />
                           </AdminActionButton>

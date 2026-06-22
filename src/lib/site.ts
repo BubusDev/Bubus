@@ -3,7 +3,7 @@ import { getAuthBaseUrl } from "@/lib/env";
 export const siteName = "Chicks Jewelry";
 
 export const siteDescription =
-  "Editorial boutique jewelry storefront with curated collections, premium product storytelling, and route-driven category shopping.";
+  "Limitált ékszerek, gondosan válogatott anyagokból, kis szériában készítve.";
 
 export const siteUrl = getAuthBaseUrl();
 

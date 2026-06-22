@@ -11,7 +11,7 @@ type ContactStepProps = {
 };
 
 const inputClass =
-  "w-full border border-[#d0ccc8] px-4 py-3 text-sm text-[#1a1a1a] outline-none focus:border-[#1a1a1a] transition";
+  "w-full rounded-md border border-[#d0ccc8] px-4 py-3 text-sm text-[#1a1a1a] outline-none transition placeholder:text-[#8b8580] focus:border-[#1a1a1a] focus:ring-2 focus:ring-[#c45a85]/20";
 
 export function ContactStep({ userEmail, onNext }: ContactStepProps) {
   const [mode, setMode] = useState<"guest" | "login" | "register">("guest");
@@ -22,10 +22,13 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
   if (userEmail) {
     return (
       <div>
-        <h2 className="mb-6 text-base font-semibold text-[#1a1a1a]">
+        <h2 className="mb-2 text-base font-semibold text-[#1a1a1a]">
           Kapcsolatfelvételi adatok
         </h2>
-        <div className="mb-6 flex items-center justify-between border border-[#e8e5e0] p-4">
+        <p className="mb-5 text-sm leading-6 text-[#666]">
+          Ezt az email címet használjuk a rendelés visszaigazolásához.
+        </p>
+        <div className="mb-6 flex items-center justify-between rounded-md border border-[#e8e5e0] p-4">
           <div>
             <p className="mb-0.5 text-[11px] uppercase tracking-[.18em] text-[#888]">
               Bejelentkezve
@@ -35,7 +38,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
           <form action="/auth/logout" method="post">
             <button
               type="submit"
-              className="text-xs text-[#888] transition hover:text-[#1a1a1a]"
+              className="text-xs text-[#888] transition hover:text-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Kijelentkezés
             </button>
@@ -44,7 +47,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
         <button
           type="button"
           onClick={() => onNext(userEmail)}
-          className="w-full bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333]"
+          className="w-full rounded-md bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
         >
           Folytatás a szállításhoz
         </button>
@@ -78,11 +81,14 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
 
   return (
     <div>
-      <h2 className="mb-6 text-base font-semibold text-[#1a1a1a]">
+      <h2 className="mb-2 text-base font-semibold text-[#1a1a1a]">
         Kapcsolatfelvételi adatok
       </h2>
+      <p className="mb-5 text-sm leading-6 text-[#666]">
+        Fiók nélkül is végig tudod vinni a rendelést. A visszaigazolást emailben küldjük.
+      </p>
 
-      <div className="mb-6 grid grid-cols-3 gap-px border border-[#e8e5e0] bg-[#e8e5e0]">
+      <div className="mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-[#e8e5e0] bg-[#e8e5e0] sm:grid-cols-3">
         {([
           ["guest", "Vendégként"],
           ["login", "Bejelentkezés"],
@@ -95,7 +101,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
               setMode(key);
               setError("");
             }}
-            className={`py-3 text-sm transition ${
+            className={`py-3 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-inset ${
               mode === key
                 ? "bg-[#1a1a1a] font-medium text-white"
                 : "bg-white text-[#555] hover:bg-[#f5f4f2]"
@@ -109,7 +115,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
       {mode === "guest" && (
         <div className="space-y-4">
           <p className="text-sm text-[#666]">
-            Fiók nélkül is vásárolhat. Adja meg e-mail-címét a rendelés
+            Fiók nélkül is vásárolhatsz. Add meg az email címedet a rendelés
             visszaigazolásához.
           </p>
           <input
@@ -124,21 +130,21 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
               }
             }}
           />
-          {error ? <p className="text-xs text-red-600">{error}</p> : null}
+          {error ? <p className="text-xs font-medium text-[#9b476f]">{error}</p> : null}
           <button
             type="button"
             onClick={handleGuestSubmit}
             disabled={isPending}
-            className="w-full bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333] disabled:opacity-50"
+            className="w-full rounded-md bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isPending ? "Folyamatban..." : "Folytatás"}
+            {isPending ? "Adatok mentése..." : "Folytatás a szállításhoz"}
           </button>
           <p className="text-center text-xs text-[#888]">
             Van már fiókja?{" "}
             <button
               type="button"
               onClick={() => setMode("login")}
-              className="text-[#1a1a1a] underline hover:no-underline"
+              className="text-[#1a1a1a] underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Jelentkezzen be
             </button>
@@ -149,7 +155,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
       {mode === "login" && (
         <div className="space-y-3">
           <p className="mb-4 text-sm text-[#666]">
-            Bejelentkezés után a szállítási adatai automatikusan kitöltődnek.
+            Bejelentkezés után a mentett szállítási adataid automatikusan kitöltődnek.
           </p>
           <form action="/auth/login" method="post" className="space-y-3">
             <input type="hidden" name="next" value="/checkout" />
@@ -167,7 +173,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
             />
             <button
               type="submit"
-              className="w-full bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333]"
+              className="w-full rounded-md bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Bejelentkezés és folytatás
             </button>
@@ -176,7 +182,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
             <button
               type="button"
               onClick={() => setMode("guest")}
-              className="text-[#1a1a1a] underline hover:no-underline"
+              className="text-[#1a1a1a] underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Inkább vendégként vásárolok
             </button>
@@ -187,7 +193,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
       {mode === "register" && (
         <div className="space-y-3">
           <p className="mb-4 text-sm text-[#666]">
-            Hozzon létre fiókot a rendelések egyszerű követéséhez.
+            Hozz létre fiókot a rendelések egyszerű követéséhez.
           </p>
           <form action="/auth/register" method="post" className="space-y-3">
             <input type="hidden" name="next" value="/checkout" />
@@ -218,7 +224,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
             </label>
             <button
               type="submit"
-              className="w-full bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333]"
+              className="w-full rounded-md bg-[#1a1a1a] py-3.5 text-sm font-medium text-white transition hover:bg-[#333] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Fiók létrehozása és folytatás
             </button>
@@ -227,7 +233,7 @@ export function ContactStep({ userEmail, onNext }: ContactStepProps) {
             <button
               type="button"
               onClick={() => setMode("guest")}
-              className="text-[#1a1a1a] underline hover:no-underline"
+              className="text-[#1a1a1a] underline hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
             >
               Inkább vendégként vásárolok
             </button>

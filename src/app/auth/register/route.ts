@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+import {
+  assertAuthRateLimit,
+  AuthRateLimitExceededError,
+  getRateLimitIp,
+} from "@/lib/auth/rate-limit";
 import { RegisterUserError, registerUser } from "@/lib/auth/register";
 
 export const runtime = "nodejs";
@@ -27,6 +32,13 @@ export async function POST(request: Request) {
   const normalizedNextPath = normalizeNextPath(nextPath);
 
   try {
+    await assertAuthRateLimit({
+      scope: "auth:register",
+      identifiers: [`ip:${getRateLimitIp(request)}`],
+      limit: 3,
+      windowMs: 30 * 60 * 1000,
+    });
+
     const result = await registerUser({
       email,
       password,
@@ -53,6 +65,16 @@ export async function POST(request: Request) {
 
     return NextResponse.redirect(successUrl, { status: 303 });
   } catch (error) {
+    if (error instanceof AuthRateLimitExceededError) {
+      return NextResponse.redirect(
+        new URL(
+          `/sign-up?status=submitted&next=${encodeURIComponent(normalizedNextPath)}`,
+          request.url,
+        ),
+        { status: 303 },
+      );
+    }
+
     console.error("[auth/register] Registration failed", {
       email,
       nextPath: normalizedNextPath,

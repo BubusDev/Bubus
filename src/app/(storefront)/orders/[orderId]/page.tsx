@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, ShoppingBag } from "lucide-react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { reorderAction } from "@/app/(storefront)/account/actions";
@@ -140,12 +141,20 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
               >
                 <div className="flex items-center gap-4">
                   {displayImageUrl ? (
-                    <img
-                      src={displayImageUrl}
-                      alt={item.productName}
-                      className="h-20 w-20 rounded-md object-cover"
-                    />
-                  ) : null}
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[#f6f3f4]">
+                      <Image
+                        src={displayImageUrl}
+                        alt={item.productName}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md bg-[#f6f3f4] text-[#9f7489]">
+                      <ShoppingBag className="h-6 w-6" />
+                    </div>
+                  )}
                   <div>
                     <Link
                       href={`/product/${item.productSlug}`}

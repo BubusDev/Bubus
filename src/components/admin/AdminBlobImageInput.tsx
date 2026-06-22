@@ -1,6 +1,7 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
+import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -138,11 +139,16 @@ export function AdminBlobImageInput({
           className={`relative overflow-hidden rounded-md border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] ${previewClassName}`}
         >
           {blobUrl ? (
-            <img
-              src={blobUrl}
-              alt={label}
-              className={imageClassName}
-            />
+            <div className="relative">
+              <Image
+                src={blobUrl}
+                alt={label}
+                width={960}
+                height={720}
+                className={imageClassName}
+                unoptimized
+              />
+            </div>
           ) : (
             <div className="flex min-h-36 items-center justify-center px-4 py-6 text-center text-xs text-[var(--admin-ink-500)]">
               Előnézet készítése...

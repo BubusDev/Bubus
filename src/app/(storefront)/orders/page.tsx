@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import Image from "next/image";
 
 import { AccountShell } from "@/components/account/AccountShell";
 import { EmptyStateCard } from "@/components/account/EmptyStateCard";
@@ -86,13 +87,17 @@ export default async function OrdersPage() {
                               className="flex min-w-0 items-center gap-3 rounded-md border border-[#ebe4e8] bg-white px-3 py-2"
                             >
                               {displayImageUrl ? (
-                                <img
-                                  src={displayImageUrl}
-                                  alt={item.productName}
-                                  className="h-9 w-9 rounded-full object-cover"
-                                />
+                                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#f6f3f4]">
+                                  <Image
+                                    src={displayImageUrl}
+                                    alt={item.productName}
+                                    fill
+                                    sizes="36px"
+                                    className="object-cover"
+                                  />
+                                </div>
                               ) : (
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f6f3f4] text-[#9f7489]">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f6f3f4] text-[#9f7489]">
                                   <ShoppingBag className="h-4 w-4" />
                                 </div>
                               )}
