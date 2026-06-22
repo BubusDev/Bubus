@@ -29,11 +29,20 @@ type HomepageInlineEditorProps = {
 const sectionLabels: Record<EditableSection, string> = {
   hero: "Hero",
   featureBar: "Feature bar",
-  categoryGrid: "Kategória blokk",
+  categoryGrid: "Kategóriák",
   featuredSlider: "Featured slider",
   social: "Social",
   newsletter: "Newsletter",
 };
+
+const editableSections: EditableSection[] = [
+  "hero",
+  "featureBar",
+  "categoryGrid",
+  "featuredSlider",
+  "social",
+  "newsletter",
+];
 
 function cloneContent(content: HomepageContentView): HomepageContentView {
   return JSON.parse(JSON.stringify(content)) as HomepageContentView;
@@ -45,27 +54,29 @@ function getMetadataString(block: HomepageBlockView, key: string, fallback = "")
 }
 
 function getFeatures(block: HomepageBlockView) {
-  if (!Array.isArray(block.metadata.features)) {
-    return [];
-  }
-
-  return block.metadata.features.map((item) => {
+  const items = Array.isArray(block.metadata.features) ? block.metadata.features : [];
+  const features = items.map((item) => {
     const value = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     return {
       label: typeof value.label === "string" ? value.label : "",
       text: typeof value.text === "string" ? value.text : "",
     };
   });
+
+  return Array.from({ length: 3 }, (_, index) => features[index] ?? { label: "", text: "" });
 }
 
 function getPerks(block: HomepageBlockView) {
-  if (!Array.isArray(block.metadata.perks)) return [];
-  return block.metadata.perks.map((perk) => (typeof perk === "string" ? perk : ""));
+  const perks = Array.isArray(block.metadata.perks)
+    ? block.metadata.perks.map((perk) => (typeof perk === "string" ? perk : ""))
+    : [];
+
+  return Array.from({ length: 3 }, (_, index) => perks[index] ?? "");
 }
 
 function getTeamMembers(block: HomepageBlockView) {
-  if (!Array.isArray(block.metadata.teamMembers)) return [];
-  return block.metadata.teamMembers.map((item) => {
+  const items = Array.isArray(block.metadata.teamMembers) ? block.metadata.teamMembers : [];
+  const teamMembers = items.map((item) => {
     const value = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     return {
       name: typeof value.name === "string" ? value.name : "",
@@ -73,6 +84,11 @@ function getTeamMembers(block: HomepageBlockView) {
       imageUrl: typeof value.imageUrl === "string" ? value.imageUrl : "",
     };
   });
+
+  return Array.from(
+    { length: 3 },
+    (_, index) => teamMembers[index] ?? { name: "", role: "", imageUrl: "" },
+  );
 }
 
 function TextField({
@@ -349,6 +365,7 @@ export function HomepageInlineEditor({
           section={activeSection}
           draft={draft}
           onClose={() => setActiveSection(null)}
+          onSectionChange={setActiveSection}
           updateBlock={updateBlock}
           updateBlockMetadata={updateBlockMetadata}
           updateTile={updateTile}
@@ -362,6 +379,7 @@ function EditDrawer({
   section,
   draft,
   onClose,
+  onSectionChange,
   updateBlock,
   updateBlockMetadata,
   updateTile,
@@ -369,6 +387,7 @@ function EditDrawer({
   section: EditableSection;
   draft: HomepageContentView;
   onClose: () => void;
+  onSectionChange: (section: EditableSection) => void;
   updateBlock: (key: "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter", patch: Partial<HomepageBlockView>) => void;
   updateBlockMetadata: (key: "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter", metadata: Record<string, unknown>) => void;
   updateTile: (slotIndex: number, patch: Partial<HomepagePromoTileView>) => void;
@@ -378,18 +397,43 @@ function EditDrawer({
   const teamMembers = getTeamMembers(draft.instagram);
 
   return (
-    <aside className="fixed right-0 top-0 z-50 h-dvh w-full max-w-[440px] overflow-y-auto border-l border-[#f0c0d8] bg-[#fffafc] p-5 shadow-[-18px_0_44px_rgba(45,26,22,0.18)]">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f5367]">Inline edit</p>
-          <h2 className="mt-1 font-[family:var(--font-display)] text-3xl text-[#2D1A16]">{sectionLabels[section]}</h2>
+    <aside className="fixed right-0 top-0 z-50 h-dvh w-full max-w-[440px] overflow-y-auto border-l border-[#f0c0d8] bg-[#fffafc] shadow-[-18px_0_44px_rgba(45,26,22,0.18)]">
+      <div className="sticky top-0 z-10 border-b border-[#f0c0d8] bg-[#fffafc]/95 px-5 pb-4 pt-5 backdrop-blur">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f5367]">Inline edit</p>
+            <h2 className="mt-1 font-[family:var(--font-display)] text-3xl text-[#2D1A16]">{sectionLabels[section]}</h2>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-[#6B3D52] hover:bg-[#FDF0F6]" aria-label="Bezárás">
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <button type="button" onClick={onClose} className="rounded-full p-2 text-[#6B3D52] hover:bg-[#FDF0F6]" aria-label="Bezárás">
-          <X className="h-5 w-5" />
-        </button>
+
+        <nav className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Homepage editor blokkok">
+          {editableSections.map((editableSection) => {
+            const isActive = editableSection === section;
+
+            return (
+              <button
+                key={editableSection}
+                type="button"
+                onClick={() => onSectionChange(editableSection)}
+                className={[
+                  "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
+                  isActive
+                    ? "border-[#E0157A] bg-[#E0157A] text-white shadow-[0_8px_20px_rgba(224,21,122,0.22)]"
+                    : "border-[#f0c0d8] bg-white text-[#8b2859] hover:border-[#E0157A] hover:bg-[#fff5fa]",
+                ].join(" ")}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {sectionLabels[editableSection]}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 p-5">
         {section === "hero" ? (
           <>
             <TextField label="Eyebrow" value={draft.hero.eyebrow} onChange={(value) => updateBlock("hero", { eyebrow: value })} />
@@ -400,28 +444,11 @@ function EditDrawer({
             <TextField label="Secondary CTA label" value={getMetadataString(draft.hero, "secondaryButtonText")} onChange={(value) => updateBlockMetadata("hero", { secondaryButtonText: value })} />
             <TextField label="Secondary CTA href" value={getMetadataString(draft.hero, "secondaryButtonHref")} onChange={(value) => updateBlockMetadata("hero", { secondaryButtonHref: value })} />
             <ImageField label="Hero image" value={draft.hero.imageUrl} onChange={(value) => updateBlock("hero", { imageUrl: value })} />
-            <div className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
-              <p className="text-sm font-semibold text-[#2D1A16]">Feature bar</p>
-              {features.slice(0, 3).map((feature, index) => (
-                <div key={index} className="space-y-3 border-t border-[#f5dce6] pt-3 first:border-t-0 first:pt-0">
-                  <TextField label={`Feature ${index + 1} label`} value={feature.label} onChange={(value) => {
-                    const next = [...features];
-                    next[index] = { ...feature, label: value };
-                    updateBlockMetadata("heroFeatureBar", { features: next });
-                  }} />
-                  <TextField label={`Feature ${index + 1} text`} value={feature.text} onChange={(value) => {
-                    const next = [...features];
-                    next[index] = { ...feature, text: value };
-                    updateBlockMetadata("heroFeatureBar", { features: next });
-                  }} multiline />
-                </div>
-              ))}
-            </div>
           </>
         ) : null}
 
         {section === "featureBar"
-          ? features.slice(0, 3).map((feature, index) => (
+          ? features.map((feature, index) => (
               <div key={index} className="rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <TextField label={`Feature ${index + 1} label`} value={feature.label} onChange={(value) => {
                   const next = [...features];
@@ -442,6 +469,12 @@ function EditDrawer({
             <TextField label="Section eyebrow" value={draft.categoryGrid.eyebrow} onChange={(value) => updateBlock("categoryGrid", { eyebrow: value })} />
             <TextField label="Headline" value={draft.categoryGrid.title} onChange={(value) => updateBlock("categoryGrid", { title: value })} multiline />
             <TextField label="Description" value={draft.categoryGrid.body} onChange={(value) => updateBlock("categoryGrid", { body: value })} multiline />
+            <div className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
+              <p className="text-sm font-semibold text-[#2D1A16]">Kurált fókusz</p>
+              <TextField label="Material eyebrow" value={getMetadataString(draft.categoryGrid, "materialEyebrow")} onChange={(value) => updateBlockMetadata("categoryGrid", { materialEyebrow: value })} />
+              <TextField label="Material headline" value={getMetadataString(draft.categoryGrid, "materialTitle")} onChange={(value) => updateBlockMetadata("categoryGrid", { materialTitle: value })} />
+              <TextField label="Material description" value={getMetadataString(draft.categoryGrid, "materialBody")} onChange={(value) => updateBlockMetadata("categoryGrid", { materialBody: value })} multiline />
+            </div>
             {draft.promoTiles.map((tile) => (
               <div key={tile.slotIndex} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <p className="text-sm font-semibold text-[#2D1A16]">Csempe {tile.slotIndex}</p>
@@ -449,6 +482,7 @@ function EditDrawer({
                 <TextField label="Subtitle" value={tile.subtitle} onChange={(value) => updateTile(tile.slotIndex, { subtitle: value })} multiline />
                 <TextField label="Href" value={tile.href} onChange={(value) => updateTile(tile.slotIndex, { href: value })} />
                 <ImageField label="Tile image" value={tile.imageUrl} onChange={(value) => updateTile(tile.slotIndex, { imageUrl: value })} />
+                <TextField label="Image alt" value={tile.imageAlt} onChange={(value) => updateTile(tile.slotIndex, { imageAlt: value })} />
                 <ToggleField label="Új badge" checked={tile.isNew} onChange={(value) => updateTile(tile.slotIndex, { isNew: value })} />
               </div>
             ))}
@@ -474,7 +508,8 @@ function EditDrawer({
             <TextField label="Facebook text" value={getMetadataString(draft.instagram, "facebookBody")} onChange={(value) => updateBlockMetadata("instagram", { facebookBody: value })} multiline />
             <TextField label="Facebook CTA href" value={getMetadataString(draft.instagram, "facebookHref")} onChange={(value) => updateBlockMetadata("instagram", { facebookHref: value })} />
             <ImageField label="Social image" value={draft.instagram.imageUrl} onChange={(value) => updateBlock("instagram", { imageUrl: value })} />
-            {teamMembers.slice(0, 3).map((member, index) => (
+            <TextField label="Social image alt" value={draft.instagram.imageAlt} onChange={(value) => updateBlock("instagram", { imageAlt: value })} />
+            {teamMembers.map((member, index) => (
               <div key={index} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <p className="text-sm font-semibold text-[#2D1A16]">Csapattag {index + 1}</p>
                 <TextField label="Név" value={member.name} onChange={(value) => {
@@ -502,7 +537,7 @@ function EditDrawer({
             <TextField label="Eyebrow" value={draft.newsletter.eyebrow} onChange={(value) => updateBlock("newsletter", { eyebrow: value })} />
             <TextField label="Headline" value={draft.newsletter.title} onChange={(value) => updateBlock("newsletter", { title: value })} multiline />
             <TextField label="Subtitle" value={draft.newsletter.body} onChange={(value) => updateBlock("newsletter", { body: value })} multiline />
-            {perks.slice(0, 3).map((perk, index) => (
+            {perks.map((perk, index) => (
               <TextField key={index} label={`Perk ${index + 1}`} value={perk} onChange={(value) => {
                 const next = [...perks];
                 next[index] = value;
