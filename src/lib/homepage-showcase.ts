@@ -67,7 +67,14 @@ export async function getHomeShowcaseTabs(): Promise<ShowcaseTab[]> {
     }),
   );
 
-  return tabs.filter((tab) => tab.products.length > 0);
+  const visibleTabs = tabs.filter((tab) => tab.products.length > 0);
+  const inlineFeaturedTab = visibleTabs.find((tab) => tab.key === INLINE_FEATURED_SHOWCASE_KEY);
+
+  if (inlineFeaturedTab) {
+    return [inlineFeaturedTab];
+  }
+
+  return visibleTabs.filter((tab) => tab.key !== INLINE_FEATURED_SHOWCASE_KEY);
 }
 
 export async function getAdminShowcaseTabs(): Promise<AdminShowcaseTabRow[]> {

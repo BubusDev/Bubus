@@ -378,6 +378,10 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
     take: 5,
   });
 
+  if (picks.length === 0) {
+    return getFallbackHomepageMaterialPicks();
+  }
+
   const stoneTypeIds = picks.filter((pick) => pick.itemType === "STONE").map((pick) => pick.itemId);
   const productIds = picks
     .flatMap((pick) => [pick.featuredProductId, pick.itemType === "PRODUCT" ? pick.itemId : null])
@@ -540,6 +544,57 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
       return null;
     })
     .filter((pick): pick is HomepageMaterialPickView => Boolean(pick));
+}
+
+async function getFallbackHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
+  const products = await db.product.findMany({
+    where: storefrontProductWhere,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      imageUrl: true,
+      stoneTypeId: true,
+      stoneType: {
+        select: { id: true, name: true },
+      },
+      images: {
+        select: { url: true },
+        orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+        take: 1,
+      },
+    },
+    orderBy: [{ isNew: "desc" }, { createdAt: "desc" }],
+    take: 30,
+  });
+  const usedStoneTypeIds = new Set<string>();
+  const fallbackProducts: typeof products = [];
+
+  for (const product of products) {
+    if (usedStoneTypeIds.has(product.stoneTypeId)) continue;
+    usedStoneTypeIds.add(product.stoneTypeId);
+    fallbackProducts.push(product);
+    if (fallbackProducts.length >= 5) break;
+  }
+
+  return fallbackProducts.map((product, index) => ({
+    id: `fallback-product-${product.id}`,
+    type: "PRODUCT",
+    itemId: product.id,
+    legacyItemId: null,
+    isLegacySource: false,
+    featuredProductId: product.id,
+    storedFeaturedProductId: product.id,
+    hasUnavailableFeaturedProduct: false,
+    unavailableFeaturedProductReason: null,
+    sortOrder: index + 1,
+    title: product.stoneType?.name ?? "Termék",
+    subtitle: product.name,
+    href: `/product/${product.slug}`,
+    imageUrl: getProductImageUrl(product),
+    imageAlt: product.name,
+    colorHex: null,
+  }));
 }
 
 export async function getHomepageContent(): Promise<HomepageContentView> {

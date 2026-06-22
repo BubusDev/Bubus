@@ -88,6 +88,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       getInlineFeaturedProductIds(),
     ]);
     const materialProductIds = homepageContent.materialPicks
+      .filter((pick) => pick.type === "PRODUCT" && !pick.id.startsWith("fallback-product-"))
       .map((pick) => pick.storedFeaturedProductId ?? pick.featuredProductId)
       .filter((id): id is string => Boolean(id));
 

@@ -113,6 +113,12 @@ function mapProduct(product: ShowcaseProduct): Product {
 }
 
 function getDisplayTabs(tabs: ShowcaseTab[]) {
+  const inlineFeaturedTab = tabs.find((tab) => tab.key === 'inline-featured' || tab.key === 'inline-featured-preview')
+
+  if (inlineFeaturedTab) {
+    return [inlineFeaturedTab]
+  }
+
   const allProductsById = new Map<string, ShowcaseProduct>()
 
   for (const tab of tabs) {

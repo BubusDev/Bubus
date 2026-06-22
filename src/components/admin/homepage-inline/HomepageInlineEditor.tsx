@@ -2,6 +2,7 @@
 
 import { upload } from "@vercel/blob/client";
 import { ChevronDown, ChevronUp, Edit3, ImageIcon, Save, Search, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, type ChangeEvent, type ReactNode } from "react";
 
 import { updateHomepageContentAction } from "@/app/(admin)/admin/content/homepage/actions";
@@ -13,7 +14,12 @@ import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
 import { formatPrice } from "@/lib/catalog";
-import type { HomepageBlockView, HomepageContentView, HomepagePromoTileView } from "@/lib/homepage-content";
+import type {
+  HomepageBlockView,
+  HomepageContentView,
+  HomepageMaterialPickView,
+  HomepagePromoTileView,
+} from "@/lib/homepage-content";
 import type { AdminShowcaseProductOption, ShowcaseTab } from "@/lib/homepage-showcase";
 import { browserSafeProductImageAccept, getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
@@ -291,7 +297,7 @@ function ProductSelectionField({
         />
       </div>
 
-      <div className="grid max-h-56 gap-1 overflow-auto rounded-md border border-[#f0c0d8] bg-[#fffafc] p-1">
+      <div className="grid max-h-56 gap-1 overflow-y-auto overflow-x-hidden rounded-md border border-[#f0c0d8] bg-[#fffafc] p-1">
         {matches.length > 0 ? (
           matches.map((product) => {
             const displayUrl = getBrowserDisplayImageUrl(product.imageUrl);
@@ -302,17 +308,17 @@ function ProductSelectionField({
                 type="button"
                 onClick={() => addProduct(product.id)}
                 disabled={selectedIds.length >= maxItems}
-                className="flex items-center gap-3 rounded-md px-2.5 py-2 text-left transition hover:bg-[#FDF0F6] disabled:cursor-not-allowed disabled:opacity-45"
+                className="grid w-full grid-cols-[36px_minmax(0,1fr)] items-center gap-2 rounded-md px-2 py-2 text-left transition hover:bg-[#FDF0F6] disabled:cursor-not-allowed disabled:opacity-45"
               >
-                <span className="h-10 w-10 shrink-0 overflow-hidden rounded border border-[#f0c0d8] bg-white">
+                <span className="h-9 w-9 overflow-hidden rounded border border-[#f0c0d8] bg-white">
                   {displayUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={displayUrl} alt="" className="h-full w-full object-cover" />
                   ) : null}
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-[#2D1A16]">{product.name}</span>
-                  <span className="block truncate text-xs text-[#8f5367]">
+                  <span className="block break-words text-sm font-medium leading-5 text-[#2D1A16]">{product.name}</span>
+                  <span className="block break-words text-xs leading-4 text-[#8f5367]">
                     {product.categoryName} · {formatPrice(product.price)}
                   </span>
                 </span>
@@ -330,29 +336,34 @@ function ProductSelectionField({
             const displayUrl = getBrowserDisplayImageUrl(product.imageUrl);
 
             return (
-              <div key={product.id} className="flex items-center gap-2 rounded-md border border-[#f0c0d8] bg-[#fff7fb] p-2">
+              <div
+                key={product.id}
+                className="grid w-full grid-cols-[20px_40px_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[#f0c0d8] bg-[#fff7fb] p-2"
+              >
                 <span className="w-5 shrink-0 text-center text-xs font-semibold text-[#8f5367]">{index + 1}</span>
-                <span className="h-11 w-11 shrink-0 overflow-hidden rounded border border-[#f0c0d8] bg-white">
+                <span className="h-10 w-10 overflow-hidden rounded border border-[#f0c0d8] bg-white">
                   {displayUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={displayUrl} alt="" className="h-full w-full object-cover" />
                   ) : null}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-[#2D1A16]">{product.name}</span>
-                  <span className="block truncate text-xs text-[#8f5367]">
+                  <span className="block break-words text-sm font-semibold leading-5 text-[#2D1A16]">{product.name}</span>
+                  <span className="block break-words text-xs leading-4 text-[#8f5367]">
                     {formatPrice(product.price)} · {product.categoryName}
                   </span>
                 </span>
-                <button type="button" onClick={() => moveProduct(index, -1)} disabled={index === 0} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} feljebb mozgatása`}>
-                  <ChevronUp className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => moveProduct(index, 1)} disabled={index === selectedProducts.length - 1} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} lejjebb mozgatása`}>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => removeProduct(product.id)} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-red-600" aria-label={`${product.name} eltávolítása`}>
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <span className="flex flex-wrap justify-end gap-1">
+                  <button type="button" onClick={() => moveProduct(index, -1)} disabled={index === 0} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} feljebb mozgatása`}>
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => moveProduct(index, 1)} disabled={index === selectedProducts.length - 1} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-[#6B3D52] disabled:opacity-35" aria-label={`${product.name} lejjebb mozgatása`}>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => removeProduct(product.id)} className="inline-flex h-8 w-8 items-center justify-center rounded border border-[#e4c8d2] bg-white text-red-600" aria-label={`${product.name} eltávolítása`}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </span>
               </div>
             );
           })
@@ -364,6 +375,39 @@ function ProductSelectionField({
       </div>
     </section>
   );
+}
+
+function buildProductMaterialPicks(
+  productIds: string[],
+  products: AdminShowcaseProductOption[],
+): HomepageMaterialPickView[] {
+  const picks: HomepageMaterialPickView[] = [];
+
+  productIds.forEach((id, index) => {
+    const product = products.find((option) => option.id === id);
+    if (!product) return;
+
+    picks.push({
+      id: `inline-product-${product.id}`,
+      type: "PRODUCT",
+      itemId: product.id,
+      legacyItemId: null,
+      isLegacySource: false,
+      featuredProductId: product.id,
+      storedFeaturedProductId: product.id,
+      hasUnavailableFeaturedProduct: false,
+      unavailableFeaturedProductReason: null,
+      sortOrder: index + 1,
+      title: product.categoryName,
+      subtitle: product.name,
+      href: `/product/${product.slug}`,
+      imageUrl: getBrowserDisplayImageUrl(product.imageUrl),
+      imageAlt: product.name,
+      colorHex: null,
+    });
+  });
+
+  return picks;
 }
 
 function EditableWrap({
@@ -413,6 +457,7 @@ export function HomepageInlineEditor({
   initialFeaturedProductIds,
   initialMaterialProductIds,
 }: HomepageInlineEditorProps) {
+  const router = useRouter();
   const [savedContent, setSavedContent] = useState(() => cloneContent(initialContent));
   const [draft, setDraft] = useState(() => cloneContent(initialContent));
   const [savedFeaturedProductIds, setSavedFeaturedProductIds] = useState(initialFeaturedProductIds);
@@ -422,11 +467,20 @@ export function HomepageInlineEditor({
   const [featuredProductsDirty, setFeaturedProductsDirty] = useState(false);
   const [materialProductsDirty, setMaterialProductsDirty] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isPreviewingDraft, setIsPreviewingDraft] = useState(false);
   const [activeSection, setActiveSection] = useState<EditableSection | null>(null);
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const visibleContent = isEditing ? draft : savedContent;
-  const currentFeaturedProductIds = isEditing ? draftFeaturedProductIds : savedFeaturedProductIds;
+  const isDraftVisible = isEditing || isPreviewingDraft;
+  const visibleContent = isDraftVisible ? draft : savedContent;
+  const currentFeaturedProductIds = isDraftVisible ? draftFeaturedProductIds : savedFeaturedProductIds;
+  const currentMaterialProductIds = isDraftVisible ? draftMaterialProductIds : savedMaterialProductIds;
+  const visibleMaterialPicks = useMemo(() => {
+    if (currentMaterialProductIds.length === 0) return visibleContent.materialPicks;
+
+    const productPicks = buildProductMaterialPicks(currentMaterialProductIds, productOptions);
+    return productPicks.length > 0 ? productPicks : visibleContent.materialPicks;
+  }, [currentMaterialProductIds, productOptions, visibleContent.materialPicks]);
   const visibleShowcaseTabs = useMemo(() => {
     if (currentFeaturedProductIds.length === 0) return showcaseTabs;
 
@@ -485,19 +539,21 @@ export function HomepageInlineEditor({
   }
 
   async function handleSave() {
+    if (isSaving) return;
+
     setIsSaving(true);
-    setStatus("");
+    setStatus("Mentés folyamatban...");
     const result = await updateHomepageContentAction(inlinePayload);
     setIsSaving(false);
-    setStatus(result.message);
+    setStatus(result.ok ? "Mentve" : result.message || "A mentés nem sikerült.");
     if (result.ok) {
       setSavedContent(cloneContent(draft));
       setSavedFeaturedProductIds(draftFeaturedProductIds);
       setSavedMaterialProductIds(draftMaterialProductIds);
       setFeaturedProductsDirty(false);
       setMaterialProductsDirty(false);
-      setIsEditing(false);
-      setActiveSection(null);
+      setIsPreviewingDraft(false);
+      router.refresh();
     }
   }
 
@@ -508,8 +564,21 @@ export function HomepageInlineEditor({
     setFeaturedProductsDirty(false);
     setMaterialProductsDirty(false);
     setIsEditing(false);
+    setIsPreviewingDraft(false);
     setActiveSection(null);
     setStatus("");
+  }
+
+  function handlePreview() {
+    setIsEditing(false);
+    setIsPreviewingDraft(true);
+    setActiveSection(null);
+  }
+
+  function resumeEditing() {
+    setIsEditing(true);
+    setIsPreviewingDraft(false);
+    setActiveSection(activeSection ?? "hero");
   }
 
   return (
@@ -520,7 +589,7 @@ export function HomepageInlineEditor({
       <EditableWrap section="categoryGrid" isEditing={isEditing} onEdit={setActiveSection}>
         <HomePromoTileGrid
           tiles={visibleContent.promoTiles}
-          materialPicks={visibleContent.materialPicks}
+          materialPicks={visibleMaterialPicks}
           categoryBlock={visibleContent.categoryGrid}
         />
       </EditableWrap>
@@ -539,7 +608,7 @@ export function HomepageInlineEditor({
       <HomeFinalCta />
 
       <div className="fixed bottom-5 right-5 z-50 flex flex-wrap justify-end gap-2 rounded-full border border-[#f0c0d8] bg-white/94 p-2 shadow-[0_12px_36px_rgba(45,26,22,0.18)] backdrop-blur">
-        {!isEditing ? (
+        {!isEditing && !isPreviewingDraft ? (
           <button
             type="button"
             onClick={() => {
@@ -553,12 +622,12 @@ export function HomepageInlineEditor({
           </button>
         ) : (
           <>
-            <button type="button" onClick={() => setIsEditing(false)} className="rounded-full px-4 text-sm font-semibold text-[#6B3D52] hover:bg-[#FDF0F6]">
-              Előnézet
+            <button type="button" onClick={isPreviewingDraft ? resumeEditing : handlePreview} className="rounded-full px-4 text-sm font-semibold text-[#6B3D52] hover:bg-[#FDF0F6]">
+              {isPreviewingDraft ? "Szerkesztés" : "Előnézet"}
             </button>
             <button type="button" onClick={handleSave} disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#E0157A] px-4 text-sm font-semibold text-white disabled:opacity-60">
               <Save className="h-4 w-4" />
-              {isSaving ? "Mentés..." : "Mentés"}
+              {isSaving ? "Mentés folyamatban..." : "Mentés"}
             </button>
             <button type="button" onClick={handleCancel} className="rounded-full px-4 text-sm font-semibold text-[#6B3D52] hover:bg-[#FDF0F6]">
               Mégse
@@ -593,6 +662,11 @@ export function HomepageInlineEditor({
             setDraftMaterialProductIds(ids);
             setMaterialProductsDirty(true);
           }}
+          onPreview={handlePreview}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          isSaving={isSaving}
+          status={status}
         />
       ) : null}
     </main>
@@ -612,6 +686,11 @@ function EditDrawer({
   materialProductIds,
   onFeaturedProductIdsChange,
   onMaterialProductIdsChange,
+  onPreview,
+  onSave,
+  onCancel,
+  isSaving,
+  status,
 }: {
   section: EditableSection;
   draft: HomepageContentView;
@@ -625,14 +704,19 @@ function EditDrawer({
   materialProductIds: string[];
   onFeaturedProductIdsChange: (ids: string[]) => void;
   onMaterialProductIdsChange: (ids: string[]) => void;
+  onPreview: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+  isSaving: boolean;
+  status: string;
 }) {
   const features = getFeatures(draft.heroFeatureBar);
   const perks = getPerks(draft.newsletter);
   const teamMembers = getTeamMembers(draft.instagram);
 
   return (
-    <aside className="fixed right-0 top-0 z-50 h-dvh w-full max-w-[440px] overflow-y-auto border-l border-[#f0c0d8] bg-[#fffafc] shadow-[-18px_0_44px_rgba(45,26,22,0.18)]">
-      <div className="sticky top-0 z-10 border-b border-[#f0c0d8] bg-[#fffafc]/95 px-5 pb-4 pt-5 backdrop-blur">
+    <aside className="fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[440px] min-w-0 flex-col overflow-hidden border-l border-[#f0c0d8] bg-[#fffafc] shadow-[-18px_0_44px_rgba(45,26,22,0.18)]">
+      <div className="shrink-0 border-b border-[#f0c0d8] bg-[#fffafc]/95 px-4 pb-4 pt-5 backdrop-blur sm:px-5">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8f5367]">Inline edit</p>
@@ -667,7 +751,7 @@ function EditDrawer({
         </nav>
       </div>
 
-      <div className="space-y-4 p-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-5 pb-28 sm:px-5">
         {section === "hero" ? (
           <>
             <ImageField label="Hero kép" value={draft.hero.imageUrl} previewAlt={draft.hero.imageAlt || draft.hero.title} onChange={(value) => updateBlock("hero", { imageUrl: value })} />
@@ -798,6 +882,39 @@ function EditDrawer({
             <TextField label="Note text" value={getMetadataString(draft.newsletter, "note")} onChange={(value) => updateBlockMetadata("newsletter", { note: value })} multiline />
           </>
         ) : null}
+      </div>
+
+      <div className="sticky bottom-0 z-10 shrink-0 border-t border-[#f0c0d8] bg-white/96 px-4 py-3 shadow-[0_-10px_28px_rgba(45,26,22,0.08)] backdrop-blur sm:px-5">
+        {status ? (
+          <p className="mb-2 text-xs font-medium text-[#6B3D52]" aria-live="polite">
+            {status}
+          </p>
+        ) : null}
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={onPreview}
+            className="min-h-10 rounded-full border border-[#e4c8d2] bg-white px-3 text-sm font-semibold text-[#6B3D52] hover:bg-[#FDF0F6]"
+          >
+            Előnézet
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={isSaving}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#E0157A] px-3 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {isSaving ? "Mentés..." : "Mentés"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="min-h-10 rounded-full border border-transparent px-3 text-sm font-semibold text-[#6B3D52] hover:bg-[#FDF0F6]"
+          >
+            Mégse
+          </button>
+        </div>
       </div>
     </aside>
   );
