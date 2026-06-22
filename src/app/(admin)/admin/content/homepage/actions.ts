@@ -155,7 +155,7 @@ export async function updateHomepageContentAction(
     }
     assertImageUrl(input.hero.imageUrl, "Hero kép");
     assertImageUrl(input.instagram.imageUrl, "Social kép");
-    assertMetadataImageUrls(input.instagram.metadata.teamMembers, "Csapattag kép");
+    assertMetadataImageUrls(input.instagram.metadata, "Social metadata kép");
 
     for (const tile of input.promoTiles) {
       if (!Number.isInteger(tile.slotIndex) || tile.slotIndex < 4 || tile.slotIndex > 8) {

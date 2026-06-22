@@ -50,11 +50,16 @@ function readTeamMembers(block: HomepageBlockView) {
 }
 
 function SocialImage({ block, label }: { block: HomepageBlockView; label: string }) {
+  const imageUrl =
+    label === "Facebook" && typeof block.metadata.facebookImageUrl === "string"
+      ? block.metadata.facebookImageUrl
+      : block.imageUrl;
+
   return (
     <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.82),rgba(248,204,224,0.72)_38%,rgba(226,150,183,0.72)_100%)] sm:min-h-[420px] lg:min-h-[500px]">
-      {block.imageUrl ? (
+      {imageUrl ? (
         <Image
-          src={block.imageUrl}
+          src={imageUrl}
           alt={block.imageAlt || label}
           fill
           sizes="(max-width: 1024px) 100vw, 620px"

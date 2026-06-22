@@ -14,7 +14,7 @@ import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { createAdminImageUploadPathname } from "@/lib/blob-upload";
 import type { HomepageBlockView, HomepageContentView, HomepagePromoTileView } from "@/lib/homepage-content";
 import type { ShowcaseTab } from "@/lib/homepage-showcase";
-import { browserSafeProductImageAccept } from "@/lib/image-safety";
+import { browserSafeProductImageAccept, getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type EditableSection = "hero" | "featureBar" | "categoryGrid" | "featuredSlider" | "social" | "newsletter";
 
@@ -141,14 +141,17 @@ function ImageField({
   label,
   value,
   onChange,
+  previewAlt = "",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  previewAlt?: string;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const displayUrl = getBrowserDisplayImageUrl(value);
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -170,7 +173,8 @@ function ImageField({
       });
       onChange(blob.url);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "A képfeltöltés nem sikerült.");
+      const message = uploadError instanceof Error ? uploadError.message : "";
+      setError(message || "A képfeltöltés nem sikerült. A korábbi kép megmaradt.");
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
@@ -178,15 +182,24 @@ function ImageField({
   }
 
   return (
-    <div className="space-y-2">
-      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8f5367]">{label}</span>
-      {value ? (
+    <div className="space-y-3 rounded-lg border border-[#f0c0d8] bg-[#fff7fb] p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8f5367]">{label}</span>
+        <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-[#8f5367]">
+          {value ? "Jelenlegi kép" : "Nincs kép feltöltve"}
+        </span>
+      </div>
+      {displayUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt="" className="h-32 w-full rounded-md object-cover" />
-      ) : null}
-      <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-[#e4c8d2] bg-white px-4 text-sm font-medium text-[#6B3D52] hover:border-[#E0157A]">
+        <img src={displayUrl} alt={previewAlt} className="h-36 w-full rounded-md object-cover ring-1 ring-[#f0c0d8]" />
+      ) : (
+        <div className="flex h-36 items-center justify-center rounded-md border border-dashed border-[#e4c8d2] bg-white text-sm text-[#8f5367]">
+          Nincs előnézeti kép
+        </div>
+      )}
+      <label className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[#E0157A] bg-white px-4 text-sm font-semibold text-[#8b2859] hover:bg-[#fff0f7]">
         <ImageIcon className="h-4 w-4" />
-        {isUploading ? "Feltöltés..." : "Kép cseréje"}
+        {isUploading ? "Feltöltés..." : value ? "Kép cseréje" : "Kép feltöltése"}
         <input type="file" accept={browserSafeProductImageAccept} onChange={handleFileChange} className="sr-only" />
       </label>
       {isUploading && uploadProgress !== null ? (
@@ -442,14 +455,15 @@ function EditDrawer({
       <div className="space-y-4 p-5">
         {section === "hero" ? (
           <>
+            <ImageField label="Hero kép" value={draft.hero.imageUrl} previewAlt={draft.hero.imageAlt || draft.hero.title} onChange={(value) => updateBlock("hero", { imageUrl: value })} />
             <TextField label="Eyebrow" value={draft.hero.eyebrow} onChange={(value) => updateBlock("hero", { eyebrow: value })} />
             <TextField label="Headline" value={draft.hero.title} onChange={(value) => updateBlock("hero", { title: value })} multiline />
             <TextField label="Subtitle" value={draft.hero.body} onChange={(value) => updateBlock("hero", { body: value })} multiline />
+            <TextField label="Hero kép alt" value={draft.hero.imageAlt} onChange={(value) => updateBlock("hero", { imageAlt: value })} />
             <TextField label="Primary CTA label" value={draft.hero.buttonText} onChange={(value) => updateBlock("hero", { buttonText: value })} />
             <TextField label="Primary CTA href" value={draft.hero.buttonHref} onChange={(value) => updateBlock("hero", { buttonHref: value })} />
             <TextField label="Secondary CTA label" value={getMetadataString(draft.hero, "secondaryButtonText")} onChange={(value) => updateBlockMetadata("hero", { secondaryButtonText: value })} />
             <TextField label="Secondary CTA href" value={getMetadataString(draft.hero, "secondaryButtonHref")} onChange={(value) => updateBlockMetadata("hero", { secondaryButtonHref: value })} />
-            <ImageField label="Hero image" value={draft.hero.imageUrl} onChange={(value) => updateBlock("hero", { imageUrl: value })} />
           </>
         ) : null}
 
@@ -484,10 +498,10 @@ function EditDrawer({
             {draft.promoTiles.map((tile) => (
               <div key={tile.slotIndex} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <p className="text-sm font-semibold text-[#2D1A16]">Csempe {tile.slotIndex}</p>
+                <ImageField label={`Csempe ${tile.slotIndex} kép`} value={tile.imageUrl} previewAlt={tile.imageAlt || tile.title} onChange={(value) => updateTile(tile.slotIndex, { imageUrl: value })} />
                 <TextField label="Title" value={tile.title} onChange={(value) => updateTile(tile.slotIndex, { title: value })} />
                 <TextField label="Subtitle" value={tile.subtitle} onChange={(value) => updateTile(tile.slotIndex, { subtitle: value })} multiline />
                 <TextField label="Href" value={tile.href} onChange={(value) => updateTile(tile.slotIndex, { href: value })} />
-                <ImageField label="Tile image" value={tile.imageUrl} onChange={(value) => updateTile(tile.slotIndex, { imageUrl: value })} />
                 <TextField label="Image alt" value={tile.imageAlt} onChange={(value) => updateTile(tile.slotIndex, { imageAlt: value })} />
                 <ToggleField label="Új badge" checked={tile.isNew} onChange={(value) => updateTile(tile.slotIndex, { isNew: value })} />
               </div>
@@ -506,18 +520,24 @@ function EditDrawer({
 
         {section === "social" ? (
           <>
+            <ImageField label="Instagram kép" value={draft.instagram.imageUrl} previewAlt={draft.instagram.imageAlt || draft.instagram.title} onChange={(value) => updateBlock("instagram", { imageUrl: value })} />
             <TextField label="Instagram eyebrow" value={draft.instagram.eyebrow} onChange={(value) => updateBlock("instagram", { eyebrow: value })} />
             <TextField label="Instagram title" value={draft.instagram.title} onChange={(value) => updateBlock("instagram", { title: value })} />
             <TextField label="Instagram text" value={draft.instagram.body} onChange={(value) => updateBlock("instagram", { body: value })} multiline />
             <TextField label="Instagram CTA label" value={draft.instagram.buttonText} onChange={(value) => updateBlock("instagram", { buttonText: value })} />
             <TextField label="Instagram CTA href" value={draft.instagram.buttonHref} onChange={(value) => updateBlock("instagram", { buttonHref: value })} />
+            <TextField label="Instagram kép alt" value={draft.instagram.imageAlt} onChange={(value) => updateBlock("instagram", { imageAlt: value })} />
+            <ImageField label="Facebook kép" value={getMetadataString(draft.instagram, "facebookImageUrl")} previewAlt="Facebook" onChange={(value) => updateBlockMetadata("instagram", { facebookImageUrl: value })} />
             <TextField label="Facebook text" value={getMetadataString(draft.instagram, "facebookBody")} onChange={(value) => updateBlockMetadata("instagram", { facebookBody: value })} multiline />
             <TextField label="Facebook CTA href" value={getMetadataString(draft.instagram, "facebookHref")} onChange={(value) => updateBlockMetadata("instagram", { facebookHref: value })} />
-            <ImageField label="Social image" value={draft.instagram.imageUrl} onChange={(value) => updateBlock("instagram", { imageUrl: value })} />
-            <TextField label="Social image alt" value={draft.instagram.imageAlt} onChange={(value) => updateBlock("instagram", { imageAlt: value })} />
             {teamMembers.map((member, index) => (
               <div key={index} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
                 <p className="text-sm font-semibold text-[#2D1A16]">Csapattag {index + 1}</p>
+                <ImageField label={`Csapattag ${index + 1} kép`} value={member.imageUrl} previewAlt={member.name} onChange={(value) => {
+                  const next = [...teamMembers];
+                  next[index] = { ...member, imageUrl: value };
+                  updateBlockMetadata("instagram", { teamMembers: next });
+                }} />
                 <TextField label="Név" value={member.name} onChange={(value) => {
                   const next = [...teamMembers];
                   next[index] = { ...member, name: value };
@@ -526,11 +546,6 @@ function EditDrawer({
                 <TextField label="Szerep" value={member.role} onChange={(value) => {
                   const next = [...teamMembers];
                   next[index] = { ...member, role: value };
-                  updateBlockMetadata("instagram", { teamMembers: next });
-                }} />
-                <ImageField label="Csapattag kép" value={member.imageUrl} onChange={(value) => {
-                  const next = [...teamMembers];
-                  next[index] = { ...member, imageUrl: value };
                   updateBlockMetadata("instagram", { teamMembers: next });
                 }} />
               </div>
