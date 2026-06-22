@@ -8,7 +8,6 @@ import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import StoneFocus from "@/components/home/StoneFocus";
-import { ValueStrip } from "@/components/home/ValueStrip";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getHomeShowcaseTabs } from "@/lib/homepage-showcase";
 import { getAbsoluteUrl, siteDescription, siteName } from "@/lib/site";
@@ -88,7 +87,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
       <HeroBanner block={homepageContent.hero} />
-      <ValueStrip />
       <BrandPhilosophy />
       <HomePromoTileGrid
         tiles={homepageContent.promoTiles}

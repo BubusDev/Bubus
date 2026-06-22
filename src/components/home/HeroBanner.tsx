@@ -54,18 +54,14 @@ const sparklePositions = [
 
 export default function HeroBanner({
   block,
-  primaryCta,
-  secondaryCta = { label: 'Kollekciók', href: '/special-edition' },
+  primaryCta = { label: 'Fedezd fel a válogatást', href: block.buttonHref || '/special-edition' },
+  secondaryCta = { label: 'Limitált darabok', href: '/special-edition' },
   features = defaultFeatures,
 }: HeroBannerProps) {
   if (!block.isVisible) {
     return null
   }
 
-  const resolvedPrimaryCta = primaryCta ?? {
-    label: block.buttonText || 'Vásárlás most',
-    href: block.buttonHref || '/special-edition',
-  }
   const imageUrl =
     block.imageUrl ||
     '/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg'
@@ -111,22 +107,27 @@ export default function HeroBanner({
             <h1
               className={`${playfair.className} mb-[18px] text-[34px] font-normal leading-[1.08] text-white md:text-[52px]`}
             >
-              {block.title || 'Ne félj extra lenni!'}
+              Ne félj extra lenni!
+              <br />
+              <em className="font-normal italic text-[#FFD6EE]">
+                Viseld bátran
+              </em>
+              <br />a kiegészítőket!
             </h1>
 
             <p
               className={`${inter.className} mb-9 max-w-[380px] text-[14px] font-light leading-[1.75] text-[rgba(255,255,255,0.85)]`}
             >
-              {block.body ||
-                'Féldrágakő karkötők és nyakláncok kis szériában, outfitedhez, hangulatodhoz, évszakodhoz.'}
+              Féldrágakő karkötők és nyakláncok kis szériában — outfitedhez,
+              hangulatodhoz, évszakodhoz.
             </p>
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href={resolvedPrimaryCta.href}
+                href={primaryCta.href}
                 className={`${inter.className} inline-flex bg-[#FFD6EE] px-[26px] py-[13px] text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8005C] transition-colors hover:bg-white`}
               >
-                {resolvedPrimaryCta.label}
+                {primaryCta.label}
               </Link>
               <Link
                 href={secondaryCta.href}

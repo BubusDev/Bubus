@@ -5,6 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Playfair_Display, Inter } from 'next/font/google'
 
+import { getBrowserDisplayImageUrl } from '@/lib/image-safety'
+
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400'],
@@ -22,8 +24,14 @@ type ShowcaseProduct = {
   id: string
   slug: string
   name: string
+  category?: string
   price: number
   imageUrl?: string | null
+  images?: {
+    url: string
+    alt?: string | null
+    isCover: boolean
+  }[]
   isNew?: boolean
   isOnSale?: boolean
 }
@@ -39,7 +47,7 @@ type Product = {
   name: string
   price: number
   href: string
-  imageUrl: string
+  imageUrl: string | null
   imageAlt: string
   badge?: BadgeType
 }
@@ -55,8 +63,18 @@ interface ProductCardProps {
 }
 
 const CARD_WIDTH = 274
-const fallbackProductImage =
-  '/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg'
+const requestedTabs = [
+  {
+    key: 'karkotok',
+    label: 'Karkötők',
+    matches: ['karkoto', 'karkötő', 'bracelet', 'bracelets'],
+  },
+  {
+    key: 'nyaklancok',
+    label: 'Nyakláncok',
+    matches: ['nyaklanc', 'nyaklánc', 'necklace', 'necklaces'],
+  },
+]
 
 function getProductBadge(product: ShowcaseProduct): BadgeType {
   if (product.isNew) return 'Új'
@@ -64,16 +82,69 @@ function getProductBadge(product: ShowcaseProduct): BadgeType {
   return null
 }
 
+function normalizeFilterValue(value: string | undefined) {
+  return (value ?? '').toLocaleLowerCase('hu')
+}
+
+function getProductImage(product: ShowcaseProduct) {
+  const coverImage = product.images?.find((image) => image.isCover) ?? product.images?.[0]
+  const displayUrl = getBrowserDisplayImageUrl(coverImage?.url ?? product.imageUrl)
+
+  return {
+    alt: coverImage?.alt?.trim() || product.name,
+    url: displayUrl,
+  }
+}
+
 function mapProduct(product: ShowcaseProduct): Product {
+  const image = getProductImage(product)
+
   return {
     id: product.id,
     name: product.name,
     price: product.price,
     href: `/product/${product.slug}`,
-    imageUrl: product.imageUrl || fallbackProductImage,
-    imageAlt: product.name,
+    imageUrl: image.url,
+    imageAlt: image.alt,
     badge: getProductBadge(product),
   }
+}
+
+function getDisplayTabs(tabs: ShowcaseTab[]) {
+  const allProductsById = new Map<string, ShowcaseProduct>()
+
+  for (const tab of tabs) {
+    for (const product of tab.products) {
+      allProductsById.set(product.id, product)
+    }
+  }
+
+  const allProducts = Array.from(allProductsById.values())
+  const categoryTabs = requestedTabs
+    .map((definition) => {
+      const configuredTab = tabs.find((tab) => {
+        const key = normalizeFilterValue(tab.key)
+        const label = normalizeFilterValue(tab.label)
+
+        return definition.matches.some((match) => key.includes(match) || label.includes(match))
+      })
+      const products =
+        configuredTab?.products ??
+        allProducts.filter((product) => {
+          const category = normalizeFilterValue(product.category)
+
+          return definition.matches.some((match) => category.includes(match))
+        })
+
+      return {
+        key: configuredTab?.key ?? definition.key,
+        label: definition.label,
+        products,
+      }
+    })
+    .filter((tab) => tab.products.length > 0)
+
+  return categoryTabs.length > 0 ? categoryTabs : tabs
 }
 
 function HeartIcon({ filled }: { filled: boolean }) {
@@ -147,14 +218,22 @@ function ProductCard({
   return (
     <article className="group w-full cursor-pointer md:w-[260px] md:flex-none">
       <div className="relative mb-[14px] h-[320px] overflow-hidden bg-[#E8D5CF]">
-        <Link href={product.href} aria-label={product.name}>
-          <Image
-            src={product.imageUrl}
-            alt={product.imageAlt}
-            fill
-            sizes="(max-width: 768px) 100vw, 260px"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          />
+        <Link href={product.href} aria-label={product.name} className="block h-full">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.imageAlt}
+              fill
+              sizes="(max-width: 768px) 100vw, 260px"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-[linear-gradient(155deg,#f5f3f0,#ece8e3)] px-5 text-center">
+              <span className={`${playfair.className} text-lg leading-tight text-[#5e5358]/70`}>
+                {product.name}
+              </span>
+            </div>
+          )}
         </Link>
 
         {product.badge ? (
@@ -197,30 +276,25 @@ function ProductCard({
 }
 
 export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
+  const displayTabs = useMemo(() => getDisplayTabs(tabs), [tabs])
   const [pos, setPos] = useState(0)
-  const [activeTab, setActiveTab] = useState(tabs[0]?.key ?? '')
+  const [activeTab, setActiveTab] = useState('')
   const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set())
   const visible = useVisibleCards()
+  const resolvedActiveTab = displayTabs.some((tab) => tab.key === activeTab)
+    ? activeTab
+    : displayTabs[0]?.key
 
   const activeProducts = useMemo(() => {
     const activeProductsFromTabs =
-      tabs.find((tab) => tab.key === activeTab)?.products ?? tabs[0]?.products ?? []
+      displayTabs.find((tab) => tab.key === resolvedActiveTab)?.products ?? displayTabs[0]?.products ?? []
 
     return activeProductsFromTabs.map(mapProduct)
-  }, [activeTab, tabs])
+  }, [displayTabs, resolvedActiveTab])
 
   const maxPos = Math.max(activeProducts.length - visible, 0)
-  const progressWidth = maxPos === 0 ? 100 : (pos / maxPos) * 66 + 33
-
-  useEffect(() => {
-    if (!activeTab && tabs[0]?.key) {
-      setActiveTab(tabs[0].key)
-    }
-  }, [activeTab, tabs])
-
-  useEffect(() => {
-    setPos((currentPos) => Math.min(currentPos, maxPos))
-  }, [maxPos])
+  const effectivePos = Math.min(pos, maxPos)
+  const progressWidth = maxPos === 0 ? 100 : (effectivePos / maxPos) * 66 + 33
 
   const handleTabClick = (key: string) => {
     setActiveTab(key)
@@ -241,13 +315,13 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
     })
   }
 
-  if (tabs.length === 0) {
+  if (displayTabs.length === 0) {
     return null
   }
 
   return (
-    <section className="bg-[#F5F2ED] pb-[52px] pl-12 pr-0 pt-[52px]">
-      <div className="mb-8 flex flex-col gap-6 pr-12 md:flex-row md:items-end md:justify-between">
+    <section className="bg-[#F5F2ED] px-4 py-[52px] sm:px-6 lg:pl-12 lg:pr-0">
+      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between lg:pr-12">
         <div>
           <p
             className={`${inter.className} mb-3 text-[10px] font-normal uppercase tracking-[0.2em] text-[#C4857A]`}
@@ -271,9 +345,9 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         </p>
       </div>
 
-      <div className="mb-7 hidden border-b border-[#E8C9C0] pr-12 md:flex">
-        {tabs.map((tab) => {
-          const isActive = tab.key === activeTab
+      <div className="mb-7 hidden border-b border-[#E8C9C0] md:flex lg:pr-12">
+        {displayTabs.map((tab) => {
+          const isActive = tab.key === resolvedActiveTab
 
           return (
             <button
@@ -292,7 +366,7 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         })}
       </div>
 
-      <div className="grid gap-[22px] pr-12 md:hidden">
+      <div className="grid gap-[22px] sm:grid-cols-2 md:hidden">
         {activeProducts.map((product) => (
           <ProductCard
             key={product.id}
@@ -307,7 +381,7 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         <div
           className="flex gap-[14px]"
           style={{
-            transform: `translateX(-${pos * CARD_WIDTH}px)`,
+            transform: `translateX(-${effectivePos * CARD_WIDTH}px)`,
             transition: 'transform 450ms cubic-bezier(0.4,0,0.2,1)',
           }}
         >
@@ -322,7 +396,7 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         </div>
       </div>
 
-      <div className="mt-7 hidden items-center justify-end gap-[10px] pr-12 md:flex">
+      <div className="mt-7 hidden items-center justify-end gap-[10px] md:flex lg:pr-12">
         <div className="h-px max-w-[200px] flex-1 overflow-hidden rounded bg-[#E8C9C0]">
           <div
             className="h-full rounded bg-[#C4857A] transition-all duration-[450ms]"
@@ -333,7 +407,7 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         <button
           type="button"
           aria-label="Előző termékek"
-          disabled={pos === 0}
+          disabled={effectivePos === 0}
           onClick={() => setPos((currentPos) => Math.max(currentPos - 1, 0))}
           className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#E8C9C0] bg-[#FDF6F3] transition hover:border-[#C4857A] hover:bg-[#F0D5CE] disabled:pointer-events-none disabled:cursor-default disabled:opacity-35"
         >
@@ -343,7 +417,7 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
         <button
           type="button"
           aria-label="Következő termékek"
-          disabled={pos === maxPos}
+          disabled={effectivePos === maxPos}
           onClick={() =>
             setPos((currentPos) => Math.min(currentPos + 1, maxPos))
           }
