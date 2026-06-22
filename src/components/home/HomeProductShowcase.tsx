@@ -112,7 +112,7 @@ function ScrollProgressBar({
             height: 3,
             left: "0%",
             width: "30%",
-            background: "#22231f",
+            background: "#C4857A",
             transition: prefersReducedMotion ? "none" : "left .15s ease-out",
           }}
         />
@@ -296,7 +296,7 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           bottom: 5px;
           left: 0; right: 0;
           height: 1px;
-          background: #22231f;
+          background: #C4857A;
         }
 
         .showcase-scroll-wrap {
@@ -377,15 +377,16 @@ export function HomeProductShowcase({ tabs, defaultTab, compactPreview = false }
           width: 42px; height: 42px;
           display: flex; align-items: center; justify-content: center;
           background: rgba(255,255,255,.92);
-          border: 1px solid #e7e1d7;
+          border: 1px solid #E8C9C0;
+          border-radius: 999px;
           color: #22231f;
           cursor: pointer;
           transition: background .2s, border-color .2s, color .2s;
         }
         .showcase-nav-btn:hover {
-          background: #22231f;
+          background: #C4857A;
           color: white;
-          border-color: #22231f;
+          border-color: #C4857A;
         }
         .showcase-nav-btn:focus-visible {
           outline: 2px solid #6f775d;

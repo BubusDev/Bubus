@@ -23,11 +23,11 @@ function Tile({
       <Image
         src={tile.imageUrl}
         alt={tile.imageAlt}
-        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
         fill
         sizes={emphasis ? "(max-width: 1024px) 100vw, 690px" : "(max-width: 1024px) 50vw, 315px"}
       />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(22,24,20,0.02),rgba(22,24,20,0.58))]" />
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(0deg,rgba(19,14,18,0.74),rgba(19,14,18,0.38)_52%,rgba(19,14,18,0))]" />
       <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6 lg:p-7">
         <p
           className={
@@ -146,25 +146,23 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
             </p>
           </div>
 
-          <div className="mx-auto grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch lg:gap-5">
-            <div className="min-h-[390px] sm:min-h-[470px] lg:h-[620px] xl:h-[700px]">
+          <div className="mx-auto grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 lg:items-stretch lg:gap-5">
+            <div className="min-h-[390px] sm:col-span-2 sm:min-h-[470px] lg:col-span-2 lg:row-span-2 lg:h-[620px] xl:h-[700px]">
               <Tile tile={emphasisTile} emphasis />
             </div>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-2 lg:grid-rows-2 lg:gap-5">
-              {smallTiles.slice(0, 4).map((tile) => (
-                <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
-                  <Tile tile={tile} />
-                </div>
-              ))}
-              {smallTiles.length < 4
-                ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
-                    <div
-                      key={`placeholder-${index}`}
-                      className="hidden aspect-square bg-[#ece8df] lg:block lg:h-full lg:min-h-0"
-                    />
-                  ))
-                : null}
-            </div>
+            {smallTiles.slice(0, 4).map((tile) => (
+              <div key={tile.slotIndex} className="aspect-square lg:h-full lg:min-h-0">
+                <Tile tile={tile} />
+              </div>
+            ))}
+            {smallTiles.length < 4
+              ? Array.from({ length: 4 - smallTiles.length }).map((_, index) => (
+                  <div
+                    key={`placeholder-${index}`}
+                    className="hidden aspect-square bg-[#ece8df] sm:block lg:h-full lg:min-h-0"
+                  />
+                ))
+              : null}
           </div>
         </section>
       ) : null}
