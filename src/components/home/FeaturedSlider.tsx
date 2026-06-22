@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Playfair_Display, Inter } from 'next/font/google'
 
+import type { HomepageBlockView } from '@/lib/homepage-content'
 import { getBrowserDisplayImageUrl } from '@/lib/image-safety'
 
 const playfair = Playfair_Display({
@@ -54,6 +55,7 @@ type Product = {
 
 interface FeaturedSliderProps {
   tabs: ShowcaseTab[]
+  contentBlock?: HomepageBlockView
 }
 
 interface ProductCardProps {
@@ -275,7 +277,7 @@ function ProductCard({
   )
 }
 
-export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
+export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderProps) {
   const displayTabs = useMemo(() => getDisplayTabs(tabs), [tabs])
   const [pos, setPos] = useState(0)
   const [activeTab, setActiveTab] = useState('')
@@ -326,22 +328,21 @@ export default function FeaturedSlider({ tabs }: FeaturedSliderProps) {
           <p
             className={`${inter.className} mb-3 text-[10px] font-normal uppercase tracking-[0.2em] text-[#C4857A]`}
           >
-            Fókuszban
+            {contentBlock?.eyebrow || 'Fókuszban'}
           </p>
 
           <h2
             className={`${playfair.className} text-[40px] font-normal leading-[1.1] text-[#2D1A16]`}
           >
-            Szerkesztett{' '}
-            <em className="font-normal italic text-[#C4857A]">darabok.</em>
+            {contentBlock?.title || 'Szerkesztett darabok.'}
           </h2>
         </div>
 
         <p
           className={`${inter.className} max-w-[280px] text-left text-[13px] font-normal leading-[1.7] text-[#9C6B63] md:text-right`}
         >
-          Újdonságok, ajándéknak választott kedvencek és limitált darabok egy
-          letisztult válogatásban.
+          {contentBlock?.body ||
+            'Újdonságok, ajándéknak választott kedvencek és limitált darabok egy letisztult válogatásban.'}
         </p>
       </div>
 

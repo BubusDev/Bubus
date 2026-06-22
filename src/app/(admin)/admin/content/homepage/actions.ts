@@ -8,6 +8,9 @@ import { requireAdminUser } from "@/lib/auth";
 import { enqueueBlobCleanup } from "@/lib/blob-cleanup";
 import { db } from "@/lib/db";
 import {
+  type HomepageBlockView,
+  type HomepageContentView,
+  type HomepagePromoTileView,
   replaceHomepageMaterialPicks,
   upsertHomepageBlock,
   upsertHomepagePromoTile,
@@ -35,6 +38,114 @@ function readStringList(formData: FormData, key: string) {
     .filter((value): value is string => typeof value === "string")
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+type InlineHomepageContentInput = Pick<
+  HomepageContentView,
+  "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter" | "promoTiles"
+>;
+
+function isAllowedHref(value: string) {
+  if (!value) return true;
+  return value.startsWith("/") && !value.startsWith("//") || value.startsWith("https://");
+}
+
+function assertTitle(block: HomepageBlockView, label: string) {
+  if (!block.title.trim()) {
+    throw new Error(`${label}: a cím nem lehet üres.`);
+  }
+}
+
+function assertImageUrl(value: string, label: string) {
+  if (typeof value !== "string") {
+    throw new Error(`${label}: érvénytelen kép URL.`);
+  }
+}
+
+function assertHref(value: string, label: string) {
+  if (!isAllowedHref(value)) {
+    throw new Error(`${label}: csak / relatív vagy https:// link adható meg.`);
+  }
+}
+
+function toBlockValues(block: HomepageBlockView) {
+  return {
+    title: block.title.trim(),
+    eyebrow: block.eyebrow.trim(),
+    body: block.body.trim(),
+    imageUrl: block.imageUrl.trim(),
+    imageAlt: block.imageAlt.trim(),
+    buttonText: block.buttonText.trim(),
+    buttonHref: block.buttonHref.trim(),
+    metadata: block.metadata,
+    isVisible: block.isVisible,
+  };
+}
+
+function toTileValues(tile: HomepagePromoTileView) {
+  return {
+    title: tile.title.trim(),
+    subtitle: tile.subtitle.trim(),
+    href: tile.href.trim(),
+    imageUrl: tile.imageUrl.trim(),
+    imageAlt: tile.imageAlt.trim(),
+    isNew: tile.isNew,
+    isVisible: tile.isVisible,
+  };
+}
+
+export async function updateHomepageContentAction(
+  input: InlineHomepageContentInput,
+): Promise<{ ok: boolean; message: string }> {
+  await requireAdminUser("/");
+
+  try {
+    assertTitle(input.hero, "Hero");
+    assertTitle(input.categoryGrid, "Kategória blokk");
+    assertTitle(input.featuredSlider, "Featured slider");
+    assertTitle(input.newsletter, "Newsletter");
+    assertHref(input.hero.buttonHref, "Hero elsődleges CTA");
+    const secondaryHref = input.hero.metadata.secondaryButtonHref;
+    if (typeof secondaryHref === "string") {
+      assertHref(secondaryHref, "Hero másodlagos CTA");
+    }
+    assertHref(input.instagram.buttonHref, "Social CTA");
+    const facebookHref = input.instagram.metadata.facebookHref;
+    if (typeof facebookHref === "string") {
+      assertHref(facebookHref, "Facebook CTA");
+    }
+    assertImageUrl(input.hero.imageUrl, "Hero kép");
+    assertImageUrl(input.instagram.imageUrl, "Social kép");
+
+    for (const tile of input.promoTiles) {
+      if (!Number.isInteger(tile.slotIndex) || tile.slotIndex < 4 || tile.slotIndex > 8) {
+        throw new Error("Érvénytelen promó csempe pozíció.");
+      }
+      if (!tile.title.trim()) {
+        throw new Error(`Promó csempe ${tile.slotIndex}: a cím nem lehet üres.`);
+      }
+      assertHref(tile.href, `Promó csempe ${tile.slotIndex} link`);
+      assertImageUrl(tile.imageUrl, `Promó csempe ${tile.slotIndex} kép`);
+    }
+
+    await Promise.all([
+      upsertHomepageBlock("HERO", toBlockValues(input.hero)),
+      upsertHomepageBlock("HERO_FEATURE_BAR", toBlockValues(input.heroFeatureBar)),
+      upsertHomepageBlock("CATEGORY_GRID", toBlockValues(input.categoryGrid)),
+      upsertHomepageBlock("FEATURED_SLIDER", toBlockValues(input.featuredSlider)),
+      upsertHomepageBlock("INSTAGRAM", toBlockValues(input.instagram)),
+      upsertHomepageBlock("NEWSLETTER", toBlockValues(input.newsletter)),
+      ...input.promoTiles.map((tile) => upsertHomepagePromoTile(tile.slotIndex, toTileValues(tile))),
+    ]);
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "A főoldal mentése nem sikerült.",
+    };
+  }
+
+  revalidateHomepageContent();
+  return { ok: true, message: "Mentve" };
 }
 
 export async function saveHomepageBlockAction(formData: FormData): Promise<{ ok: boolean; message: string }> {

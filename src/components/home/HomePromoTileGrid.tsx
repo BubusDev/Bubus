@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import type {
+  HomepageBlockView,
   HomepageMaterialPickView,
   HomepagePromoTileView,
 } from "@/lib/homepage-content";
@@ -9,6 +10,7 @@ import type {
 type HomePromoTileGridProps = {
   tiles: HomepagePromoTileView[];
   materialPicks?: HomepageMaterialPickView[];
+  categoryBlock?: HomepageBlockView;
 };
 
 function Tile({
@@ -44,6 +46,11 @@ function Tile({
         </p>
         {tile.subtitle ? (
           <p className="mt-2 max-w-[30ch] text-[12px] leading-5 text-white/78">{tile.subtitle}</p>
+        ) : null}
+        {tile.isNew ? (
+          <span className="mt-3 inline-flex w-fit bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E0157A]">
+            Új
+          </span>
         ) : null}
       </div>
     </>
@@ -98,10 +105,26 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
   );
 }
 
-export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGridProps) {
+export function HomePromoTileGrid({
+  tiles,
+  materialPicks = [],
+  categoryBlock,
+}: HomePromoTileGridProps) {
   const visibleTiles = tiles.filter((tile) => tile.isVisible);
   const storefrontMaterialPicks = materialPicks.filter((pick) => !pick.isLegacySource);
   const [emphasisTile, ...smallTiles] = visibleTiles;
+  const materialEyebrow =
+    typeof categoryBlock?.metadata.materialEyebrow === "string"
+      ? categoryBlock.metadata.materialEyebrow
+      : "Kurált fókusz";
+  const materialTitle =
+    typeof categoryBlock?.metadata.materialTitle === "string"
+      ? categoryBlock.metadata.materialTitle
+      : "Kő szerint válogatva.";
+  const materialBody =
+    typeof categoryBlock?.metadata.materialBody === "string"
+      ? categoryBlock.metadata.materialBody
+      : "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.";
 
   if (visibleTiles.length === 0 && storefrontMaterialPicks.length === 0) {
     return null;
@@ -114,15 +137,14 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
           <div className="mb-8 grid gap-4 sm:mb-10 sm:grid-cols-[0.72fr_1fr] sm:items-end">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#747a64]">
-                Kurált fókusz
+                {materialEyebrow}
               </p>
               <h2 className="mt-4 max-w-[11ch] font-[family:var(--font-display)] text-[2.5rem] leading-[0.95] tracking-[-0.035em] text-[#22231f] sm:text-[3.55rem]">
-                Kő szerint válogatva.
+                {materialTitle}
               </h2>
             </div>
             <p className="max-w-[52ch] text-sm leading-7 text-[#69645b] sm:justify-self-end sm:text-right">
-              Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás
-              személyesebb legyen egy egyszerű kategórialistánál.
+              {materialBody}
             </p>
           </div>
 
@@ -140,15 +162,15 @@ export function HomePromoTileGrid({ tiles, materialPicks = [] }: HomePromoTileGr
             <div className="mb-8 grid gap-5 sm:mb-10 md:grid-cols-2 md:items-end">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#9C6B63]">
-                  KATEGÓRIÁK
+                  {categoryBlock?.eyebrow || "Kategóriák"}
                 </p>
                 <h2 className="mt-4 max-w-[13ch] font-[family:var(--font-display)] text-[2.55rem] leading-[0.95] text-[#2D1A16] sm:text-[3.55rem]">
-                  Vonalak, amik együtt is{" "}
-                  <em className="font-normal italic text-[#E0157A]">működnek.</em>
+                  {categoryBlock?.title || "Vonalak, amik együtt is működnek."}
                 </h2>
               </div>
               <p className="max-w-[48ch] text-sm leading-7 text-[#9C6B63] md:justify-self-end md:text-right">
-                Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban.
+                {categoryBlock?.body ||
+                  "Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban."}
               </p>
             </div>
 

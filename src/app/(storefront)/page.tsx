@@ -8,6 +8,8 @@ import { HomeInstagramPromo } from "@/components/home/HomeInstagramPromo";
 import { HomeNewsletterBlock } from "@/components/home/HomeNewsletterBlock";
 import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import StoneFocus from "@/components/home/StoneFocus";
+import { HomepageInlineEditor } from "@/components/admin/homepage-inline/HomepageInlineEditor";
+import { getCurrentUser } from "@/lib/auth";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getHomeShowcaseTabs } from "@/lib/homepage-showcase";
 import { getAbsoluteUrl, siteDescription, siteName } from "@/lib/site";
@@ -52,9 +54,10 @@ type HomePageProps = {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
-  const [homepageContent, showcaseTabs] = await Promise.all([
+  const [homepageContent, showcaseTabs, currentUser] = await Promise.all([
     getHomepageContent(),
     getHomeShowcaseTabs(),
+    getCurrentUser(),
   ]);
   const newsletterStatusValue = resolvedSearchParams.newsletter;
   const newsletterStatus = Array.isArray(newsletterStatusValue)
@@ -75,6 +78,27 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     url: getAbsoluteUrl("/"),
     description: homepageDescription,
   };
+  const isAdmin = currentUser?.emailVerifiedAt && currentUser.role === "ADMIN";
+
+  if (isAdmin) {
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <HomepageInlineEditor
+          initialContent={homepageContent}
+          showcaseTabs={showcaseTabs}
+          newsletterStatus={newsletterStatus}
+        />
+      </>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#fbfaf7]">
@@ -86,17 +110,20 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
-      <HeroBanner block={homepageContent.hero} />
+      <HeroBanner block={homepageContent.hero} featureBlock={homepageContent.heroFeatureBar} />
       <BrandPhilosophy />
       <HomePromoTileGrid
         tiles={homepageContent.promoTiles}
         materialPicks={homepageContent.materialPicks}
+        categoryBlock={homepageContent.categoryGrid}
       />
       <StoneFocus />
-      {showcaseTabs.length > 0 ? <FeaturedSlider tabs={showcaseTabs} /> : null}
+      {showcaseTabs.length > 0 ? (
+        <FeaturedSlider tabs={showcaseTabs} contentBlock={homepageContent.featuredSlider} />
+      ) : null}
       <HomeEditorialSection />
       <HomeInstagramPromo block={homepageContent.instagram} />
-      <HomeNewsletterBlock status={newsletterStatus} />
+      <HomeNewsletterBlock contentBlock={homepageContent.newsletter} status={newsletterStatus} />
       <HomeFinalCta />
     </main>
   );

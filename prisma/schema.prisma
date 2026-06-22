@@ -29,7 +29,11 @@ enum ProductStatus {
 
 enum HomepageContentBlockKey {
   HERO
+  HERO_FEATURE_BAR
+  CATEGORY_GRID
+  FEATURED_SLIDER
   INSTAGRAM
+  NEWSLETTER
 }
 
 enum ProductOptionType {
@@ -400,6 +404,7 @@ model HomepageContentBlock {
   imageAlt    String?
   buttonText  String?
   buttonHref  String?
+  metadata    Json?
   isVisible   Boolean                 @default(true)
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
@@ -415,6 +420,7 @@ model HomepagePromoTile {
   href      String?
   imageUrl  String?
   imageAlt  String?
+  isNew     Boolean  @default(false)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

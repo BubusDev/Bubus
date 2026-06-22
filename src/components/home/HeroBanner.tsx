@@ -23,6 +23,7 @@ interface FeatureItem {
 
 interface HeroBannerProps {
   block: HomepageBlockView
+  featureBlock?: HomepageBlockView
   primaryCta?: { label: string; href: string }
   secondaryCta?: { label: string; href: string }
   features?: FeatureItem[]
@@ -54,14 +55,44 @@ const sparklePositions = [
 
 export default function HeroBanner({
   block,
-  primaryCta = { label: 'Fedezd fel a válogatást', href: block.buttonHref || '/special-edition' },
-  secondaryCta = { label: 'Limitált darabok', href: '/special-edition' },
-  features = defaultFeatures,
+  featureBlock,
+  primaryCta,
+  secondaryCta,
+  features,
 }: HeroBannerProps) {
   if (!block.isVisible) {
     return null
   }
 
+  const secondaryButtonText =
+    typeof block.metadata.secondaryButtonText === 'string'
+      ? block.metadata.secondaryButtonText
+      : 'Limitált darabok'
+  const secondaryButtonHref =
+    typeof block.metadata.secondaryButtonHref === 'string'
+      ? block.metadata.secondaryButtonHref
+      : '/special-edition'
+  const resolvedPrimaryCta = primaryCta ?? {
+    label: block.buttonText || 'Fedezd fel a válogatást',
+    href: block.buttonHref || '/special-edition',
+  }
+  const resolvedSecondaryCta = secondaryCta ?? {
+    label: secondaryButtonText,
+    href: secondaryButtonHref,
+  }
+  const metadataFeatures = Array.isArray(featureBlock?.metadata.features)
+    ? featureBlock.metadata.features
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null
+          const value = item as Record<string, unknown>
+          return {
+            label: typeof value.label === 'string' ? value.label : '',
+            text: typeof value.text === 'string' ? value.text : '',
+          }
+        })
+        .filter((item): item is FeatureItem => Boolean(item?.label || item?.text))
+    : []
+  const resolvedFeatures = features ?? (metadataFeatures.length > 0 ? metadataFeatures : defaultFeatures)
   const imageUrl =
     block.imageUrl ||
     '/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg'
@@ -107,33 +138,28 @@ export default function HeroBanner({
             <h1
               className={`${playfair.className} mb-[18px] text-[34px] font-normal leading-[1.08] text-white md:text-[52px]`}
             >
-              Ne félj extra lenni!
-              <br />
-              <em className="font-normal italic text-[#FFD6EE]">
-                Viseld bátran
-              </em>
-              <br />a kiegészítőket!
+              {block.title || 'Ne félj extra lenni! Viseld bátran a kiegészítőket!'}
             </h1>
 
             <p
               className={`${inter.className} mb-9 max-w-[380px] text-[14px] font-light leading-[1.75] text-[rgba(255,255,255,0.85)]`}
             >
-              Féldrágakő karkötők és nyakláncok kis szériában — outfitedhez,
-              hangulatodhoz, évszakodhoz.
+              {block.body ||
+                'Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.'}
             </p>
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href={primaryCta.href}
+                href={resolvedPrimaryCta.href}
                 className={`${inter.className} inline-flex bg-[#FFD6EE] px-[26px] py-[13px] text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8005C] transition-colors hover:bg-white`}
               >
-                {primaryCta.label}
+                {resolvedPrimaryCta.label}
               </Link>
               <Link
-                href={secondaryCta.href}
+                href={resolvedSecondaryCta.href}
                 className={`${inter.className} inline-flex border border-[rgba(255,255,255,0.65)] bg-transparent px-[26px] py-[13px] text-[11px] font-medium uppercase tracking-[0.14em] text-white transition-colors hover:border-white hover:bg-[rgba(255,255,255,0.15)]`}
               >
-                {secondaryCta.label}
+                {resolvedSecondaryCta.label}
               </Link>
             </div>
           </div>
@@ -141,8 +167,8 @@ export default function HeroBanner({
       </div>
 
       <div className="grid grid-cols-1 border-t border-[#F0C0D8] bg-[#FDF0F6] md:grid-cols-3">
-        {features.map((feature, index) => {
-          const isLast = index === features.length - 1
+        {resolvedFeatures.map((feature, index) => {
+          const isLast = index === resolvedFeatures.length - 1
 
           return (
             <div

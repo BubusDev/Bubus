@@ -29,6 +29,26 @@ const teamMembers: TeamMember[] = [
   { name: "Csapatag", role: "Ügyfélszolgálat" },
 ];
 
+function readTeamMembers(block: HomepageBlockView) {
+  if (!Array.isArray(block.metadata.teamMembers)) {
+    return teamMembers;
+  }
+
+  const members = block.metadata.teamMembers
+    .map((item): TeamMember | null => {
+      if (!item || typeof item !== "object") return null;
+      const value = item as Record<string, unknown>;
+      return {
+        name: typeof value.name === "string" ? value.name : "",
+        role: typeof value.role === "string" ? value.role : "",
+        imageUrl: typeof value.imageUrl === "string" ? value.imageUrl : "",
+      };
+    })
+    .filter((member): member is TeamMember => Boolean(member && (member.name || member.role)));
+
+  return members.length > 0 ? members : teamMembers;
+}
+
 function SocialImage({ block, label }: { block: HomepageBlockView; label: string }) {
   return (
     <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.82),rgba(248,204,224,0.72)_38%,rgba(226,150,183,0.72)_100%)] sm:min-h-[420px] lg:min-h-[500px]">
@@ -87,7 +107,9 @@ function SocialPanel({
   );
 }
 
-function TeamPanel() {
+function TeamPanel({ block }: { block: HomepageBlockView }) {
+  const members = readTeamMembers(block);
+
   return (
     <div>
       <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#9C6B63]">
@@ -97,7 +119,7 @@ function TeamPanel() {
         Akik <em className="font-normal italic text-[#E0157A]">készítik.</em>
       </h2>
       <div className="mt-9 grid gap-4 md:grid-cols-3">
-        {teamMembers.map((member) => (
+        {members.map((member) => (
           <article key={`${member.name}-${member.role}`} className="group">
             <div className="relative aspect-[4/5] overflow-hidden bg-[radial-gradient(circle_at_30%_22%,rgba(255,255,255,0.86),rgba(248,204,224,0.7)_42%,rgba(226,150,183,0.62)_100%)]">
               {member.imageUrl ? (
@@ -152,11 +174,14 @@ export function HomeInstagramPromo({ block }: HomeInstagramPromoProps) {
           {activeTab === "instagram" ? (
             <SocialPanel
               block={block}
-              eyebrow="Instagram"
-              titleStart="@chicks"
-              titleEmphasis="jewelry"
-              body="Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket."
-              cta="Kövess Instagramon"
+              eyebrow={block.eyebrow || "Instagram"}
+              titleStart={block.title || "@chicks"}
+              titleEmphasis={block.title ? "" : "jewelry"}
+              body={
+                block.body ||
+                "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket."
+              }
+              cta={block.buttonText || "Kövess Instagramon"}
               href={block.buttonHref || "https://instagram.com/chicksjewelry"}
             />
           ) : null}
@@ -166,12 +191,20 @@ export function HomeInstagramPromo({ block }: HomeInstagramPromoProps) {
               eyebrow="Facebook"
               titleStart="Chicks"
               titleEmphasis="Jewelry"
-              body="Legyen részed a közösségben — újdonságok, visszajelzések és kulisszák egy helyen."
+              body={
+                typeof block.metadata.facebookBody === "string"
+                  ? block.metadata.facebookBody
+                  : "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen."
+              }
               cta="Kövess Facebookon"
-              href="https://www.facebook.com/chicksjewelry"
+              href={
+                typeof block.metadata.facebookHref === "string"
+                  ? block.metadata.facebookHref
+                  : "https://www.facebook.com/chicksjewelry"
+              }
             />
           ) : null}
-          {activeTab === "team" ? <TeamPanel /> : null}
+          {activeTab === "team" ? <TeamPanel block={block} /> : null}
         </div>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import type { HomepageContentBlockKey } from "@prisma/client";
+import type { HomepageContentBlockKey, Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { getStorefrontUnavailableProductReason } from "@/lib/homepage-admin-warnings";
@@ -15,6 +15,7 @@ export type HomepageBlockView = {
   imageAlt: string;
   buttonText: string;
   buttonHref: string;
+  metadata: Record<string, unknown>;
   isVisible: boolean;
 };
 
@@ -26,6 +27,7 @@ export type HomepagePromoTileView = {
   href: string;
   imageUrl: string;
   imageAlt: string;
+  isNew: boolean;
   isVisible: boolean;
 };
 
@@ -70,20 +72,81 @@ export type HomepageMaterialPickOptions = {
 
 export type HomepageContentView = {
   hero: HomepageBlockView;
+  heroFeatureBar: HomepageBlockView;
+  categoryGrid: HomepageBlockView;
+  featuredSlider: HomepageBlockView;
   instagram: HomepageBlockView;
+  newsletter: HomepageBlockView;
   promoTiles: HomepagePromoTileView[];
   materialPicks: HomepageMaterialPickView[];
 };
 
 const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id" | "key">> = {
   HERO: {
-    title: "Ékszerek, amelyek csendben válnak személyessé",
+    title: "Ne félj extra lenni! Viseld bátran a kiegészítőket!",
     eyebrow: "Limitált butik válogatás",
-    body: "Limitált ékszerek gondosan válogatott anyagokból, finom részletekkel és kis szériás ritmusban.",
+    body: "Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Limitált Chicks Jewelry kampányékszer",
     buttonText: "Fedezd fel a válogatást",
     buttonHref: "/special-edition",
+    metadata: {
+      secondaryButtonText: "Limitált darabok",
+      secondaryButtonHref: "/special-edition",
+    },
+    isVisible: true,
+  },
+  HERO_FEATURE_BAR: {
+    title: "Hero feature bar",
+    eyebrow: "",
+    body: "",
+    imageUrl: "",
+    imageAlt: "",
+    buttonText: "",
+    buttonHref: "",
+    metadata: {
+      features: [
+        {
+          label: "Kis széria",
+          text: "Új darabok korlátozott mennyiségben, átgondolt ritmusban.",
+        },
+        {
+          label: "Válogatott anyagok",
+          text: "Kövek és tónusok, amelyek közelről is szépek.",
+        },
+        {
+          label: "Finom részletek",
+          text: "Nem harsány kiegészítők, mégis emlékezetes karakterrel.",
+        },
+      ],
+    },
+    isVisible: true,
+  },
+  CATEGORY_GRID: {
+    title: "Vonalak, amik együtt is működnek.",
+    eyebrow: "Kategóriák",
+    body: "Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban.",
+    imageUrl: "",
+    imageAlt: "",
+    buttonText: "",
+    buttonHref: "",
+    metadata: {
+      materialEyebrow: "Kurált fókusz",
+      materialTitle: "Kő szerint válogatva.",
+      materialBody:
+        "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.",
+    },
+    isVisible: true,
+  },
+  FEATURED_SLIDER: {
+    title: "Szerkesztett darabok.",
+    eyebrow: "Fókuszban",
+    body: "Újdonságok, ajándéknak választott kedvencek és limitált darabok egy letisztult válogatásban.",
+    imageUrl: "",
+    imageAlt: "",
+    buttonText: "",
+    buttonHref: "",
+    metadata: {},
     isVisible: true,
   },
   INSTAGRAM: {
@@ -94,6 +157,29 @@ const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id
     imageAlt: "Zöld tónusú Instagram kampánykép",
     buttonText: "Kövess Instagramon",
     buttonHref: "https://instagram.com/chicksjewelry",
+    metadata: {
+      facebookBody: "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen.",
+      facebookHref: "https://www.facebook.com/chicksjewelry",
+      teamMembers: [
+        { name: "Bubus", role: "Alapító · Tervező", imageUrl: "" },
+        { name: "Csapatag", role: "Kézműves", imageUrl: "" },
+        { name: "Csapatag", role: "Ügyfélszolgálat", imageUrl: "" },
+      ],
+    },
+    isVisible: true,
+  },
+  NEWSLETTER: {
+    title: "Elsőként a limitált darabokról.",
+    eyebrow: "Hírlevél",
+    body: "Elsőként értesítünk az új kollekciókról, friss színekről és különleges ajánlatokról. Rövid leveleket küldünk, csak akkor, amikor valóban van mit megmutatni.",
+    imageUrl: "",
+    imageAlt: "",
+    buttonText: "Feliratkozom",
+    buttonHref: "",
+    metadata: {
+      perks: ["Új kollekciók előre", "Limitált darabok", "Különleges ajánlatok"],
+      note: "Nincs spam. Bármikor leiratkozhatsz.",
+    },
     isVisible: true,
   },
 };
@@ -120,6 +206,7 @@ const defaultPromoTiles = [
     href: "/special-edition",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Limitált Chicks Jewelry válogatás",
+    isNew: false,
     isVisible: true,
   },
   {
@@ -129,6 +216,7 @@ const defaultPromoTiles = [
     href: "/bracelets",
     imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
     imageAlt: "Rétegezhető Chicks Jewelry karkötő",
+    isNew: false,
     isVisible: true,
   },
   {
@@ -138,6 +226,7 @@ const defaultPromoTiles = [
     href: "/new-in",
     imageUrl: "/uploads/products/8-210510-opacity-armband-blauermarmor-rose-cv-q-23-040c9dc8-6af6-47b8-be1c-ca1d2dd7dda2.jpg",
     imageAlt: "Új Chicks Jewelry karkötő kék márvány tónusban",
+    isNew: true,
     isVisible: true,
   },
   {
@@ -147,6 +236,7 @@ const defaultPromoTiles = [
     href: "/new-in",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Chicks Jewelry anyagválogatás részletfotó",
+    isNew: false,
     isVisible: true,
   },
   {
@@ -156,6 +246,7 @@ const defaultPromoTiles = [
     href: "/sale",
     imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
     imageAlt: "Chicks Jewelry kedvezményes karkötő válogatás",
+    isNew: false,
     isVisible: true,
   },
 ] satisfies Omit<HomepagePromoTileView, "id">[];
@@ -169,8 +260,14 @@ type NullableHomepageBlockInput = {
   imageAlt?: string | null;
   buttonText?: string | null;
   buttonHref?: string | null;
+  metadata?: Prisma.JsonValue | null;
   isVisible?: boolean;
 };
+
+type HomepageBlockTextField = keyof Omit<
+  HomepageBlockView,
+  "id" | "key" | "metadata" | "isVisible"
+>;
 
 type NullableHomepageTileInput = {
   id?: string;
@@ -180,8 +277,17 @@ type NullableHomepageTileInput = {
   href?: string | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
+  isNew?: boolean;
   isVisible?: boolean;
 };
+
+function readMetadata(value: Prisma.JsonValue | null | undefined) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+
+  return {};
+}
 
 function normalizeBlock(
   key: HomepageContentBlockKey,
@@ -195,7 +301,7 @@ function normalizeBlock(
       .replace(/\s+/g, " ")
       .trim();
   const isLegacyText = (
-    field: keyof Omit<HomepageBlockView, "id" | "key" | "isVisible">,
+    field: HomepageBlockTextField,
     value: string,
   ) => {
     const normalizedValue = normalizeLegacyText(value);
@@ -217,7 +323,7 @@ function normalizeBlock(
     );
   };
   const readText = (
-    field: keyof Omit<HomepageBlockView, "id" | "key" | "isVisible">,
+    field: HomepageBlockTextField,
     value: string | null | undefined,
   ) => {
     const trimmed = value?.trim();
@@ -239,6 +345,7 @@ function normalizeBlock(
     imageAlt: readText("imageAlt", block?.imageAlt),
     buttonText: readText("buttonText", block?.buttonText),
     buttonHref: readText("buttonHref", block?.buttonHref),
+    metadata: { ...fallback.metadata, ...readMetadata(block?.metadata) },
     isVisible: block?.isVisible ?? fallback.isVisible,
   };
 }
@@ -256,6 +363,7 @@ function normalizePromoTile(tile: NullableHomepageTileInput) {
     href: tile.href?.trim() || fallback.href,
     imageUrl: tile.imageUrl?.trim() || fallback.imageUrl,
     imageAlt: tile.imageAlt?.trim() || fallback.imageAlt,
+    isNew: tile.isNew ?? fallback.isNew,
     isVisible: tile.isVisible ?? fallback.isVisible,
   };
 }
@@ -423,7 +531,11 @@ export async function getHomepageContent(): Promise<HomepageContentView> {
 
   return {
     hero: normalizeBlock("HERO", blockByKey.get("HERO")),
+    heroFeatureBar: normalizeBlock("HERO_FEATURE_BAR", blockByKey.get("HERO_FEATURE_BAR")),
+    categoryGrid: normalizeBlock("CATEGORY_GRID", blockByKey.get("CATEGORY_GRID")),
+    featuredSlider: normalizeBlock("FEATURED_SLIDER", blockByKey.get("FEATURED_SLIDER")),
     instagram: normalizeBlock("INSTAGRAM", blockByKey.get("INSTAGRAM")),
+    newsletter: normalizeBlock("NEWSLETTER", blockByKey.get("NEWSLETTER")),
     promoTiles: defaultPromoTiles.map((defaultTile) =>
       normalizePromoTile(tileBySlot.get(defaultTile.slotIndex) ?? defaultTile),
     ),
@@ -480,18 +592,27 @@ export async function getHomepageMaterialPickOptions(): Promise<HomepageMaterial
 
 export async function upsertHomepageBlock(
   key: HomepageContentBlockKey,
-  values: Omit<HomepageBlockView, "id" | "key">,
+  values: Omit<HomepageBlockView, "id" | "key" | "metadata"> & {
+    metadata?: Record<string, unknown>;
+  },
 ) {
+  const data = {
+    ...values,
+    metadata: (values.metadata ?? {}) as Prisma.InputJsonValue,
+  };
+
   return db.homepageContentBlock.upsert({
     where: { key },
-    create: { key, ...values },
-    update: values,
+    create: { key, ...data },
+    update: data,
   });
 }
 
 export async function upsertHomepagePromoTile(
   slotIndex: number,
-  values: Omit<HomepagePromoTileView, "id" | "slotIndex">,
+  values: Omit<HomepagePromoTileView, "id" | "slotIndex" | "isNew"> & {
+    isNew?: boolean;
+  },
 ) {
   return db.homepagePromoTile.upsert({
     where: { slotIndex },
