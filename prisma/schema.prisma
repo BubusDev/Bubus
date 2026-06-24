@@ -189,15 +189,20 @@ model Product {
   slug              String             @unique
   status            ProductStatus      @default(ACTIVE)
   name              String
+  nameEn            String?
   categoryId        String
   category          ProductOption      @relation("ProductCategory", fields: [categoryId], references: [id])
   price             Int
   priceEur          Int?
   compareAtPrice    Int?
   shortDescription  String
+  shortDescriptionEn String?
   description       String
+  descriptionEn     String?
   badge             String
+  badgeEn           String?
   collectionLabel   String
+  collectionLabelEn String?
   stockQuantity     Int                @default(0)
   reservedQuantity  Int                @default(0)
   soldOutAt         DateTime?

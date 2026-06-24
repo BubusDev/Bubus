@@ -84,16 +84,21 @@ type PendingImage = {
 
 type ProductFormState = {
   name: string;
+  nameEn: string;
   slug: string;
   status: AdminProductFormValues["status"];
   badge: string;
+  badgeEn: string;
   collectionLabel: string;
+  collectionLabelEn: string;
   price: string;
   priceEur: string;
   stockQuantity: string;
   compareAtPrice: string;
   shortDescription: string;
+  shortDescriptionEn: string;
   description: string;
+  descriptionEn: string;
   category: string;
   stoneType: string;
   color: string;
@@ -425,16 +430,21 @@ async function optimizeProductImageForUpload(file: File) {
 function buildInitialFormState(values: AdminProductFormValues): ProductFormState {
   return {
     name: values.name,
+    nameEn: values.nameEn,
     slug: values.slug,
     status: values.id ? values.status : "DRAFT",
     badge: values.badge,
+    badgeEn: values.badgeEn,
     collectionLabel: values.collectionLabel,
+    collectionLabelEn: values.collectionLabelEn,
     price: String(values.price),
     priceEur: values.priceEur == null ? "" : String(values.priceEur),
     stockQuantity: String(values.stockQuantity),
     compareAtPrice: values.compareAtPrice,
     shortDescription: values.shortDescription,
+    shortDescriptionEn: values.shortDescriptionEn,
     description: values.description,
+    descriptionEn: values.descriptionEn,
     category: values.category,
     stoneType: values.stoneType,
     color: values.color,
@@ -1139,6 +1149,11 @@ export function AdminProductForm({
   const isReadinessReady = readinessBlockers.length === 0;
   const isStorefrontVisible = formValues.status === "ACTIVE" && isReadinessReady;
   const isPurchasable = isStorefrontVisible && stockValue > 0;
+  const missingEnglishContent = [
+    ["angol név", formValues.nameEn],
+    ["angol rövid leírás", formValues.shortDescriptionEn],
+    ["angol teljes leírás", formValues.descriptionEn],
+  ].filter(([, value]) => !String(value).trim());
   const stockState =
     !hasValidStock
       ? "Hibás"
@@ -1476,16 +1491,21 @@ export function AdminProductForm({
 
     if (values.id) formData.append("productId", values.id);
     formData.append("name", formValues.name);
+    formData.append("nameEn", formValues.nameEn);
     formData.append("slug", formValues.slug);
     formData.append("status", formValues.status);
     formData.append("badge", formValues.badge);
+    formData.append("badgeEn", formValues.badgeEn);
     formData.append("collectionLabel", formValues.collectionLabel);
+    formData.append("collectionLabelEn", formValues.collectionLabelEn);
     formData.append("price", formValues.price);
     formData.append("priceEur", formValues.priceEur);
     formData.append("stockQuantity", formValues.stockQuantity);
     formData.append("compareAtPrice", formValues.compareAtPrice);
     formData.append("shortDescription", formValues.shortDescription);
+    formData.append("shortDescriptionEn", formValues.shortDescriptionEn);
     formData.append("description", formValues.description);
+    formData.append("descriptionEn", formValues.descriptionEn);
     formData.append("category", formValues.category);
     formData.append("stoneType", formValues.stoneType);
     formData.append("color", formValues.color);
@@ -1684,6 +1704,22 @@ export function AdminProductForm({
             </FieldWrap>
 
             <FieldWrap
+              label="Angol terméknév"
+              helper="EN storefronton ez jelenik meg. Üresen magyar névre esik vissza."
+            >
+              <input
+                name="nameEn"
+                value={formValues.nameEn}
+                onChange={(e) => handleFieldChange("nameEn", e.target.value)}
+                placeholder="e.g. Aurora Ribbon necklace"
+                className={inputCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
+            <FieldWrap
               label="Slug"
               error={errors.slug}
               required
@@ -1713,12 +1749,35 @@ export function AdminProductForm({
               />
             </FieldWrap>
 
+            <FieldWrap label="Angol badge">
+              <input
+                name="badgeEn"
+                value={formValues.badgeEn}
+                onChange={(e) => handleFieldChange("badgeEn", e.target.value)}
+                placeholder="e.g. New"
+                className={inputCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
             <FieldWrap label="Kollekció label" error={errors.collectionLabel} required={formValues.status === "ACTIVE"}>
               <input
                 name="collectionLabel"
                 value={formValues.collectionLabel}
                 onChange={(e) => handleFieldChange("collectionLabel", e.target.value)}
                 placeholder="Pl. Beach"
+                className={inputCls}
+              />
+            </FieldWrap>
+
+            <FieldWrap label="Angol kollekció label">
+              <input
+                name="collectionLabelEn"
+                value={formValues.collectionLabelEn}
+                onChange={(e) => handleFieldChange("collectionLabelEn", e.target.value)}
+                placeholder="e.g. Beach"
                 className={inputCls}
               />
             </FieldWrap>
@@ -1736,6 +1795,23 @@ export function AdminProductForm({
               />
             </FieldWrap>
 
+            <FieldWrap
+              label="Angol rövid leírás"
+              helper="Product card és PDP bevezető EN nyelvnél."
+            >
+              <textarea
+                name="shortDescriptionEn"
+                value={formValues.shortDescriptionEn}
+                onChange={(e) => handleFieldChange("shortDescriptionEn", e.target.value)}
+                placeholder="Short description for cards and product intro..."
+                rows={4}
+                className={textareaCls}
+              />
+            </FieldWrap>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
             <FieldWrap label="Teljes leírás" error={errors.description} required={formValues.status === "ACTIVE"}>
               <textarea
                 name="description"
@@ -1746,7 +1822,25 @@ export function AdminProductForm({
                 className={textareaCls}
               />
             </FieldWrap>
+
+            <FieldWrap label="Angol teljes leírás">
+              <textarea
+                name="descriptionEn"
+                value={formValues.descriptionEn}
+                onChange={(e) => handleFieldChange("descriptionEn", e.target.value)}
+                placeholder="Materials, sizing, care and styling notes..."
+                rows={4}
+                className={textareaCls}
+              />
+            </FieldWrap>
           </div>
+
+          {formValues.status === "ACTIVE" && missingEnglishContent.length > 0 ? (
+            <div className="mt-4 rounded-md border border-[#ead6a7] bg-[#fff9e8] px-3 py-2 text-xs leading-5 text-[#765b18]">
+              Hiányzó angol tartalom: {missingEnglishContent.map(([label]) => label).join(", ")}.
+              EN storefronton ezek magyar mezőre esnek vissza.
+            </div>
+          ) : null}
 
           <div className="mt-4 border border-[var(--admin-line-100)] bg-[var(--admin-surface-050)] px-3 py-2 text-xs text-[var(--admin-ink-600)]">
             Canonical URL: <span className="font-mono text-[var(--admin-ink-900)]">{canonicalUrl}</span>

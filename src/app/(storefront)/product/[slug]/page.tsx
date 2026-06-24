@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { ProductDetailView } from "@/components/shop/ProductDetailView";
@@ -9,6 +10,8 @@ import {
   resolveProductBySlug,
 } from "@/lib/products-server";
 import { getAbsoluteUrl, siteName } from "@/lib/site";
+import { getLocalizedProduct } from "@/lib/i18n";
+import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage } from "@/lib/international";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -38,16 +41,19 @@ export async function generateMetadata({
   if (!product) {
     return {};
   }
+  const cookieStore = await cookies();
+  const language = validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
+  const localizedProduct = getLocalizedProduct(product, language);
 
   return {
-    title: `${product.name} | ${siteName}`,
-    description: product.shortDescription,
+    title: `${localizedProduct.name} | ${siteName}`,
+    description: localizedProduct.shortDescription,
     alternates: {
       canonical: `/product/${product.slug}`,
     },
     openGraph: {
-      title: `${product.name} | ${siteName}`,
-      description: product.shortDescription,
+      title: `${localizedProduct.name} | ${siteName}`,
+      description: localizedProduct.shortDescription,
       type: "article",
       url: `/product/${product.slug}`,
       images: [
@@ -55,14 +61,14 @@ export async function generateMetadata({
           url: `/product/${product.slug}/opengraph-image`,
           width: 1200,
           height: 630,
-          alt: `${product.name} | ${siteName}`,
+          alt: `${localizedProduct.name} | ${siteName}`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | ${siteName}`,
-      description: product.shortDescription,
+      title: `${localizedProduct.name} | ${siteName}`,
+      description: localizedProduct.shortDescription,
       images: [`/product/${product.slug}/opengraph-image`],
     },
   };

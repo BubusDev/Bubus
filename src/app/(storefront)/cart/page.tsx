@@ -22,6 +22,7 @@ import { type CartItemSummary, getRequestCart } from "@/lib/account";
 import { isProductOutOfStock, type Product } from "@/lib/catalog";
 import { formatPriceForCountry, getShippingLineValue, type SupportedCountry, type SupportedLanguage } from "@/lib/international";
 import { getHomepageContent } from "@/lib/homepage-content";
+import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
 import { getCuratedProductRecommendations } from "@/lib/products-server";
 import type { AppliedPromo } from "@/lib/promo-codes";
 
@@ -29,10 +30,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-function CartEmptyState() {
+function CartEmptyState({ language }: { language: SupportedLanguage }) {
+  const dictionary = getDictionary(language);
+
   return (
     <section>
-      <CartPageHeading />
+      <CartPageHeading language={language} />
 
       <div className="mx-auto flex min-h-[340px] max-w-[760px] items-center justify-center rounded-lg border border-[#eadce3] bg-white/70 px-5 py-10">
         <div className="max-w-[420px] text-center">
@@ -40,17 +43,18 @@ function CartEmptyState() {
             <ShoppingBag className="h-7 w-7" />
           </div>
           <h2 className="font-[family:var(--font-display)] text-[2rem] leading-none text-[#4d2741]">
-            Még nincs darab a kosárban
+            {dictionary["cart.empty"]}
           </h2>
           <p className="mt-4 text-sm leading-7 text-[#7a6070]">
-            Nézd meg a friss válogatást, és tedd félre azt a darabot, amelyik illik a
-            következő rendelésedhez.
+            {language === "en"
+              ? "Browse the latest jewelry and save the piece that fits your next order."
+              : "Nézd meg a friss válogatást, és tedd félre azt a darabot, amelyik illik a következő rendelésedhez."}
           </p>
           <Link
             href="/new-in"
             className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Friss darabok megnézése
+            {language === "en" ? "View new pieces" : "Friss darabok megnézése"}
           </Link>
         </div>
       </div>
@@ -58,23 +62,29 @@ function CartEmptyState() {
   );
 }
 
-function CartPageHeading() {
+function CartPageHeading({ language }: { language: SupportedLanguage }) {
+  const dictionary = getDictionary(language);
+
   return (
     <header className="mx-auto mb-7 max-w-[720px] text-center sm:mb-8">
       <h1 className="font-[family:var(--font-display)] text-[2.15rem] leading-none tracking-[-0.03em] text-[#4d2741] sm:text-[2.55rem]">
-        A kosarad
+        {dictionary["cart.cart"]}
       </h1>
       <p className="mx-auto mt-3 max-w-[52ch] text-sm leading-7 text-[#7a6070]">
-        Ellenőrizd a kiválasztott darabokat, majd folytasd a biztonságos pénztárhoz.
+        {language === "en"
+          ? "Review your selected pieces, then continue to secure checkout."
+          : "Ellenőrizd a kiválasztott darabokat, majd folytasd a biztonságos pénztárhoz."}
       </p>
     </header>
   );
 }
 
-function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode: SupportedCountry }) {
+function CartItemRow({ item, countryCode, language }: { item: CartItemSummary; countryCode: SupportedCountry; language: SupportedLanguage }) {
   const isOutOfStock = isProductOutOfStock(item);
   const isArchived = item.unavailableReason === "archived";
   const isUnavailable = isArchived || !item.isAvailable;
+  const dictionary = getDictionary(language);
+  const localizedItem = getLocalizedProduct(item, language);
   const incrementDisabled = isUnavailable || item.quantity >= item.availableToSell;
   const decrementDisabled = isUnavailable;
 
@@ -86,7 +96,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
           className={`block overflow-hidden rounded-lg bg-[#fff5fa] ${isUnavailable ? "opacity-50" : ""}`}
         >
           <ProductImageFrame
-            alt={item.name}
+            alt={localizedItem.name}
             imageUrl={item.imageUrl}
             soldOut={isOutOfStock || isArchived}
             className="relative aspect-square h-full w-full overflow-hidden bg-[#fff5fa]"
@@ -107,26 +117,26 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
                 href={`/product/${item.slug}?redirectTo=/cart`}
                 className={`block font-[family:var(--font-display)] text-[1.1rem] leading-[1.08] transition hover:opacity-75 sm:text-[1.25rem] lg:text-[1.42rem] ${isUnavailable ? "text-[#999]" : "text-[#4d2741]"}`}
               >
-                {item.name}
+                {localizedItem.name}
               </Link>
               <p className={`text-[12px] sm:text-[13px] ${isUnavailable ? "text-[#aaa]" : "text-[#7a6070]"}`}>
-                Egységár: {formatPriceForCountry(item.price, countryCode)}
+                {language === "en" ? "Unit price" : "Egységár"}: {formatPriceForCountry(item.price, countryCode)}
               </p>
             </div>
             <div>
               {isArchived ? (
                 <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#cc4444]">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Már nem elérhető
+                  {language === "en" ? "No longer available" : "Már nem elérhető"}
                 </p>
               ) : isOutOfStock ? (
                 <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#cc4444]">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Elfogyott
+                  {dictionary["product.soldOut"]}
                 </p>
               ) : item.exceedsStock ? (
                 <p className="text-xs text-[#9b476f]">
-                  Már csak {item.availableToSell} db érhető el.
+                  {language === "en" ? `Only ${item.availableToSell} left.` : `Már csak ${item.availableToSell} db érhető el.`}
                 </p>
               ) : null}
             </div>
@@ -135,7 +145,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
           <div className="flex items-end justify-between gap-2 lg:block lg:space-y-3">
             <div className={isUnavailable ? "opacity-50" : ""}>
               <p className="mb-2 hidden text-[10px] uppercase tracking-[0.24em] text-[#b06b8e] sm:block">
-                Mennyiség
+                {dictionary["product.quantity"]}
               </p>
               <form action={updateCartItemQuantityAction} className="flex items-center">
                 <input type="hidden" name="itemId" value={item.id} />
@@ -144,7 +154,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
                     type="submit"
                     name="quantity"
                     value={Math.max(1, item.quantity - 1)}
-                    aria-label={`${item.name} mennyiségének csökkentése`}
+                    aria-label={`${localizedItem.name} ${language === "en" ? "decrease quantity" : "mennyiségének csökkentése"}`}
                     disabled={decrementDisabled}
                     className={`flex h-10 w-10 items-center justify-center text-lg leading-none transition ${
                       decrementDisabled
@@ -161,7 +171,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
                     type="submit"
                     name="quantity"
                     value={item.quantity + 1}
-                    aria-label={`${item.name} mennyiségének növelése`}
+                    aria-label={`${localizedItem.name} ${language === "en" ? "increase quantity" : "mennyiségének növelése"}`}
                     disabled={incrementDisabled}
                     className={`flex h-10 w-10 items-center justify-center text-lg leading-none transition ${
                       incrementDisabled
@@ -180,7 +190,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
                 <input type="hidden" name="itemId" value={item.id} />
                 <button
                   type="submit"
-                  aria-label={`${item.name} törlése`}
+                  aria-label={`${dictionary["cart.remove"]}: ${localizedItem.name}`}
                   className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-[12px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2 ${
                     isUnavailable
                       ? "border-[#c45a85] bg-[#fff4f8] text-[#c45a85] hover:bg-[#ffeaf3] hover:text-[#a03d68]"
@@ -188,12 +198,12 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
                   }`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Eltávolítás
+                  {dictionary["cart.remove"]}
                 </button>
               </form>
               {isUnavailable && (
                 <p className="mt-1.5 text-[11px] leading-4 text-[#aaa]">
-                  Távolítsd el a rendelés folytatásához
+                  {language === "en" ? "Remove it to continue checkout" : "Távolítsd el a rendelés folytatásához"}
                 </p>
               )}
             </div>
@@ -201,7 +211,7 @@ function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode
 
           <div className={`flex items-center justify-between border-t border-[#f1dfe8] pt-2.5 lg:block lg:border-t-0 lg:pt-0 lg:text-right ${isUnavailable ? "opacity-50" : ""}`}>
             <p className="text-[10px] uppercase tracking-[0.24em] text-[#b06b8e] lg:block">
-              Összesen
+              {dictionary["cart.total"]}
             </p>
             {isUnavailable ? (
               <p className="text-[1.1rem] font-semibold tracking-[-0.03em] text-[#bbb] line-through sm:text-[1.32rem] lg:mt-1 lg:text-[1.48rem]">
@@ -240,30 +250,32 @@ function CartSummary({
   countryCode: SupportedCountry;
   language: SupportedLanguage;
 }) {
+  const dictionary = getDictionary(language);
+
   return (
     <aside className="lg:sticky lg:top-28 lg:h-fit">
       <div className="rounded-lg border border-[#eadce3] bg-white/82 p-5 sm:p-6">
         <div className="flex items-center justify-between gap-4 border-b border-[#f1dfe8] pb-4">
           <p className="text-[11px] uppercase tracking-[0.28em] text-[#b760aa]">
-            Rendelési összegzés
+            {dictionary["checkout.orderSummary"]}
           </p>
           <ShoppingBag className="h-4 w-4 text-[#c895ad]" aria-hidden="true" />
         </div>
 
         <div className="mt-5 space-y-3 text-sm text-[#6e5262]">
           <div className="flex items-center justify-between">
-            <span>Részösszeg</span>
+            <span>{dictionary["cart.subtotal"]}</span>
             <span className="font-medium text-[#4d2741]">{formatPriceForCountry(subtotal, countryCode)}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Szállítás</span>
+            <span>{dictionary["cart.shipping"]}</span>
             <span className="font-medium text-[#4d2741]">
               {getShippingLineValue(language)}
             </span>
           </div>
           {discount > 0 ? (
             <div className="flex items-center justify-between">
-              <span>Kedvezmény</span>
+              <span>{language === "en" ? "Discount" : "Kedvezmény"}</span>
               <span className="font-medium text-[#7a4f67]">-{formatPriceForCountry(discount, countryCode)}</span>
             </div>
           ) : null}
@@ -271,7 +283,7 @@ function CartSummary({
 
         <div className="mt-5 flex items-end justify-between gap-4 border-t border-[#f1dfe8] pt-5">
           <p className="text-[10px] uppercase tracking-[0.24em] text-[#b06b8e]">
-            Végösszeg
+            {dictionary["cart.total"]}
           </p>
           <p className="text-[1.65rem] font-semibold leading-none tracking-[-0.04em] text-[#4d2741] sm:text-[1.85rem]">
             {formatPriceForCountry(total, countryCode)}
@@ -280,33 +292,37 @@ function CartSummary({
 
         {hasUnavailableItems ? (
           <div className="mt-6 rounded-lg border border-[#f0d7e4] bg-[#fff7fa] px-4 py-3 text-sm text-[#8c6077]">
-            Egy vagy több termék már nem elérhető. Távolítsd el ezeket a kosárból a pénztár előtt.
+            {language === "en"
+              ? "One or more products are no longer available. Remove them before checkout."
+              : "Egy vagy több termék már nem elérhető. Távolítsd el ezeket a kosárból a pénztár előtt."}
           </div>
         ) : (
           <Link
             href="/checkout"
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Tovább a pénztárhoz
+            {dictionary["cart.checkout"]}
           </Link>
         )}
 
         <p className="mt-4 text-xs leading-6 text-[#8b7080]">
-          A megjelenített árak a kiválasztott ország szerinti végárak, free shippinggel együtt.
+          {language === "en"
+            ? "Displayed prices are final for the selected country and include free shipping."
+            : "A megjelenített árak a kiválasztott ország szerinti végárak, free shippinggel együtt."}
         </p>
 
         <div className="mt-5 grid gap-2 rounded-lg border border-[#f1dfe8] bg-[#fff9fc] p-3 text-xs leading-5 text-[#7a6070]">
           <div className="flex items-center gap-2">
             <CreditCard className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
-            <span>Biztonságos fizetés Stripe-on keresztül.</span>
+            <span>{language === "en" ? "Secure payment through Stripe." : "Biztonságos fizetés Stripe-on keresztül."}</span>
           </div>
           <div className="flex items-center gap-2">
             <RotateCcw className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
-            <span>14 napos visszaküldés nem egyedi, viseletlen darabokra.</span>
+            <span>{language === "en" ? "14-day return on unworn non-custom pieces." : "14 napos visszaküldés nem egyedi, viseletlen darabokra."}</span>
           </div>
           <div className="flex items-center gap-2">
             <Mail className="h-3.5 w-3.5 text-[#9f7a8d]" aria-hidden="true" />
-            <span>Ha kérdésed van, írj nekünk, és segítünk.</span>
+            <span>{language === "en" ? "Questions? Write to us and we will help." : "Ha kérdésed van, írj nekünk, és segítünk."}</span>
           </div>
         </div>
 
@@ -396,21 +412,22 @@ export default async function CartPage() {
     cart.items.map((item) => item.productId),
     4,
   );
+  const language: SupportedLanguage = cart.countryCode === "HU" ? "hu" : "en";
 
   return (
     <main className="min-h-screen">
       <section className="mx-auto max-w-[1360px] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
         {cart.items.length === 0 ? (
-          <CartEmptyState />
+          <CartEmptyState language={language} />
         ) : (
           <>
-            <CartPageHeading />
+            <CartPageHeading language={language} />
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-8">
               <section>
                 <div className="space-y-3">
                   {cart.items.map((item: CartItemSummary) => (
-                    <CartItemRow key={item.id} item={item} countryCode={cart.countryCode} />
+                    <CartItemRow key={item.id} item={item} countryCode={cart.countryCode} language={language} />
                   ))}
                 </div>
               </section>
@@ -424,7 +441,7 @@ export default async function CartPage() {
                 hasUnavailableItems={hasUnavailableItems}
                 instagramHref={homepageContent.instagram.buttonHref}
                 countryCode={cart.countryCode}
-                language={cart.countryCode === "HU" ? "hu" : "en"}
+                language={language}
               />
             </div>
 

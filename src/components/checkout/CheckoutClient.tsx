@@ -7,6 +7,7 @@ import { ContactStep } from "@/components/checkout/steps/ContactStep";
 import { ShippingStep, type ShippingData } from "@/components/checkout/steps/ShippingStep";
 import { PaymentStep } from "@/components/checkout/steps/PaymentStep";
 import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary } from "@/lib/i18n";
 import type { AppliedPromo } from "@/lib/promo-codes";
 import { validateSupportedCountry, type SupportedCountry } from "@/lib/international";
 
@@ -57,6 +58,7 @@ export function CheckoutClient({
   stripeConfigured,
 }: CheckoutClientProps) {
   const { country, language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
   const [step, setStep] = useState(initialStep);
   const [email, setEmail] = useState(userEmail ?? "");
   const [shippingName, setShippingName] = useState(initialProfile.name);
@@ -110,17 +112,17 @@ export function CheckoutClient({
   const paymentStatusBanner =
     initialError === "stock" ? (
       <div className="border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f] mb-5">
-        Egy vagy több termék időközben elfogyott vagy már nincs elegendő készleten.
+        {dictionary["checkout.stockUnavailable"]}
       </div>
     ) : initialError === "error" ? (
       <div className="border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f] mb-5">
-        Kérjük, tölts ki minden szükséges mezőt a rendeléshez.
+        {dictionary["checkout.validationError"]}
       </div>
     ) : null;
 
   return (
     <div>
-      <StepIndicator currentStep={step} />
+      <StepIndicator currentStep={step} language={language} />
 
       {step === 0 && (
         <ContactStep

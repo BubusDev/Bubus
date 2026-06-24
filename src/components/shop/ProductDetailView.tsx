@@ -1,3 +1,5 @@
+"use client";
+
 import { ChevronDown, CreditCard, Heart, PackageCheck, RotateCcw, Sparkles, Truck } from "lucide-react";
 import Link from "next/link";
 
@@ -9,10 +11,11 @@ import { ProductImageGallery } from "@/components/shop/ProductImageGallery";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
 import {
   formatPrice,
-  getProductAvailabilityLabel,
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
 
 type ProductDetailViewProps = {
   product: Product;
@@ -25,11 +28,13 @@ function getDisplayValue(value?: string | null, fallback = "Nincs megadva") {
   return normalizedValue || fallback;
 }
 
-function getStockTone(product: Product, isOutOfStock: boolean) {
+function getStockTone(product: Product, isOutOfStock: boolean, language: string) {
+  const dictionary = getDictionary(language);
+
   if (isOutOfStock) {
     return {
-      label: "Elfogyott",
-      description: "Ez a darab jelenleg nem rendelhető.",
+      label: dictionary["product.soldOut"],
+      description: language === "en" ? "This piece is currently unavailable." : "Ez a darab jelenleg nem rendelhető.",
       className: "border-[#ead6dd] bg-[#faf7f8] text-[#7b6f74]",
     };
   }
@@ -43,8 +48,8 @@ function getStockTone(product: Product, isOutOfStock: boolean) {
   }
 
   return {
-    label: "Készleten",
-    description: "Rendelhető, gyors feldolgozással.",
+    label: dictionary["product.inStock"],
+    description: language === "en" ? "Available to order with quick processing." : "Rendelhető, gyors feldolgozással.",
     className: "border-[#dbe7dc] bg-[#f6fbf6] text-[#496747]",
   };
 }
@@ -54,36 +59,39 @@ export function ProductDetailView({
   categoryTitle,
   relatedProducts,
 }: ProductDetailViewProps) {
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
+  const localizedProduct = getLocalizedProduct(product, language);
   const galleryImages = product.images.length > 0 ? product.images : [];
   const isOutOfStock = isProductOutOfStock(product);
-  const availabilityLabel = getProductAvailabilityLabel(product);
-  const shortDescription = product.shortDescription.trim();
-  const description = product.description.trim();
+  const availabilityLabel = isOutOfStock ? dictionary["product.soldOut"] : product.labels.availability;
+  const shortDescription = localizedProduct.shortDescription.trim();
+  const description = localizedProduct.description.trim();
   const introText =
     shortDescription ||
     description ||
-    "A termék részletes leírása hamarosan elérhető lesz.";
+    language === "en" ? "Product details will be available soon." : "A termék részletes leírása hamarosan elérhető lesz.";
   const detailText =
     description && description !== introText ? description : null;
-  const stockTone = getStockTone(product, isOutOfStock);
+  const stockTone = getStockTone(product, isOutOfStock, language);
   const discountPercent =
     product.compareAtPrice && product.compareAtPrice > product.price
       ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
       : null;
 
   const metaRows = [
-    { label: "Kategória", value: product.labels.category || categoryTitle, clickable: false },
-    { label: "Kollekció", value: product.collectionLabel, clickable: false },
-    { label: "Kő", value: product.labels.stoneType, clickable: false },
-    { label: "Szín", value: product.labels.color, clickable: false },
-    { label: "Stílus", value: product.labels.style, clickable: false },
-    { label: "Alkalom", value: product.labels.occasion, clickable: false },
+    { label: dictionary["product.category"], value: product.labels.category || categoryTitle, clickable: false },
+    { label: dictionary["product.collection"], value: localizedProduct.collectionLabel, clickable: false },
+    { label: dictionary["product.stone"], value: product.labels.stoneType, clickable: false },
+    { label: dictionary["product.color"], value: product.labels.color, clickable: false },
+    { label: dictionary["product.style"], value: product.labels.style, clickable: false },
+    { label: dictionary["product.occasion"], value: product.labels.occasion, clickable: false },
   ].filter((r) => r.value);
   const reassuranceItems = [
-    { label: "2-4 munkanapos szállítás", icon: Truck },
-    { label: "14 napos visszaküldés nem egyedi darabokra", icon: RotateCcw },
-    { label: "Biztonságos Stripe fizetés", icon: CreditCard },
-    { label: "Kis szériás válogatás", icon: Sparkles },
+    { label: language === "en" ? "2-4 business day delivery" : "2-4 munkanapos szállítás", icon: Truck },
+    { label: language === "en" ? "14-day return on unworn non-custom pieces" : "14 napos visszaküldés nem egyedi darabokra", icon: RotateCcw },
+    { label: language === "en" ? "Secure Stripe payment" : "Biztonságos Stripe fizetés", icon: CreditCard },
+    { label: language === "en" ? "Small-batch curation" : "Kis szériás válogatás", icon: Sparkles },
   ];
 
   return (
@@ -94,7 +102,7 @@ export function ProductDetailView({
         <div className="mx-auto w-full max-w-[520px] sm:max-w-[620px] xl:max-w-none">
           <ProductImageGallery
             images={galleryImages}
-            productName={product.name}
+            productName={localizedProduct.name}
             soldOut={isOutOfStock}
           />
         </div>
@@ -108,7 +116,7 @@ export function ProductDetailView({
               {categoryTitle}
             </p>
             <h1 className="font-[family:var(--font-display)] text-[1.55rem] leading-[1.12] tracking-[-0.03em] text-[#1a1a1a] sm:text-[1.9rem]">
-              {product.name}
+              {localizedProduct.name}
             </h1>
             <p className="max-w-[48ch] text-sm leading-7 text-[#5f555a]">
               {introText}
@@ -132,7 +140,7 @@ export function ProductDetailView({
                 </span>
               ) : product.isOnSale ? (
                 <span className="rounded-full bg-[#4d2741] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-white">
-                  Akció
+                  {language === "en" ? "Sale" : "Akció"}
                 </span>
               ) : null}
             </div>
@@ -151,17 +159,17 @@ export function ProductDetailView({
             <div className="flex flex-wrap gap-2">
               {product.badge ? (
                 <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
-                  {product.badge}
+                  {localizedProduct.badge}
                 </span>
               ) : null}
               {product.collectionLabel ? (
                 <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
-                  {product.collectionLabel}
+                  {localizedProduct.collectionLabel}
                 </span>
               ) : null}
               {product.specialtyKey ? (
                 <span className="rounded-full border border-[#e7dde3] bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#6d5964]">
-                  Limitált válogatás
+                  {language === "en" ? "Limited selection" : "Limitált válogatás"}
                 </span>
               ) : null}
             </div>
@@ -180,17 +188,17 @@ export function ProductDetailView({
           <div className="flex flex-col gap-2 sm:sticky sm:top-24">
             <div className="rounded-lg border border-[#e8e5e0] bg-white p-3">
               <div className="mb-3 flex items-center justify-between gap-3 text-sm">
-                <span className="text-[#756a70]">Mennyiség</span>
+                <span className="text-[#756a70]">{dictionary["product.quantity"]}</span>
                 <span className="font-medium text-[#1a1a1a]">1 db</span>
               </div>
               <CountryAwareAddToCartTextButton
                 product={product}
                 redirectTo={`/product/${product.slug}`}
                 disabled={isOutOfStock}
-                idleLabel="Kosárba teszem"
-                addedLabel="Kosárban"
-                soldOutLabel="Elfogyott"
-                unavailableLabel="EU szállításhoz nem elérhető"
+                idleLabel={dictionary["product.addToCart"]}
+                addedLabel={language === "en" ? "In cart" : "Kosárban"}
+                soldOutLabel={dictionary["product.soldOut"]}
+                unavailableLabel={dictionary["product.notAvailableEu"]}
                 iconClassName="h-4 w-4"
                 baseClassName="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
                 disabledClassName="cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"
@@ -208,13 +216,14 @@ export function ProductDetailView({
                 style={{ border: "1px solid #e7dde3", background: "white" }}
               >
                 <Heart className="h-4 w-4" />
-                Kedvencekhez adom
+                {dictionary["product.addToFavourites"]}
               </button>
             </form>
 
             <p className="text-xs leading-5 text-[#756a70]">
-              Biztonságos fizetés, átlátható rendelési folyamat. A rendelésedről emailben is
-              küldünk visszaigazolást.
+              {language === "en"
+                ? "Secure payment and a clear checkout flow. We will also send an order confirmation by email."
+                : "Biztonságos fizetés, átlátható rendelési folyamat. A rendelésedről emailben is küldünk visszaigazolást."}
             </p>
 
             <div className="grid gap-2 border-t border-[#e8e5e0] pt-3 sm:grid-cols-2">
@@ -230,7 +239,7 @@ export function ProductDetailView({
           {/* 5. Kőtípus + attribútumok */}
           <div className="space-y-2 border-t border-[#e8e5e0] pt-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#888]">Kő</span>
+              <span className="text-[#888]">{dictionary["product.stone"]}</span>
               <StoneInfoButton
                 stoneSlug={product.stoneType}
                 stoneLabel={getDisplayValue(product.labels.stoneType)}
@@ -238,7 +247,7 @@ export function ProductDetailView({
             </div>
 
             {metaRows
-              .filter((row) => row.label !== "Kő")
+              .filter((row) => row.label !== dictionary["product.stone"])
               .map((row) => (
                 <div key={row.label} className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-[#888]">{row.label}</span>
@@ -250,7 +259,7 @@ export function ProductDetailView({
 
             {availabilityLabel && (
               <div className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-[#888]">Elérhetőség</span>
+                <span className="text-[#888]">{language === "en" ? "Availability" : "Elérhetőség"}</span>
                 <span
                   className={`text-right font-medium ${
                     isOutOfStock ? "text-[#7f7078]" : "text-[#1a1a1a]"
@@ -268,7 +277,7 @@ export function ProductDetailView({
             className="group scroll-mt-32 border-t border-[#e8e5e0] pt-4"
           >
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium text-[#1a1a1a]">
-              Termékleírás
+              {dictionary["product.description"]}
               <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#888] transition-transform duration-200 group-open:rotate-180" />
             </summary>
             <p className="mt-3 text-sm leading-[1.85] text-[#555]">{introText}</p>
@@ -285,13 +294,13 @@ export function ProductDetailView({
           <div className="mx-auto max-w-[1100px]">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-1">Ajánlott</p>
+                <p className="text-[10px] uppercase tracking-[.3em] text-[#888] mb-1">{language === "en" ? "Recommended" : "Ajánlott"}</p>
                 <h2 className="font-[family:var(--font-display)] text-2xl text-[#1a1a1a]">
-                  További darabok a kollekcióból
+                  {language === "en" ? "More from the collection" : "További darabok a kollekcióból"}
                 </h2>
               </div>
               <Link href="/new-in" className="inline-flex min-h-10 items-center text-sm text-[#888] transition hover:text-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2">
-                Összes termék →
+                {language === "en" ? "All jewelry ->" : "Összes termék →"}
               </Link>
             </div>
             <RelatedProducts

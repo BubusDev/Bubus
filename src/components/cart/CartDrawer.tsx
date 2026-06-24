@@ -8,6 +8,7 @@ import { Heart, ShoppingBag, X } from "lucide-react";
 import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import type { CartItemSummary, CartSummary, FavouriteProduct } from "@/lib/account";
 import { formatPriceForCountry, getDisplayPriceForCountry, getShippingLineValue } from "@/lib/international";
+import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
 
 type CartDrawerProps = {
   isOpen: boolean;
@@ -15,8 +16,10 @@ type CartDrawerProps = {
   cartCount: number;
 };
 
-function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryCode: CartSummary["countryCode"] }) {
+function CartDrawerItem({ item, countryCode, language }: { item: CartItemSummary; countryCode: CartSummary["countryCode"]; language: string }) {
   const isArchived = item.unavailableReason === "archived";
+  const dictionary = getDictionary(language);
+  const localizedItem = getLocalizedProduct(item, language);
 
   return (
     <div className="flex gap-3 px-4 py-3.5">
@@ -25,7 +28,7 @@ function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryC
           {item.imageUrl ? (
             <Image
               src={item.imageUrl}
-              alt={item.name}
+              alt={localizedItem.name}
               fill
               className="object-cover"
               sizes="48px"
@@ -38,7 +41,7 @@ function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryC
           href={`/product/${item.slug}`}
           className="line-clamp-2 text-xs font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555]"
         >
-          {item.name}
+          {localizedItem.name}
         </Link>
         <p className="mt-0.5 text-[10px] text-[#888]">{item.category}</p>
         <div className="mt-1.5 flex items-center justify-between">
@@ -49,11 +52,11 @@ function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryC
         </div>
         {isArchived ? (
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b476f]">
-            Már nem elérhető
+            {language === "en" ? "No longer available" : "Már nem elérhető"}
           </p>
         ) : !item.isAvailable || item.exceedsStock ? (
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b476f]">
-            Nem elérhető
+            {dictionary["product.notAvailableEu"]}
           </p>
         ) : null}
       </div>
@@ -62,7 +65,9 @@ function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryC
 }
 
 function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
-  const { country } = useCountryLanguage();
+  const { country, language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
+  const localizedItem = getLocalizedProduct(item, language);
   const displayPrice = getDisplayPriceForCountry(item, country);
   return (
     <div className="flex gap-3 px-4 py-3.5">
@@ -71,7 +76,7 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
           {item.imageUrl ? (
             <Image
               src={item.imageUrl}
-              alt={item.name}
+              alt={localizedItem.name}
               fill
               className="object-cover"
               sizes="48px"
@@ -84,11 +89,11 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
           href={`/product/${item.slug}`}
           className="line-clamp-2 text-xs font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555]"
         >
-          {item.name}
+          {localizedItem.name}
         </Link>
-        <p className="mt-0.5 text-[10px] text-[#888]">{item.collectionLabel}</p>
+        <p className="mt-0.5 text-[10px] text-[#888]">{localizedItem.collectionLabel}</p>
         <p className="mt-1 text-xs font-semibold text-[#1a1a1a]">
-          {displayPrice == null ? "Not available for EU delivery" : formatPriceForCountry(displayPrice, country)}
+          {displayPrice == null ? dictionary["product.notAvailableEu"] : formatPriceForCountry(displayPrice, country)}
         </p>
       </div>
     </div>
@@ -97,6 +102,7 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
 
 export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
   const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
   const [cartTab, setCartTab] = useState<"cart" | "wishlist">("cart");
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [wishlist, setWishlist] = useState<FavouriteProduct[] | null>(null);
@@ -142,7 +148,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 : "text-[#aaa]"
             }`}
           >
-            Kosár ({cartCount})
+            {dictionary["cart.cart"]} ({cartCount})
           </button>
           <button
             type="button"
@@ -153,7 +159,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 : "text-[#aaa]"
             }`}
           >
-            Kedvenceim
+            {dictionary["nav.favourites"]}
           </button>
           <button type="button" onClick={onClose} className="shrink-0 px-4">
             <X className="h-5 w-5 text-[#1a1a1a]" strokeWidth={1.5} />
@@ -175,23 +181,23 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                     strokeWidth={1}
                   />
                   <p className="mb-1 font-semibold text-[#1a1a1a]">
-                    A kosarad üres
+                    {dictionary["cart.empty"]}
                   </p>
                   <p className="mb-6 text-sm text-[#888]">
-                    Böngéssz a kollekciónkban!
+                    {language === "en" ? "Browse the collection." : "Böngéssz a kollekciónkban!"}
                   </p>
                   <Link
                     href="/"
                     onClick={onClose}
                     className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
                   >
-                    Vásárlás folytatása
+                    {language === "en" ? "Continue shopping" : "Vásárlás folytatása"}
                   </Link>
                 </div>
               ) : (
                 <div className="divide-y divide-[#f5f4f2]">
                   {cart.items.map((item) => (
-                    <CartDrawerItem key={item.id} item={item} countryCode={cart.countryCode} />
+                    <CartDrawerItem key={item.id} item={item} countryCode={cart.countryCode} language={language} />
                   ))}
                 </div>
               )}
@@ -208,17 +214,19 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
                   <Heart className="mb-4 h-10 w-10 text-[#ddd]" strokeWidth={1} />
                   <p className="mb-1 font-semibold text-[#1a1a1a]">
-                    {wishlist === null ? "Jelentkezz be a kedvencek megtekintéséhez" : "Még nincs kedvenc termék"}
+                    {wishlist === null
+                      ? language === "en" ? "Sign in to view favourites" : "Jelentkezz be a kedvencek megtekintéséhez"
+                      : language === "en" ? "No favourite products yet" : "Még nincs kedvenc termék"}
                   </p>
                   <p className="mb-6 text-sm text-[#888]">
-                    {wishlist === null ? "A szív ikonra kattintva mentheted el a kedvelt ékszereket." : "A szív ikonra kattintva mentheted el a kedvelt ékszereket."}
+                    {language === "en" ? "Use the heart icon to save pieces you like." : "A szív ikonra kattintva mentheted el a kedvelt ékszereket."}
                   </p>
                   <Link
                     href="/"
                     onClick={onClose}
                     className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
                   >
-                    Kollekció böngészése
+                    {language === "en" ? "Browse collection" : "Kollekció böngészése"}
                   </Link>
                 </div>
               ) : (
@@ -240,7 +248,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
               onClick={onClose}
               className="block w-full border border-[#1a1a1a] py-3 text-center text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
             >
-              Összes kedvenc megtekintése
+              {language === "en" ? "View all favourites" : "Összes kedvenc megtekintése"}
             </Link>
           </div>
         )}
@@ -249,20 +257,20 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
         {cartTab === "cart" && cart && cart.items.length > 0 && (
           <div className="shrink-0 border-t border-[#e8e5e0] bg-white p-5">
             <div className="mb-1 flex justify-between text-sm">
-              <span className="text-[#888]">Részösszeg</span>
+              <span className="text-[#888]">{dictionary["cart.subtotal"]}</span>
               <span className="font-semibold text-[#1a1a1a]">
                 {formatPriceForCountry(cart.subtotal, cart.countryCode)}
               </span>
             </div>
             <div className="mb-4 flex justify-between text-sm">
-              <span className="text-[#888]">Szállítás</span>
+              <span className="text-[#888]">{dictionary["cart.shipping"]}</span>
               <span className="font-medium text-[#16a34a]">
                 {getShippingLineValue(language)}
               </span>
             </div>
             {hasUnavailableItems ? (
               <div className="mt-4 border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-xs leading-5 text-[#9b476f]">
-                Távolítsd el a már nem elérhető tételeket a fizetés előtt.
+                {language === "en" ? "Remove unavailable items before checkout." : "Távolítsd el a már nem elérhető tételeket a fizetés előtt."}
               </div>
             ) : (
               <Link
@@ -270,7 +278,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                 onClick={onClose}
                 className="block w-full bg-[#1a1a1a] py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#333]"
               >
-                Tovább a fizetéshez
+                {dictionary["cart.checkout"]}
               </Link>
             )}
             <Link
@@ -278,7 +286,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
               onClick={onClose}
               className="mt-2 block w-full py-2.5 text-center text-xs text-[#888] transition hover:text-[#1a1a1a]"
             >
-              Kosár szerkesztése
+              {language === "en" ? "Edit cart" : "Kosár szerkesztése"}
             </Link>
           </div>
         )}

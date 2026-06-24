@@ -16,6 +16,7 @@ type OrderStatusUpdateEmailContext = {
   trackingNumber: string | null;
   shippingMethodLabel: string | null;
   lastUpdatedLabel: string | null;
+  language: "hu" | "en";
   lastStatusUpdateEmailKey: string | null;
   statusUpdateEmailSendingKey: string | null;
   statusUpdateEmailSendingAt: Date | null;
@@ -47,6 +48,7 @@ async function getOrderStatusUpdateEmailContext(
     trackingNumber: order.trackingNumber,
     shippingMethod: order.shippingMethod,
     statusUpdatedAt: order.statusUpdatedAt,
+    language: order.language === "en" ? "en" : "hu",
   });
 
   return {
@@ -60,6 +62,7 @@ async function getOrderStatusUpdateEmailContext(
     trackingNumber: customerStatus.trackingNumber,
     shippingMethodLabel: customerStatus.shippingMethodLabel,
     lastUpdatedLabel: customerStatus.lastUpdatedLabel,
+    language: order.language === "en" ? "en" : "hu",
     lastStatusUpdateEmailKey: order.statusUpdateEmailKey,
     statusUpdateEmailSendingKey: order.statusUpdateEmailSendingKey,
     statusUpdateEmailSendingAt: order.statusUpdateEmailSendingAt,
@@ -138,6 +141,7 @@ async function sendOrderStatusUpdateEmailForContext(
       trackingNumber: context.trackingNumber,
       shippingMethodLabel: context.shippingMethodLabel,
       lastUpdatedLabel: context.lastUpdatedLabel,
+      locale: context.language,
     });
 
     await db.order.update({
@@ -173,7 +177,7 @@ export async function getOrderStatusUpdateEmailAdminState(orderId: string) {
 
   const preview = context.projectedEmailUpdateKey
     ? renderOrderStatusUpdateEmail({
-        locale: "hu",
+        locale: context.language,
         accessModel: context.accessModel,
         orderNumber: context.orderNumber,
         statusLabel: context.projectedStatusLabel,

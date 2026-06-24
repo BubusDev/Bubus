@@ -38,6 +38,7 @@ export default async function ConfirmationPage({
         }
         redirectStatus={resolvedSearchParams.redirect_status}
         canViewOrder={Boolean(order.userId)}
+        language={order.language === "en" ? "en" : "hu"}
       />
     </main>
   );

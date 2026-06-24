@@ -1,13 +1,19 @@
+"use client";
+
 import Link from "next/link";
 
 import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
-import { CountryLanguageButton } from "@/components/international/CountryLanguageProvider";
+import { CountryLanguageButton, useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary } from "@/lib/i18n";
 
 type SiteFooterProps = {
   showCategoryDiscovery?: boolean;
 };
 
 export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
+
   return (
     <footer>
       {showCategoryDiscovery ? (
@@ -98,13 +104,13 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
             {/* Customer service */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
-                Ügyfélszolgálat
+                {language === "en" ? "Customer service" : "Ügyfélszolgálat"}
               </p>
               <ul className="space-y-1 sm:space-y-2.5">
                 {[
-                  { label: "Rendelési állapot", href: "/order-status" },
-                  { label: "Kapcsolat", href: "/contact" },
-                  { label: "Szállítás", href: "/terms#szallitas" },
+                  { label: language === "en" ? "Order status" : "Rendelési állapot", href: "/order-status" },
+                  { label: dictionary["footer.contact"], href: "/contact" },
+                  { label: dictionary["footer.shipping"], href: "/terms#szallitas" },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white">
@@ -118,12 +124,12 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
             {/* Membership */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
-                Tagság
+                {language === "en" ? "Community" : "Tagság"}
               </p>
               <ul className="space-y-1 sm:space-y-2.5">
                 {[
                   { label: "Instagram", href: "https://instagram.com/chicksjewelry", external: true },
-                  { label: "Regisztráció", href: "/sign-up", external: false },
+                  { label: language === "en" ? "Sign up" : "Regisztráció", href: "/sign-up", external: false },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link
@@ -142,13 +148,13 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
             {/* About */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
-                Rólunk
+                {language === "en" ? "About" : "Rólunk"}
               </p>
               <ul className="space-y-1 sm:space-y-2.5">
                 {[
-                  { label: "Kövek", href: "/stones", external: false },
-                  { label: "GYIK", href: "/faq", external: false },
-                  { label: "Kövess Instagramon", href: "https://instagram.com/chicksjewelry", external: true },
+                  { label: language === "en" ? "Stones" : "Kövek", href: "/stones", external: false },
+                  { label: language === "en" ? "FAQ" : "GYIK", href: "/faq", external: false },
+                  { label: language === "en" ? "Follow on Instagram" : "Kövess Instagramon", href: "https://instagram.com/chicksjewelry", external: true },
                 ].map((link) => (
                   <li key={link.label}>
                     <Link
@@ -167,13 +173,13 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
             {/* Legal */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-[#888] mb-4">
-                Jogi nyilatkozat
+                {language === "en" ? "Legal" : "Jogi nyilatkozat"}
               </p>
               <ul className="space-y-1 sm:space-y-2.5">
                 {[
-                  { label: "Általános feltételek", href: "/terms" },
-                  { label: "Adatvédelmi szabályzat", href: "/privacy" },
-                  { label: "Cookie tájékoztató", href: "/cookies" },
+                  { label: dictionary["footer.terms"], href: "/terms" },
+                  { label: dictionary["footer.privacy"], href: "/privacy" },
+                  { label: dictionary["footer.cookies"], href: "/cookies" },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="inline-flex min-h-7 items-center text-sm text-[#aaa] transition hover:text-white">
@@ -183,7 +189,7 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                 ))}
                 <li>
                   <CookieSettingsButton className="inline-flex min-h-7 items-center text-sm text-[#aaa] underline underline-offset-2 transition hover:text-white hover:no-underline">
-                    Cookie beállítások
+                    {language === "en" ? "Cookie settings" : "Cookie beállítások"}
                   </CookieSettingsButton>
                 </li>
                 <li>
@@ -197,10 +203,10 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
           <div className="flex flex-col items-start justify-between gap-3 border-t border-[#2a2a28] pt-6 text-left sm:flex-row sm:items-center">
             <span className="font-[family:var(--font-display)] text-sm text-[#555]">Chicks Jewelry</span>
             <p className="text-[11px] text-[#555]">
-              © {new Date().getFullYear()} Chicks Jewelry. Minden jog fenntartva.
+              © {new Date().getFullYear()} Chicks Jewelry. {language === "en" ? "All rights reserved." : "Minden jog fenntartva."}
             </p>
             <p className="text-[11px] text-[#555]">
-              Kézzel alkotva · Féldrágakövekből
+              {language === "en" ? "Handmade · Gemstone jewelry" : "Kézzel alkotva · Féldrágakövekből"}
             </p>
           </div>
         </div>

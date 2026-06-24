@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { useRef } from "react";
 
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { CountryLanguageButton } from "@/components/international/CountryLanguageProvider";
+import { CountryLanguageButton, useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
 import {
   headerSecondaryNavItems,
@@ -30,6 +30,7 @@ import {
   getSpecialtyHref,
   type SpecialtyView,
 } from "@/lib/specialty-links";
+import { getDictionary } from "@/lib/i18n";
 
 type HeaderProps = {
   user?: HeaderUser;
@@ -88,6 +89,8 @@ export function Header({
   specialtyItems = [],
 }: HeaderProps) {
   const pathname = usePathname();
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [cartPath, setCartPath] = useState<string | null>(null);
@@ -137,7 +140,7 @@ export function Header({
             <button
               type="button"
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Menü bezárása" : "Menü megnyitása"}
+              aria-label={mobileMenuOpen ? (language === "en" ? "Close menu" : "Menü bezárása") : (language === "en" ? "Open menu" : "Menü megnyitása")}
               onClick={() =>
                 setMobileMenuPath((currentPath) =>
                   currentPath === pathname ? null : pathname,
@@ -156,7 +159,7 @@ export function Header({
           >
             <div className="flex min-w-0 max-w-full flex-col items-center leading-none">
               <span className="max-w-full truncate text-[0.5rem] font-semibold uppercase tracking-[0.16em] text-[#7f485c] min-[390px]:text-[0.56rem] min-[390px]:tracking-[0.24em] sm:text-[0.68rem] sm:tracking-[0.32em]">
-                Boutique ékszer
+                {language === "en" ? "Boutique jewelry" : "Boutique ékszer"}
               </span>
               <span className="relative max-w-full truncate font-[family:var(--font-display)] text-[1.18rem] font-semibold tracking-normal text-[#9b3d6e] after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-6 after:bg-[#a8346a] min-[390px]:text-[1.42rem] sm:text-[2.1rem] lg:text-[2.28rem]">
                 Chicks Jewelry
@@ -171,7 +174,7 @@ export function Header({
               {/* User icon → /account or /sign-in */}
               <Link
                 href={user ? "/account" : "/sign-in"}
-                aria-label={user ? "Fiókom" : "Belépés"}
+                aria-label={user ? (language === "en" ? "My account" : "Fiókom") : dictionary["nav.login"]}
                 className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
               >
                 <User className="h-[1.1rem] w-[1.1rem]" />
@@ -198,7 +201,7 @@ export function Header({
               {/* Cart icon → opens drawer */}
               <button
                 type="button"
-                aria-label="Kosár"
+                aria-label={dictionary["nav.cart"]}
                 onClick={() => setCartPath(pathname)}
                 className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
               >
@@ -218,13 +221,13 @@ export function Header({
             >
               <HeaderActionButton
                 href="/favourites"
-                label="Kedvencek"
+                label={dictionary["nav.favourites"]}
                 badgeCount={favouritesCount}
               >
                 <Heart className="h-[1.1rem] w-[1.1rem]" />
               </HeaderActionButton>
 
-              <HeaderActionButton href="/cart" label="Kosár" badgeCount={cartCount}>
+              <HeaderActionButton href="/cart" label={dictionary["nav.cart"]} badgeCount={cartCount}>
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
               </HeaderActionButton>
 
@@ -304,7 +307,7 @@ export function Header({
               ) : (
                 <Link
                   href="/sign-in"
-                  aria-label="Belépés"
+                  aria-label={dictionary["nav.login"]}
                   className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
                 >
                   <span className="transition-transform duration-200 group-hover:scale-105">
@@ -329,7 +332,7 @@ export function Header({
               className="flex flex-col leading-none"
             >
               <span className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-[#7f485c]">
-                Boutique ékszer
+                {language === "en" ? "Boutique jewelry" : "Boutique ékszer"}
               </span>
               <span
                 className="font-[family:var(--font-display)] text-xl font-semibold"
@@ -372,7 +375,7 @@ export function Header({
               onClick={() => setMobileMenuPath(null)}
               className="flex items-center justify-between border-b border-[#eee4df] py-4 text-[15px] font-semibold uppercase tracking-[0.06em] text-[#4a343d] transition hover:text-[#7f485c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
             >
-              Drágakövek
+              {language === "en" ? "Gemstones" : "Drágakövek"}
               <ChevronRight className="h-4 w-4 text-[#b8a7a9]" strokeWidth={1.5} />
             </Link>
 
@@ -386,7 +389,7 @@ export function Header({
                     specialtyOpen ? "text-[#7f485c]" : "text-[#4a343d]"
                   }`}
                 >
-                  Különlegességek
+                  {dictionary["nav.specialPieces"]}
                   <ChevronDown
                     className={`h-4 w-4 text-[#b8a7a9] transition-transform ${specialtyOpen ? "rotate-180" : ""}`}
                     strokeWidth={1.5}
@@ -429,7 +432,7 @@ export function Header({
                 onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#eee4df] py-3 text-sm text-[#756269] transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
-                Profilom
+              {dictionary["nav.profile"]}
               </Link>
             ) : (
               <Link
@@ -437,7 +440,7 @@ export function Header({
                 onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#eee4df] py-3 text-sm text-[#756269] transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
-                Belépés
+              {dictionary["nav.login"]}
               </Link>
             )}
           </div>
@@ -448,7 +451,7 @@ export function Header({
               @chicksjewelry
             </p>
             <p className="text-xs text-[#756269]">
-              Kövess Instagramon az újdonságokért
+              {language === "en" ? "Follow us on Instagram for new pieces" : "Kövess Instagramon az újdonságokért"}
             </p>
           </div>
         </div>

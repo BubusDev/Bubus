@@ -1,16 +1,20 @@
 import { Check } from "lucide-react";
 import React from "react";
 
-const STEPS = ["Kapcsolat", "Szállítás", "Fizetés"];
+const STEPS = {
+  hu: ["Kapcsolat", "Szállítás", "Fizetés"],
+  en: ["Contact", "Shipping", "Payment"],
+};
 
 type StepIndicatorProps = {
   currentStep: number;
+  language?: "hu" | "en";
 };
 
-export function StepIndicator({ currentStep }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, language = "hu" }: StepIndicatorProps) {
   return (
     <div className="flex items-center justify-center gap-0 mb-10">
-      {STEPS.map((label, i) => (
+      {STEPS[language].map((label, i) => (
         <React.Fragment key={i}>
           <div className="flex flex-col items-center gap-2">
             <div
@@ -30,7 +34,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
               {label}
             </span>
           </div>
-          {i < STEPS.length - 1 && (
+          {i < STEPS[language].length - 1 && (
             <div
               className={`h-px w-16 mb-5 mx-2 transition ${currentStep > i ? "bg-[#1a1a1a]" : "bg-[#ddd]"}`}
             />

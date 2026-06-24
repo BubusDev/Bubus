@@ -17,6 +17,7 @@ import {
   getDisplayPriceForCountry,
   getFreeShippingLabel,
 } from "@/lib/international";
+import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
 
 // Minimal structural type accepted by both "grid" and "saved" variants.
 // Product satisfies this structurally.
@@ -25,9 +26,11 @@ export type ProductCardData = {
   id: string;
   slug: string;
   name: string;
+  nameEn?: string | null;
   price: number;
   priceEur?: number | null;
   collectionLabel: string;
+  collectionLabelEn?: string | null;
   stockQuantity: number;
   reservedQuantity: number;
   imageUrl?: string | null;
@@ -101,6 +104,8 @@ export function ProductCard({
   onRemove,
 }: ProductCardProps) {
   const { country, language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
+  const localizedProduct = getLocalizedProduct(product, language);
   const [isWishlistPending, startWishlistTransition] = useTransition();
   const [isAddToCartPending, startAddToCartTransition] = useTransition();
   const [isRemovePending, startRemoveTransition] = useTransition();
@@ -162,10 +167,10 @@ export function ProductCard({
   const productHref = `/product/${product.slug}`;
   const isOutOfStock = isProductOutOfStock(product);
   const isHeartPending = isFavouritePending || isWishlistPending;
-  const differentiator = getProductCardDifferentiator(product);
+  const differentiator = getProductCardDifferentiator(localizedProduct);
   const displayPrice = getDisplayPriceForCountry(product, country);
   const displayedPrice = displayPrice == null
-    ? language === "en" ? "Not available for EU delivery" : "EU szállításhoz még nem elérhető"
+    ? dictionary["product.notAvailableEu"]
     : formatPriceForCountry(displayPrice, country);
   const freeShippingLabel = getFreeShippingLabel(language);
   const isMissingZonePrice = displayPrice == null;
@@ -222,7 +227,7 @@ export function ProductCard({
       }}
     >
       <span className="px-4 text-center font-[family:var(--font-display)] text-lg leading-tight text-[#5e5358]/70">
-        {product.name}
+        {localizedProduct.name}
       </span>
     </div>
   );
@@ -243,7 +248,7 @@ export function ProductCard({
           >
             {coverImageUrl ? (
               <div
-                aria-label={product.name}
+                aria-label={localizedProduct.name}
                 role="img"
                 className={`absolute inset-0 bg-[#f5f3f0] transition-[opacity,transform,filter] duration-500 ease-out ${imageHoverClass} ${imageStateClass}`}
                 style={getCenteredBackgroundFillStyle(coverImageUrl)}
@@ -254,7 +259,7 @@ export function ProductCard({
             {isOutOfStock && (
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-start bg-gradient-to-t from-white/55 via-white/18 to-transparent p-2.5 sm:p-3">
                 <span className="rounded-md border border-white/70 bg-white/72 px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#6f666b] shadow-[0_8px_18px_rgba(82,73,79,0.08)] backdrop-blur-sm">
-                  Elfogyott
+                  {dictionary["product.soldOut"]}
                 </span>
               </div>
             )}
@@ -268,13 +273,13 @@ export function ProductCard({
         {/* Info */}
         <div className="mt-1 flex-1 sm:mt-2.5">
           <p className="mb-0.5 text-[7px] uppercase tracking-[.15em] text-[#888] sm:mb-1 sm:text-[10px] sm:tracking-[.22em]">
-            {product.collectionLabel}
+            {localizedProduct.collectionLabel}
           </p>
           <Link
             href={savedHref}
             className="block text-[10px] font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] sm:text-[13px] sm:text-sm"
           >
-            {product.name}
+            {localizedProduct.name}
           </Link>
           <p className="mt-0.5 text-[10px] font-semibold text-[#1a1a1a] sm:mt-1 sm:text-[13px] sm:text-sm">
             {displayedPrice}
@@ -292,7 +297,7 @@ export function ProductCard({
               });
             }}
             disabled={isOutOfStock || isMissingZonePrice || isAddToCartPending}
-            aria-label={`${product.name} hozzáadása a táskához`}
+            aria-label={`${dictionary["product.addToCart"]}: ${localizedProduct.name}`}
             className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-[11px] uppercase tracking-[0.14em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
               isOutOfStock || isMissingZonePrice || isAddToCartPending
                 ? "cursor-not-allowed text-[#b69dad]"
@@ -300,7 +305,7 @@ export function ProductCard({
             }`}
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            Táskába
+            {dictionary["product.addToCart"]}
           </button>
 
           <button
@@ -311,7 +316,7 @@ export function ProductCard({
               });
             }}
             disabled={isRemovePending}
-            aria-label={`${product.name} törlése a kedvencekből`}
+            aria-label={`${dictionary["cart.remove"]}: ${localizedProduct.name}`}
             className={`flex min-h-8 min-w-8 items-center justify-center rounded-full transition hover:bg-[#fff7fa] hover:text-[#9b476f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
               isRemovePending ? "text-[#ccc]" : "text-[#bca3b0]"
             }`}
@@ -329,8 +334,8 @@ export function ProductCard({
       type="button"
       aria-label={
         displayedLiked
-          ? `Eltávolítás a kedvencekből: ${product.name}`
-          : `Kedvencekhez adás: ${product.name}`
+          ? `${dictionary["cart.remove"]}: ${localizedProduct.name}`
+          : `${dictionary["product.addToFavourites"]}: ${localizedProduct.name}`
       }
       aria-pressed={displayedLiked}
       disabled={isHeartPending}
@@ -407,7 +412,7 @@ export function ProductCard({
           {coverImageUrl ? (
             <>
               <div
-                aria-label={product.name}
+                aria-label={localizedProduct.name}
                 role="img"
                 className={`absolute inset-0 bg-[#f5f3f0] transition-[opacity,transform,filter] duration-500 ease-out ${
                   secondaryImageUrl
@@ -418,7 +423,7 @@ export function ProductCard({
               />
               {secondaryImage && secondaryImageUrl ? (
                 <div
-                  aria-label={secondaryImage?.alt ?? product.name}
+                  aria-label={secondaryImage?.alt ?? localizedProduct.name}
                   role="img"
                   className={`object-cover opacity-0 transition-[opacity,transform,filter] delay-100 duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100 group-focus-within:scale-[1.03] group-focus-within:opacity-100 ${imageStateClass}`}
                   style={{
@@ -435,7 +440,7 @@ export function ProductCard({
           {isOutOfStock && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-start bg-gradient-to-t from-white/55 via-white/18 to-transparent p-2.5 sm:p-3">
               <span className="rounded-md border border-white/70 bg-white/72 px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#6f666b] shadow-[0_8px_18px_rgba(82,73,79,0.08)] backdrop-blur-sm">
-                Elfogyott
+                {dictionary["product.soldOut"]}
               </span>
             </div>
           )}
@@ -448,13 +453,13 @@ export function ProductCard({
       {/* Info */}
       <div className="mt-1 flex-1 sm:mt-2.5">
         <p className="mb-0.5 text-[7px] uppercase tracking-[.15em] text-[#888] sm:mb-1 sm:text-[10px] sm:tracking-[.22em]">
-          {product.collectionLabel}
+          {localizedProduct.collectionLabel}
         </p>
         <Link
           href={productHref}
           className="block text-[10px] font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] sm:text-[13px] sm:text-sm"
         >
-          {product.name}
+          {localizedProduct.name}
         </Link>
         {differentiator ? (
           <p className="mt-0.5 text-[9px] leading-snug text-[#7f7379] sm:mt-1 sm:text-[11px]">
@@ -478,7 +483,7 @@ export function ProductCard({
               {({ isPending }) => (
                 <button
                   type="submit"
-                  aria-label={isOutOfStock ? `${product.name} elfogyott` : `Kosárba: ${product.name}`}
+                  aria-label={isOutOfStock ? `${localizedProduct.name} ${dictionary["product.soldOut"]}` : `${dictionary["product.addToCart"]}: ${localizedProduct.name}`}
                   disabled={isOutOfStock || isPending || cartState !== "idle"}
                   onClick={handleCart}
                   className={`relative inline-flex h-10 w-10 -m-2 items-center justify-center overflow-visible rounded-full transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${

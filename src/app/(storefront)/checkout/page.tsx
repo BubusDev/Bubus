@@ -7,6 +7,7 @@ import { getRequestCart } from "@/lib/account";
 import { getCheckoutSession } from "@/lib/checkoutSession";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPriceForCountry, getShippingLineValue } from "@/lib/international";
+import { getDictionary } from "@/lib/i18n";
 import { getStripePublishableKey, isStripeConfigured } from "@/lib/stripe";
 
 type CheckoutPageProps = {
@@ -22,6 +23,8 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   const resolvedSearchParams = await searchParams;
   const initialStep = user?.emailVerifiedAt || checkoutSession?.email ? 1 : 0;
   const isLoggedIn = Boolean(user?.emailVerifiedAt);
+  const language = cart.countryCode === "HU" ? "hu" : "en";
+  const dictionary = getDictionary(language);
 
   const hasUnavailableItems = cart.items.some(
     (item) => !item.isAvailable || item.exceedsStock,
@@ -32,11 +35,11 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       <main className="mx-auto max-w-[1100px] px-4 pb-24 pt-16 sm:px-6 lg:px-8">
         <EmptyStateCard
           icon={CreditCard}
-          eyebrow="Nincs mit fizetni"
-          title="A pénztár jelenleg üres"
-          description="Előbb tegyél terméket a kosaradba, majd térj vissza a rendelés véglegesítéséhez."
+          eyebrow={language === "en" ? "Nothing to pay" : "Nincs mit fizetni"}
+          title={language === "en" ? "Checkout is empty" : "A pénztár jelenleg üres"}
+          description={language === "en" ? "Add a product to your cart before completing checkout." : "Előbb tegyél terméket a kosaradba, majd térj vissza a rendelés véglegesítéséhez."}
           actionHref="/cart"
-          actionLabel="Kosár megnyitása"
+          actionLabel={dictionary["cart.cart"]}
         />
       </main>
     );
@@ -55,7 +58,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         </Link>
         <div className="flex items-center gap-2 text-[11px] text-[#888] sm:text-[12px]">
           <Lock className="h-3.5 w-3.5" />
-          Biztonságos fizetés
+          {language === "en" ? "Secure payment" : "Biztonságos fizetés"}
         </div>
       </header>
 
@@ -63,14 +66,15 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       <div className="mx-auto max-w-[1040px] px-4 py-8 sm:px-6 sm:py-10">
         <div className="mb-7">
           <p className="text-[10px] uppercase tracking-[0.28em] text-[#888]">
-            Pénztár
+            {language === "en" ? "Checkout" : "Pénztár"}
           </p>
           <h1 className="mt-2 font-[family:var(--font-display)] text-[2rem] leading-none tracking-[-0.03em] text-[#1a1a1a] sm:text-[2.45rem]">
-            Rendelés véglegesítése
+            {language === "en" ? "Complete your order" : "Rendelés véglegesítése"}
           </h1>
           <p className="mt-3 max-w-[60ch] text-sm leading-7 text-[#666]">
-            Add meg az elérhetőséget és a szállítási adatokat, majd a fizetési felületet
-            biztonságosan nyitjuk meg.
+            {language === "en"
+              ? "Enter your contact and shipping details, then continue securely to payment."
+              : "Add meg az elérhetőséget és a szállítási adatokat, majd a fizetési felületet biztonságosan nyitjuk meg."}
           </p>
         </div>
 
@@ -101,10 +105,10 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
 
             <div className="bg-[#1a1a1a] px-6 py-5">
               <p className="text-[10px] uppercase tracking-[.28em] text-[#999] mb-1">
-                Összegzés
+                {dictionary["checkout.orderSummary"]}
               </p>
               <p className="text-lg font-semibold text-white">
-                {cart.items.length} tétel a kosárban
+                {language === "en" ? `${cart.items.length} item(s) in cart` : `${cart.items.length} tétel a kosárban`}
               </p>
             </div>
 
@@ -121,7 +125,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                     {item.name}
                     {item.unavailableReason === "archived" ? (
                       <span className="ml-2 text-xs font-medium text-[#9b476f]">
-                        Már nem elérhető
+                        {language === "en" ? "No longer available" : "Már nem elérhető"}
                       </span>
                     ) : null}
                   </span>
@@ -135,49 +139,51 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
             <div className="px-6 pb-6 pt-4">
               <div className="space-y-2 border-t border-[#e8e5e0] pt-4 text-sm text-[#555]">
                 <div className="flex items-center justify-between">
-                  <span>Részösszeg</span>
+                  <span>{dictionary["cart.subtotal"]}</span>
                   <span className="font-medium text-[#1a1a1a]">{formatPriceForCountry(cart.subtotal, cart.countryCode)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Szállítás</span>
+                  <span>{dictionary["cart.shipping"]}</span>
                   <span className="font-medium text-[#1a1a1a]">
-                    {getShippingLineValue(cart.countryCode === "HU" ? "hu" : "en")}
+                    {getShippingLineValue(language)}
                   </span>
                 </div>
                 {cart.discount > 0 ? (
                   <div className="flex items-center justify-between">
-                    <span>Kedvezmény</span>
+                    <span>{language === "en" ? "Discount" : "Kedvezmény"}</span>
                     <span className="font-medium text-[#7a4f67]">-{formatPriceForCountry(cart.discount, cart.countryCode)}</span>
                   </div>
                 ) : null}
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-[#e8e5e0] pt-4">
-                <span className="text-sm text-[#555]">Végösszeg</span>
+                <span className="text-sm text-[#555]">{dictionary["cart.total"]}</span>
                 <span className="text-xl font-semibold text-[#1a1a1a]">
                   {formatPriceForCountry(cart.total, cart.countryCode)}
                 </span>
               </div>
               {hasUnavailableItems ? (
                 <div className="mt-4 border border-[#f3cadc] bg-[#fff3f8] px-4 py-3 text-sm text-[#9b476f]">
-                  A fizetés nem indítható, amíg már nem elérhető termék van a kosárban.
+                  {language === "en"
+                    ? "Payment cannot start while unavailable products are in your cart."
+                    : "A fizetés nem indítható, amíg már nem elérhető termék van a kosárban."}
                 </div>
               ) : null}
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#aaa]">
                 <Lock className="h-3.5 w-3.5" />
-                Biztonságos fizetés · Stripe
+                {language === "en" ? "Secure payment · Stripe" : "Biztonságos fizetés · Stripe"}
               </div>
               <div className="mt-4 grid gap-2 rounded-md border border-[#eee6ea] bg-[#faf9f7] p-3 text-xs leading-5 text-[#6c6166]">
                 <div className="flex gap-2">
                   <Truck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
-                  <span>2-4 munkanapos szállítás raktáron lévő darabokra.</span>
+                  <span>{language === "en" ? "2-4 business day delivery for in-stock pieces." : "2-4 munkanapos szállítás raktáron lévő darabokra."}</span>
                 </div>
                 <div className="flex gap-2">
                   <RotateCcw className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
-                  <span>14 napos visszaküldés nem egyedi, viseletlen darabokra.</span>
+                  <span>{language === "en" ? "14-day return on unworn non-custom pieces." : "14 napos visszaküldés nem egyedi, viseletlen darabokra."}</span>
                 </div>
                 <div className="flex gap-2">
                   <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#888]" aria-hidden="true" />
-                  <span>A rendelésedről emailben is küldünk visszaigazolást.</span>
+                  <span>{language === "en" ? "We will also send your order confirmation by email." : "A rendelésedről emailben is küldünk visszaigazolást."}</span>
                 </div>
               </div>
             </div>

@@ -392,14 +392,19 @@ function mapProduct(product: DbProductWithRelations, manualSortOrder?: number | 
     slug: product.slug,
     status: product.status,
     name: getSafeString(product.name, "Névtelen termék"),
+    nameEn: product.nameEn,
     category: normalizeCategorySlug(category.slug),
     price: product.price,
     priceEur: product.priceEur,
     compareAtPrice: product.compareAtPrice ?? undefined,
     shortDescription,
+    shortDescriptionEn: product.shortDescriptionEn,
     description: getSafeString(product.description, shortDescription),
+    descriptionEn: product.descriptionEn,
     badge: getSafeString(product.badge, product.isOnSale ? "Akció" : product.isNew ? "Újdonság" : "Kiemelt"),
+    badgeEn: product.badgeEn,
     collectionLabel: getSafeString(product.collectionLabel, "Kollekció"),
+    collectionLabelEn: product.collectionLabelEn,
     stockQuantity: product.stockQuantity,
     reservedQuantity: product.reservedQuantity,
     soldOutAt: product.soldOutAt,
@@ -1273,15 +1278,20 @@ export type AdminProductFormValues = {
   slug: string;
   status: ProductStatus;
   name: string;
+  nameEn: string;
   category: string;
   price: number;
   priceEur: number | null;
   stockQuantity: number;
   compareAtPrice: string;
   shortDescription: string;
+  shortDescriptionEn: string;
   description: string;
+  descriptionEn: string;
   badge: string;
+  badgeEn: string;
   collectionLabel: string;
+  collectionLabelEn: string;
   stoneType: string;
   color: string;
   style: string;
@@ -1398,15 +1408,20 @@ export function toAdminProductFormValues(
       slug: "",
       status: ProductStatus.ACTIVE,
       name: "",
+      nameEn: "",
       category: options.categories[0]?.id ?? "",
       price: 0,
       priceEur: null,
       stockQuantity: 0,
       compareAtPrice: "",
       shortDescription: "",
+      shortDescriptionEn: "",
       description: "",
+      descriptionEn: "",
       badge: "",
+      badgeEn: "",
       collectionLabel: "",
+      collectionLabelEn: "",
       stoneType: options.stoneTypes[0]?.id ?? "",
       color: options.colors[0]?.id ?? "",
       style: options.styles[0]?.id ?? "",
@@ -1443,6 +1458,7 @@ export function toAdminProductFormValues(
     slug: product.slug,
     status: product.status,
     name: product.name,
+    nameEn: product.nameEn ?? "",
     category: product.categoryId,
     price: product.price,
     priceEur: product.priceEur,
@@ -1450,9 +1466,13 @@ export function toAdminProductFormValues(
     compareAtPrice:
       typeof product.compareAtPrice === "number" ? String(product.compareAtPrice) : "",
     shortDescription: product.shortDescription,
+    shortDescriptionEn: product.shortDescriptionEn ?? "",
     description: product.description,
+    descriptionEn: product.descriptionEn ?? "",
     badge: product.badge,
+    badgeEn: product.badgeEn ?? "",
     collectionLabel: product.collectionLabel,
+    collectionLabelEn: product.collectionLabelEn ?? "",
     stoneType: product.stoneTypeId,
     color: product.colorId,
     style: product.styleId,
@@ -1513,15 +1533,20 @@ export async function parseProductFormData(
 ): Promise<{ data: Prisma.ProductUncheckedCreateInput; specialtyIds: string[] }> {
   const slug = normalizeProductSlug(requireNonEmptyString(formData, "slug", "A slug kötelező."));
   const name = requireNonEmptyString(formData, "name", "A termék neve kötelező.");
+  const nameEn = readString(formData, "nameEn");
   const statusInput = readString(formData, "status");
   const status =
     statusInput === ProductStatus.DRAFT || statusInput === ProductStatus.ACTIVE
       ? statusInput
       : ProductStatus.ACTIVE;
   const badge = readString(formData, "badge");
+  const badgeEn = readString(formData, "badgeEn");
   const collectionLabel = readString(formData, "collectionLabel");
+  const collectionLabelEn = readString(formData, "collectionLabelEn");
   const shortDescription = readString(formData, "shortDescription");
+  const shortDescriptionEn = readString(formData, "shortDescriptionEn");
   const description = readString(formData, "description");
+  const descriptionEn = readString(formData, "descriptionEn");
   const price = readNumber(formData, "price");
   const priceEurInput = readString(formData, "priceEur");
   const priceEur = priceEurInput.length > 0 ? Number(priceEurInput) : null;
@@ -1595,15 +1620,20 @@ export async function parseProductFormData(
       slug,
       status,
       name,
+      nameEn: nameEn || null,
       categoryId,
       price,
       priceEur,
       stockQuantity,
       compareAtPrice: compareAtPriceNumber,
       shortDescription,
+      shortDescriptionEn: shortDescriptionEn || null,
       description,
+      descriptionEn: descriptionEn || null,
       badge,
+      badgeEn: badgeEn || null,
       collectionLabel,
+      collectionLabelEn: collectionLabelEn || null,
       stoneTypeId,
       colorId,
       styleId,

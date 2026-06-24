@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import {
@@ -6,6 +8,8 @@ import {
 } from "@/lib/specialty-links";
 import type { NavigationCategory } from "@/lib/catalog";
 import { MegaMenu, type MegaMenuItem } from "@/components/MegaMenu";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary } from "@/lib/i18n";
 
 const topLevelNavItemClassName =
   "relative whitespace-nowrap py-1 text-[13px] font-medium uppercase leading-5 tracking-[0.08em] text-[#4a343d] transition-[color,font-weight] duration-150 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[#9b3d6e] after:transition-[width] after:duration-150 hover:font-semibold hover:text-[#9b3d6e] hover:after:w-full focus-visible:font-semibold focus-visible:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fbf8f5] focus-visible:after:w-full active:opacity-80";
@@ -16,6 +20,8 @@ type CategoryNavProps = {
 };
 
 export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNavProps) {
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
   const megaItems: MegaMenuItem[] = specialtyItems.map((item) => ({
     id: item.id,
     name: item.name,
@@ -27,8 +33,16 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
     cardImageAlt: item.cardImageAlt || item.previewImageAlt || item.imageAlt || item.name,
     cardTitle: item.cardTitle || item.name,
     cardDescription: item.cardDescription || item.shortDescription,
-    ctaText: item.ctaLabel || "Kollekció megnyitása",
+    ctaText: item.ctaLabel || (language === "en" ? "Open collection" : "Kollekció megnyitása"),
   }));
+  const categoryLabelByHref: Record<string, string> = {
+    "/": dictionary["nav.home"],
+    "/new-in": language === "en" ? "New in" : "Újdonságok",
+    "/special-edition": dictionary["nav.limitedPieces"],
+    "/sale": language === "en" ? "Sale" : "Akció",
+    "/bracelets": language === "en" ? "Bracelets" : "Karkötők",
+    "/necklaces": language === "en" ? "Necklaces" : "Nyakláncok",
+  };
 
   return (
     <nav
@@ -42,17 +56,17 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
             href={item.href}
             className={topLevelNavItemClassName}
           >
-            {item.label}
+            {categoryLabelByHref[item.href] ?? item.label}
           </Link>
         ))}
 
         <Link href="/gemstones" className={topLevelNavItemClassName}>
-          Drágakövek
+          {language === "en" ? "Gemstones" : "Drágakövek"}
         </Link>
 
         {megaItems.length > 0 && (
           <MegaMenu
-            triggerLabel="Különlegességek"
+            triggerLabel={dictionary["nav.specialPieces"]}
             items={megaItems}
           />
         )}

@@ -296,9 +296,11 @@ export async function sendOrderConfirmationEmail({
   shippingName,
   shippingAddress,
   items,
+  locale = "hu",
 }: {
   email: string;
   accessModel: "authenticated" | "guest";
+  locale?: "hu" | "en";
   orderNumber: string;
   totalLabel: string;
   createdAtLabel: string;
@@ -307,7 +309,7 @@ export async function sendOrderConfirmationEmail({
   items: Array<{ name: string; quantity: number; unitPriceLabel: string; lineTotalLabel: string }>;
 }): Promise<EmailPreviewResult> {
   const renderedEmail = renderOrderConfirmationEmail({
-    locale: "hu",
+    locale,
     accessModel,
     orderNumber,
     totalLabel,
@@ -350,9 +352,11 @@ export async function sendOrderStatusUpdateEmail({
   trackingNumber,
   shippingMethodLabel,
   lastUpdatedLabel,
+  locale = "hu",
 }: {
   email: string;
   accessModel: "authenticated" | "guest";
+  locale?: "hu" | "en";
   orderNumber: string;
   statusLabel: string;
   statusDetail: string;
@@ -361,7 +365,7 @@ export async function sendOrderStatusUpdateEmail({
   lastUpdatedLabel?: string | null;
 }): Promise<EmailPreviewResult> {
   const renderedEmail = renderOrderStatusUpdateEmail({
-    locale: "hu",
+    locale,
     accessModel,
     orderNumber,
     statusLabel,

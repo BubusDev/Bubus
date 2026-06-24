@@ -32,6 +32,7 @@ type ConfirmationStatusCardProps = {
   initialStatus: ConfirmationStatusSnapshot;
   redirectStatus?: string;
   canViewOrder?: boolean;
+  language?: "hu" | "en";
 };
 
 function ConfirmationContent({
@@ -80,6 +81,7 @@ export function ConfirmationStatusCard({
   initialStatus,
   redirectStatus,
   canViewOrder = false,
+  language = "hu",
 }: ConfirmationStatusCardProps) {
   const router = useRouter();
   const [statusSnapshot, setStatusSnapshot] = useState(initialStatus);
@@ -196,55 +198,55 @@ export function ConfirmationStatusCard({
       {isPaid ? (
         <ConfirmationContent
           tone="success"
-          eyebrow="Fizetés sikeres"
-          title="Köszönjük a rendelésedet"
-          description="A fizetés beérkezett, a rendelést rögzítettük, a részletekről pedig emailben is küldünk visszaigazolást."
+          eyebrow={language === "en" ? "Payment successful" : "Fizetés sikeres"}
+          title={language === "en" ? "Thank you for your order!" : "Köszönjük a rendelésedet"}
+          description={language === "en" ? "Payment was received, your order has been recorded, and we will send the details by email." : "A fizetés beérkezett, a rendelést rögzítettük, a részletekről pedig emailben is küldünk visszaigazolást."}
         />
       ) : isUnableToVerify ? (
         <ConfirmationContent
           tone="warning"
-          eyebrow="Ellenőrzés szükséges"
-          title="A fizetés állapota most nem ellenőrizhető"
-          description="A rendelésedet megkaptuk, de a végleges fizetési állapotot pillanatnyilag nem tudjuk visszaolvasni. Újraellenőrizheted innen, vagy frissítheted az oldalt néhány másodperc múlva."
+          eyebrow={language === "en" ? "Review needed" : "Ellenőrzés szükséges"}
+          title={language === "en" ? "Payment status cannot be verified right now" : "A fizetés állapota most nem ellenőrizhető"}
+          description={language === "en" ? "We received your order, but cannot confirm the final payment status yet. Try checking again from here in a few seconds." : "A rendelésedet megkaptuk, de a végleges fizetési állapotot pillanatnyilag nem tudjuk visszaolvasni. Újraellenőrizheted innen, vagy frissítheted az oldalt néhány másodperc múlva."}
         />
       ) : isStockUnavailable ? (
         <ConfirmationContent
           tone="warning"
-          eyebrow="Készletprobléma"
-          title="A fizetés nem zárható le rendelésként"
-          description="A készlet a fizetés véglegesítése előtt megváltozott. Nem csökkentettük a raktárkészletet ehhez a rendeléshez, és a csapatnak ellenőriznie kell az esetet."
+          eyebrow={language === "en" ? "Stock issue" : "Készletprobléma"}
+          title={language === "en" ? "Payment cannot be completed as an order" : "A fizetés nem zárható le rendelésként"}
+          description={language === "en" ? "Stock changed before payment finalization. Inventory was not reduced for this order and the team needs to review it." : "A készlet a fizetés véglegesítése előtt megváltozott. Nem csökkentettük a raktárkészletet ehhez a rendeléshez, és a csapatnak ellenőriznie kell az esetet."}
         />
       ) : isFailed ? (
         <ConfirmationContent
           tone="warning"
-          eyebrow="Sikertelen fizetés"
-          title="A fizetés nem ment végig"
-          description="A Stripe nem erősítette meg sikeresnek a tranzakciót. Ellenőrizd az adataidat, majd próbáld meg újra a pénztárból."
+          eyebrow={language === "en" ? "Payment failed" : "Sikertelen fizetés"}
+          title={language === "en" ? "Payment did not complete" : "A fizetés nem ment végig"}
+          description={language === "en" ? "Stripe did not confirm the transaction as successful. Check your details, then try again from checkout." : "A Stripe nem erősítette meg sikeresnek a tranzakciót. Ellenőrizd az adataidat, majd próbáld meg újra a pénztárból."}
         />
       ) : (
         <ConfirmationContent
           tone="processing"
-          eyebrow="Feldolgozás alatt"
-          title="A fizetés visszaigazolására várunk"
+          eyebrow={language === "en" ? "Processing" : "Feldolgozás alatt"}
+          title={language === "en" ? "Waiting for payment confirmation" : "A fizetés visszaigazolására várunk"}
           description={
             redirectStatus === "succeeded"
-              ? "A bankkártyás fizetés befejeződött, most a Stripe webhook véglegesíti a rendelést és a készletfrissítést. Ezt az oldalt automatikusan frissítjük."
-              : "A Stripe még dolgozza fel a fizetést. Ezt az oldalt néhány másodpercenként automatikusan frissítjük, és azonnal jelezzük, ha a rendelés kifizetett lett."
+              ? language === "en" ? "Card payment finished; the Stripe webhook is now finalizing the order and stock update. This page refreshes automatically." : "A bankkártyás fizetés befejeződött, most a Stripe webhook véglegesíti a rendelést és a készletfrissítést. Ezt az oldalt automatikusan frissítjük."
+              : language === "en" ? "Stripe is still processing the payment. This page refreshes every few seconds and will update when the order is paid." : "A Stripe még dolgozza fel a fizetést. Ezt az oldalt néhány másodpercenként automatikusan frissítjük, és azonnal jelezzük, ha a rendelés kifizetett lett."
           }
         />
       )}
 
       <div className="mt-8 grid gap-4 rounded-[1.8rem] border border-[#f0d8e5] bg-[#fff9fc] p-5 sm:grid-cols-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Rendelésszám</p>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">{language === "en" ? "Order number" : "Rendelésszám"}</p>
           <p className="mt-2 text-sm font-semibold text-[#4d2741]">{orderNumber}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Dátum</p>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">{language === "en" ? "Date" : "Dátum"}</p>
           <p className="mt-2 text-sm font-semibold text-[#4d2741]">{createdAtLabel}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">Végösszeg</p>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-[#b06b8e]">{language === "en" ? "Total" : "Végösszeg"}</p>
           <p className="mt-2 text-sm font-semibold text-[#4d2741]">{totalLabel}</p>
         </div>
       </div>
@@ -253,15 +255,15 @@ export function ConfirmationStatusCard({
         <div className="mt-5 grid gap-3 rounded-[1.8rem] border border-[#f0d8e5] bg-white/80 p-5 text-sm leading-6 text-[#7a6070] sm:grid-cols-3">
           <div className="flex gap-3">
             <Mail className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
-            <p>Emailben elküldjük a rendelés visszaigazolását.</p>
+            <p>{language === "en" ? "We will send your order confirmation by email." : "Emailben elküldjük a rendelés visszaigazolását."}</p>
           </div>
           <div className="flex gap-3">
             <Truck className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
-            <p>A feldolgozás és szállítás állapotát a rendelési oldalon követheted.</p>
+            <p>{language === "en" ? "You can follow processing and shipping on the order page." : "A feldolgozás és szállítás állapotát a rendelési oldalon követheted."}</p>
           </div>
           <div className="flex gap-3">
             <MessageCircle className="mt-1 h-4 w-4 shrink-0 text-[#a66a88]" aria-hidden="true" />
-            <p>Ha kérdésed van, írj nekünk, és segítünk.</p>
+            <p>{language === "en" ? "Questions? Write to us and we will help." : "Ha kérdésed van, írj nekünk, és segítünk."}</p>
           </div>
         </div>
       ) : null}
@@ -287,7 +289,7 @@ export function ConfirmationStatusCard({
             ) : (
               <RefreshCcw className="h-4 w-4" />
             )}
-            Állapot újraellenőrzése
+            {language === "en" ? "Check status again" : "Állapot újraellenőrzése"}
           </button>
         </div>
       ) : null}
@@ -298,14 +300,14 @@ export function ConfirmationStatusCard({
             href={`/orders/${orderId}`}
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Rendelés megtekintése
+            {language === "en" ? "View order" : "Rendelés megtekintése"}
           </Link>
         ) : isPaid ? (
           <Link
             href="/order-status"
             className="inline-flex h-12 items-center justify-center rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
-            Rendelés állapotának követése
+            {language === "en" ? "Track order status" : "Rendelés állapotának követése"}
           </Link>
         ) : (
           <Link
@@ -313,7 +315,7 @@ export function ConfirmationStatusCard({
             className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#f183bc] px-6 text-sm font-medium text-white shadow-[0_16px_35px_rgba(241,131,188,0.28)] transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             <ShoppingBag className="h-4 w-4" />
-            Vissza a pénztárhoz
+            {language === "en" ? "Back to checkout" : "Vissza a pénztárhoz"}
           </Link>
         )}
         <Link

@@ -14,6 +14,7 @@ import {
   type SupportedCountry,
   type SupportedLanguage,
 } from "@/lib/international";
+import { getDictionary } from "@/lib/i18n";
 
 type CountryLanguageContextValue = {
   country: SupportedCountry;
@@ -51,26 +52,6 @@ function getInitialSelection() {
   };
 }
 
-function getCopy(language: SupportedLanguage) {
-  return language === "en"
-    ? {
-        title: "Welcome to Chicks Jewelry",
-        body: "Choose where you would like your jewelry delivered, and we'll tailor prices, language and shipping details for you.",
-        country: "Country",
-        language: "Language",
-        continue: "Continue",
-        note: "You can change this anytime.",
-      }
-    : {
-        title: "Üdv a Chicks világában",
-        body: "Válaszd ki, hova szállítsuk az ékszereidet, mi pedig ehhez igazítjuk az árakat, a nyelvet és a szállítási információkat.",
-        country: "Ország",
-        language: "Nyelv",
-        continue: "Folytatás",
-        note: "Később bármikor módosíthatod.",
-      };
-}
-
 export function CountryLanguageProvider({ children }: { children: ReactNode }) {
   const initialSelection = getInitialSelection();
   const [country, setCountry] = useState<SupportedCountry>(initialSelection.country);
@@ -101,7 +82,7 @@ export function CountryLanguageProvider({ children }: { children: ReactNode }) {
     [country, language],
   );
 
-  const copy = getCopy(language);
+  const dictionary = getDictionary(language);
 
   return (
     <CountryLanguageContext.Provider value={value}>
@@ -111,9 +92,9 @@ export function CountryLanguageProvider({ children }: { children: ReactNode }) {
           <div className="w-full max-w-[460px] rounded-lg border border-[#eaded9] bg-[#fffdfb] p-6 shadow-[0_24px_80px_rgba(57,39,47,0.18)] sm:p-7">
             <p className="mb-2 text-[10px] uppercase tracking-[0.32em] text-[#a56f87]">Chicks Jewelry</p>
             <h2 className="font-[family:var(--font-display)] text-[2rem] leading-none text-[#4d2741]">
-              {copy.title}
+              {dictionary["countryPopup.title"]}
             </h2>
-            <p className="mt-4 text-sm leading-7 text-[#6f5d65]">{copy.body}</p>
+            <p className="mt-4 text-sm leading-7 text-[#6f5d65]">{dictionary["countryPopup.body"]}</p>
             <form
               className="mt-6 space-y-4"
               onSubmit={(event) => {
@@ -126,7 +107,7 @@ export function CountryLanguageProvider({ children }: { children: ReactNode }) {
               }}
             >
               <label className="block">
-                <span className="mb-1.5 block text-[11px] uppercase tracking-[0.2em] text-[#8c7f86]">{copy.country}</span>
+                <span className="mb-1.5 block text-[11px] uppercase tracking-[0.2em] text-[#8c7f86]">{dictionary["countryPopup.country"]}</span>
                 <select
                   name="country"
                   value={country}
@@ -145,7 +126,7 @@ export function CountryLanguageProvider({ children }: { children: ReactNode }) {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-[11px] uppercase tracking-[0.2em] text-[#8c7f86]">{copy.language}</span>
+                <span className="mb-1.5 block text-[11px] uppercase tracking-[0.2em] text-[#8c7f86]">{dictionary["countryPopup.language"]}</span>
                 <select
                   name="language"
                   value={language}
@@ -160,9 +141,9 @@ export function CountryLanguageProvider({ children }: { children: ReactNode }) {
                 type="submit"
                 className="h-12 w-full rounded-md bg-[#1f1a17] px-5 text-sm font-medium text-white transition hover:bg-[#332821] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2"
               >
-                {copy.continue}
+                {dictionary["countryPopup.continue"]}
               </button>
-              <p className="text-center text-xs text-[#8c7f86]">{copy.note}</p>
+              <p className="text-center text-xs text-[#8c7f86]">{dictionary["countryPopup.note"]}</p>
             </form>
           </div>
         </div>
@@ -181,7 +162,7 @@ export function useCountryLanguage() {
 
 export function CountryLanguageButton({ className = "" }: { className?: string }) {
   const { country, language, openSelector } = useCountryLanguage();
-  const label = language === "en" ? "Country / language" : "Ország / nyelv";
+  const label = getDictionary(language)["nav.countryLanguage"];
 
   return (
     <button type="button" onClick={openSelector} className={className}>

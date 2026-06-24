@@ -35,10 +35,13 @@ export type FavouriteProduct = {
   productId: string;
   slug: string;
   name: string;
+  nameEn?: string | null;
   shortDescription: string;
+  shortDescriptionEn?: string | null;
   price: number;
   priceEur?: number | null;
   collectionLabel: string;
+  collectionLabelEn?: string | null;
   stockQuantity: number;
   reservedQuantity: number;
   soldOutAt?: Date | null;
@@ -67,6 +70,7 @@ export type CartItemSummary = {
   categoryId: string;
   category: string;
   name: string;
+  nameEn?: string | null;
   price: number;
   priceEur?: number | null;
   quantity: number;
@@ -334,6 +338,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true, 
       categoryId: item.product.categoryId,
       category: item.product.category.slug,
       name: item.product.name,
+      nameEn: item.product.nameEn,
       price: displayPrice ?? 0,
       priceEur: item.product.priceEur,
       quantity: item.quantity,
@@ -461,10 +466,13 @@ export async function getFavouriteProducts(userId: string) {
       productId: entry.product.id,
       slug: entry.product.slug,
       name: entry.product.name,
+      nameEn: entry.product.nameEn,
       shortDescription: entry.product.shortDescription,
+      shortDescriptionEn: entry.product.shortDescriptionEn,
       price: entry.product.price,
       priceEur: entry.product.priceEur,
       collectionLabel: entry.product.collectionLabel,
+      collectionLabelEn: entry.product.collectionLabelEn,
       stockQuantity: entry.product.stockQuantity,
       reservedQuantity: entry.product.reservedQuantity,
       soldOutAt: entry.product.soldOutAt,

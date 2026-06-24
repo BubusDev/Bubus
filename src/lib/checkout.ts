@@ -798,16 +798,19 @@ async function sendOrderConfirmationEmailIfNeeded(orderId: string, correlationId
   }
 
   try {
+    const locale = validateSupportedLanguage(order.language);
+    const numberLocale = locale === "en" ? "en-DE" : "hu-HU";
     await sendOrderConfirmationEmail({
       email: recipientEmail,
       accessModel: order.userId ? "authenticated" : "guest",
+      locale,
       orderNumber: order.orderNumber,
-      totalLabel: new Intl.NumberFormat("hu-HU", {
+      totalLabel: new Intl.NumberFormat(numberLocale, {
         style: "currency",
         currency: order.currency,
         maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
       }).format(order.total),
-      createdAtLabel: new Intl.DateTimeFormat("hu-HU", {
+      createdAtLabel: new Intl.DateTimeFormat(numberLocale, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -817,12 +820,12 @@ async function sendOrderConfirmationEmailIfNeeded(orderId: string, correlationId
       items: order.items.map((item) => ({
         name: item.productName,
         quantity: item.quantity,
-        unitPriceLabel: new Intl.NumberFormat("hu-HU", {
+        unitPriceLabel: new Intl.NumberFormat(numberLocale, {
           style: "currency",
           currency: order.currency,
           maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
         }).format(item.unitPrice),
-        lineTotalLabel: new Intl.NumberFormat("hu-HU", {
+        lineTotalLabel: new Intl.NumberFormat(numberLocale, {
           style: "currency",
           currency: order.currency,
           maximumFractionDigits: order.currency === "EUR" ? 2 : 0,

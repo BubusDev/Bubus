@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import { cookies } from "next/headers";
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
+import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage } from "@/lib/international";
 import { siteDescription, siteName, siteUrl } from "@/lib/site";
 
 import "./globals.css";
@@ -34,8 +36,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const language = validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
+
   return (
-    <html lang="hu" className={`${sans.variable} ${serif.variable}`}>
+    <html lang={language} className={`${sans.variable} ${serif.variable}`}>
       <body className={sans.className}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
