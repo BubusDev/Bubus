@@ -46,6 +46,18 @@ type AssignedCoupon = {
   isActive: boolean;
 };
 
+function formatEurPrice(price: number | null | undefined) {
+  if (typeof price !== "number" || price <= 0) {
+    return "EUR ár hiányzik";
+  }
+
+  return new Intl.NumberFormat("en-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
 type AvailableCoupon = {
   id: string;
   code: string;
@@ -353,9 +365,12 @@ export function ProductsListClient({
                     </p>
                   </div>
                 </div>
-                <p className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
-                  {formatPrice(product.price)}
-                </p>
+                <div className="shrink-0 text-right text-sm font-semibold text-[var(--admin-ink-900)]">
+                  <p>{formatPrice(product.price)}</p>
+                  <p className={product.priceEur ? "text-xs text-[var(--admin-ink-500)]" : "text-xs text-[#9b476f]"}>
+                    {formatEurPrice(product.priceEur)}
+                  </p>
+                </div>
               </div>
 
               <div className="mt-4 grid gap-2 text-sm text-[var(--admin-ink-700)]">
@@ -463,7 +478,12 @@ export function ProductsListClient({
                       {product.category.name}
                     </td>
                     <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
-                      {formatPrice(product.price)}
+                      <div className="flex flex-col gap-1">
+                        <span>{formatPrice(product.price)}</span>
+                        <span className={product.priceEur ? "text-xs text-[var(--admin-ink-500)]" : "text-xs font-medium text-[#9b476f]"}>
+                          {formatEurPrice(product.priceEur)}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-[var(--admin-ink-700)]">
                       <div className="flex flex-col gap-1">

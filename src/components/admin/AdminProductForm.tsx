@@ -89,6 +89,7 @@ type ProductFormState = {
   badge: string;
   collectionLabel: string;
   price: string;
+  priceEur: string;
   stockQuantity: string;
   compareAtPrice: string;
   shortDescription: string;
@@ -429,6 +430,7 @@ function buildInitialFormState(values: AdminProductFormValues): ProductFormState
     badge: values.badge,
     collectionLabel: values.collectionLabel,
     price: String(values.price),
+    priceEur: values.priceEur == null ? "" : String(values.priceEur),
     stockQuantity: String(values.stockQuantity),
     compareAtPrice: values.compareAtPrice,
     shortDescription: values.shortDescription,
@@ -480,6 +482,13 @@ function validateFormState(
   const stockQuantity = Number(formValues.stockQuantity);
   if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
     errors.stockQuantity = "A készlet legyen érvényes, nem negatív egész szám.";
+  }
+
+  if (formValues.priceEur.trim().length > 0) {
+    const priceEur = Number(formValues.priceEur);
+    if (!Number.isInteger(priceEur) || priceEur <= 0) {
+      errors.priceEur = "Az EUR ár legyen üres vagy pozitív egész szám.";
+    }
   }
 
   if (formValues.compareAtPrice.trim().length > 0) {
@@ -1472,6 +1481,7 @@ export function AdminProductForm({
     formData.append("badge", formValues.badge);
     formData.append("collectionLabel", formValues.collectionLabel);
     formData.append("price", formValues.price);
+    formData.append("priceEur", formValues.priceEur);
     formData.append("stockQuantity", formValues.stockQuantity);
     formData.append("compareAtPrice", formValues.compareAtPrice);
     formData.append("shortDescription", formValues.shortDescription);
@@ -1897,6 +1907,28 @@ export function AdminProductForm({
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[var(--admin-ink-500)]">
                   Ft
+                </span>
+              </div>
+            </FieldWrap>
+
+            <FieldWrap
+              label="EUR végár"
+              error={errors.priceEur}
+              helper="EU vásárlóknak megjelenő free shippinggel beépített végár. Aktív termékeknél töltsd ki deploy előtt."
+            >
+              <div className="relative">
+                <input
+                  name="priceEur"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={formValues.priceEur}
+                  onChange={(e) => handleFieldChange("priceEur", e.target.value)}
+                  placeholder="pl. 24"
+                  className={`${inputCls} pr-12`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-ink-500)]">
+                  EUR
                 </span>
               </div>
             </FieldWrap>

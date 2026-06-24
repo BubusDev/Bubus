@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 
 import { ConfirmationStatusCard } from "@/components/checkout/ConfirmationStatusCard";
 import { formatDate } from "@/lib/account";
-import { formatPrice } from "@/lib/catalog";
 import { type ConfirmationStatusSnapshot } from "@/lib/checkout-confirmation-status";
 import { getAccessibleCheckoutOrder } from "@/lib/order-access";
 
@@ -29,7 +28,7 @@ export default async function ConfirmationPage({
         orderId={order.id}
         orderNumber={order.orderNumber}
         createdAtLabel={formatDate(order.createdAt)}
-        totalLabel={formatPrice(order.total)}
+        totalLabel={formatOrderPrice(order.total, order.currency)}
         initialStatus={
           {
             paymentStatus: order.paymentStatus,
@@ -42,4 +41,11 @@ export default async function ConfirmationPage({
       />
     </main>
   );
+}
+function formatOrderPrice(amount: number, currency: string) {
+  return new Intl.NumberFormat(currency === "EUR" ? "en-DE" : "hu-HU", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: currency === "EUR" ? 2 : 0,
+  }).format(amount);
 }

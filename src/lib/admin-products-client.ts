@@ -77,6 +77,7 @@ export function toAdminProductFormValues(
       name: "",
       category: options.categories[0]?.id ?? "",
       price: 0,
+      priceEur: null,
       stockQuantity: 0,
       compareAtPrice: "",
       shortDescription: "",
@@ -121,6 +122,7 @@ export function toAdminProductFormValues(
     name: product.name,
     category: product.categoryId,
     price: product.price,
+    priceEur: product.priceEur,
     stockQuantity: product.stockQuantity,
     compareAtPrice:
       typeof product.compareAtPrice === "number" ? String(product.compareAtPrice) : "",

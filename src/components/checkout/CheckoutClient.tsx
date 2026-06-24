@@ -6,7 +6,9 @@ import { StepIndicator } from "@/components/checkout/StepIndicator";
 import { ContactStep } from "@/components/checkout/steps/ContactStep";
 import { ShippingStep, type ShippingData } from "@/components/checkout/steps/ShippingStep";
 import { PaymentStep } from "@/components/checkout/steps/PaymentStep";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import type { AppliedPromo } from "@/lib/promo-codes";
+import { validateSupportedCountry, type SupportedCountry } from "@/lib/international";
 
 type CheckoutItem = {
   id: string;
@@ -31,6 +33,11 @@ type CheckoutClientProps = {
     name: string;
     phone: string;
     shippingAddress: string;
+    shippingAddressLine1?: string;
+    shippingAddressLine2?: string;
+    shippingPostalCode?: string;
+    shippingCity?: string;
+    shippingCountryCode?: string;
   };
   hasUnavailableItems: boolean;
   status?: string;
@@ -49,12 +56,22 @@ export function CheckoutClient({
   stripePublishableKey,
   stripeConfigured,
 }: CheckoutClientProps) {
+  const { country, language } = useCountryLanguage();
   const [step, setStep] = useState(initialStep);
   const [email, setEmail] = useState(userEmail ?? "");
   const [shippingName, setShippingName] = useState(initialProfile.name);
   const [shippingPhone, setShippingPhone] = useState(initialProfile.phone);
-  const [shippingAddress, setShippingAddress] = useState(initialProfile.shippingAddress);
-  const [shippingMethod, setShippingMethod] = useState("foxpost");
+  const [shippingCountryCode, setShippingCountryCode] = useState<SupportedCountry>(
+    validateSupportedCountry(initialProfile.shippingCountryCode ?? country),
+  );
+  const [shippingAddressLine1, setShippingAddressLine1] = useState(initialProfile.shippingAddressLine1 ?? initialProfile.shippingAddress);
+  const [shippingAddressLine2, setShippingAddressLine2] = useState(initialProfile.shippingAddressLine2 ?? "");
+  const [shippingPostalCode, setShippingPostalCode] = useState(initialProfile.shippingPostalCode ?? "");
+  const [shippingCity, setShippingCity] = useState(initialProfile.shippingCity ?? "");
+  const shippingAddress = [shippingAddressLine1, shippingAddressLine2, `${shippingPostalCode} ${shippingCity}`.trim(), shippingCountryCode]
+    .filter(Boolean)
+    .join("\n");
+  const [shippingMethod, setShippingMethod] = useState(shippingCountryCode === "HU" ? "foxpost" : "international");
   const [foxpostPointCode, setFoxpostPointCode] = useState("");
 
   // Stock/error status from URL param shown on payment step
@@ -73,14 +90,17 @@ export function CheckoutClient({
   function handleShippingNext(data: ShippingData) {
     setShippingName(data.name);
     setShippingPhone(data.phone);
+    setShippingCountryCode(data.countryCode);
+    setShippingAddressLine1(data.addressLine1);
+    setShippingAddressLine2(data.addressLine2);
+    setShippingPostalCode(data.postalCode);
+    setShippingCity(data.city);
     setShippingMethod(data.mode);
 
     if (data.mode === "foxpost") {
       setFoxpostPointCode(data.pointCode);
-      setShippingAddress(`Foxpost csomagpont: ${data.pointCode}`);
     } else {
       setFoxpostPointCode("");
-      setShippingAddress(`${data.address}, ${data.zip} ${data.city}`);
     }
 
     setStep(2);
@@ -113,7 +133,11 @@ export function CheckoutClient({
         <ShippingStep
           initialName={shippingName}
           initialPhone={shippingPhone}
-          initialAddress={shippingMethod === "home" ? shippingAddress : ""}
+          initialAddressLine1={shippingAddressLine1}
+          initialAddressLine2={shippingAddressLine2}
+          initialPostalCode={shippingPostalCode}
+          initialCity={shippingCity}
+          initialCountryCode={shippingCountryCode}
           onNext={handleShippingNext}
           onBack={() => setStep(0)}
         />
@@ -128,6 +152,12 @@ export function CheckoutClient({
             shippingName={shippingName}
             shippingPhone={shippingPhone}
             shippingAddress={shippingAddress}
+            shippingCountryCode={shippingCountryCode}
+            language={language}
+            shippingAddressLine1={shippingAddressLine1}
+            shippingAddressLine2={shippingAddressLine2}
+            shippingPostalCode={shippingPostalCode}
+            shippingCity={shippingCity}
             shippingMethod={shippingMethod}
             foxpostPointCode={foxpostPointCode}
             hasUnavailableItems={hasUnavailableItems}

@@ -19,7 +19,8 @@ import { PromoCodeForm } from "@/components/cart/PromoCodeForm";
 import { ProductImageFrame } from "@/components/shop/ProductImageFrame";
 import { ProductGridClient } from "@/components/shop/ProductGridClient";
 import { type CartItemSummary, getRequestCart } from "@/lib/account";
-import { formatPrice, isProductOutOfStock, type Product } from "@/lib/catalog";
+import { isProductOutOfStock, type Product } from "@/lib/catalog";
+import { formatPriceForCountry, getShippingLineValue, type SupportedCountry, type SupportedLanguage } from "@/lib/international";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getCuratedProductRecommendations } from "@/lib/products-server";
 import type { AppliedPromo } from "@/lib/promo-codes";
@@ -70,7 +71,7 @@ function CartPageHeading() {
   );
 }
 
-function CartItemRow({ item }: { item: CartItemSummary }) {
+function CartItemRow({ item, countryCode }: { item: CartItemSummary; countryCode: SupportedCountry }) {
   const isOutOfStock = isProductOutOfStock(item);
   const isArchived = item.unavailableReason === "archived";
   const isUnavailable = isArchived || !item.isAvailable;
@@ -109,7 +110,7 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
                 {item.name}
               </Link>
               <p className={`text-[12px] sm:text-[13px] ${isUnavailable ? "text-[#aaa]" : "text-[#7a6070]"}`}>
-                Egységár: {formatPrice(item.price)}
+                Egységár: {formatPriceForCountry(item.price, countryCode)}
               </p>
             </div>
             <div>
@@ -204,11 +205,11 @@ function CartItemRow({ item }: { item: CartItemSummary }) {
             </p>
             {isUnavailable ? (
               <p className="text-[1.1rem] font-semibold tracking-[-0.03em] text-[#bbb] line-through sm:text-[1.32rem] lg:mt-1 lg:text-[1.48rem]">
-                {formatPrice(item.lineTotal)}
+                {formatPriceForCountry(item.lineTotal, countryCode)}
               </p>
             ) : (
               <p className="text-[1.1rem] font-semibold tracking-[-0.03em] text-[#4d2741] sm:text-[1.32rem] lg:mt-1 lg:text-[1.48rem]">
-                {formatPrice(item.lineTotal)}
+                {formatPriceForCountry(item.lineTotal, countryCode)}
               </p>
             )}
           </div>
@@ -226,6 +227,8 @@ function CartSummary({
   total,
   hasUnavailableItems,
   instagramHref,
+  countryCode,
+  language,
 }: {
   subtotal: number;
   shipping: number;
@@ -234,6 +237,8 @@ function CartSummary({
   total: number;
   hasUnavailableItems: boolean;
   instagramHref: string;
+  countryCode: SupportedCountry;
+  language: SupportedLanguage;
 }) {
   return (
     <aside className="lg:sticky lg:top-28 lg:h-fit">
@@ -248,18 +253,18 @@ function CartSummary({
         <div className="mt-5 space-y-3 text-sm text-[#6e5262]">
           <div className="flex items-center justify-between">
             <span>Részösszeg</span>
-            <span className="font-medium text-[#4d2741]">{formatPrice(subtotal)}</span>
+            <span className="font-medium text-[#4d2741]">{formatPriceForCountry(subtotal, countryCode)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span>Szállítás</span>
             <span className="font-medium text-[#4d2741]">
-              {shipping > 0 ? formatPrice(shipping) : "Ingyenes"}
+              {getShippingLineValue(language)}
             </span>
           </div>
           {discount > 0 ? (
             <div className="flex items-center justify-between">
               <span>Kedvezmény</span>
-              <span className="font-medium text-[#7a4f67]">-{formatPrice(discount)}</span>
+              <span className="font-medium text-[#7a4f67]">-{formatPriceForCountry(discount, countryCode)}</span>
             </div>
           ) : null}
         </div>
@@ -269,7 +274,7 @@ function CartSummary({
             Végösszeg
           </p>
           <p className="text-[1.65rem] font-semibold leading-none tracking-[-0.04em] text-[#4d2741] sm:text-[1.85rem]">
-            {formatPrice(total)}
+            {formatPriceForCountry(total, countryCode)}
           </p>
         </div>
 
@@ -287,8 +292,7 @@ function CartSummary({
         )}
 
         <p className="mt-4 text-xs leading-6 text-[#8b7080]">
-          A szállítási és fizetési adatokat a következő lépésben adod meg. A szállítási díjat a
-          pénztár oldalon látod véglegesítve.
+          A megjelenített árak a kiválasztott ország szerinti végárak, free shippinggel együtt.
         </p>
 
         <div className="mt-5 grid gap-2 rounded-lg border border-[#f1dfe8] bg-[#fff9fc] p-3 text-xs leading-5 text-[#7a6070]">
@@ -406,7 +410,7 @@ export default async function CartPage() {
               <section>
                 <div className="space-y-3">
                   {cart.items.map((item: CartItemSummary) => (
-                    <CartItemRow key={item.id} item={item} />
+                    <CartItemRow key={item.id} item={item} countryCode={cart.countryCode} />
                   ))}
                 </div>
               </section>
@@ -419,6 +423,8 @@ export default async function CartPage() {
                 total={cart.total}
                 hasUnavailableItems={hasUnavailableItems}
                 instagramHref={homepageContent.instagram.buttonHref}
+                countryCode={cart.countryCode}
+                language={cart.countryCode === "HU" ? "hu" : "en"}
               />
             </div>
 

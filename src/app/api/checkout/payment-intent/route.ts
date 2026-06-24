@@ -19,6 +19,12 @@ type CheckoutIntentPayload = {
   shippingName?: string;
   shippingPhone?: string;
   shippingAddress?: string;
+  shippingCountryCode?: string;
+  language?: string;
+  shippingAddressLine1?: string;
+  shippingAddressLine2?: string | null;
+  shippingPostalCode?: string;
+  shippingCity?: string;
   shippingMethod?: string;
   foxpostPointCode?: string | null;
 };
@@ -61,6 +67,12 @@ export async function POST(request: Request) {
         shippingName: readString(body.shippingName),
         shippingPhone: readString(body.shippingPhone),
         shippingAddress: readString(body.shippingAddress),
+        shippingCountryCode: readString(body.shippingCountryCode),
+        language: readString(body.language),
+        shippingAddressLine1: readString(body.shippingAddressLine1),
+        shippingAddressLine2: readString(body.shippingAddressLine2),
+        shippingPostalCode: readString(body.shippingPostalCode),
+        shippingCity: readString(body.shippingCity),
         shippingMethod: readString(body.shippingMethod) || "foxpost",
         foxpostPointCode: readString(body.foxpostPointCode) || null,
       },
@@ -108,6 +120,10 @@ export async function POST(request: Request) {
 
     if (error instanceof Error && error.message === "CART_EMPTY") {
       return NextResponse.json({ error: "CART_EMPTY" }, { status: 400 });
+    }
+
+    if (error instanceof Error && error.message === "MISSING_EU_PRICE") {
+      return NextResponse.json({ error: "MISSING_EU_PRICE" }, { status: 400 });
     }
 
     if (error instanceof Error && error.message === "CART_OWNER_REQUIRED") {

@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useRef } from "react";
 
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { CountryLanguageButton } from "@/components/international/CountryLanguageProvider";
 import { ProfileDropdown, MiniCouponRow, MiniProductCard } from "@/components/ProfileDropdown";
 import {
   headerSecondaryNavItems,
@@ -228,6 +229,8 @@ export function Header({
               </HeaderActionButton>
 
               <div className="mx-1 h-5 w-px bg-[#e4d6d0]" />
+
+              <CountryLanguageButton className="rounded-full border border-[#e4d6d0] bg-[#fffdfb] px-3 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[#6d5964] transition hover:border-[#d7c3bc] hover:text-[#4d2741] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]" />
 
               {user && couponPreview ? (
                 <div className="relative" ref={desktopCouponRef}>

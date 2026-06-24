@@ -15,6 +15,8 @@ export async function GET() {
       discount: 0,
       appliedPromo: null,
       total: 0,
+      currency: "HUF",
+      countryCode: "HU",
     });
   }
 }

@@ -48,6 +48,8 @@ function formatShippingMethod(shippingMethod?: string | null) {
       return "Foxpost csomagautomata";
     case "home":
       return "Házhozszállítás";
+    case "international":
+      return "EU home delivery";
     default:
       return shippingMethod.trim();
   }

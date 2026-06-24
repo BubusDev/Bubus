@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { formatPrice } from "@/lib/catalog";
+import { getCountryLabel } from "@/lib/international";
 import {
   resendOrderStatusUpdateEmailAction,
   updateOrderAssignmentAction,
@@ -118,6 +118,24 @@ export default async function AdminOrderDetailPage({
                 <p className="text-[11px] text-[#888]">Szállítási cím</p>
                 <p className="font-medium text-[#1a1a1a]">{order.shippingAddress}</p>
               </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Ország</p>
+                <p className="font-medium text-[#1a1a1a]">
+                  {getCountryLabel(order.shippingCountryCode, order.language)} ({order.shippingCountryCode})
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Nyelv / pénznem</p>
+                <p className="font-medium text-[#1a1a1a]">{order.language.toUpperCase()} / {order.currency}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Pricing zone</p>
+                <p className="font-medium text-[#1a1a1a]">{order.pricingZone}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#888]">Shipping model</p>
+                <p className="font-medium text-[#1a1a1a]">Free shipping included</p>
+              </div>
             </div>
           </section>
 
@@ -209,7 +227,11 @@ export default async function AdminOrderDetailPage({
                       <p className="text-[12px] text-[#888]">×{item.quantity}</p>
                     </div>
                     <p className="shrink-0 text-right font-medium text-[#1a1a1a]">
-                      {formatPrice(item.unitPrice * item.quantity)}
+                      {new Intl.NumberFormat(order.currency === "EUR" ? "en-DE" : "hu-HU", {
+                        style: "currency",
+                        currency: order.currency,
+                        maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
+                      }).format(item.unitPrice * item.quantity)}
                     </p>
                   </div>
                 );
@@ -217,7 +239,13 @@ export default async function AdminOrderDetailPage({
             </div>
             <div className="flex items-center justify-between border-t border-[#e8e5e0] px-5 py-3">
               <p className="text-[12px] text-[#888]">Végösszeg</p>
-              <p className="text-lg font-semibold text-[#1a1a1a]">{formatPrice(order.total)}</p>
+              <p className="text-lg font-semibold text-[#1a1a1a]">
+                {new Intl.NumberFormat(order.currency === "EUR" ? "en-DE" : "hu-HU", {
+                  style: "currency",
+                  currency: order.currency,
+                  maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
+                }).format(order.total)}
+              </p>
             </div>
           </section>
 
@@ -508,7 +536,14 @@ export default async function AdminOrderDetailPage({
                     : "—",
                 },
                 { label: "Fizetési mód", value: order.paymentMethod },
-                { label: "Összeg", value: formatPrice(order.total) },
+                {
+                  label: "Összeg",
+                  value: new Intl.NumberFormat(order.currency === "EUR" ? "en-DE" : "hu-HU", {
+                    style: "currency",
+                    currency: order.currency,
+                    maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
+                  }).format(order.total),
+                },
               ].map((row) => (
                 <div key={row.label} className="flex flex-wrap justify-between gap-2 text-[13px]">
                   <span className="text-[#888]">{row.label}</span>

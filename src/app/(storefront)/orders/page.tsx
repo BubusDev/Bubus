@@ -11,7 +11,6 @@ import {
   type OrderSummary,
 } from "@/lib/account";
 import { requireAccountUser } from "@/lib/auth";
-import { formatPrice } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
 
@@ -120,7 +119,7 @@ export default async function OrdersPage() {
                       <div className="xl:text-right">
                         <p className="text-sm text-[#7a6872]">Végösszeg</p>
                         <p className="mt-1 text-lg font-semibold text-[#2d1f28]">
-                          {formatPrice(order.total)}
+                          {formatOrderPrice(order.total, order.currency)}
                         </p>
                       </div>
 
@@ -142,4 +141,11 @@ export default async function OrdersPage() {
       )}
     </AccountShell>
   );
+}
+function formatOrderPrice(amount: number, currency: string) {
+  return new Intl.NumberFormat(currency === "EUR" ? "en-DE" : "hu-HU", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: currency === "EUR" ? 2 : 0,
+  }).format(amount);
 }

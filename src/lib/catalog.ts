@@ -42,6 +42,7 @@ export type Product = {
   name: string;
   category: ProductBaseCategory;
   price: number;
+  priceEur?: number | null;
   compareAtPrice?: number;
   shortDescription: string;
   description: string;

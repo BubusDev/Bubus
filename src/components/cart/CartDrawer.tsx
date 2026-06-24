@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ShoppingBag, X } from "lucide-react";
 
-import { formatPrice } from "@/lib/catalog";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import type { CartItemSummary, CartSummary, FavouriteProduct } from "@/lib/account";
+import { formatPriceForCountry, getDisplayPriceForCountry, getShippingLineValue } from "@/lib/international";
 
 type CartDrawerProps = {
   isOpen: boolean;
@@ -14,7 +15,7 @@ type CartDrawerProps = {
   cartCount: number;
 };
 
-function CartDrawerItem({ item }: { item: CartItemSummary }) {
+function CartDrawerItem({ item, countryCode }: { item: CartItemSummary; countryCode: CartSummary["countryCode"] }) {
   const isArchived = item.unavailableReason === "archived";
 
   return (
@@ -43,7 +44,7 @@ function CartDrawerItem({ item }: { item: CartItemSummary }) {
         <div className="mt-1.5 flex items-center justify-between">
           <p className="text-xs text-[#888]">× {item.quantity}</p>
           <p className="text-xs font-semibold text-[#1a1a1a]">
-            {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
+            {item.isAvailable ? formatPriceForCountry(item.lineTotal, countryCode) : "-"}
           </p>
         </div>
         {isArchived ? (
@@ -61,6 +62,8 @@ function CartDrawerItem({ item }: { item: CartItemSummary }) {
 }
 
 function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
+  const { country } = useCountryLanguage();
+  const displayPrice = getDisplayPriceForCountry(item, country);
   return (
     <div className="flex gap-3 px-4 py-3.5">
       <Link href={`/product/${item.slug}`} className="shrink-0">
@@ -85,7 +88,7 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
         </Link>
         <p className="mt-0.5 text-[10px] text-[#888]">{item.collectionLabel}</p>
         <p className="mt-1 text-xs font-semibold text-[#1a1a1a]">
-          {formatPrice(item.price)}
+          {displayPrice == null ? "Not available for EU delivery" : formatPriceForCountry(displayPrice, country)}
         </p>
       </div>
     </div>
@@ -93,6 +96,7 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
 }
 
 export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
+  const { language } = useCountryLanguage();
   const [cartTab, setCartTab] = useState<"cart" | "wishlist">("cart");
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [wishlist, setWishlist] = useState<FavouriteProduct[] | null>(null);
@@ -187,7 +191,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
               ) : (
                 <div className="divide-y divide-[#f5f4f2]">
                   {cart.items.map((item) => (
-                    <CartDrawerItem key={item.id} item={item} />
+                    <CartDrawerItem key={item.id} item={item} countryCode={cart.countryCode} />
                   ))}
                 </div>
               )}
@@ -247,13 +251,13 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
             <div className="mb-1 flex justify-between text-sm">
               <span className="text-[#888]">Részösszeg</span>
               <span className="font-semibold text-[#1a1a1a]">
-                {formatPrice(cart.subtotal)}
+                {formatPriceForCountry(cart.subtotal, cart.countryCode)}
               </span>
             </div>
             <div className="mb-4 flex justify-between text-sm">
               <span className="text-[#888]">Szállítás</span>
               <span className="font-medium text-[#16a34a]">
-                {cart.shipping > 0 ? formatPrice(cart.shipping) : "Ingyenes"}
+                {getShippingLineValue(language)}
               </span>
             </div>
             {hasUnavailableItems ? (

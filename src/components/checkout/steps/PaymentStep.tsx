@@ -7,7 +7,7 @@ import { LoaderCircle, ShieldCheck } from "lucide-react";
 
 import { StripeCheckoutForm } from "@/components/checkout/StripeCheckoutForm";
 import { PromoCodeForm } from "@/components/cart/PromoCodeForm";
-import { formatPrice } from "@/lib/catalog";
+import { formatPriceForCountry, getShippingLineValue, type SupportedCountry, type SupportedLanguage } from "@/lib/international";
 import type { AppliedPromo } from "@/lib/promo-codes";
 
 type PaymentStepProps = {
@@ -16,6 +16,12 @@ type PaymentStepProps = {
   shippingName: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingCountryCode: SupportedCountry;
+  language: SupportedLanguage;
+  shippingAddressLine1: string;
+  shippingAddressLine2: string;
+  shippingPostalCode: string;
+  shippingCity: string;
   shippingMethod: string;
   foxpostPointCode: string;
   hasUnavailableItems: boolean;
@@ -44,6 +50,8 @@ function buildErrorMessage(
       return "A kosárban lévő egyik termék már nem elérhető. Térj vissza a kosárhoz és távolítsd el.";
     case "CART_EMPTY":
       return "A kosár kiürült. Ellenőrizd a kosarat, mielőtt újra fizetést indítasz.";
+    case "MISSING_EU_PRICE":
+      return "One or more products are not available for EU delivery yet. Please remove them from your cart or choose Hungary.";
     case "CHECKOUT_EMAIL_REQUIRED":
       return "Előbb add meg az e-mail-címed a kapcsolati adatok lépésben.";
     case "STRIPE_NOT_CONFIGURED":
@@ -51,8 +59,8 @@ function buildErrorMessage(
     case "AMOUNT_BELOW_MINIMUM": {
       const min = details?.minimumAmount;
       const cur = details?.currency;
-      return typeof min === "number" && cur === "HUF"
-        ? `A rendelés végösszegének legalább ${formatPrice(min)} összegűnek kell lennie a Stripe fizetéshez.`
+      return typeof min === "number" && cur
+        ? `A rendelés végösszegének legalább ${min} ${cur} összegűnek kell lennie a Stripe fizetéshez.`
         : "A rendelés végösszege túl alacsony a Stripe fizetéshez.";
     }
     case "PROMO_INVALID_CODE":
@@ -80,6 +88,12 @@ export function PaymentStep({
   shippingName,
   shippingPhone,
   shippingAddress,
+  shippingCountryCode,
+  language,
+  shippingAddressLine1,
+  shippingAddressLine2,
+  shippingPostalCode,
+  shippingCity,
   shippingMethod,
   foxpostPointCode,
   hasUnavailableItems,
@@ -111,6 +125,12 @@ export function PaymentStep({
           shippingName,
           shippingPhone,
           shippingAddress,
+          shippingCountryCode,
+          language,
+          shippingAddressLine1,
+          shippingAddressLine2,
+          shippingPostalCode,
+          shippingCity,
           shippingMethod,
           foxpostPointCode: foxpostPointCode || undefined,
         }),
@@ -198,8 +218,13 @@ export function PaymentStep({
         <ShieldCheck className="mt-0.5 h-4 w-4 text-[#888] shrink-0" />
         <p>
           A fizetési összeget a kosár aktuális tartalmából számoljuk. A végösszeg:{" "}
-          <span className="font-semibold text-[#1a1a1a]">{formatPrice(cartTotal)}</span>
+          <span className="font-semibold text-[#1a1a1a]">{formatPriceForCountry(cartTotal, shippingCountryCode)}</span>
         </p>
+      </div>
+
+      <div className="mb-5 rounded-md border border-[#e8e5e0] bg-white px-4 py-3 text-sm text-[#555]">
+        <span className="font-medium text-[#1a1a1a]">{language === "en" ? "Shipping" : "Szállítás"}:</span>{" "}
+        {getShippingLineValue(language)}
       </div>
 
       {clientSecret && stripePromise ? (
@@ -207,7 +232,7 @@ export function PaymentStep({
           stripe={stripePromise}
           options={{
             clientSecret,
-            locale: "hu",
+            locale: language === "en" ? "en" : "hu",
             appearance: {
               theme: "stripe",
               variables: {

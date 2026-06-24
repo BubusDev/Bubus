@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { Playfair_Display, Inter } from 'next/font/google'
 
 import type { HomepageBlockView } from '@/lib/homepage-content'
+import { useCountryLanguage } from '@/components/international/CountryLanguageProvider'
+import { formatPriceForCountry, getDisplayPriceForCountry } from '@/lib/international'
 import { getBrowserDisplayImageUrl } from '@/lib/image-safety'
 
 const playfair = Playfair_Display({
@@ -27,6 +29,7 @@ type ShowcaseProduct = {
   name: string
   category?: string
   price: number
+  priceEur?: number | null
   imageUrl?: string | null
   images?: {
     url: string
@@ -47,6 +50,7 @@ type Product = {
   id: string
   name: string
   price: number
+  priceEur?: number | null
   href: string
   imageUrl: string | null
   imageAlt: string
@@ -105,6 +109,7 @@ function mapProduct(product: ShowcaseProduct): Product {
     id: product.id,
     name: product.name,
     price: product.price,
+    priceEur: product.priceEur,
     href: `/product/${product.slug}`,
     imageUrl: image.url,
     imageAlt: image.alt,
@@ -223,6 +228,8 @@ function ProductCard({
   isWishlisted,
   onWishlistToggle,
 }: ProductCardProps) {
+  const { country } = useCountryLanguage()
+  const displayPrice = getDisplayPriceForCountry(product, country)
   return (
     <article className="group w-full cursor-pointer md:w-[260px] md:flex-none">
       <div className="relative mb-[14px] h-[320px] overflow-hidden bg-[#E8D5CF]">
@@ -276,7 +283,7 @@ function ProductCard({
         <p
           className={`${inter.className} text-[13px] font-normal text-[#9C6B63]`}
         >
-          {product.price.toLocaleString('hu-HU')} Ft
+          {displayPrice == null ? 'Not available for EU delivery' : formatPriceForCountry(displayPrice, country)}
         </p>
       </Link>
     </article>

@@ -6,12 +6,17 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 
 import { AddToCartForm } from "@/components/shop/AddToCartForm";
 import {
-  formatPrice,
   isProductOutOfStock,
   type Product,
 } from "@/lib/catalog";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import { getCenteredBackgroundFillStyle } from "@/lib/image-crop";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
+import {
+  formatPriceForCountry,
+  getDisplayPriceForCountry,
+  getFreeShippingLabel,
+} from "@/lib/international";
 
 // Minimal structural type accepted by both "grid" and "saved" variants.
 // Product satisfies this structurally.
@@ -21,6 +26,7 @@ export type ProductCardData = {
   slug: string;
   name: string;
   price: number;
+  priceEur?: number | null;
   collectionLabel: string;
   stockQuantity: number;
   reservedQuantity: number;
@@ -94,6 +100,7 @@ export function ProductCard({
   onAddToCart,
   onRemove,
 }: ProductCardProps) {
+  const { country, language } = useCountryLanguage();
   const [isWishlistPending, startWishlistTransition] = useTransition();
   const [isAddToCartPending, startAddToCartTransition] = useTransition();
   const [isRemovePending, startRemoveTransition] = useTransition();
@@ -156,6 +163,12 @@ export function ProductCard({
   const isOutOfStock = isProductOutOfStock(product);
   const isHeartPending = isFavouritePending || isWishlistPending;
   const differentiator = getProductCardDifferentiator(product);
+  const displayPrice = getDisplayPriceForCountry(product, country);
+  const displayedPrice = displayPrice == null
+    ? language === "en" ? "Not available for EU delivery" : "EU szállításhoz még nem elérhető"
+    : formatPriceForCountry(displayPrice, country);
+  const freeShippingLabel = getFreeShippingLabel(language);
+  const isMissingZonePrice = displayPrice == null;
   const imageStateClass = isOutOfStock
     ? "saturate-[0.78] brightness-[0.96]"
     : "";
@@ -264,8 +277,9 @@ export function ProductCard({
             {product.name}
           </Link>
           <p className="mt-0.5 text-[10px] font-semibold text-[#1a1a1a] sm:mt-1 sm:text-[13px] sm:text-sm">
-            {formatPrice(product.price)}
+            {displayedPrice}
           </p>
+          <p className="mt-0.5 text-[9px] text-[#8a7a82] sm:text-[11px]">{freeShippingLabel}</p>
         </div>
 
         {/* Action row */}
@@ -277,10 +291,10 @@ export function ProductCard({
                 await onAddToCart?.();
               });
             }}
-            disabled={isOutOfStock || isAddToCartPending}
+            disabled={isOutOfStock || isMissingZonePrice || isAddToCartPending}
             aria-label={`${product.name} hozzáadása a táskához`}
             className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-[11px] uppercase tracking-[0.14em] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] ${
-              isOutOfStock || isAddToCartPending
+              isOutOfStock || isMissingZonePrice || isAddToCartPending
                 ? "cursor-not-allowed text-[#b69dad]"
                 : "bg-[#fff7fa] text-[#6b425a] hover:bg-[#fbe6f0] hover:text-[#b84777]"
             }`}
@@ -448,12 +462,13 @@ export function ProductCard({
           </p>
         ) : null}
         <p className="mt-0.5 text-[10px] font-semibold text-[#1a1a1a] sm:mt-1 sm:text-[13px] sm:text-sm">
-          {formatPrice(product.price)}
+          {displayedPrice}
         </p>
+        <p className="mt-0.5 text-[9px] text-[#8a7a82] sm:text-[11px]">{freeShippingLabel}</p>
         <div className="hidden sm:flex mt-1.5 min-h-9 items-center justify-between opacity-100 transition-[opacity,transform] duration-300 ease-out sm:min-h-10 sm:opacity-75 sm:group-hover:-translate-y-px sm:group-hover:opacity-100 sm:group-focus-within:-translate-y-px sm:group-focus-within:opacity-100">
           {showWishlistToggle && wishlistPlacement === "inline" ? wishlistButton : <span aria-hidden="true" />}
 
-          {showAddToCart ? (
+          {showAddToCart && !isMissingZonePrice ? (
             <AddToCartForm
               productId={product.id}
               quantity={1}

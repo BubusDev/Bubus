@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import { submitReturnRequestAction } from "@/app/(storefront)/order-status/actions";
 import { formatDate } from "@/lib/account";
-import { formatPrice } from "@/lib/catalog";
 import { getAccessibleCheckoutOrder } from "@/lib/order-access";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
 
@@ -11,6 +10,14 @@ type GuestOrderStatusDetailPageProps = {
   params: Promise<{ orderId: string }>;
   searchParams: Promise<{ return?: string }>;
 };
+
+function formatOrderPrice(amount: number, currency: string) {
+  return new Intl.NumberFormat(currency === "EUR" ? "en-DE" : "hu-HU", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: currency === "EUR" ? 2 : 0,
+  }).format(amount);
+}
 
 export default async function GuestOrderStatusDetailPage({
   params,
@@ -53,7 +60,7 @@ export default async function GuestOrderStatusDetailPage({
             <p className="mt-1 text-lg font-semibold text-[#2d1f28]">
               {formatDate(order.createdAt)}
             </p>
-            <p className="mt-2 text-sm text-[#7a6872]">Végösszeg: {formatPrice(order.total)}</p>
+            <p className="mt-2 text-sm text-[#7a6872]">Végösszeg: {formatOrderPrice(order.total, order.currency)}</p>
           </div>
         </div>
 

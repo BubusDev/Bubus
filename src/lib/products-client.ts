@@ -73,6 +73,7 @@ export type AdminProductFormValues = {
   name: string;
   category: string;
   price: number;
+  priceEur: number | null;
   stockQuantity: number;
   compareAtPrice: string;
   shortDescription: string;

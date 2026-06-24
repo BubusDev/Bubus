@@ -9,6 +9,7 @@ import { RouteAwareSiteFooter } from "@/components/RouteAwareSiteFooter";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
 import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
 import { CookieSettingsPanel } from "@/components/cookies/CookieSettingsPanel";
+import { CountryLanguageProvider } from "@/components/international/CountryLanguageProvider";
 import { TrackingScripts } from "@/components/cookies/TrackingScripts";
 import { getHeaderCounts, getHeaderCouponDropdownPreview } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
@@ -57,25 +58,27 @@ export default async function StorefrontLayout({
         </Script>
       ) : null}
 
-      <CookieConsentProvider initialConsent={initialConsent}>
-        <TrackingScripts />
-        <div className="storefront-shell">
-          <AnnouncementBar announcement={announcement} />
-          <Header
-            user={user ?? undefined}
-            favouritesCount={counts.favourites}
-            cartCount={counts.cartItems}
-            couponPreview={couponPreview}
-            navigationCategories={navigationCategories}
-            specialtyItems={specialtyItems}
-          />
-          <CategoryNav navigationCategories={navigationCategories} specialtyItems={specialtyItems} />
-          {children}
-          <RouteAwareSiteFooter />
-        </div>
-        <CookieBanner />
-        <CookieSettingsPanel />
-      </CookieConsentProvider>
+      <CountryLanguageProvider>
+        <CookieConsentProvider initialConsent={initialConsent}>
+          <TrackingScripts />
+          <div className="storefront-shell">
+            <AnnouncementBar announcement={announcement} />
+            <Header
+              user={user ?? undefined}
+              favouritesCount={counts.favourites}
+              cartCount={counts.cartItems}
+              couponPreview={couponPreview}
+              navigationCategories={navigationCategories}
+              specialtyItems={specialtyItems}
+            />
+            <CategoryNav navigationCategories={navigationCategories} specialtyItems={specialtyItems} />
+            {children}
+            <RouteAwareSiteFooter />
+          </div>
+          <CookieBanner />
+          <CookieSettingsPanel />
+        </CookieConsentProvider>
+      </CountryLanguageProvider>
     </>
   );
 }

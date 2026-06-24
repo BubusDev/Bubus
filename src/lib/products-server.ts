@@ -394,6 +394,7 @@ function mapProduct(product: DbProductWithRelations, manualSortOrder?: number | 
     name: getSafeString(product.name, "Névtelen termék"),
     category: normalizeCategorySlug(category.slug),
     price: product.price,
+    priceEur: product.priceEur,
     compareAtPrice: product.compareAtPrice ?? undefined,
     shortDescription,
     description: getSafeString(product.description, shortDescription),
@@ -1274,6 +1275,7 @@ export type AdminProductFormValues = {
   name: string;
   category: string;
   price: number;
+  priceEur: number | null;
   stockQuantity: number;
   compareAtPrice: string;
   shortDescription: string;
@@ -1398,6 +1400,7 @@ export function toAdminProductFormValues(
       name: "",
       category: options.categories[0]?.id ?? "",
       price: 0,
+      priceEur: null,
       stockQuantity: 0,
       compareAtPrice: "",
       shortDescription: "",
@@ -1442,6 +1445,7 @@ export function toAdminProductFormValues(
     name: product.name,
     category: product.categoryId,
     price: product.price,
+    priceEur: product.priceEur,
     stockQuantity: product.stockQuantity,
     compareAtPrice:
       typeof product.compareAtPrice === "number" ? String(product.compareAtPrice) : "",
@@ -1519,6 +1523,8 @@ export async function parseProductFormData(
   const shortDescription = readString(formData, "shortDescription");
   const description = readString(formData, "description");
   const price = readNumber(formData, "price");
+  const priceEurInput = readString(formData, "priceEur");
+  const priceEur = priceEurInput.length > 0 ? Number(priceEurInput) : null;
   const stockQuantity = readNumber(formData, "stockQuantity");
   const compareAtPrice = readString(formData, "compareAtPrice");
   const homepagePlacement = requireNonEmptyString(
@@ -1537,6 +1543,13 @@ export async function parseProductFormData(
         ? "Az aktív termék ára legyen pozitív egész Ft összeg."
         : "Az ár legyen nem negatív egész Ft összeg.",
     );
+  }
+
+  if (
+    priceEur !== null &&
+    (!Number.isInteger(priceEur) || priceEur <= 0)
+  ) {
+    throw new Error("Az EUR ár legyen üres vagy pozitív egész szám.");
   }
 
   if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
@@ -1584,6 +1597,7 @@ export async function parseProductFormData(
       name,
       categoryId,
       price,
+      priceEur,
       stockQuantity,
       compareAtPrice: compareAtPriceNumber,
       shortDescription,

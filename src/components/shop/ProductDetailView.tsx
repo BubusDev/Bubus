@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { addFavouriteAction } from "@/app/(storefront)/account/actions";
 import { StoneInfoButton } from "@/components/product/StoneInfoButton";
-import { AddToCartTextButton } from "@/components/shop/AddToCartButtons";
+import { CountryPrice } from "@/components/international/CountryPrice";
+import { CountryAwareAddToCartTextButton } from "@/components/international/CountryAwareAddToCartTextButton";
 import { ProductImageGallery } from "@/components/shop/ProductImageGallery";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
 import {
@@ -118,7 +119,7 @@ export function ProductDetailView({
           <div className="rounded-lg border border-[#e8e5e0] bg-white px-4 py-3">
             <div className="flex flex-wrap items-baseline gap-3">
               <span className="text-2xl font-semibold tracking-[-0.04em] text-[#1a1a1a] sm:text-[1.7rem]">
-                {formatPrice(product.price)}
+                <CountryPrice product={product} />
               </span>
               {product.compareAtPrice && (
                 <span className="text-sm text-[#888] line-through">
@@ -172,7 +173,7 @@ export function ProductDetailView({
             style={{ border: "1px solid #e8e5e0" }}
           >
             <Truck className="h-4 w-4 flex-shrink-0 text-[#888]" />
-            <span>2-4 munkanapos szállítás raktáron lévő darabokra</span>
+            <CountryPrice product={product} showFreeShipping className="sr-only" />
           </div>
 
           {/* 4. Kosárba */}
@@ -182,13 +183,14 @@ export function ProductDetailView({
                 <span className="text-[#756a70]">Mennyiség</span>
                 <span className="font-medium text-[#1a1a1a]">1 db</span>
               </div>
-              <AddToCartTextButton
-                productId={product.id}
+              <CountryAwareAddToCartTextButton
+                product={product}
                 redirectTo={`/product/${product.slug}`}
                 disabled={isOutOfStock}
                 idleLabel="Kosárba teszem"
                 addedLabel="Kosárban"
                 soldOutLabel="Elfogyott"
+                unavailableLabel="EU szállításhoz nem elérhető"
                 iconClassName="h-4 w-4"
                 baseClassName="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
                 disabledClassName="cursor-not-allowed bg-[#ebe5e8] text-[#7e7278]"

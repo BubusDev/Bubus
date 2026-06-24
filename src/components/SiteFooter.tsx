@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
+import { CountryLanguageButton } from "@/components/international/CountryLanguageProvider";
 
 type SiteFooterProps = {
   showCategoryDiscovery?: boolean;
@@ -184,6 +185,9 @@ export function SiteFooter({ showCategoryDiscovery = false }: SiteFooterProps) {
                   <CookieSettingsButton className="inline-flex min-h-7 items-center text-sm text-[#aaa] underline underline-offset-2 transition hover:text-white hover:no-underline">
                     Cookie beállítások
                   </CookieSettingsButton>
+                </li>
+                <li>
+                  <CountryLanguageButton className="inline-flex min-h-7 items-center text-sm text-[#aaa] underline underline-offset-2 transition hover:text-white hover:no-underline" />
                 </li>
               </ul>
             </div>

@@ -192,6 +192,7 @@ model Product {
   categoryId        String
   category          ProductOption      @relation("ProductCategory", fields: [categoryId], references: [id])
   price             Int
+  priceEur          Int?
   compareAtPrice    Int?
   shortDescription  String
   description       String
@@ -543,6 +544,9 @@ model Order {
   trackingNumber  String?
   shippingMethod   String?
   foxpostPointCode String?
+  shippingCountryCode String   @default("HU")
+  pricingZone     String      @default("HU")
+  language        String      @default("hu")
   internalNote     String?
   statusUpdatedAt DateTime?
   subtotal        Int
@@ -555,6 +559,10 @@ model Order {
   shippingName    String
   shippingPhone   String
   shippingAddress String
+  shippingAddressLine1 String?
+  shippingAddressLine2 String?
+  shippingPostalCode String?
+  shippingCity    String?
   paymentMethod   String
   stripePaymentIntentId String? @unique
   paidAt          DateTime?
@@ -719,6 +727,7 @@ model OrderItem {
   productSlug String
   imageUrl    String?
   unitPrice   Int
+  unitPriceCurrency String @default("HUF")
   quantity    Int
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)

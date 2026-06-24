@@ -6,7 +6,7 @@ import { CheckoutClient } from "@/components/checkout/CheckoutClient";
 import { getRequestCart } from "@/lib/account";
 import { getCheckoutSession } from "@/lib/checkoutSession";
 import { getCurrentUser } from "@/lib/auth";
-import { formatPrice } from "@/lib/catalog";
+import { formatPriceForCountry, getShippingLineValue } from "@/lib/international";
 import { getStripePublishableKey, isStripeConfigured } from "@/lib/stripe";
 
 type CheckoutPageProps = {
@@ -87,6 +87,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                 name: user?.name ?? "",
                 phone: user?.phone ?? "",
                 shippingAddress: user?.defaultShippingAddress ?? "",
+                shippingCountryCode: cart.countryCode,
               }}
               hasUnavailableItems={hasUnavailableItems}
               status={resolvedSearchParams.status}
@@ -125,7 +126,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
                     ) : null}
                   </span>
                   <span className="shrink-0 text-sm font-medium text-[#1a1a1a]">
-                    {item.isAvailable ? formatPrice(item.lineTotal) : "-"}
+                    {item.isAvailable ? formatPriceForCountry(item.lineTotal, cart.countryCode) : "-"}
                   </span>
                 </div>
               ))}
@@ -135,25 +136,25 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
               <div className="space-y-2 border-t border-[#e8e5e0] pt-4 text-sm text-[#555]">
                 <div className="flex items-center justify-between">
                   <span>Részösszeg</span>
-                  <span className="font-medium text-[#1a1a1a]">{formatPrice(cart.subtotal)}</span>
+                  <span className="font-medium text-[#1a1a1a]">{formatPriceForCountry(cart.subtotal, cart.countryCode)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Szállítás</span>
                   <span className="font-medium text-[#1a1a1a]">
-                    {cart.shipping > 0 ? formatPrice(cart.shipping) : "Ingyenes"}
+                    {getShippingLineValue(cart.countryCode === "HU" ? "hu" : "en")}
                   </span>
                 </div>
                 {cart.discount > 0 ? (
                   <div className="flex items-center justify-between">
                     <span>Kedvezmény</span>
-                    <span className="font-medium text-[#7a4f67]">-{formatPrice(cart.discount)}</span>
+                    <span className="font-medium text-[#7a4f67]">-{formatPriceForCountry(cart.discount, cart.countryCode)}</span>
                   </div>
                 ) : null}
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-[#e8e5e0] pt-4">
                 <span className="text-sm text-[#555]">Végösszeg</span>
                 <span className="text-xl font-semibold text-[#1a1a1a]">
-                  {formatPrice(cart.total)}
+                  {formatPriceForCountry(cart.total, cart.countryCode)}
                 </span>
               </div>
               {hasUnavailableItems ? (

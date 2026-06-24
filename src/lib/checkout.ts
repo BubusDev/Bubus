@@ -15,13 +15,22 @@ import {
   sendOutOfStockAdminNotification,
 } from "@/lib/admin-notifications";
 import {
-  STRIPE_CURRENCY,
   fromStripeAmount,
   getStripeMinimumAmount,
   isStripeAmountBelowMinimum,
   normalizeStoredPrice,
   toStripeAmount,
 } from "@/lib/catalog";
+import {
+  defaultCountry,
+  getCountryConfig,
+  isShippingMethodAllowedForCountry,
+  requireDisplayPriceForCountry,
+  validateSupportedCountry,
+  validateSupportedLanguage,
+  type SupportedCountry,
+  type SupportedLanguage,
+} from "@/lib/international";
 import {
   completeReservedOrderInventory,
   hasBecomeOutOfStock,
@@ -43,6 +52,12 @@ type CheckoutCustomerInput = {
   shippingName: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingCountryCode?: string;
+  language?: string;
+  shippingAddressLine1?: string;
+  shippingAddressLine2?: string | null;
+  shippingPostalCode?: string;
+  shippingCity?: string;
   shippingMethod?: string;
   foxpostPointCode?: string | null;
 };
@@ -94,7 +109,7 @@ export class CheckoutAmountTooLowError extends Error {
   readonly minimumStripeAmount: number;
   readonly requestedStripeAmount: number;
 
-  constructor(requestedStripeAmount: number, currency = STRIPE_CURRENCY) {
+  constructor(requestedStripeAmount: number, currency = "huf") {
     super("Checkout total is below Stripe's minimum charge amount.");
     this.name = "CheckoutAmountTooLowError";
     this.currency = currency;
@@ -121,10 +136,24 @@ function createOrderNumber() {
 }
 
 function sanitizeCheckoutCustomer(input: CheckoutCustomerInput) {
+  const countryCode = validateSupportedCountry(input.shippingCountryCode);
+  const addressLine1 = (input.shippingAddressLine1 ?? "").trim();
+  const addressLine2 = (input.shippingAddressLine2 ?? "").trim();
+  const postalCode = (input.shippingPostalCode ?? "").trim();
+  const city = (input.shippingCity ?? "").trim();
+  const shippingAddress = input.shippingAddress.trim() ||
+    [addressLine1, addressLine2, `${postalCode} ${city}`.trim(), countryCode].filter(Boolean).join("\n");
+
   return {
     shippingName: input.shippingName.trim(),
     shippingPhone: input.shippingPhone.trim(),
-    shippingAddress: input.shippingAddress.trim(),
+    shippingAddress,
+    shippingCountryCode: countryCode,
+    language: validateSupportedLanguage(input.language),
+    shippingAddressLine1: addressLine1,
+    shippingAddressLine2: addressLine2 || null,
+    shippingPostalCode: postalCode,
+    shippingCity: city,
   };
 }
 
@@ -135,6 +164,7 @@ function normalizeCheckoutPrice(amount: number) {
 export async function getCheckoutCartSnapshot(
   tx: Prisma.TransactionClient,
   actor: CheckoutActor,
+  countryCode: SupportedCountry = defaultCountry,
 ): Promise<CheckoutCartSnapshot> {
   const cart = await tx.cart.findUnique({
     where: actor.userId ? { userId: actor.userId } : { guestToken: actor.guestToken ?? "" },
@@ -197,7 +227,7 @@ export async function getCheckoutCartSnapshot(
       categoryId: item.product.categoryId,
       category: item.product.category.slug,
       name: item.product.name,
-      price: normalizeCheckoutPrice(item.product.price),
+      price: normalizeCheckoutPrice(requireDisplayPriceForCountry(item.product, countryCode)),
       quantity: item.quantity,
       imageUrl: coverImage?.url ?? item.product.imageUrl ?? null,
     } satisfies CheckoutCartItem;
@@ -257,8 +287,26 @@ async function upsertPendingOrderRecord(
   const duration = createDurationTracker();
   const customer = sanitizeCheckoutCustomer(input);
   const email = input.email.trim().toLowerCase();
+  const countryConfig = getCountryConfig(customer.shippingCountryCode);
+  const stripeCurrency = countryConfig.stripeCurrency;
+  const orderCurrency = countryConfig.currency;
+  const pricingZone = countryConfig.pricingZone;
+  const requestedShippingMethod = input.shippingMethod ?? (customer.shippingCountryCode === "HU" ? "foxpost" : "international");
+  const shippingMethod = isShippingMethodAllowedForCountry(requestedShippingMethod, customer.shippingCountryCode)
+    ? requestedShippingMethod
+    : customer.shippingCountryCode === "HU"
+      ? "foxpost"
+      : "international";
 
-  if (!email || !customer.shippingName || !customer.shippingPhone || !customer.shippingAddress) {
+  if (
+    !email ||
+    !customer.shippingName ||
+    !customer.shippingPhone ||
+    !customer.shippingAddress ||
+    !customer.shippingAddressLine1 ||
+    !customer.shippingPostalCode ||
+    !customer.shippingCity
+  ) {
     throw new Error("INVALID_SHIPPING");
   }
 
@@ -306,11 +354,11 @@ async function upsertPendingOrderRecord(
     await releaseOrderInventoryReservation(tx, { orderId: existingOrder.id });
   }
 
-  const cart = await getCheckoutCartSnapshot(tx, actor);
-  const stripeAmount = toStripeAmount(cart.total, STRIPE_CURRENCY);
+  const cart = await getCheckoutCartSnapshot(tx, actor, customer.shippingCountryCode);
+  const stripeAmount = toStripeAmount(cart.total, stripeCurrency);
 
-  if (isStripeAmountBelowMinimum(stripeAmount, STRIPE_CURRENCY)) {
-    throw new CheckoutAmountTooLowError(stripeAmount, STRIPE_CURRENCY);
+  if (isStripeAmountBelowMinimum(stripeAmount, stripeCurrency)) {
+    throw new CheckoutAmountTooLowError(stripeAmount, stripeCurrency);
   }
 
   const guestAccessToken = actor.userId
@@ -326,15 +374,22 @@ async function upsertPendingOrderRecord(
     promoCodeText: cart.promoCodeText,
     promoDiscountPercent: cart.promoDiscountPercent,
     total: cart.total,
-    currency: "HUF",
+    currency: orderCurrency,
     guestEmail: actor.userId ? null : email,
     guestCartToken: actor.userId ? null : actor.guestToken ?? null,
     guestAccessTokenHash,
     shippingName: customer.shippingName,
     shippingPhone: customer.shippingPhone,
     shippingAddress: customer.shippingAddress,
-    shippingMethod: input.shippingMethod ?? "foxpost",
-    foxpostPointCode: input.foxpostPointCode ?? null,
+    shippingCountryCode: customer.shippingCountryCode,
+    pricingZone,
+    language: customer.language,
+    shippingAddressLine1: customer.shippingAddressLine1,
+    shippingAddressLine2: customer.shippingAddressLine2,
+    shippingPostalCode: customer.shippingPostalCode,
+    shippingCity: customer.shippingCity,
+    shippingMethod,
+    foxpostPointCode: shippingMethod === "foxpost" ? input.foxpostPointCode ?? null : null,
     paymentMethod: "Stripe",
     paidAt: null,
     stockReservedAt: null,
@@ -349,6 +404,7 @@ async function upsertPendingOrderRecord(
         productSlug: item.slug,
         imageUrl: item.imageUrl,
         unitPrice: item.price,
+        unitPriceCurrency: orderCurrency,
         quantity: item.quantity,
       })),
     },
@@ -438,14 +494,18 @@ export async function initializeStripeCheckout(
 
   const stripe = getStripe();
 
+  const customer = sanitizeCheckoutCustomer(input);
+  const countryConfig = getCountryConfig(customer.shippingCountryCode);
+  const stripeCurrency = countryConfig.stripeCurrency;
+
   const { order, cart, guestAccessToken } = await db.$transaction((tx) =>
     upsertPendingOrderRecord(tx, actor, input, correlationId),
   );
 
-  const amount = toStripeAmount(cart.total, STRIPE_CURRENCY);
+  const amount = toStripeAmount(cart.total, stripeCurrency);
 
-  if (isStripeAmountBelowMinimum(amount, STRIPE_CURRENCY)) {
-    throw new CheckoutAmountTooLowError(amount, STRIPE_CURRENCY);
+  if (isStripeAmountBelowMinimum(amount, stripeCurrency)) {
+    throw new CheckoutAmountTooLowError(amount, stripeCurrency);
   }
 
   let paymentIntentId = order.stripePaymentIntentId ?? null;
@@ -455,7 +515,7 @@ export async function initializeStripeCheckout(
     try {
       const updatedIntent = await stripe.paymentIntents.update(paymentIntentId, {
         amount,
-        currency: STRIPE_CURRENCY,
+        currency: stripeCurrency,
         metadata: {
           orderId: order.id,
           orderNumber: order.orderNumber,
@@ -503,7 +563,7 @@ export async function initializeStripeCheckout(
   if (!paymentIntentId || !clientSecret) {
     const createdIntent = await stripe.paymentIntents.create({
       amount,
-      currency: STRIPE_CURRENCY,
+      currency: stripeCurrency,
       automatic_payment_methods: {
         enabled: true,
       },
@@ -553,7 +613,7 @@ export async function initializeStripeCheckout(
       paymentIntentId,
       cartId: cart.cartId,
       amount: cart.total,
-      currency: STRIPE_CURRENCY,
+      currency: stripeCurrency,
       actorType: actor.userId ? "authenticated" : "guest",
       status: "completed",
       result: paymentIntentId ? "ready" : "missing_payment_intent",
@@ -566,7 +626,7 @@ export async function initializeStripeCheckout(
     orderId: order.id,
     clientSecret,
     amount: cart.total,
-    currency: "HUF",
+    currency: countryConfig.currency,
     guestOrderAccessToken: actor.userId ? null : guestAccessToken,
   };
 }
@@ -745,7 +805,7 @@ async function sendOrderConfirmationEmailIfNeeded(orderId: string, correlationId
       totalLabel: new Intl.NumberFormat("hu-HU", {
         style: "currency",
         currency: order.currency,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
       }).format(order.total),
       createdAtLabel: new Intl.DateTimeFormat("hu-HU", {
         year: "numeric",
@@ -760,12 +820,12 @@ async function sendOrderConfirmationEmailIfNeeded(orderId: string, correlationId
         unitPriceLabel: new Intl.NumberFormat("hu-HU", {
           style: "currency",
           currency: order.currency,
-          maximumFractionDigits: 0,
+          maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
         }).format(item.unitPrice),
         lineTotalLabel: new Intl.NumberFormat("hu-HU", {
           style: "currency",
           currency: order.currency,
-          maximumFractionDigits: 0,
+          maximumFractionDigits: order.currency === "EUR" ? 2 : 0,
         }).format(item.unitPrice * item.quantity),
       })),
     });
@@ -1081,7 +1141,8 @@ export async function finalizePaidOrder({
         : { type: "already_processing" as const, paths: getOrderPaths(currentOrder) };
     }
 
-    const expectedStripeAmount = toStripeAmount(order.total, STRIPE_CURRENCY);
+    const orderStripeCurrency = order.currency.toLowerCase();
+    const expectedStripeAmount = toStripeAmount(order.total, orderStripeCurrency);
 
     logCheckoutEvent("log", "webhook_amount_check", {
       paymentIntentId,
@@ -1217,7 +1278,7 @@ export async function finalizePaidOrder({
         stripePaymentIntentId: paymentIntentId,
         paidAt: new Date(),
         subtotal: normalizeStoredPrice(order.subtotal),
-        total: stripeAmount != null ? fromStripeAmount(stripeAmount, STRIPE_CURRENCY) : normalizeStoredPrice(order.total),
+        total: stripeAmount != null ? fromStripeAmount(stripeAmount, order.currency.toLowerCase()) : normalizeStoredPrice(order.total),
       },
     });
 

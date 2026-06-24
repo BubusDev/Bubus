@@ -1,0 +1,1 @@
+ALTER TABLE "Order" ADD COLUMN "pricingZone" TEXT NOT NULL DEFAULT 'HU';

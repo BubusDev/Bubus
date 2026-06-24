@@ -8,7 +8,6 @@ import { submitReturnRequestAction } from "@/app/(storefront)/order-status/actio
 import { AccountShell } from "@/components/account/AccountShell";
 import { formatDate, getOrderForUser } from "@/lib/account";
 import { requireAccountUser } from "@/lib/auth";
-import { formatPrice } from "@/lib/catalog";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
 
@@ -16,6 +15,14 @@ type OrderDetailPageProps = {
   params: Promise<{ orderId: string }>;
   searchParams: Promise<{ return?: string }>;
 };
+
+function formatOrderPrice(amount: number, currency: string) {
+  return new Intl.NumberFormat(currency === "EUR" ? "en-DE" : "hu-HU", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: currency === "EUR" ? 2 : 0,
+  }).format(amount);
+}
 
 export default async function OrderDetailPage({ params, searchParams }: OrderDetailPageProps) {
   const user = await requireAccountUser("/orders");
@@ -97,8 +104,8 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
           </div>
           <div className="rounded-md border border-[#e8e5e0] bg-white p-4">
             <p className="text-[10px] uppercase tracking-[0.26em] text-[#8c7f86]">Összesen</p>
-            <p className="mt-3 text-2xl font-semibold text-[#4d2741]">{formatPrice(order.total)}</p>
-            <p className="mt-2 text-sm text-[#7a6070]">Részösszeg: {formatPrice(order.subtotal)}</p>
+            <p className="mt-3 text-2xl font-semibold text-[#4d2741]">{formatOrderPrice(order.total, order.currency)}</p>
+            <p className="mt-2 text-sm text-[#7a6070]">Részösszeg: {formatOrderPrice(order.subtotal, order.currency)}</p>
           </div>
         </div>
 
@@ -169,7 +176,7 @@ export default async function OrderDetailPage({ params, searchParams }: OrderDet
                 <div className="text-left sm:text-right">
                   <p className="text-sm text-[#7a6070]">Egységár</p>
                   <p className="mt-1 text-lg font-semibold text-[#4d2741]">
-                    {formatPrice(item.unitPrice)}
+                    {formatOrderPrice(item.unitPrice, order.currency)}
                   </p>
                 </div>
               </article>

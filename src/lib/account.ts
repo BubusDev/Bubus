@@ -15,6 +15,13 @@ import {
   type AppliedPromo,
   validatePromoCode,
 } from "@/lib/promo-codes";
+import {
+  COUNTRY_COOKIE_NAME,
+  defaultCountry,
+  getDisplayPriceForCountry,
+  validateSupportedCountry,
+  type SupportedCountry,
+} from "@/lib/international";
 
 const productInclude = {
   images: {
@@ -30,6 +37,7 @@ export type FavouriteProduct = {
   name: string;
   shortDescription: string;
   price: number;
+  priceEur?: number | null;
   collectionLabel: string;
   stockQuantity: number;
   reservedQuantity: number;
@@ -60,6 +68,7 @@ export type CartItemSummary = {
   category: string;
   name: string;
   price: number;
+  priceEur?: number | null;
   quantity: number;
   stockQuantity: number;
   reservedQuantity: number;
@@ -81,6 +90,8 @@ export type CartSummary = {
   discount: number;
   appliedPromo: AppliedPromo | null;
   total: number;
+  currency: "HUF" | "EUR";
+  countryCode: SupportedCountry;
 };
 
 export type AccountCouponStatus = "active" | "expired" | "used" | "upcoming";
@@ -111,6 +122,7 @@ export type HeaderCouponProductPreview = {
   slug: string;
   name: string;
   price: number;
+  priceEur?: number | null;
   imageUrl?: string | null;
 };
 
@@ -149,6 +161,9 @@ export type OrderSummary = {
   shippingMethod?: string | null;
   statusUpdatedAt?: Date | null;
   total: number;
+  currency: string;
+  shippingCountryCode: string;
+  language: string;
   createdAt: Date;
   paidAt?: Date | null;
   items: OrderPreviewItem[];
@@ -158,7 +173,7 @@ type CartOwner =
   | { userId: string; guestToken?: never }
   | { guestToken: string; userId?: never };
 
-function createEmptyCart(): CartSummary {
+function createEmptyCart(countryCode: SupportedCountry = defaultCountry): CartSummary {
   return {
     id: "",
     items: [],
@@ -167,6 +182,8 @@ function createEmptyCart(): CartSummary {
     discount: 0,
     appliedPromo: null,
     total: 0,
+    currency: countryCode === "HU" ? "HUF" : "EUR",
+    countryCode,
   };
 }
 
@@ -245,7 +262,19 @@ function getCartWhereUnique(owner: CartOwner): Prisma.CartWhereUniqueInput {
   return { guestToken: owner.guestToken };
 }
 
-async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) {
+async function getSelectedCountry() {
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    return validateSupportedCountry(cookieStore.get(COUNTRY_COOKIE_NAME)?.value);
+  } catch {
+    return defaultCountry;
+  }
+}
+
+async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true, countryCode?: SupportedCountry) {
+  const selectedCountry = countryCode ?? await getSelectedCountry();
+
   if (createIfMissing) {
     await getOrCreateCart(owner);
   }
@@ -266,7 +295,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
   });
 
   if (!cart) {
-    return createEmptyCart();
+    return createEmptyCart(selectedCountry);
   }
 
   const ownReservedByProductId = await getActiveReservationQuantitiesForOwner(
@@ -285,15 +314,19 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
           }
         : item.product;
     const availability = getProductAvailabilitySnapshot(availabilityProduct);
+    const displayPrice = getDisplayPriceForCountry(item.product, selectedCountry);
+    const missingZonePrice = displayPrice == null;
     const unavailableReason =
       availability.lifecycleStatus === "archived"
         ? "archived"
         : availability.lifecycleStatus === "draft" || availability.lifecycleStatus === "incomplete"
           ? "incomplete"
-          : availability.lifecycleStatus === "sold_out"
+          : missingZonePrice
+            ? "incomplete"
+            : availability.lifecycleStatus === "sold_out"
             ? "out_of_stock"
             : null;
-    const isAvailable = availability.isPurchasable;
+    const isAvailable = availability.isPurchasable && !missingZonePrice;
     return {
       id: item.id,
       productId: item.productId,
@@ -301,7 +334,8 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
       categoryId: item.product.categoryId,
       category: item.product.category.slug,
       name: item.product.name,
-      price: item.product.price,
+      price: displayPrice ?? 0,
+      priceEur: item.product.priceEur,
       quantity: item.quantity,
       stockQuantity: item.product.stockQuantity,
       reservedQuantity: item.product.reservedQuantity,
@@ -312,7 +346,7 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
       isAvailable,
       exceedsStock: unavailableReason !== "archived" && item.quantity > availability.availableToSell,
       imageUrl: coverImage?.url ?? item.product.imageUrl,
-      lineTotal: isAvailable ? item.product.price * item.quantity : 0,
+      lineTotal: isAvailable ? (displayPrice ?? 0) * item.quantity : 0,
     };
   });
 
@@ -355,6 +389,8 @@ async function getCartSummaryForOwner(owner: CartOwner, createIfMissing = true) 
     discount,
     appliedPromo,
     total: Math.max(0, subtotal + shipping - discount),
+    currency: selectedCountry === "HU" ? "HUF" : "EUR",
+    countryCode: selectedCountry,
   } satisfies CartSummary;
 }
 
@@ -427,6 +463,7 @@ export async function getFavouriteProducts(userId: string) {
       name: entry.product.name,
       shortDescription: entry.product.shortDescription,
       price: entry.product.price,
+      priceEur: entry.product.priceEur,
       collectionLabel: entry.product.collectionLabel,
       stockQuantity: entry.product.stockQuantity,
       reservedQuantity: entry.product.reservedQuantity,
@@ -492,6 +529,7 @@ export async function mergeGuestCartIntoUserCart(userId: string, guestToken: str
           name: true,
           slug: true,
           price: true,
+          priceEur: true,
           compareAtPrice: true,
           shortDescription: true,
           description: true,
@@ -609,6 +647,9 @@ export async function getOrdersForUser(userId: string) {
     shippingMethod: order.shippingMethod,
     statusUpdatedAt: order.statusUpdatedAt,
     total: order.total,
+    currency: order.currency,
+    shippingCountryCode: order.shippingCountryCode,
+    language: order.language,
     createdAt: order.createdAt,
     paidAt: order.paidAt,
     items: order.items,
@@ -796,6 +837,7 @@ export async function getHeaderCouponDropdownPreview(
           slug: true,
           name: true,
           price: true,
+          priceEur: true,
           imageUrl: true,
           images: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
@@ -819,7 +861,8 @@ export async function getHeaderCouponDropdownPreview(
       id: product.id,
       slug: product.slug,
       name: product.name,
-      price: product.price,
+        price: product.price,
+        priceEur: product.priceEur,
       imageUrl:
         product.images.find((image) => image.isCover)?.url ??
         product.images[0]?.url ??
