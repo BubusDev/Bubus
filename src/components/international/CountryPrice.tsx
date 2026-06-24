@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import {
   formatPriceForCountry,
@@ -16,8 +18,12 @@ type CountryPriceProps = {
 
 export function CountryPrice({ product, className, showFreeShipping = false }: CountryPriceProps) {
   const { country, language } = useCountryLanguage();
-  const displayPrice = getDisplayPriceForCountry(product, country);
-  const price = displayPrice == null ? null : formatPriceForCountry(displayPrice, country);
+  const displayPrice = useMemo(() => getDisplayPriceForCountry(product, country), [product, country]);
+  const price = useMemo(
+    () => displayPrice == null ? null : formatPriceForCountry(displayPrice, country),
+    [country, displayPrice],
+  );
+  const freeShippingLabel = useMemo(() => getFreeShippingLabel(language), [language]);
 
   return (
     <>
@@ -26,7 +32,7 @@ export function CountryPrice({ product, className, showFreeShipping = false }: C
       </span>
       {showFreeShipping ? (
         <span className="block text-xs font-normal tracking-normal text-[#756a70]">
-          {getFreeShippingLabel(language)}
+          {freeShippingLabel}
         </span>
       ) : null}
     </>

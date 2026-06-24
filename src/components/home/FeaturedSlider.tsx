@@ -229,7 +229,11 @@ function ProductCard({
   onWishlistToggle,
 }: ProductCardProps) {
   const { country } = useCountryLanguage()
-  const displayPrice = getDisplayPriceForCountry(product, country)
+  const displayPrice = useMemo(() => getDisplayPriceForCountry(product, country), [country, product])
+  const priceLabel = useMemo(
+    () => displayPrice == null ? 'Not available for EU delivery' : formatPriceForCountry(displayPrice, country),
+    [country, displayPrice],
+  )
   return (
     <article className="group w-full cursor-pointer md:w-[260px] md:flex-none">
       <div className="relative mb-[14px] h-[320px] overflow-hidden bg-[#E8D5CF]">
@@ -283,7 +287,7 @@ function ProductCard({
         <p
           className={`${inter.className} text-[13px] font-normal text-[#9C6B63]`}
         >
-          {displayPrice == null ? 'Not available for EU delivery' : formatPriceForCountry(displayPrice, country)}
+          {priceLabel}
         </p>
       </Link>
     </article>

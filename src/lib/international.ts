@@ -243,15 +243,26 @@ export function getDisplayPriceForCountry(product: CountryPricedProduct, country
   return null;
 }
 
+const priceFormatterCache = new Map<string, Intl.NumberFormat>();
+
 export function formatPriceForCountry(amount: number, countryCode: unknown) {
   const config = getCountryConfig(countryCode);
   const maximumFractionDigits = config.currency === "HUF" ? 0 : amount % 1 === 0 ? 0 : 2;
+  const cacheKey = `${config.locale}:${config.currency}:${maximumFractionDigits}`;
+  const cachedFormatter = priceFormatterCache.get(cacheKey);
 
-  return new Intl.NumberFormat(config.locale, {
+  if (cachedFormatter) {
+    return cachedFormatter.format(amount);
+  }
+
+  const formatter = new Intl.NumberFormat(config.locale, {
     style: "currency",
     currency: config.currency,
     maximumFractionDigits,
-  }).format(amount);
+  });
+
+  priceFormatterCache.set(cacheKey, formatter);
+  return formatter.format(amount);
 }
 
 export function getFreeShippingLabel(language: unknown) {

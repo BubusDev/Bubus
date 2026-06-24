@@ -104,8 +104,8 @@ export function ProductCard({
   onRemove,
 }: ProductCardProps) {
   const { country, language } = useCountryLanguage();
-  const dictionary = getDictionary(language);
-  const localizedProduct = getLocalizedProduct(product, language);
+  const dictionary = useMemo(() => getDictionary(language), [language]);
+  const localizedProduct = useMemo(() => getLocalizedProduct(product, language), [product, language]);
   const [isWishlistPending, startWishlistTransition] = useTransition();
   const [isAddToCartPending, startAddToCartTransition] = useTransition();
   const [isRemovePending, startRemoveTransition] = useTransition();
@@ -167,12 +167,15 @@ export function ProductCard({
   const productHref = `/product/${product.slug}`;
   const isOutOfStock = isProductOutOfStock(product);
   const isHeartPending = isFavouritePending || isWishlistPending;
-  const differentiator = getProductCardDifferentiator(localizedProduct);
-  const displayPrice = getDisplayPriceForCountry(product, country);
-  const displayedPrice = displayPrice == null
-    ? dictionary["product.notAvailableEu"]
-    : formatPriceForCountry(displayPrice, country);
-  const freeShippingLabel = getFreeShippingLabel(language);
+  const differentiator = useMemo(() => getProductCardDifferentiator(localizedProduct), [localizedProduct]);
+  const displayPrice = useMemo(() => getDisplayPriceForCountry(product, country), [product, country]);
+  const displayedPrice = useMemo(
+    () => displayPrice == null
+      ? dictionary["product.notAvailableEu"]
+      : formatPriceForCountry(displayPrice, country),
+    [country, dictionary, displayPrice],
+  );
+  const freeShippingLabel = useMemo(() => getFreeShippingLabel(language), [language]);
   const isMissingZonePrice = displayPrice == null;
   const imageStateClass = isOutOfStock
     ? "saturate-[0.78] brightness-[0.96]"

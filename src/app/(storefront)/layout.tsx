@@ -15,6 +15,13 @@ import { getHeaderCounts, getHeaderCouponDropdownPreview } from "@/lib/account";
 import { getActiveAnnouncementBar } from "@/lib/announcement-bar";
 import { getHeaderUser } from "@/lib/auth";
 import { CONSENT_COOKIE_NAME, parseStoredConsentValue } from "@/lib/cookie-consent-client";
+import {
+  COUNTRY_COOKIE_NAME,
+  LANGUAGE_COOKIE_NAME,
+  getLanguageForCountry,
+  validateSupportedCountry,
+  validateSupportedLanguage,
+} from "@/lib/international";
 import { getNavigationCategories } from "@/lib/products-server";
 import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 
@@ -33,6 +40,13 @@ export default async function StorefrontLayout({
     getVisibleSpecialties(),
   ]);
   const initialConsent = parseStoredConsentValue(cookieStore.get(CONSENT_COOKIE_NAME)?.value ?? null);
+  const storedCountry = cookieStore.get(COUNTRY_COOKIE_NAME)?.value;
+  const storedLanguage = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value;
+  const initialCountry = validateSupportedCountry(storedCountry);
+  const initialLanguage = storedLanguage
+    ? validateSupportedLanguage(storedLanguage)
+    : getLanguageForCountry(initialCountry);
+  const hasStoredCountryLanguageSelection = Boolean(storedCountry);
   const hasGoogleServices = Boolean(
     process.env.NEXT_PUBLIC_GA_ID?.trim() || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID?.trim(),
   );
@@ -58,7 +72,13 @@ export default async function StorefrontLayout({
         </Script>
       ) : null}
 
-      <CountryLanguageProvider>
+      <CountryLanguageProvider
+        initialSelection={{
+          country: initialCountry,
+          language: initialLanguage,
+          hasStoredSelection: hasStoredCountryLanguageSelection,
+        }}
+      >
         <CookieConsentProvider initialConsent={initialConsent}>
           <TrackingScripts />
           <div className="storefront-shell">
