@@ -21,9 +21,13 @@ function readPerks(contentBlock?: HomepageBlockView) {
 export function HomeNewsletterBlock({ contentBlock, status }: HomeNewsletterBlockProps) {
   const statusMessage =
     status === "subscribed"
-      ? "Köszönjük, a feliratkozásod rögzítettük."
+      ? typeof contentBlock?.metadata.subscribedMessage === "string"
+        ? contentBlock.metadata.subscribedMessage
+        : "Köszönjük, a feliratkozásod rögzítettük."
       : status === "invalid"
-        ? "Adj meg egy érvényes email címet a feliratkozáshoz."
+        ? typeof contentBlock?.metadata.invalidMessage === "string"
+          ? contentBlock.metadata.invalidMessage
+          : "Adj meg egy érvényes email címet a feliratkozáshoz."
         : "";
 
   return (
@@ -64,7 +68,7 @@ export function HomeNewsletterBlock({ contentBlock, status }: HomeNewsletterBloc
             type="email"
             name="email"
             required
-            placeholder="Email címed"
+            placeholder={typeof contentBlock?.metadata.placeholder === "string" ? contentBlock.metadata.placeholder : "Email címed"}
             className="min-h-12 flex-1 border border-[#E8C9C0] bg-white px-4 text-sm text-[#2D1A16] outline-none transition placeholder:text-[#9C6B63]/72 focus:border-[#E0157A] focus:ring-2 focus:ring-[#E0157A]/10"
           />
           <button

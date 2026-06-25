@@ -16,6 +16,9 @@ import type {
   HeaderCouponPreview,
   HeaderCouponProductPreview,
 } from "@/lib/account";
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 
 type ProfileDropdownProps = {
   user: HeaderUser;
@@ -23,6 +26,7 @@ type ProfileDropdownProps = {
 
 export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
   const [copied, setCopied] = useState(false);
+  const { language } = useCountryLanguage();
   const daysRemaining = coupon.daysRemaining;
   const urgencyColor =
     daysRemaining == null
@@ -64,10 +68,10 @@ export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
             {" · "}
             <span className="font-normal text-[#aaa]">
               {daysRemaining == null
-                ? "visszavonásig"
+                ? language === "en" ? "until withdrawn" : "visszavonásig"
                 : daysRemaining === 0
-                  ? "ma jár le"
-                  : `${daysRemaining} nap`}
+                  ? language === "en" ? "expires today" : "ma jár le"
+                  : language === "en" ? `${daysRemaining} days` : `${daysRemaining} nap`}
             </span>
           </p>
         </div>
@@ -81,11 +85,11 @@ export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
         >
           {copied ? (
             <>
-              <Check className="h-2.5 w-2.5" /> Kész
+              <Check className="h-2.5 w-2.5" /> {language === "en" ? "Done" : "Kész"}
             </>
           ) : (
             <>
-              <Copy className="h-2.5 w-2.5" /> Másolás
+              <Copy className="h-2.5 w-2.5" /> {language === "en" ? "Copy" : "Másolás"}
             </>
           )}
         </button>
@@ -95,8 +99,10 @@ export function MiniCouponRow({ coupon }: { coupon: HeaderCouponPreview }) {
 }
 
 export function MiniProductCard({ product }: { product: HeaderCouponProductPreview }) {
+  const { language } = useCountryLanguage();
+
   return (
-    <Link href={`/product/${product.slug}`} className="block no-underline">
+    <Link href={getLocalizedPath(`/product/${product.slug}`, language)} className="block no-underline">
       <div className="relative mb-1.5 aspect-[3/4] overflow-hidden rounded bg-[#f5f3f0]">
         {product.imageUrl ? (
           <Image
@@ -118,7 +124,10 @@ export function MiniProductCard({ product }: { product: HeaderCouponProductPrevi
 
 export function ProfileDropdown({ user }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
   const containerRef = useRef<HTMLDivElement>(null);
+  const localizedHref = (href: string) => href === "/admin" ? href : getLocalizedPath(href, language);
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -143,6 +152,13 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
   }, []);
 
   const menuItems = profileMenuByRole[user.role];
+  const labelByHref: Record<string, string> = {
+    "/profile": dictionary["nav.profile"],
+    "/settings": dictionary["nav.settings"],
+    "/orders": dictionary["nav.myOrders"],
+    "/favourites": dictionary["nav.favourites"],
+    "/admin": language === "en" ? "Admin" : "Admin felület",
+  };
   const closeMenu = () => {
     setIsOpen(false);
   };
@@ -153,7 +169,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         type="button"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-label="Profil menü megnyitása"
+        aria-label={language === "en" ? "Open profile menu" : "Profil menü megnyitása"}
         onClick={() => setIsOpen((open) => !open)}
         className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-transparent text-[#5f4a51] transition duration-150 hover:border-[#d7c3bc] hover:bg-[#fffdfb] hover:text-[#34262b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] ${
           isOpen ? "border-[#d7c3bc] bg-[#fffdfb] text-[#34262b]" : ""
@@ -165,7 +181,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
       {isOpen ? (
         <div
           role="menu"
-          aria-label="Profil menü"
+          aria-label={language === "en" ? "Profile menu" : "Profil menü"}
           className="user-dropdown-wrap dropdown-reveal absolute right-0 top-full z-50 mt-3"
         >
           <div className="user-menu-left rounded-md border border-[#e4d6d0] bg-[#fffdfb] p-2 shadow-[0_18px_42px_rgba(57,39,47,0.10)]">
@@ -190,7 +206,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
               {menuItems.map(({ href, icon: Icon, label }) => (
                 <Link
                   key={label}
-                  href={href}
+                  href={localizedHref(href)}
                   role="menuitem"
                   className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition duration-150 hover:bg-[#fbf8f5] focus-visible:bg-[#fbf8f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba]"
                   onClick={closeMenu}
@@ -199,7 +215,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
                     <Icon className="h-[0.9rem] w-[0.9rem]" />
                   </span>
                   <span className="font-medium text-[#5b464e] transition-colors duration-150 group-hover:text-[#34262b]">
-                    {label}
+                    {labelByHref[href] ?? label}
                   </span>
                 </Link>
               ))}
@@ -216,7 +232,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
                   <LogOut className="h-[0.9rem] w-[0.9rem]" />
                 </span>
                 <span className="font-medium text-[#5b464e] transition-colors duration-150 group-hover:text-[#34262b]">
-                  Kijelentkezés
+                  {language === "en" ? "Sign out" : "Kijelentkezés"}
                 </span>
               </button>
             </form>

@@ -23,8 +23,10 @@ import { isProductOutOfStock, type Product } from "@/lib/catalog";
 import { formatPriceForCountry, getShippingLineValue, type SupportedCountry, type SupportedLanguage } from "@/lib/international";
 import { getHomepageContent } from "@/lib/homepage-content";
 import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 import { getCuratedProductRecommendations } from "@/lib/products-server";
 import type { AppliedPromo } from "@/lib/promo-codes";
+import { getRequestLocale } from "@/lib/request-locale";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -51,7 +53,7 @@ function CartEmptyState({ language }: { language: SupportedLanguage }) {
               : "Nézd meg a friss válogatást, és tedd félre azt a darabot, amelyik illik a következő rendelésedhez."}
           </p>
           <Link
-            href="/new-in"
+            href={getLocalizedPath("/new-in", language)}
             className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             {language === "en" ? "View new pieces" : "Friss darabok megnézése"}
@@ -85,6 +87,7 @@ function CartItemRow({ item, countryCode, language }: { item: CartItemSummary; c
   const isUnavailable = isArchived || !item.isAvailable;
   const dictionary = getDictionary(language);
   const localizedItem = getLocalizedProduct(item, language);
+  const productHref = getLocalizedPath(`/product/${item.slug}?redirectTo=/cart`, language);
   const incrementDisabled = isUnavailable || item.quantity >= item.availableToSell;
   const decrementDisabled = isUnavailable;
 
@@ -92,7 +95,7 @@ function CartItemRow({ item, countryCode, language }: { item: CartItemSummary; c
     <article className={`rounded-lg border p-3 sm:p-4 ${isUnavailable ? "border-[#e0d8d8] bg-[#faf8f8]" : "border-[#eadce3] bg-white/80"}`}>
       <div className="grid grid-cols-[76px_minmax(0,1fr)] gap-3 sm:grid-cols-[116px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[128px_minmax(0,1fr)]">
         <Link
-          href={`/product/${item.slug}?redirectTo=/cart`}
+          href={productHref}
           className={`block overflow-hidden rounded-lg bg-[#fff5fa] ${isUnavailable ? "opacity-50" : ""}`}
         >
           <ProductImageFrame
@@ -114,7 +117,7 @@ function CartItemRow({ item, countryCode, language }: { item: CartItemSummary; c
             </p>
             <div className="space-y-1">
               <Link
-                href={`/product/${item.slug}?redirectTo=/cart`}
+                href={productHref}
                 className={`block font-[family:var(--font-display)] text-[1.1rem] leading-[1.08] transition hover:opacity-75 sm:text-[1.25rem] lg:text-[1.42rem] ${isUnavailable ? "text-[#999]" : "text-[#4d2741]"}`}
               >
                 {localizedItem.name}
@@ -298,7 +301,7 @@ function CartSummary({
           </div>
         ) : (
           <Link
-            href="/checkout"
+            href={getLocalizedPath("/checkout", language)}
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#f183bc] px-6 text-sm font-medium text-white transition hover:bg-[#ea6fb0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2"
           >
             {dictionary["cart.checkout"]}
@@ -330,7 +333,7 @@ function CartSummary({
           <PromoCodeForm appliedPromo={appliedPromo} />
 
           <h2 className="mt-5 font-[family:var(--font-display)] text-[1.28rem] leading-[1.08] text-[#4d2741]">
-            Hogyan válthatom be a promóciós kódokat?
+            {language === "en" ? "How can I use promo codes?" : "Hogyan válthatom be a promóciós kódokat?"}
           </h2>
 
           <div className="mt-4 grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 text-sm leading-6 text-[#765a6a]">
@@ -338,14 +341,16 @@ function CartSummary({
               <TicketPercent className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
             <p className="min-w-0">
-              A promóciós kódokat közvetlenül itt, a bevásárlókosár oldalon válthatod be.
+              {language === "en"
+                ? "You can apply promo codes directly here on the cart page."
+                : "A promóciós kódokat közvetlenül itt, a bevásárlókosár oldalon válthatod be."}
             </p>
           </div>
 
           <div className="my-5 h-px bg-gradient-to-r from-transparent via-[#ead6e2] to-transparent shadow-[0_1px_0_rgba(255,255,255,0.75)]" />
 
           <h3 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#b06b8e]">
-            HOL TUDSZ HOZZÁJUTNI KÓDJAINKHOZ?
+            {language === "en" ? "WHERE CAN YOU FIND OUR CODES?" : "HOL TUDSZ HOZZÁJUTNI KÓDJAINKHOZ?"}
           </h3>
 
           <div className="mt-4 grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 text-sm leading-6 text-[#765a6a]">
@@ -353,7 +358,7 @@ function CartSummary({
               <Lightbulb className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
             <p className="min-w-0">
-              Kövess{" "}
+              {language === "en" ? "Follow us on " : "Kövess "}
               <a
                 href={instagramHref}
                 target="_blank"
@@ -362,8 +367,9 @@ function CartSummary({
               >
                 Instagram
               </a>
-              on és iratkozz fel hírlevelünkre! Ott posztoljuk és küldünk nektek
-              rendszeresen kedvezményeket!
+              {language === "en"
+                ? " and subscribe to the newsletter. We share seasonal codes and private discounts there."
+                : "on és iratkozz fel hírlevelünkre! Ott posztoljuk és küldünk nektek rendszeresen kedvezményeket!"}
             </p>
           </div>
         </div>
@@ -372,16 +378,16 @@ function CartSummary({
   );
 }
 
-function CartRecommendations({ products }: { products: Product[] }) {
+function CartRecommendations({ products, language }: { products: Product[]; language: SupportedLanguage }) {
   return (
     <section className="mt-12 border-t border-[#f1dfe8] pt-8 sm:mt-14 sm:pt-10">
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.28em] text-[#b06b8e]">
-            Kurált ajánlás
+            {language === "en" ? "Curated edit" : "Kurált ajánlás"}
           </p>
           <h2 className="mt-2 font-[family:var(--font-display)] text-[1.7rem] leading-none tracking-tight text-[#4d2741] sm:text-[2rem]">
-            Ezek is tetszhetnek
+            {language === "en" ? "You may also like" : "Ezek is tetszhetnek"}
           </h2>
         </div>
       </div>
@@ -395,7 +401,9 @@ function CartRecommendations({ products }: { products: Product[] }) {
         />
       ) : (
         <div className="rounded-[1.4rem] border border-[#f0e4ea] bg-[#fcfafb] px-4 py-4 text-sm text-[#8b7080]">
-          Jelenleg nincs a kosárhoz illő további akciós, limitált vagy új darab.
+          {language === "en"
+            ? "There are no additional sale, limited or new pieces to recommend right now."
+            : "Jelenleg nincs a kosárhoz illő további akciós, limitált vagy új darab."}
         </div>
       )}
     </section>
@@ -412,7 +420,7 @@ export default async function CartPage() {
     cart.items.map((item) => item.productId),
     4,
   );
-  const language: SupportedLanguage = cart.countryCode === "HU" ? "hu" : "en";
+  const language = await getRequestLocale();
 
   return (
     <main className="min-h-screen">
@@ -445,7 +453,7 @@ export default async function CartPage() {
               />
             </div>
 
-            <CartRecommendations products={recommendations} />
+            <CartRecommendations products={recommendations} language={language} />
           </>
         )}
       </section>

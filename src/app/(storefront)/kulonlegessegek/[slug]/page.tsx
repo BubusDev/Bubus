@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { SpecialtySectionNav } from "@/components/shop/SpecialtySectionNav";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
 import { getProductsForSpecialty, getSpecialtyBySlug } from "@/lib/products-server";
+import { getRequestLocale } from "@/lib/request-locale";
 import { getVisibleSpecialties } from "@/lib/specialty-navigation";
 import { siteName } from "@/lib/site";
 
@@ -20,14 +22,17 @@ export async function generateMetadata({
   if (!specialty) {
     return {};
   }
+  const language = await getRequestLocale();
+  const canonicalPath = getLocalizedPath(`/kulonlegessegek/${specialty.slug}`, language);
 
   return {
-    title: `${specialty.name} | Különlegességek | ${siteName}`,
-    description:
-      specialty.shortDescription ??
-      `Fedezd fel a Chicks Jewelry ${specialty.name} különlegességeit.`,
+    title: `${specialty.name} | ${language === "en" ? "Special pieces" : "Különlegességek"} | ${siteName}`,
+    description: specialty.shortDescription ?? (language === "en"
+      ? `Explore the Chicks Jewelry ${specialty.name} special edit.`
+      : `Fedezd fel a Chicks Jewelry ${specialty.name} különlegességeit.`),
     alternates: {
-      canonical: `/kulonlegessegek/${specialty.slug}`,
+      canonical: canonicalPath,
+      languages: getAlternateLanguages(`/kulonlegessegek/${specialty.slug}`),
     },
   };
 }

@@ -1,10 +1,30 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 
-export const metadata: Metadata = {
-  title: "ÁSZF — Chicks Jewelry",
-  description: "Általános Szerződési Feltételek a Chicks Jewelry ékszer webáruházhoz.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getRequestLocale();
+  const canonicalPath = getLocalizedPath("/terms", language);
+
+  return {
+    title: language === "en" ? "Terms and Conditions — Chicks Jewelry" : "ÁSZF — Chicks Jewelry",
+    description: language === "en"
+      ? "Terms and Conditions for ordering from the Chicks Jewelry online store."
+      : "Általános Szerződési Feltételek a Chicks Jewelry ékszer webáruházhoz.",
+    alternates: {
+      canonical: canonicalPath,
+      languages: getAlternateLanguages("/terms"),
+    },
+    openGraph: {
+      title: language === "en" ? "Terms and Conditions — Chicks Jewelry" : "ÁSZF — Chicks Jewelry",
+      description: language === "en"
+        ? "Terms for purchases, payment, shipping, returns and custom orders."
+        : "Általános Szerződési Feltételek a Chicks Jewelry ékszer webáruházhoz.",
+      url: canonicalPath,
+    },
+  };
+}
 
 const sections = [
   { id: "altalanos", title: "Általános rendelkezések" },
@@ -17,7 +37,72 @@ const sections = [
   { id: "jogvita", title: "Jogvita rendezése" },
 ];
 
-export default function TermsPage() {
+const sectionsEn = [
+  { id: "general", title: "General terms" },
+  { id: "orders", title: "Ordering" },
+  { id: "prices", title: "Prices and payment" },
+  { id: "shipping", title: "Shipping" },
+  { id: "returns", title: "Returns" },
+  { id: "custom", title: "Custom orders" },
+  { id: "contact", title: "Contact" },
+];
+
+export default async function TermsPage() {
+  const language = await getRequestLocale();
+
+  if (language === "en") {
+    return (
+      <LegalPage
+        eyebrow="Legal"
+        title="Terms and Conditions"
+        lastUpdated="January 1, 2025"
+        sections={sectionsEn}
+      >
+        <p>
+          This English version summarizes the customer-facing terms for the Chicks Jewelry online store.
+          The full legal text will be finalized before launch; until then, the Hungarian version remains
+          the detailed legal reference.
+        </p>
+        <h2 id="general">General terms</h2>
+        <p>
+          By placing an order through the webshop, the customer accepts the terms that apply to the
+          selected products, shipping destination, payment method and return policy.
+        </p>
+        <h2 id="orders">Ordering</h2>
+        <ul>
+          <li>Select the product and add it to cart.</li>
+          <li>Enter contact, shipping and billing details.</li>
+          <li>Choose a payment method and confirm the order.</li>
+          <li>Order confirmation is sent by e-mail.</li>
+        </ul>
+        <h2 id="prices">Prices and payment</h2>
+        <p>
+          HU storefront prices are shown in HUF. EU English storefront prices are shown in EUR where
+          available. Card payments are processed securely by Stripe.
+        </p>
+        <h2 id="shipping">Shipping</h2>
+        <p>
+          In-stock items are usually dispatched within a few business days. Supported countries, delivery
+          estimates and shipping prices are shown during checkout before payment.
+        </p>
+        <h2 id="returns">Returns</h2>
+        <p>
+          Unworn, non-custom pieces can generally be returned within 14 days of delivery if the original
+          packaging is intact. Custom-made pieces are excluded unless they are faulty.
+        </p>
+        <h2 id="custom">Custom orders</h2>
+        <p>
+          Custom orders start with a personal consultation. Final price, lead time and deposit conditions
+          are confirmed before production starts.
+        </p>
+        <h2 id="contact">Contact</h2>
+        <p>
+          For questions about an order, shipping or returns, contact us at <strong>hello@bubus.hu</strong>.
+        </p>
+      </LegalPage>
+    );
+  }
+
   return (
     <LegalPage
       eyebrow="Jogi dokumentum"

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 
 import FeaturedSlider from "@/components/home/FeaturedSlider";
 import HeroBanner from "@/components/home/HeroBanner";
@@ -10,8 +9,9 @@ import { HomePromoTileGrid } from "@/components/home/HomePromoTileGrid";
 import { HomepageInlineEditor } from "@/components/admin/homepage-inline/HomepageInlineEditor";
 import { getCurrentUser } from "@/lib/auth";
 import { getHomepageContent } from "@/lib/homepage-content";
-import { getDictionary } from "@/lib/i18n";
-import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage } from "@/lib/international";
+import { getLocalizedHomepageContent } from "@/lib/homepage-localization";
+import { getAlternateLanguages } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 import {
   getAdminShowcaseProducts,
   getHomeShowcaseTabs,
@@ -24,17 +24,23 @@ const homepageDescription =
   "Limitált ékszerek, gondosan válogatott anyagokból. Finom részletek, kis szériás újdonságok és kurált Chicks Jewelry válogatások.";
 const homepageOgImage = "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg";
 
-export const metadata: Metadata = {
-  title: homepageTitle,
-  description: homepageDescription,
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    title: homepageTitle,
-    description: homepageDescription,
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getRequestLocale();
+  const canonical = language === "en" ? "/en" : "/";
+  const title = language === "en" ? `${siteName} | Small-batch gemstone jewelry` : homepageTitle;
+  const description = language === "en"
+    ? "Small-batch gemstone jewelry, curated materials and limited Chicks Jewelry edits."
+    : homepageDescription;
+
+  return {
+    title,
+    description,
+    alternates: { canonical, languages: getAlternateLanguages("/") },
+    openGraph: {
+      title,
+      description,
     type: "website",
-    url: "/",
+      url: canonical,
     siteName,
     images: [
       {
@@ -44,14 +50,15 @@ export const metadata: Metadata = {
         alt: "Chicks Jewelry limitált ékszer válogatás",
       },
     ],
-  },
-  twitter: {
+    },
+    twitter: {
     card: "summary_large_image",
-    title: homepageTitle,
-    description: homepageDescription,
+      title,
+      description,
     images: [homepageOgImage],
-  },
-};
+    },
+  };
+}
 
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -59,9 +66,7 @@ type HomePageProps = {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
-  const cookieStore = await cookies();
-  const language = validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
-  const dictionary = getDictionary(language);
+  const language = await getRequestLocale();
   const [homepageContent, showcaseTabs, currentUser] = await Promise.all([
     getHomepageContent(),
     getHomeShowcaseTabs(),
@@ -87,88 +92,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     description: homepageDescription,
   };
   const isAdmin = currentUser?.emailVerifiedAt && currentUser.role === "ADMIN";
-  const localizedHomepageContent =
-    language === "en"
-      ? {
-          ...homepageContent,
-          hero: {
-            ...homepageContent.hero,
-            title: dictionary["homepage.heroTitle"],
-            body: dictionary["homepage.heroBody"],
-            buttonText: dictionary["homepage.heroCta"],
-            metadata: {
-              ...homepageContent.hero.metadata,
-              secondaryButtonText: dictionary["nav.limitedPieces"],
-            },
-          },
-          categoryGrid: {
-            ...homepageContent.categoryGrid,
-            eyebrow: "Categories",
-            title: "Pieces that work beautifully together.",
-            body: "Soft tones, layerable shapes and occasion pieces in a curated visual edit.",
-            metadata: {
-              ...homepageContent.categoryGrid.metadata,
-              materialEyebrow: "Curated focus",
-              materialTitle: dictionary["homepage.materialTitle"],
-              materialBody: "Shop by material, shade and mood to make choosing more personal.",
-            },
-          },
-          featuredSlider: {
-            ...homepageContent.featuredSlider,
-            eyebrow: "Featured",
-            title: dictionary["homepage.featuredTitle"],
-            body: "New arrivals, giftable favourites and limited pieces in a clean edit.",
-          },
-          instagram: {
-            ...homepageContent.instagram,
-            body: dictionary["homepage.socialBody"],
-            buttonText: "Follow on Instagram",
-            metadata: {
-              ...homepageContent.instagram.metadata,
-              facebookBody: "Join the community for new pieces, feedback and behind-the-scenes notes.",
-            },
-          },
-          newsletter: {
-            ...homepageContent.newsletter,
-            eyebrow: "Newsletter",
-            title: dictionary["homepage.newsletterTitle"],
-            body: dictionary["homepage.newsletterBody"],
-            buttonText: "Subscribe",
-            metadata: {
-              ...homepageContent.newsletter.metadata,
-              perks: ["Early new collections", "Limited pieces", "Special offers"],
-              note: "No spam. Unsubscribe anytime.",
-            },
-          },
-          promoTiles: homepageContent.promoTiles.map((tile) => ({
-            ...tile,
-            title:
-              tile.slotIndex === 4
-                ? "Limited lines"
-                : tile.slotIndex === 5
-                  ? "Layerable pieces"
-                  : tile.slotIndex === 6
-                    ? "New arrivals"
-                    : tile.slotIndex === 7
-                      ? "Shop by stone"
-                      : tile.slotIndex === 8
-                        ? "Sale pieces"
-                        : tile.title,
-            subtitle:
-              tile.slotIndex === 4
-                ? "New pieces in small runs"
-                : tile.slotIndex === 5
-                  ? "Bracelets for everyday wear"
-                  : tile.slotIndex === 6
-                    ? "Fresh colors and fine details"
-                    : tile.slotIndex === 7
-                      ? "A material and shade edit"
-                      : tile.slotIndex === 8
-                        ? "Available models in limited stock"
-                        : tile.subtitle,
-          })),
-        }
-      : homepageContent;
+  const localizedHomepageContent = getLocalizedHomepageContent(homepageContent, language);
 
   if (isAdmin) {
     const [productOptions, inlineFeaturedProductIds] = await Promise.all([

@@ -9,11 +9,16 @@ export type HomepageBlockView = {
   id: string;
   key: HomepageContentBlockKey;
   title: string;
+  titleEn: string;
   eyebrow: string;
+  eyebrowEn: string;
   body: string;
+  bodyEn: string;
   imageUrl: string;
   imageAlt: string;
+  imageAltEn: string;
   buttonText: string;
+  buttonTextEn: string;
   buttonHref: string;
   metadata: Record<string, unknown>;
   isVisible: boolean;
@@ -23,10 +28,13 @@ export type HomepagePromoTileView = {
   id: string;
   slotIndex: number;
   title: string;
+  titleEn: string;
   subtitle: string;
+  subtitleEn: string;
   href: string;
   imageUrl: string;
   imageAlt: string;
+  imageAltEn: string;
   isNew: boolean;
   isVisible: boolean;
 };
@@ -45,10 +53,13 @@ export type HomepageMaterialPickView = {
   unavailableFeaturedProductReason: string | null;
   sortOrder: number;
   title: string;
+  titleEn: string;
   subtitle: string;
+  subtitleEn: string;
   href: string;
   imageUrl: string | null;
   imageAlt: string;
+  imageAltEn: string;
   colorHex: string | null;
 };
 
@@ -84,39 +95,56 @@ export type HomepageContentView = {
 const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id" | "key">> = {
   HERO: {
     title: "Ne félj extra lenni! Viseld bátran a kiegészítőket!",
+    titleEn: "Small-batch jewelry with a little extra presence.",
     eyebrow: "Limitált butik válogatás",
+    eyebrowEn: "Limited boutique edit",
     body: "Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.",
+    bodyEn: "Gemstone bracelets and necklaces in limited runs, curated for your outfit, mood and season.",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Limitált Chicks Jewelry kampányékszer",
+    imageAltEn: "Limited Chicks Jewelry campaign jewelry",
     buttonText: "Fedezd fel a válogatást",
+    buttonTextEn: "Explore jewelry",
     buttonHref: "/special-edition",
     metadata: {
       secondaryButtonText: "Limitált darabok",
+      secondaryButtonTextEn: "Limited pieces",
       secondaryButtonHref: "/special-edition",
     },
     isVisible: true,
   },
   HERO_FEATURE_BAR: {
     title: "Hero feature bar",
+    titleEn: "Hero feature bar",
     eyebrow: "",
+    eyebrowEn: "",
     body: "",
+    bodyEn: "",
     imageUrl: "",
     imageAlt: "",
+    imageAltEn: "",
     buttonText: "",
+    buttonTextEn: "",
     buttonHref: "",
     metadata: {
       features: [
         {
           label: "Kis széria",
+          labelEn: "Small runs",
           text: "Új darabok korlátozott mennyiségben, átgondolt ritmusban.",
+          textEn: "New pieces in limited quantities, released at a considered pace.",
         },
         {
           label: "Válogatott anyagok",
+          labelEn: "Curated materials",
           text: "Kövek és tónusok, amelyek közelről is szépek.",
+          textEn: "Stones and tones that stay beautiful up close.",
         },
         {
           label: "Finom részletek",
+          labelEn: "Fine details",
           text: "Nem harsány kiegészítők, mégis emlékezetes karakterrel.",
+          textEn: "Quiet pieces with a memorable character.",
         },
       ],
     },
@@ -124,61 +152,109 @@ const defaultBlocks: Record<HomepageContentBlockKey, Omit<HomepageBlockView, "id
   },
   CATEGORY_GRID: {
     title: "Vonalak, amik együtt is működnek.",
+    titleEn: "Pieces that work beautifully together.",
     eyebrow: "Kategóriák",
+    eyebrowEn: "Categories",
     body: "Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban.",
+    bodyEn: "Soft tones, layerable shapes and occasion pieces in a curated visual edit.",
     imageUrl: "",
     imageAlt: "",
+    imageAltEn: "",
     buttonText: "",
+    buttonTextEn: "",
     buttonHref: "",
     metadata: {
       materialEyebrow: "Kurált fókusz",
+      materialEyebrowEn: "Curated focus",
       materialTitle: "Kő szerint válogatva.",
+      materialTitleEn: "Shop by stone.",
       materialBody:
         "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.",
+      materialBodyEn: "Shop by material, shade and mood to make choosing more personal.",
+      newBadgeLabel: "Új",
+      newBadgeLabelEn: "New",
     },
     isVisible: true,
   },
   FEATURED_SLIDER: {
     title: "Szerkesztett darabok.",
+    titleEn: "Featured pieces.",
     eyebrow: "Fókuszban",
+    eyebrowEn: "Featured",
     body: "Újdonságok, ajándéknak választott kedvencek és limitált darabok egy letisztult válogatásban.",
+    bodyEn: "New arrivals, giftable favourites and limited pieces in a clean edit.",
     imageUrl: "",
     imageAlt: "",
+    imageAltEn: "",
     buttonText: "",
+    buttonTextEn: "",
     buttonHref: "",
     metadata: {},
     isVisible: true,
   },
   INSTAGRAM: {
     title: "@chicksjewelry",
+    titleEn: "@chicksjewelry",
     eyebrow: "Instagram",
+    eyebrowEn: "Instagram",
     body: "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket.",
+    bodyEn: "Behind the scenes, new stones and styling ideas for people who love the details.",
     imageUrl: "/images/book-hands.png",
     imageAlt: "Zöld tónusú Instagram kampánykép",
+    imageAltEn: "Green-toned Instagram campaign image",
     buttonText: "Kövess Instagramon",
+    buttonTextEn: "Follow on Instagram",
     buttonHref: "https://instagram.com/chicksjewelry",
     metadata: {
+      instagramTabLabel: "Instagram",
+      instagramTabLabelEn: "Instagram",
+      facebookTabLabel: "Facebook",
+      facebookTabLabelEn: "Facebook",
+      teamTabLabel: "Csapatunk",
+      teamTabLabelEn: "Team",
+      teamEyebrow: "Csapatunk",
+      teamEyebrowEn: "Team",
+      teamTitleStart: "Akik",
+      teamTitleStartEn: "Made by",
+      teamTitleEmphasis: "készítik.",
+      teamTitleEmphasisEn: "our team.",
       facebookBody: "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen.",
+      facebookBodyEn: "Join the community for new pieces, feedback and behind-the-scenes notes.",
+      facebookCta: "Kövess Facebookon",
+      facebookCtaEn: "Follow on Facebook",
       facebookHref: "https://www.facebook.com/chicksjewelry",
       teamMembers: [
-        { name: "Bubus", role: "Alapító · Tervező", imageUrl: "" },
-        { name: "Csapatag", role: "Kézműves", imageUrl: "" },
-        { name: "Csapatag", role: "Ügyfélszolgálat", imageUrl: "" },
+        { name: "Bubus", nameEn: "Bubus", role: "Alapító · Tervező", roleEn: "Founder · Designer", imageUrl: "" },
+        { name: "Csapatag", nameEn: "Team member", role: "Kézműves", roleEn: "Maker", imageUrl: "" },
+        { name: "Csapatag", nameEn: "Team member", role: "Ügyfélszolgálat", roleEn: "Customer care", imageUrl: "" },
       ],
     },
     isVisible: true,
   },
   NEWSLETTER: {
     title: "Elsőként a limitált darabokról.",
+    titleEn: "Be first to see limited pieces.",
     eyebrow: "Hírlevél",
+    eyebrowEn: "Newsletter",
     body: "Elsőként értesítünk az új kollekciókról, friss színekről és különleges ajánlatokról. Rövid leveleket küldünk, csak akkor, amikor valóban van mit megmutatni.",
+    bodyEn: "Get early notes on new collections, fresh colors and special offers. We send short emails only when there is something worth showing.",
     imageUrl: "",
     imageAlt: "",
+    imageAltEn: "",
     buttonText: "Feliratkozom",
+    buttonTextEn: "Subscribe",
     buttonHref: "",
     metadata: {
       perks: ["Új kollekciók előre", "Limitált darabok", "Különleges ajánlatok"],
+      perksEn: ["Early new collections", "Limited pieces", "Special offers"],
+      placeholder: "Email címed",
+      placeholderEn: "Your email",
       note: "Nincs spam. Bármikor leiratkozhatsz.",
+      noteEn: "No spam. Unsubscribe anytime.",
+      subscribedMessage: "Köszönjük, a feliratkozásod rögzítettük.",
+      subscribedMessageEn: "Thank you, your subscription has been saved.",
+      invalidMessage: "Adj meg egy érvényes email címet a feliratkozáshoz.",
+      invalidMessageEn: "Enter a valid email address to subscribe.",
     },
     isVisible: true,
   },
@@ -202,50 +278,65 @@ const defaultPromoTiles = [
   {
     slotIndex: 4,
     title: "Limitált vonalak",
+    titleEn: "Limited lines",
     subtitle: "Új darabok kis szériában",
+    subtitleEn: "New pieces in small runs",
     href: "/special-edition",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Limitált Chicks Jewelry válogatás",
+    imageAltEn: "Limited Chicks Jewelry edit",
     isNew: false,
     isVisible: true,
   },
   {
     slotIndex: 5,
     title: "Rétegezhető darabok",
+    titleEn: "Layerable pieces",
     subtitle: "Karkötők mindennapi viseléshez",
+    subtitleEn: "Bracelets for everyday wear",
     href: "/bracelets",
     imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
     imageAlt: "Rétegezhető Chicks Jewelry karkötő",
+    imageAltEn: "Layerable Chicks Jewelry bracelet",
     isNew: false,
     isVisible: true,
   },
   {
     slotIndex: 6,
     title: "Újdonságok",
+    titleEn: "New arrivals",
     subtitle: "Friss színek és finom részletek",
+    subtitleEn: "Fresh colors and fine details",
     href: "/new-in",
     imageUrl: "/uploads/products/8-210510-opacity-armband-blauermarmor-rose-cv-q-23-040c9dc8-6af6-47b8-be1c-ca1d2dd7dda2.jpg",
     imageAlt: "Új Chicks Jewelry karkötő kék márvány tónusban",
+    imageAltEn: "New Chicks Jewelry bracelet in blue marble tones",
     isNew: true,
     isVisible: true,
   },
   {
     slotIndex: 7,
     title: "Kövek szerint",
+    titleEn: "Shop by stone",
     subtitle: "Válogatás anyag és árnyalat alapján",
+    subtitleEn: "A material and shade edit",
     href: "/new-in",
     imageUrl: "/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg",
     imageAlt: "Chicks Jewelry anyagválogatás részletfotó",
+    imageAltEn: "Chicks Jewelry material edit detail",
     isNew: false,
     isVisible: true,
   },
   {
     slotIndex: 8,
     title: "Kedvezményes darabok",
+    titleEn: "Sale pieces",
     subtitle: "Elérhető modellek limitált készletről",
+    subtitleEn: "Available models in limited stock",
     href: "/sale",
     imageUrl: "/uploads/products/bracez-ld-b324c17b-303b-4d3c-9dd6-1edc016ec994.jpg",
     imageAlt: "Chicks Jewelry kedvezményes karkötő válogatás",
+    imageAltEn: "Chicks Jewelry sale bracelet edit",
     isNew: false,
     isVisible: true,
   },
@@ -254,29 +345,34 @@ const defaultPromoTiles = [
 type NullableHomepageBlockInput = {
   id?: string;
   title?: string | null;
+  titleEn?: string | null;
   eyebrow?: string | null;
+  eyebrowEn?: string | null;
   body?: string | null;
+  bodyEn?: string | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
+  imageAltEn?: string | null;
   buttonText?: string | null;
+  buttonTextEn?: string | null;
   buttonHref?: string | null;
   metadata?: Prisma.JsonValue | null;
   isVisible?: boolean;
 };
 
-type HomepageBlockTextField = keyof Omit<
-  HomepageBlockView,
-  "id" | "key" | "metadata" | "isVisible"
->;
+type HomepageBlockTextField = "title" | "eyebrow" | "body" | "imageUrl" | "imageAlt" | "buttonText" | "buttonHref";
 
 type NullableHomepageTileInput = {
   id?: string;
   slotIndex: number;
   title?: string | null;
+  titleEn?: string | null;
   subtitle?: string | null;
+  subtitleEn?: string | null;
   href?: string | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
+  imageAltEn?: string | null;
   isNew?: boolean;
   isVisible?: boolean;
 };
@@ -339,11 +435,16 @@ function normalizeBlock(
     id: block?.id ?? key,
     key,
     title: readText("title", block?.title),
+    titleEn: block?.titleEn?.trim() || fallback.titleEn,
     eyebrow: readText("eyebrow", block?.eyebrow),
+    eyebrowEn: block?.eyebrowEn?.trim() || fallback.eyebrowEn,
     body: readText("body", block?.body),
+    bodyEn: block?.bodyEn?.trim() || fallback.bodyEn,
     imageUrl: readText("imageUrl", block?.imageUrl),
     imageAlt: readText("imageAlt", block?.imageAlt),
+    imageAltEn: block?.imageAltEn?.trim() || fallback.imageAltEn,
     buttonText: readText("buttonText", block?.buttonText),
+    buttonTextEn: block?.buttonTextEn?.trim() || fallback.buttonTextEn,
     buttonHref: readText("buttonHref", block?.buttonHref),
     metadata: { ...fallback.metadata, ...readMetadata(block?.metadata) },
     isVisible: block?.isVisible ?? fallback.isVisible,
@@ -359,10 +460,13 @@ function normalizePromoTile(tile: NullableHomepageTileInput) {
     id: tile.id ?? `slot-${tile.slotIndex}`,
     slotIndex: tile.slotIndex,
     title: tile.title?.trim() || fallback.title,
+    titleEn: tile.titleEn?.trim() || fallback.titleEn,
     subtitle: tile.subtitle?.trim() || fallback.subtitle,
+    subtitleEn: tile.subtitleEn?.trim() || fallback.subtitleEn,
     href: tile.href?.trim() || fallback.href,
     imageUrl: tile.imageUrl?.trim() || fallback.imageUrl,
     imageAlt: tile.imageAlt?.trim() || fallback.imageAlt,
+    imageAltEn: tile.imageAltEn?.trim() || fallback.imageAltEn,
     isNew: tile.isNew ?? fallback.isNew,
     isVisible: tile.isVisible ?? fallback.isVisible,
   };
@@ -399,6 +503,7 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
           select: {
             id: true,
             name: true,
+            nameEn: true,
             slug: true,
             imageUrl: true,
             collectionLabel: true,
@@ -421,6 +526,7 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
             id: true,
             status: true,
             name: true,
+            nameEn: true,
             slug: true,
             price: true,
             compareAtPrice: true,
@@ -475,10 +581,13 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
               : null,
             sortOrder: pick.sortOrder,
             title: "Kőtípus újraválasztása szükséges",
+            titleEn: "Stone type needs to be reselected",
             subtitle: "Régi kő-adatforrásból mentett elem",
+            subtitleEn: "Saved from an old stone data source",
             href: "/new-in",
             imageUrl: null,
             imageAlt: "Kőtípus újraválasztása szükséges",
+            imageAltEn: "Stone type needs to be reselected",
             colorHex: null,
           };
         }
@@ -509,10 +618,13 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
           unavailableFeaturedProductReason: unavailableProductReason,
           sortOrder: pick.sortOrder,
           title: stoneType.name,
+          titleEn: stoneType.name,
           subtitle: compatibleProduct?.name ?? "Kőtípus válogatás",
+          subtitleEn: compatibleProduct?.nameEn?.trim() || compatibleProduct?.name || "Stone edit",
           href: `/bracelets?stone=${encodeURIComponent(stoneType.slug)}`,
           imageUrl: compatibleProduct ? getProductImageUrl(compatibleProduct) : null,
           imageAlt: compatibleProduct?.name ?? stoneType.name,
+          imageAltEn: compatibleProduct?.nameEn?.trim() || compatibleProduct?.name || stoneType.name,
           colorHex: null,
         };
       }
@@ -533,10 +645,13 @@ async function getHomepageMaterialPicks(): Promise<HomepageMaterialPickView[]> {
           unavailableFeaturedProductReason: null,
           sortOrder: pick.sortOrder,
           title: product.stoneType?.name ?? "Termék",
+          titleEn: product.stoneType?.name ?? "Product",
           subtitle: product.name,
+          subtitleEn: product.nameEn?.trim() || product.name,
           href: `/product/${product.slug}`,
           imageUrl: getProductImageUrl(product),
           imageAlt: product.name,
+          imageAltEn: product.nameEn?.trim() || product.name,
           colorHex: null,
         };
       }
@@ -552,6 +667,7 @@ async function getFallbackHomepageMaterialPicks(): Promise<HomepageMaterialPickV
     select: {
       id: true,
       name: true,
+      nameEn: true,
       slug: true,
       imageUrl: true,
       stoneTypeId: true,
@@ -589,10 +705,13 @@ async function getFallbackHomepageMaterialPicks(): Promise<HomepageMaterialPickV
     unavailableFeaturedProductReason: null,
     sortOrder: index + 1,
     title: product.stoneType?.name ?? "Termék",
+    titleEn: product.stoneType?.name ?? "Product",
     subtitle: product.name,
+    subtitleEn: product.nameEn?.trim() || product.name,
     href: `/product/${product.slug}`,
     imageUrl: getProductImageUrl(product),
     imageAlt: product.name,
+    imageAltEn: product.nameEn?.trim() || product.name,
     colorHex: null,
   }));
 }

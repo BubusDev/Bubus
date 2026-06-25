@@ -12,8 +12,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
+import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath, stripLocaleFromPathname } from "@/lib/locale-routing";
+
 type AccountNavItem = {
-  label: string;
+  labelKey: "nav.profile" | "nav.myOrders" | "nav.favourites" | "nav.settings";
+  fallbackLabel: string;
   href: string;
   icon: LucideIcon;
   match: (pathname: string) => boolean;
@@ -21,31 +26,36 @@ type AccountNavItem = {
 
 const accountNavItems: AccountNavItem[] = [
   {
-    label: "Profil",
+    labelKey: "nav.profile",
+    fallbackLabel: "Profil",
     href: "/profile",
     icon: User,
     match: (pathname) => pathname === "/profile",
   },
   {
-    label: "Rendeléseim",
+    labelKey: "nav.myOrders",
+    fallbackLabel: "Rendeléseim",
     href: "/orders",
     icon: ShoppingBag,
     match: (pathname) => pathname.startsWith("/orders"),
   },
   {
-    label: "Kedvencek",
+    labelKey: "nav.favourites",
+    fallbackLabel: "Kedvencek",
     href: "/favourites",
     icon: Heart,
     match: (pathname) => pathname === "/favourites",
   },
   {
-    label: "Kuponjaim",
+    labelKey: "nav.profile",
+    fallbackLabel: "Kuponjaim",
     href: "/coupons",
     icon: TicketPercent,
     match: (pathname) => pathname === "/coupons",
   },
   {
-    label: "Beállítások",
+    labelKey: "nav.settings",
+    fallbackLabel: "Beállítások",
     href: "/settings",
     icon: Settings,
     match: (pathname) => pathname === "/settings" || pathname === "/account",
@@ -54,21 +64,27 @@ const accountNavItems: AccountNavItem[] = [
 
 export function AccountNavigation() {
   const pathname = usePathname();
+  const pathWithoutLocale = stripLocaleFromPathname(pathname);
+  const { language } = useCountryLanguage();
+  const dictionary = getDictionary(language);
 
   return (
     <aside className="lg:sticky lg:top-28 lg:self-start">
       <nav
-        aria-label="Fiók navigáció"
+        aria-label={language === "en" ? "Account navigation" : "Fiók navigáció"}
         className="rounded-lg border border-[#e8e2dd] bg-white/95 p-2 shadow-[0_18px_42px_rgba(45,31,40,0.06)]"
       >
         <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
-          {accountNavItems.map(({ href, icon: Icon, label, match }) => {
-            const isActive = match(pathname);
+          {accountNavItems.map(({ href, icon: Icon, labelKey, fallbackLabel, match }) => {
+            const isActive = match(pathWithoutLocale);
+            const label = href === "/coupons"
+              ? language === "en" ? "My coupons" : fallbackLabel
+              : dictionary[labelKey] ?? fallbackLabel;
 
             return (
               <Link
                 key={label}
-                href={href}
+                href={getLocalizedPath(href, language)}
                 aria-current={isActive ? "page" : undefined}
                 className={`group flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition ${
                   isActive
@@ -100,7 +116,7 @@ export function AccountNavigation() {
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#eee7ea] bg-white text-[#9a7b8b] transition group-hover:border-[#d8c7cf] group-hover:text-[#4d2741]">
                 <LogOut className="h-4 w-4" />
               </span>
-              <span>Kijelentkezés</span>
+              <span>{language === "en" ? "Sign out" : "Kijelentkezés"}</span>
             </button>
           </form>
         </div>

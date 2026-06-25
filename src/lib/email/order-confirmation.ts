@@ -40,16 +40,17 @@ function escapeHtml(value: string) {
 
 function getOrderLinks(accessModel: OrderAccessModel, locale: OrderConfirmationLocale) {
   const baseUrl = getAuthBaseUrl();
+  const prefix = locale === "en" ? "/en" : "";
 
   if (accessModel === "authenticated") {
     return {
       primary: {
         label: "Rendeléseim megnyitása",
-        href: new URL("/orders", baseUrl).toString(),
+        href: new URL(`${prefix}/orders`, baseUrl).toString(),
       },
       secondary: {
         label: "Vásárlás folytatása",
-        href: new URL("/", baseUrl).toString(),
+        href: new URL(prefix || "/", baseUrl).toString(),
       },
     };
   }
@@ -57,11 +58,11 @@ function getOrderLinks(accessModel: OrderAccessModel, locale: OrderConfirmationL
   return {
     primary: {
         label: "Rendelési állapot megnyitása",
-      href: new URL("/order-status", baseUrl).toString(),
+      href: new URL(`${prefix}/order-status`, baseUrl).toString(),
     },
     secondary: {
         label: "Kapcsolat",
-      href: new URL("/contact", baseUrl).toString(),
+      href: new URL(`${prefix}/contact`, baseUrl).toString(),
     },
   };
 }

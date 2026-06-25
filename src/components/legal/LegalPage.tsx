@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import { AmbientBlobs } from "@/components/AmbientBlobs";
 import { BackToHome } from "@/components/BackToHome";
+import { getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 
 type Section = { id: string; title: string };
 
@@ -14,7 +16,9 @@ type LegalPageProps = {
   children: ReactNode;
 };
 
-export function LegalPage({ eyebrow, title, lastUpdated, sections, children }: LegalPageProps) {
+export async function LegalPage({ eyebrow, title, lastUpdated, sections, children }: LegalPageProps) {
+  const language = await getRequestLocale();
+
   return (
     <>
       <AmbientBlobs opacity={0.3} />
@@ -23,7 +27,9 @@ export function LegalPage({ eyebrow, title, lastUpdated, sections, children }: L
         <BackToHome />
         {/* Breadcrumb */}
         <nav className="mb-8 flex items-center gap-2 text-xs text-[#b08898]">
-          <Link href="/" className="hover:text-[#c45a85] transition">Főoldal</Link>
+          <Link href={getLocalizedPath("/", language)} className="hover:text-[#c45a85] transition">
+            {language === "en" ? "Home" : "Főoldal"}
+          </Link>
           <span>›</span>
           <span className="text-[#7a5a6c]">{title}</span>
         </nav>
@@ -31,7 +37,9 @@ export function LegalPage({ eyebrow, title, lastUpdated, sections, children }: L
         <div className="grid gap-8 lg:grid-cols-[200px_1fr] lg:items-start">
           {/* Sticky TOC (desktop) */}
           <aside className="hidden lg:block lg:sticky lg:top-28">
-            <p className="mb-3 text-[9px] uppercase tracking-[0.3em] text-[#b08898]">Tartalom</p>
+            <p className="mb-3 text-[9px] uppercase tracking-[0.3em] text-[#b08898]">
+              {language === "en" ? "Contents" : "Tartalom"}
+            </p>
             <nav className="space-y-1">
               {sections.map(({ id, title: sTitle }) => (
                 <a
@@ -53,7 +61,9 @@ export function LegalPage({ eyebrow, title, lastUpdated, sections, children }: L
               <h1 className="mt-2 font-[family:var(--font-display)] text-[2.2rem] leading-tight tracking-[-0.04em] text-[#4d2741] sm:text-[2.8rem]">
                 {title}
               </h1>
-              <p className="mt-2 text-[11px] text-[#b08898]">Utolsó módosítás: {lastUpdated}</p>
+              <p className="mt-2 text-[11px] text-[#b08898]">
+                {language === "en" ? "Last updated" : "Utolsó módosítás"}: {lastUpdated}
+              </p>
             </div>
 
             <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-[0_20px_50px_rgba(198,129,167,0.1)] backdrop-blur-xl sm:p-8">

@@ -10,6 +10,7 @@ import type { NavigationCategory } from "@/lib/catalog";
 import { MegaMenu, type MegaMenuItem } from "@/components/MegaMenu";
 import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 
 const topLevelNavItemClassName =
   "relative whitespace-nowrap py-1 text-[13px] font-medium uppercase leading-5 tracking-[0.08em] text-[#4a343d] transition-[color,font-weight] duration-150 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-[#9b3d6e] after:transition-[width] after:duration-150 hover:font-semibold hover:text-[#9b3d6e] hover:after:w-full focus-visible:font-semibold focus-visible:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-4 focus-visible:ring-offset-[#fbf8f5] focus-visible:after:w-full active:opacity-80";
@@ -22,10 +23,11 @@ type CategoryNavProps = {
 export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNavProps) {
   const { language } = useCountryLanguage();
   const dictionary = getDictionary(language);
+  const localizedHref = (href: string) => href.startsWith("/") ? getLocalizedPath(href, language) : href;
   const megaItems: MegaMenuItem[] = specialtyItems.map((item) => ({
     id: item.id,
     name: item.name,
-    href: getSpecialtyHref(item),
+    href: localizedHref(getSpecialtyHref(item)),
     shortDescription: item.shortDescription,
     previewImageSrc: item.previewImageUrl ?? item.imageUrl ?? undefined,
     previewImageAlt: item.previewImageAlt || item.imageAlt || item.name,
@@ -53,14 +55,14 @@ export function CategoryNav({ navigationCategories, specialtyItems }: CategoryNa
         {navigationCategories.map((item) => (
           <Link
             key={item.slug}
-            href={item.href}
+            href={localizedHref(item.href)}
             className={topLevelNavItemClassName}
           >
             {categoryLabelByHref[item.href] ?? item.label}
           </Link>
         ))}
 
-        <Link href="/gemstones" className={topLevelNavItemClassName}>
+        <Link href={localizedHref("/gemstones")} className={topLevelNavItemClassName}>
           {language === "en" ? "Gemstones" : "Drágakövek"}
         </Link>
 

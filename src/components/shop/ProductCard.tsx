@@ -18,6 +18,7 @@ import {
   getFreeShippingLabel,
 } from "@/lib/international";
 import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 
 // Minimal structural type accepted by both "grid" and "saved" variants.
 // Product satisfies this structurally.
@@ -164,7 +165,8 @@ export function ProductCard({
   const secondaryImage = safeImages.find((image) => image.displayUrl !== coverImage?.displayUrl);
   const coverImageUrl = coverImage?.displayUrl ?? null;
   const secondaryImageUrl = secondaryImage?.displayUrl ?? null;
-  const productHref = `/product/${product.slug}`;
+  const productHref = getLocalizedPath(`/product/${product.slug}`, language);
+  const resolvedRedirectTo = redirectTo.startsWith("/") ? getLocalizedPath(redirectTo, language) : redirectTo;
   const isOutOfStock = isProductOutOfStock(product);
   const isHeartPending = isFavouritePending || isWishlistPending;
   const differentiator = useMemo(() => getProductCardDifferentiator(localizedProduct), [localizedProduct]);
@@ -237,8 +239,8 @@ export function ProductCard({
 
   // ── Saved variant ──────────────────────────────────────────────────────────
   if (variant === "saved") {
-    const savedHref = redirectTo
-      ? `${productHref}?redirectTo=${encodeURIComponent(redirectTo)}`
+    const savedHref = resolvedRedirectTo
+      ? `${productHref}?redirectTo=${encodeURIComponent(resolvedRedirectTo)}`
       : productHref;
 
     return (
@@ -480,7 +482,7 @@ export function ProductCard({
             <AddToCartForm
               productId={product.id}
               quantity={1}
-              redirectTo={redirectTo}
+              redirectTo={resolvedRedirectTo}
               disabled={isOutOfStock}
             >
               {({ isPending }) => (

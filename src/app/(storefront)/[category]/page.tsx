@@ -14,6 +14,8 @@ import {
   getFilterOptionsForCategory,
   getProductsForCategory,
 } from "@/lib/products-server";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 import { siteName } from "@/lib/site";
 
 type CategoryPageProps = {
@@ -34,12 +36,21 @@ export async function generateMetadata({
   if (!categoryDefinition) {
     return {};
   }
+  const language = await getRequestLocale();
+  const canonicalPath = getLocalizedPath(`/${categoryDefinition.slug}`, language);
+  const title = language === "en"
+    ? `${categoryDefinition.label === "Karkötők" ? "Bracelets" : categoryDefinition.label === "Nyakláncok" ? "Necklaces" : categoryDefinition.title} | ${siteName}`
+    : `${categoryDefinition.title} | ${siteName}`;
+  const description = language === "en"
+    ? `Explore the Chicks Jewelry ${title.replace(` | ${siteName}`, "").toLowerCase()} edit: refined pieces in a curated selection.`
+    : categoryDefinition.seoDescription;
 
   return {
-    title: `${categoryDefinition.title} | ${siteName}`,
-    description: categoryDefinition.seoDescription,
+    title,
+    description,
     alternates: {
-      canonical: `/${categoryDefinition.slug}`,
+      canonical: canonicalPath,
+      languages: getAlternateLanguages(`/${categoryDefinition.slug}`),
     },
   };
 }

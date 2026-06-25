@@ -7,7 +7,9 @@ import { getRequestCart } from "@/lib/account";
 import { getCheckoutSession } from "@/lib/checkoutSession";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPriceForCountry, getShippingLineValue } from "@/lib/international";
-import { getDictionary } from "@/lib/i18n";
+import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 import { getStripePublishableKey, isStripeConfigured } from "@/lib/stripe";
 
 type CheckoutPageProps = {
@@ -23,7 +25,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   const resolvedSearchParams = await searchParams;
   const initialStep = user?.emailVerifiedAt || checkoutSession?.email ? 1 : 0;
   const isLoggedIn = Boolean(user?.emailVerifiedAt);
-  const language = cart.countryCode === "HU" ? "hu" : "en";
+  const language = await getRequestLocale();
   const dictionary = getDictionary(language);
 
   const hasUnavailableItems = cart.items.some(
@@ -38,7 +40,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
           eyebrow={language === "en" ? "Nothing to pay" : "Nincs mit fizetni"}
           title={language === "en" ? "Checkout is empty" : "A pénztár jelenleg üres"}
           description={language === "en" ? "Add a product to your cart before completing checkout." : "Előbb tegyél terméket a kosaradba, majd térj vissza a rendelés véglegesítéséhez."}
-          actionHref="/cart"
+          actionHref={getLocalizedPath("/cart", language)}
           actionLabel={dictionary["cart.cart"]}
         />
       </main>
@@ -51,7 +53,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       {/* Checkout header — logo centered, security right */}
       <header className="flex items-center justify-between gap-3 border-b border-[#e8e5e0] bg-white px-4 py-4 sm:px-8">
         <div className="hidden w-32 sm:block" />
-        <Link href="/" className="text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2">
+        <Link href={getLocalizedPath("/", language)} className="text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c45a85] focus-visible:ring-offset-2">
           <span className="font-[family:var(--font-display)] text-xl tracking-[-0.02em] text-[#1a1a1a]">
             Chicks Jewelry
           </span>
@@ -113,27 +115,31 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
             </div>
 
             <div className="divide-y divide-[#f0eeec] px-6">
-              {cart.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 py-3.5"
-                >
-                  <span className="flex h-5 min-w-[1.25rem] items-center justify-center bg-[#f0eeec] px-1.5 text-[11px] font-medium text-[#555]">
-                    {item.quantity}×
-                  </span>
-                  <span className="flex-1 truncate text-sm text-[#333]">
-                    {item.name}
-                    {item.unavailableReason === "archived" ? (
-                      <span className="ml-2 text-xs font-medium text-[#9b476f]">
-                        {language === "en" ? "No longer available" : "Már nem elérhető"}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="shrink-0 text-sm font-medium text-[#1a1a1a]">
-                    {item.isAvailable ? formatPriceForCountry(item.lineTotal, cart.countryCode) : "-"}
-                  </span>
-                </div>
-              ))}
+              {cart.items.map((item) => {
+                const localizedItem = getLocalizedProduct(item, language);
+
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 py-3.5"
+                  >
+                    <span className="flex h-5 min-w-[1.25rem] items-center justify-center bg-[#f0eeec] px-1.5 text-[11px] font-medium text-[#555]">
+                      {item.quantity}×
+                    </span>
+                    <span className="flex-1 truncate text-sm text-[#333]">
+                      {localizedItem.name}
+                      {item.unavailableReason === "archived" ? (
+                        <span className="ml-2 text-xs font-medium text-[#9b476f]">
+                          {language === "en" ? "No longer available" : "Már nem elérhető"}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 text-sm font-medium text-[#1a1a1a]">
+                      {item.isAvailable ? formatPriceForCountry(item.lineTotal, cart.countryCode) : "-"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="px-6 pb-6 pt-4">

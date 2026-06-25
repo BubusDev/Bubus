@@ -11,12 +11,6 @@ type HomeInstagramPromoProps = {
 
 type SocialTab = "instagram" | "facebook" | "team";
 
-const tabs: { id: SocialTab; label: string }[] = [
-  { id: "instagram", label: "Instagram" },
-  { id: "facebook", label: "Facebook" },
-  { id: "team", label: "Csapatunk" },
-];
-
 type TeamMember = {
   name: string;
   role: string;
@@ -114,14 +108,17 @@ function SocialPanel({
 
 function TeamPanel({ block }: { block: HomepageBlockView }) {
   const members = readTeamMembers(block);
+  const eyebrow = typeof block.metadata.teamEyebrow === "string" ? block.metadata.teamEyebrow : "Csapatunk";
+  const titleStart = typeof block.metadata.teamTitleStart === "string" ? block.metadata.teamTitleStart : "Akik";
+  const titleEmphasis = typeof block.metadata.teamTitleEmphasis === "string" ? block.metadata.teamTitleEmphasis : "készítik.";
 
   return (
     <div>
       <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#9C6B63]">
-        Csapatunk
+        {eyebrow}
       </p>
       <h2 className="mt-4 font-[family:var(--font-display)] text-[3rem] leading-[0.95] text-[#2D1A16] sm:text-[4.3rem]">
-        Akik <em className="font-normal italic text-[#E0157A]">készítik.</em>
+        {titleStart} <em className="font-normal italic text-[#E0157A]">{titleEmphasis}</em>
       </h2>
       <div className="mt-9 grid gap-4 md:grid-cols-3">
         {members.map((member) => (
@@ -150,6 +147,20 @@ function TeamPanel({ block }: { block: HomepageBlockView }) {
 
 export function HomeInstagramPromo({ block }: HomeInstagramPromoProps) {
   const [activeTab, setActiveTab] = useState<SocialTab>("instagram");
+  const tabs: { id: SocialTab; label: string }[] = [
+    {
+      id: "instagram",
+      label: typeof block.metadata.instagramTabLabel === "string" ? block.metadata.instagramTabLabel : "Instagram",
+    },
+    {
+      id: "facebook",
+      label: typeof block.metadata.facebookTabLabel === "string" ? block.metadata.facebookTabLabel : "Facebook",
+    },
+    {
+      id: "team",
+      label: typeof block.metadata.teamTabLabel === "string" ? block.metadata.teamTabLabel : "Csapatunk",
+    },
+  ];
 
   if (!block.isVisible) {
     return null;
@@ -201,7 +212,7 @@ export function HomeInstagramPromo({ block }: HomeInstagramPromoProps) {
                   ? block.metadata.facebookBody
                   : "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen."
               }
-              cta="Kövess Facebookon"
+              cta={typeof block.metadata.facebookCta === "string" ? block.metadata.facebookCta : "Kövess Facebookon"}
               href={
                 typeof block.metadata.facebookHref === "string"
                   ? block.metadata.facebookHref

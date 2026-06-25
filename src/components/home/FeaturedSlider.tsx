@@ -21,12 +21,13 @@ const inter = Inter({
   weight: ['300', '400', '500'],
 })
 
-type BadgeType = 'Új' | 'Limitált' | null
+type BadgeType = string | null
 
 type ShowcaseProduct = {
   id: string
   slug: string
   name: string
+  nameEn?: string | null
   category?: string
   price: number
   priceEur?: number | null
@@ -82,9 +83,9 @@ const requestedTabs = [
   },
 ]
 
-function getProductBadge(product: ShowcaseProduct): BadgeType {
-  if (product.isNew) return 'Új'
-  if (product.isOnSale) return 'Limitált'
+function getProductBadge(product: ShowcaseProduct, language: string): BadgeType {
+  if (product.isNew) return language === 'en' ? 'New' : 'Új'
+  if (product.isOnSale) return language === 'en' ? 'Limited' : 'Limitált'
   return null
 }
 
@@ -102,22 +103,23 @@ function getProductImage(product: ShowcaseProduct) {
   }
 }
 
-function mapProduct(product: ShowcaseProduct): Product {
+function mapProduct(product: ShowcaseProduct, language: string): Product {
   const image = getProductImage(product)
+  const name = language === 'en' && product.nameEn?.trim() ? product.nameEn.trim() : product.name
 
   return {
     id: product.id,
-    name: product.name,
+    name,
     price: product.price,
     priceEur: product.priceEur,
     href: `/product/${product.slug}`,
     imageUrl: image.url,
     imageAlt: image.alt,
-    badge: getProductBadge(product),
+    badge: getProductBadge(product, language),
   }
 }
 
-function getDisplayTabs(tabs: ShowcaseTab[]) {
+function getDisplayTabs(tabs: ShowcaseTab[], language: string) {
   const inlineFeaturedTab = tabs.find((tab) => tab.key === 'inline-featured' || tab.key === 'inline-featured-preview')
 
   if (inlineFeaturedTab) {
@@ -151,7 +153,7 @@ function getDisplayTabs(tabs: ShowcaseTab[]) {
 
       return {
         key: configuredTab?.key ?? definition.key,
-        label: definition.label,
+        label: language === 'en' ? (definition.key === 'karkotok' ? 'Bracelets' : 'Necklaces') : definition.label,
         products,
       }
     })
@@ -295,7 +297,8 @@ function ProductCard({
 }
 
 export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderProps) {
-  const displayTabs = useMemo(() => getDisplayTabs(tabs), [tabs])
+  const { language } = useCountryLanguage()
+  const displayTabs = useMemo(() => getDisplayTabs(tabs, language), [tabs, language])
   const [pos, setPos] = useState(0)
   const [activeTab, setActiveTab] = useState('')
   const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set())
@@ -308,8 +311,8 @@ export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderPro
     const activeProductsFromTabs =
       displayTabs.find((tab) => tab.key === resolvedActiveTab)?.products ?? displayTabs[0]?.products ?? []
 
-    return activeProductsFromTabs.map(mapProduct)
-  }, [displayTabs, resolvedActiveTab])
+    return activeProductsFromTabs.map((product) => mapProduct(product, language))
+  }, [displayTabs, language, resolvedActiveTab])
 
   const maxPos = Math.max(activeProducts.length - visible, 0)
   const effectivePos = Math.min(pos, maxPos)

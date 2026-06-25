@@ -1,11 +1,31 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 
-export const metadata: Metadata = {
-  title: "Cookie Irányelv — Chicks Jewelry",
-  description: "Tájékoztató a Chicks Jewelry webáruház által használt cookie-król.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getRequestLocale();
+  const canonicalPath = getLocalizedPath("/cookies", language);
+
+  return {
+    title: language === "en" ? "Cookie Policy — Chicks Jewelry" : "Cookie Irányelv — Chicks Jewelry",
+    description: language === "en"
+      ? "Information about cookies used by the Chicks Jewelry online store."
+      : "Tájékoztató a Chicks Jewelry webáruház által használt cookie-król.",
+    alternates: {
+      canonical: canonicalPath,
+      languages: getAlternateLanguages("/cookies"),
+    },
+    openGraph: {
+      title: language === "en" ? "Cookie Policy — Chicks Jewelry" : "Cookie Irányelv — Chicks Jewelry",
+      description: language === "en"
+        ? "Cookie categories, consent management and third-party services."
+        : "Tájékoztató a Chicks Jewelry webáruház által használt cookie-król.",
+      url: canonicalPath,
+    },
+  };
+}
 
 const sections = [
   { id: "adatkezelo", title: "Adatkezelő adatai" },
@@ -26,7 +46,68 @@ const DATA_CONTROLLER_TAX_NUMBER = "[KITÖLTENDŐ ADÓSZÁM]";
 // TODO: Replace this temporary placeholder with the final public privacy contact email before launch.
 const DATA_CONTROLLER_EMAIL = "[KITÖLTENDŐ E-MAIL CÍM]";
 
-export default function CookiesPage() {
+const sectionsEn = [
+  { id: "controller", title: "Data controller" },
+  { id: "what", title: "What are cookies?" },
+  { id: "categories", title: "Cookie categories" },
+  { id: "consent", title: "Managing consent" },
+  { id: "contact", title: "Contact" },
+];
+
+export default async function CookiesPage() {
+  const language = await getRequestLocale();
+
+  if (language === "en") {
+    return (
+      <LegalPage
+        eyebrow="Legal"
+        title="Cookie Policy"
+        lastUpdated="April 22, 2026"
+        sections={sectionsEn}
+      >
+        <p>
+          This policy explains the cookie categories used by the Chicks Jewelry webshop and how you can
+          manage your consent.
+        </p>
+        <div className="my-6 rounded-[1.5rem] border border-[#efd7e1] bg-[#fff7fa] p-5">
+          <p className="mb-3">
+            Optional analytics and marketing cookies are used only after your consent. You can change
+            or withdraw your choice at any time.
+          </p>
+          <CookieSettingsButton className="inline-flex min-h-11 items-center rounded-full border border-[#d95587] px-5 py-3 text-sm font-medium text-[#d95587] transition hover:bg-[#fff0f6]">
+            Manage cookie settings
+          </CookieSettingsButton>
+        </div>
+        <h2 id="controller">Data controller</h2>
+        <p><strong>Controller:</strong> {DATA_CONTROLLER_NAME}</p>
+        <p><strong>Registered office:</strong> {DATA_CONTROLLER_ADDRESS}</p>
+        <p><strong>Tax number:</strong> {DATA_CONTROLLER_TAX_NUMBER}</p>
+        <p><strong>E-mail:</strong> {DATA_CONTROLLER_EMAIL}</p>
+        <h2 id="what">What are cookies?</h2>
+        <p>
+          Cookies are small data files stored by your browser. Necessary cookies keep the shop, cart,
+          checkout, login and security features working. Optional cookies support analytics and marketing.
+        </p>
+        <h2 id="categories">Cookie categories</h2>
+        <h3>Necessary cookies</h3>
+        <p>Required for cart, checkout, authentication, consent storage and basic security.</p>
+        <h3>Analytics cookies</h3>
+        <p>Used to understand site traffic and usage only if you consent.</p>
+        <h3>Marketing cookies</h3>
+        <p>Used for campaign performance and advertising relevance only if you consent.</p>
+        <h2 id="consent">Managing consent</h2>
+        <p>
+          Your consent choice is stored for up to 12 months. You can update it through the Cookie settings
+          button in the footer.
+        </p>
+        <h2 id="contact">Contact</h2>
+        <p>
+          For questions about cookies or privacy, contact us at <strong>{DATA_CONTROLLER_EMAIL}</strong>.
+        </p>
+      </LegalPage>
+    );
+  }
+
   return (
     <LegalPage
       eyebrow="Jogi dokumentum"

@@ -7,8 +7,9 @@ import { Heart, ShoppingBag, X } from "lucide-react";
 
 import { useCountryLanguage } from "@/components/international/CountryLanguageProvider";
 import type { CartItemSummary, CartSummary, FavouriteProduct } from "@/lib/account";
-import { formatPriceForCountry, getDisplayPriceForCountry, getShippingLineValue } from "@/lib/international";
+import { formatPriceForCountry, getDisplayPriceForCountry, getShippingLineValue, type SupportedLanguage } from "@/lib/international";
 import { getDictionary, getLocalizedProduct } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 
 type CartDrawerProps = {
   isOpen: boolean;
@@ -16,14 +17,15 @@ type CartDrawerProps = {
   cartCount: number;
 };
 
-function CartDrawerItem({ item, countryCode, language }: { item: CartItemSummary; countryCode: CartSummary["countryCode"]; language: string }) {
+function CartDrawerItem({ item, countryCode, language }: { item: CartItemSummary; countryCode: CartSummary["countryCode"]; language: SupportedLanguage }) {
   const isArchived = item.unavailableReason === "archived";
   const dictionary = getDictionary(language);
   const localizedItem = getLocalizedProduct(item, language);
+  const productHref = getLocalizedPath(`/product/${item.slug}`, language);
 
   return (
     <div className="flex gap-3 px-4 py-3.5">
-      <Link href={`/product/${item.slug}`} className="shrink-0">
+      <Link href={productHref} className="shrink-0">
         <div className="relative h-16 w-12 overflow-hidden bg-[#f5f3f0]">
           {item.imageUrl ? (
             <Image
@@ -38,7 +40,7 @@ function CartDrawerItem({ item, countryCode, language }: { item: CartItemSummary
       </Link>
       <div className="min-w-0 flex-1">
         <Link
-          href={`/product/${item.slug}`}
+          href={productHref}
           className="line-clamp-2 text-xs font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555]"
         >
           {localizedItem.name}
@@ -69,9 +71,10 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
   const dictionary = getDictionary(language);
   const localizedItem = getLocalizedProduct(item, language);
   const displayPrice = getDisplayPriceForCountry(item, country);
+  const productHref = getLocalizedPath(`/product/${item.slug}`, language);
   return (
     <div className="flex gap-3 px-4 py-3.5">
-      <Link href={`/product/${item.slug}`} className="shrink-0">
+      <Link href={productHref} className="shrink-0">
         <div className="relative h-16 w-12 overflow-hidden bg-[#f5f3f0]">
           {item.imageUrl ? (
             <Image
@@ -86,7 +89,7 @@ function WishlistDrawerItem({ item }: { item: FavouriteProduct }) {
       </Link>
       <div className="min-w-0 flex-1">
         <Link
-          href={`/product/${item.slug}`}
+          href={productHref}
           className="line-clamp-2 text-xs font-medium leading-snug text-[#1a1a1a] transition hover:text-[#555]"
         >
           {localizedItem.name}
@@ -130,6 +133,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
     cart?.items.some((item) => !item.isAvailable || item.exceedsStock) ?? false;
   const loading = cart === null;
   const wishlistLoading = cartTab === "wishlist" && wishlist === null;
+  const localizedHref = (href: string) => getLocalizedPath(href, language);
 
   return (
     <div className="fixed inset-0 z-[200] lg:hidden">
@@ -187,7 +191,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                     {language === "en" ? "Browse the collection." : "Böngéssz a kollekciónkban!"}
                   </p>
                   <Link
-                    href="/"
+                    href={localizedHref("/")}
                     onClick={onClose}
                     className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
                   >
@@ -222,7 +226,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
                     {language === "en" ? "Use the heart icon to save pieces you like." : "A szív ikonra kattintva mentheted el a kedvelt ékszereket."}
                   </p>
                   <Link
-                    href="/"
+                    href={localizedHref("/")}
                     onClick={onClose}
                     className="border border-[#1a1a1a] px-6 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
                   >
@@ -244,7 +248,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
         {cartTab === "wishlist" && wishlist && wishlist.length > 0 && (
           <div className="shrink-0 border-t border-[#e8e5e0] bg-white p-5">
             <Link
-              href="/favourites"
+              href={localizedHref("/favourites")}
               onClick={onClose}
               className="block w-full border border-[#1a1a1a] py-3 text-center text-sm font-semibold text-[#1a1a1a] transition hover:bg-[#1a1a1a] hover:text-white"
             >
@@ -274,7 +278,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
               </div>
             ) : (
               <Link
-                href="/checkout"
+                href={localizedHref("/checkout")}
                 onClick={onClose}
                 className="block w-full bg-[#1a1a1a] py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#333]"
               >
@@ -282,7 +286,7 @@ export function CartDrawer({ isOpen, onClose, cartCount }: CartDrawerProps) {
               </Link>
             )}
             <Link
-              href="/cart"
+              href={localizedHref("/cart")}
               onClick={onClose}
               className="mt-2 block w-full py-2.5 text-center text-xs text-[#888] transition hover:text-[#1a1a1a]"
             >

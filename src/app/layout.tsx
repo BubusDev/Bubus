@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Cormorant_Garamond, Inter } from "next/font/google";
-import { cookies } from "next/headers";
+import { Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
-import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage } from "@/lib/international";
+import { getRequestLocale } from "@/lib/request-locale";
 import { siteDescription, siteName, siteUrl } from "@/lib/site";
 
 import "./globals.css";
@@ -22,6 +21,13 @@ const serif = Cormorant_Garamond({
   display: "swap",
 });
 
+const editorialDisplay = Playfair_Display({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
+  variable: "--font-editorial-display",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: siteName,
@@ -36,11 +42,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const language = validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
+  const language = await getRequestLocale();
 
   return (
-    <html lang={language} className={`${sans.variable} ${serif.variable}`}>
+    <html lang={language} className={`${sans.variable} ${serif.variable} ${editorialDisplay.variable}`}>
       <body className={sans.className}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>

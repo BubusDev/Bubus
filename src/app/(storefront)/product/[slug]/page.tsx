@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { ProductDetailView } from "@/components/shop/ProductDetailView";
@@ -11,7 +10,8 @@ import {
 } from "@/lib/products-server";
 import { getAbsoluteUrl, siteName } from "@/lib/site";
 import { getLocalizedProduct } from "@/lib/i18n";
-import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage } from "@/lib/international";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -41,21 +41,22 @@ export async function generateMetadata({
   if (!product) {
     return {};
   }
-  const cookieStore = await cookies();
-  const language = validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
+  const language = await getRequestLocale();
   const localizedProduct = getLocalizedProduct(product, language);
+  const canonicalPath = getLocalizedPath(`/product/${product.slug}`, language);
 
   return {
     title: `${localizedProduct.name} | ${siteName}`,
     description: localizedProduct.shortDescription,
     alternates: {
-      canonical: `/product/${product.slug}`,
+      canonical: canonicalPath,
+      languages: getAlternateLanguages(`/product/${product.slug}`),
     },
     openGraph: {
       title: `${localizedProduct.name} | ${siteName}`,
       description: localizedProduct.shortDescription,
       type: "article",
-      url: `/product/${product.slug}`,
+      url: canonicalPath,
       images: [
         {
           url: `/product/${product.slug}/opengraph-image`,
@@ -80,18 +81,18 @@ function getSchemaAvailability(inStock: boolean) {
     : "https://schema.org/InStock";
 }
 
-function formatCategoryLabel(category: string) {
+function formatCategoryLabel(category: string, language: "hu" | "en" = "hu") {
   switch (category) {
     case "necklaces":
-      return "Nyakláncok";
+      return language === "en" ? "Necklaces" : "Nyakláncok";
     case "bracelets":
-      return "Karkötők";
+      return language === "en" ? "Bracelets" : "Karkötők";
     case "special-edition":
-      return "Limitált darabok";
+      return language === "en" ? "Limited pieces" : "Limitált darabok";
     case "new-in":
-      return "Újdonságok";
+      return language === "en" ? "New in" : "Újdonságok";
     case "sale":
-      return "Akció";
+      return language === "en" ? "Sale" : "Akció";
     default:
       return category;
   }
@@ -119,7 +120,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const productImage = product.imageUrl
     ? getAbsoluteUrl(product.imageUrl)
     : undefined;
-  const categoryLabel = categoryDefinition?.title ?? formatCategoryLabel(product.category);
+  const language = await getRequestLocale();
+  const categoryLabel = language === "en"
+    ? formatCategoryLabel(product.category, language)
+    : categoryDefinition?.title ?? formatCategoryLabel(product.category, language);
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",

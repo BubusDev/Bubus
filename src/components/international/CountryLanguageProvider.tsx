@@ -16,6 +16,7 @@ import {
   type SupportedLanguage,
 } from "@/lib/international";
 import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
 
 type InitialSelection = {
   country: SupportedCountry;
@@ -57,22 +58,26 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
   const dictionary = useMemo(() => getDictionary(draftLanguage), [draftLanguage]);
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#1a1010]/28 px-4 py-4 sm:items-center">
-      <div className="w-full max-w-[460px] rounded-[12px] border border-[#efe5df] bg-white p-6 shadow-[0_18px_48px_rgba(45,31,31,0.14)] transition duration-200 ease-out sm:p-7">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.1em] text-[#A0607A]">Chicks Jewelry</p>
-        <h2 className="font-[family:var(--font-display)] text-[2rem] leading-tight text-[#2D1F1F]">
+    <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#FAF7F4]/88 px-4 py-4 backdrop-blur-[2px] sm:items-center">
+      <div className="mobile-panel-reveal w-full max-w-[480px] rounded-[12px] border border-[#F0E8E2] bg-white px-6 py-7 shadow-[0_24px_70px_rgba(92,57,45,0.16),0_4px_18px_rgba(224,21,122,0.06)] sm:px-8 sm:py-8">
+        <div className="mb-6 h-px w-16 bg-[#E0157A]" />
+        <p className="mb-3 text-[0.75rem] font-medium uppercase tracking-[0.1em] text-[#A0607A]">Chicks Jewelry</p>
+        <h2
+          className="text-[2.15rem] font-medium leading-[1.08] text-[#2D1F1F] sm:text-[2.45rem]"
+          style={{ fontFamily: "var(--font-editorial-display)" }}
+        >
           {dictionary["countryPopup.title"]}
         </h2>
-        <p className="mt-4 text-sm leading-7 text-[#4A3A3A]">{dictionary["countryPopup.body"]}</p>
+        <p className="mt-4 text-[0.95rem] leading-7 text-[#4A3A3A]">{dictionary["countryPopup.body"]}</p>
         <form
-          className="mt-6 space-y-4"
+          className="mt-7 space-y-5"
           onSubmit={(event) => {
             event.preventDefault();
             onSave(draftCountry, draftLanguage);
           }}
         >
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium uppercase tracking-[0.1em] text-[#A0607A]">
+            <span className="mb-2 block text-[0.75rem] font-medium uppercase tracking-[0.1em] text-[#A0607A]">
               {dictionary["countryPopup.country"]}
             </span>
             <select
@@ -83,7 +88,7 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
                 setDraftCountry(nextCountry);
                 setDraftLanguage(getLanguageForCountry(nextCountry));
               }}
-              className="h-11 w-full rounded-[8px] border border-[#E5E0DC] bg-white px-3 text-sm text-[#2D1F1F] outline-none transition focus:border-[#E0157A]"
+              className="h-12 w-full rounded-[8px] border border-[#E5E0DC] bg-white px-4 text-[0.95rem] text-[#2D1F1F] outline-none transition duration-200 hover:border-[#d9d0ca] focus:border-[#E0157A] focus:ring-[3px] focus:ring-[#E0157A]/10"
             >
               {countryOptions.map((code) => (
                 <option key={code} value={code}>
@@ -93,14 +98,14 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
             </select>
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium uppercase tracking-[0.1em] text-[#A0607A]">
+            <span className="mb-2 block text-[0.75rem] font-medium uppercase tracking-[0.1em] text-[#A0607A]">
               {dictionary["countryPopup.language"]}
             </span>
             <select
               name="language"
               value={draftLanguage}
               onChange={(event) => setDraftLanguage(validateSupportedLanguage(event.target.value))}
-              className="h-11 w-full rounded-[8px] border border-[#E5E0DC] bg-white px-3 text-sm text-[#2D1F1F] outline-none transition focus:border-[#E0157A]"
+              className="h-12 w-full rounded-[8px] border border-[#E5E0DC] bg-white px-4 text-[0.95rem] text-[#2D1F1F] outline-none transition duration-200 hover:border-[#d9d0ca] focus:border-[#E0157A] focus:ring-[3px] focus:ring-[#E0157A]/10"
             >
               <option value="hu">Magyar</option>
               <option value="en">English</option>
@@ -108,11 +113,11 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
           </label>
           <button
             type="submit"
-            className="h-12 w-full rounded-[8px] bg-[#1A1010] px-5 text-sm font-medium text-white transition hover:bg-[#2D1F1F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0157A] focus-visible:ring-offset-2"
+            className="mt-1 h-12 w-full rounded-[8px] bg-[#1A1010] px-5 text-sm font-medium text-white shadow-[0_12px_24px_rgba(26,16,16,0.16)] transition duration-200 hover:bg-[#2D1F1F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E0157A] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             {dictionary["countryPopup.continue"]}
           </button>
-          <p className="text-center text-xs text-[#9A8A8A]">{dictionary["countryPopup.note"]}</p>
+          <p className="px-3 text-center text-xs leading-5 text-[#9A8A8A]">{dictionary["countryPopup.note"]}</p>
         </form>
       </div>
     </div>
@@ -146,7 +151,13 @@ export function CountryLanguageProvider({
 
     if (hasChanged) {
       window.dispatchEvent(new CustomEvent("chicks-country-language-changed"));
-      router.refresh();
+      const currentPath = `${window.location.pathname}${window.location.search}`;
+      const localizedPath = getLocalizedPath(currentPath, normalizedLanguage);
+      if (localizedPath !== currentPath) {
+        router.push(localizedPath);
+      } else {
+        router.refresh();
+      }
     }
   }, [country, language, router]);
 

@@ -1,6 +1,13 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  LOCALE_HEADER_NAME,
+  PATHNAME_HEADER_NAME,
+  getLocaleFromPathname,
+  stripLocaleFromPathname,
+} from "@/lib/locale-routing";
+
 const EARLY_ACCESS_MODE = process.env.EARLY_ACCESS_MODE === "true";
 const AUTH_SECRET =
   process.env.AUTH_SECRET ??
@@ -17,6 +24,7 @@ const PUBLIC_STORE_PATHS = new Set([
   "/terms",
   "/privacy",
   "/cookies",
+  "/shipping",
   "/faq",
   "/contact",
 ]);
@@ -28,7 +36,7 @@ function isStaticAsset(pathname: string) {
 }
 
 function isPublicPath(pathname: string) {
-  return PUBLIC_STORE_PATHS.has(pathname);
+  return PUBLIC_STORE_PATHS.has(stripLocaleFromPathname(pathname));
 }
 
 function isExcludedPath(pathname: string) {
@@ -48,13 +56,25 @@ function redirectWithNext(request: NextRequest, pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const locale = getLocaleFromPathname(pathname);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(PATHNAME_HEADER_NAME, pathname);
+  if (locale) {
+    requestHeaders.set(LOCALE_HEADER_NAME, locale);
+  }
+
+  if (locale) {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = stripLocaleFromPathname(pathname);
+    return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } });
+  }
 
   if (isPublicPath(pathname) || isExcludedPath(pathname) || isStaticAsset(pathname)) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   if (!EARLY_ACCESS_MODE) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   const token = await getToken({
@@ -71,7 +91,7 @@ export async function middleware(request: NextRequest) {
   const isApproved = token.earlyAccess === true;
 
   if (isAdmin || isApproved) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   return redirectWithNext(request, "/early-access-pending");

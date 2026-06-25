@@ -117,11 +117,16 @@ function assertHref(value: string, label: string) {
 function toBlockValues(block: HomepageBlockView) {
   return {
     title: block.title.trim(),
+    titleEn: block.titleEn.trim(),
     eyebrow: block.eyebrow.trim(),
+    eyebrowEn: block.eyebrowEn.trim(),
     body: block.body.trim(),
+    bodyEn: block.bodyEn.trim(),
     imageUrl: block.imageUrl.trim(),
     imageAlt: block.imageAlt.trim(),
+    imageAltEn: block.imageAltEn.trim(),
     buttonText: block.buttonText.trim(),
+    buttonTextEn: block.buttonTextEn.trim(),
     buttonHref: block.buttonHref.trim(),
     metadata: block.metadata,
     isVisible: block.isVisible,
@@ -131,10 +136,13 @@ function toBlockValues(block: HomepageBlockView) {
 function toTileValues(tile: HomepagePromoTileView) {
   return {
     title: tile.title.trim(),
+    titleEn: tile.titleEn.trim(),
     subtitle: tile.subtitle.trim(),
+    subtitleEn: tile.subtitleEn.trim(),
     href: tile.href.trim(),
     imageUrl: tile.imageUrl.trim(),
     imageAlt: tile.imageAlt.trim(),
+    imageAltEn: tile.imageAltEn.trim(),
     isNew: tile.isNew,
     isVisible: tile.isVisible,
   };
@@ -261,12 +269,18 @@ export async function saveHomepageBlockAction(formData: FormData): Promise<{ ok:
 
   await upsertHomepageBlock(key, {
     title: readString(formData, "title"),
+    titleEn: readString(formData, "titleEn"),
     eyebrow: readString(formData, "eyebrow"),
+    eyebrowEn: readString(formData, "eyebrowEn"),
     body: readString(formData, "body"),
+    bodyEn: readString(formData, "bodyEn"),
     imageUrl: finalImageUrl,
     imageAlt,
+    imageAltEn: readString(formData, "imageAltEn"),
     buttonText: readString(formData, "buttonText"),
+    buttonTextEn: readString(formData, "buttonTextEn"),
     buttonHref: readString(formData, "buttonHref"),
+    metadata: {},
     isVisible: readCheckbox(formData, "isVisible"),
   });
 
@@ -295,10 +309,13 @@ export async function saveHomepagePromoTileAction(formData: FormData): Promise<{
 
   await upsertHomepagePromoTile(slotIndex, {
     title: readString(formData, "title"),
+    titleEn: readString(formData, "titleEn"),
     subtitle: readString(formData, "subtitle"),
+    subtitleEn: readString(formData, "subtitleEn"),
     href: readString(formData, "href"),
     imageUrl: finalImageUrl,
     imageAlt,
+    imageAltEn: readString(formData, "imageAltEn"),
     isVisible: readCheckbox(formData, "isVisible"),
   });
 

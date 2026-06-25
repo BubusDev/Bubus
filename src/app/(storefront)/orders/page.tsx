@@ -12,25 +12,28 @@ import {
 } from "@/lib/account";
 import { requireAccountUser } from "@/lib/auth";
 import { getBrowserDisplayImageUrl } from "@/lib/image-safety";
+import { getLocalizedPath } from "@/lib/locale-routing";
 import { getCustomerOrderStatusView } from "@/lib/order-status";
+import { getRequestLocale } from "@/lib/request-locale";
 
 export default async function OrdersPage() {
   const user = await requireAccountUser("/orders");
+  const language = await getRequestLocale();
   const orders = await getOrdersForUser(user.id);
 
   return (
     <AccountShell
-      title="Rendeléseim"
-      description="Minden korábbi rendelésed egy rendezett, könnyen átnézhető listában."
+      title={language === "en" ? "My orders" : "Rendeléseim"}
+      description={language === "en" ? "All of your previous orders in one organized view." : "Minden korábbi rendelésed egy rendezett, könnyen átnézhető listában."}
     >
       {orders.length === 0 ? (
         <EmptyStateCard
           icon={ShoppingBag}
-          eyebrow="Még nincs rendelés"
-          title="Az első rendelésed után itt látod a részleteket"
-          description="A rendelések státuszát, azonosítóját és a termékek előnézetét is itt követheted majd."
-          actionHref="/"
-          actionLabel="Termékek böngészése"
+          eyebrow={language === "en" ? "No orders yet" : "Még nincs rendelés"}
+          title={language === "en" ? "Your first order will appear here" : "Az első rendelésed után itt látod a részleteket"}
+          description={language === "en" ? "You will be able to track order status, order ID and product previews here." : "A rendelések státuszát, azonosítóját és a termékek előnézetét is itt követheted majd."}
+          actionHref={getLocalizedPath("/", language)}
+          actionLabel={language === "en" ? "Browse products" : "Termékek böngészése"}
         />
       ) : (
         <section className="w-full overflow-hidden rounded-lg border border-[#e8e5e0] bg-white">
@@ -43,6 +46,7 @@ export default async function OrdersPage() {
                 trackingNumber: order.trackingNumber,
                 shippingMethod: order.shippingMethod,
                 statusUpdatedAt: order.statusUpdatedAt,
+                language,
               });
 
               return (
@@ -66,13 +70,13 @@ export default async function OrdersPage() {
                       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#7a6872]">
                         <p>{customerStatus.detail}</p>
                         {customerStatus.shippingMethodLabel ? (
-                          <p>Szállítás: {customerStatus.shippingMethodLabel}</p>
+                          <p>{language === "en" ? "Shipping" : "Szállítás"}: {customerStatus.shippingMethodLabel}</p>
                         ) : null}
                         {customerStatus.trackingNumber ? (
                           <p>Tracking: {customerStatus.trackingNumber}</p>
                         ) : null}
                         {customerStatus.lastUpdatedLabel ? (
-                          <p>Frissítve: {customerStatus.lastUpdatedLabel}</p>
+                          <p>{language === "en" ? "Updated" : "Frissítve"}: {customerStatus.lastUpdatedLabel}</p>
                         ) : null}
                       </div>
 
@@ -106,7 +110,7 @@ export default async function OrdersPage() {
                                   {item.productName}
                                 </p>
                                 <p className="text-xs text-[#7a6872]">
-                                  {item.quantity} db
+                                  {language === "en" ? `${item.quantity} pcs` : `${item.quantity} db`}
                                 </p>
                               </div>
                             </div>
@@ -117,7 +121,7 @@ export default async function OrdersPage() {
 
                     <div className="flex shrink-0 flex-col gap-4 xl:min-w-[220px] xl:items-end">
                       <div className="xl:text-right">
-                        <p className="text-sm text-[#7a6872]">Végösszeg</p>
+                        <p className="text-sm text-[#7a6872]">{language === "en" ? "Total" : "Végösszeg"}</p>
                         <p className="mt-1 text-lg font-semibold text-[#2d1f28]">
                           {formatOrderPrice(order.total, order.currency)}
                         </p>
@@ -125,10 +129,10 @@ export default async function OrdersPage() {
 
                       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                         <Link
-                          href={`/orders/${order.id}`}
+                          href={getLocalizedPath(`/orders/${order.id}`, language)}
                           className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#e6dde1] bg-white px-4 text-sm font-medium text-[#5e4d57] transition hover:border-[#d8c7cf] hover:bg-[#fcfbfc]"
                         >
-                          Részletek
+                          {language === "en" ? "Details" : "Részletek"}
                         </Link>
                       </div>
                     </div>

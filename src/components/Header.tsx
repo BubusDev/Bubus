@@ -31,6 +31,7 @@ import {
   type SpecialtyView,
 } from "@/lib/specialty-links";
 import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath, stripLocaleFromPathname } from "@/lib/locale-routing";
 
 type HeaderProps = {
   user?: HeaderUser;
@@ -55,7 +56,7 @@ function HeaderActionButton({
   children,
 }: HeaderActionButtonProps) {
   const hasBadge = typeof badgeCount === "number" && badgeCount > 0;
-  const isCartButton = href === "/cart";
+  const isCartButton = stripLocaleFromPathname(href) === "/cart";
 
   return (
     <Link
@@ -100,6 +101,15 @@ export function Header({
 
   const mobileMenuOpen = mobileMenuPath === pathname;
   const cartOpen = cartPath === pathname;
+  const localizedHref = (href: string) => href.startsWith("/") ? getLocalizedPath(href, language) : href;
+  const categoryLabelByHref: Record<string, string> = {
+    "/": dictionary["nav.home"],
+    "/new-in": language === "en" ? "New in" : "Újdonságok",
+    "/special-edition": dictionary["nav.limitedPieces"],
+    "/sale": language === "en" ? "Sale" : "Akció",
+    "/bracelets": language === "en" ? "Bracelets" : "Karkötők",
+    "/necklaces": language === "en" ? "Necklaces" : "Nyakláncok",
+  };
 
   // Scroll lock when any overlay is open
   useEffect(() => {
@@ -154,7 +164,7 @@ export function Header({
 
           {/* ── COL 2: logo (center) ── */}
           <Link
-            href="/"
+            href={localizedHref("/")}
             className="flex min-w-0 max-w-full items-center justify-self-center text-center transition duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
           >
             <div className="flex min-w-0 max-w-full flex-col items-center leading-none">
@@ -173,7 +183,7 @@ export function Header({
             <div className="flex min-w-0 shrink-0 items-center justify-end gap-0 min-[390px]:gap-0.5 sm:gap-1.5 lg:hidden">
               {/* User icon → /account or /sign-in */}
               <Link
-                href={user ? "/account" : "/sign-in"}
+                href={localizedHref(user ? "/account" : "/sign-in")}
                 aria-label={user ? (language === "en" ? "My account" : "Fiókom") : dictionary["nav.login"]}
                 className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
               >
@@ -184,7 +194,7 @@ export function Header({
               {user && couponPreview ? (
                 <button
                   type="button"
-                  aria-label="Kuponjaim"
+                  aria-label={language === "en" ? "My coupons" : "Kuponjaim"}
                   aria-expanded={mobileCouponOpen}
                   onClick={() => setMobileCouponOpen(true)}
                   className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#5f4a51] transition hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] sm:h-10 sm:w-10"
@@ -216,18 +226,18 @@ export function Header({
 
             {/* Desktop icon nav */}
             <nav
-              aria-label="Hasznos navigáció"
+              aria-label={language === "en" ? "Useful navigation" : "Hasznos navigáció"}
               className="hidden items-center justify-end gap-1.5 lg:flex"
             >
               <HeaderActionButton
-                href="/favourites"
+                href={localizedHref("/favourites")}
                 label={dictionary["nav.favourites"]}
                 badgeCount={favouritesCount}
               >
                 <Heart className="h-[1.1rem] w-[1.1rem]" />
               </HeaderActionButton>
 
-              <HeaderActionButton href="/cart" label={dictionary["nav.cart"]} badgeCount={cartCount}>
+              <HeaderActionButton href={localizedHref("/cart")} label={dictionary["nav.cart"]} badgeCount={cartCount}>
                 <ShoppingBag className="h-[1.1rem] w-[1.1rem]" />
               </HeaderActionButton>
 
@@ -239,7 +249,7 @@ export function Header({
                 <div className="relative" ref={desktopCouponRef}>
                   <button
                     type="button"
-                    aria-label="Kuponjaim"
+                    aria-label={language === "en" ? "My coupons" : "Kuponjaim"}
                     aria-expanded={desktopCouponOpen}
                     onClick={() => setDesktopCouponOpen((o) => !o)}
                     className={`nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5] ${desktopCouponOpen ? "text-[#9b3d6e]" : ""}`}
@@ -257,14 +267,14 @@ export function Header({
                     <div className="dropdown-reveal absolute right-0 top-full z-50 mt-3 w-72 overflow-hidden rounded-md border border-[#e4d6d0] bg-[#fffdfb] shadow-[0_18px_42px_rgba(57,39,47,0.10)]">
                       <div className="border-b border-[#f0ede8] px-4 py-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
-                          Kuponjaim
+                          {language === "en" ? "My coupons" : "Kuponjaim"}
                         </p>
                       </div>
 
                       <div className="max-h-[260px] overflow-y-auto py-2.5">
                         {couponPreview.activeCoupons.length === 0 ? (
                           <p className="px-5 py-5 text-center text-xs text-[#aaa]">
-                            Nincs aktív kuponod
+                            {language === "en" ? "You have no active coupons" : "Nincs aktív kuponod"}
                           </p>
                         ) : (
                           couponPreview.activeCoupons.map((coupon) => (
@@ -290,11 +300,11 @@ export function Header({
 
                       <div className="border-t border-[#f0ede8] px-4 py-2.5">
                         <Link
-                          href="/profile#kuponjaim"
+                          href={localizedHref("/profile#kuponjaim")}
                           className="flex items-center gap-1 text-[11px] text-[#756269] no-underline transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba]"
                           onClick={() => setDesktopCouponOpen(false)}
                         >
-                          Összes kupon megtekintése <ArrowRight className="h-3 w-3" />
+                          {language === "en" ? "View all coupons" : "Összes kupon megtekintése"} <ArrowRight className="h-3 w-3" />
                         </Link>
                       </div>
                     </div>
@@ -306,7 +316,7 @@ export function Header({
                 <ProfileDropdown user={user} />
               ) : (
                 <Link
-                  href="/sign-in"
+                  href={localizedHref("/sign-in")}
                   aria-label={dictionary["nav.login"]}
                   className="nav-icon-btn group relative inline-flex h-10 w-10 items-center justify-center text-[#5f4a51] transition-colors duration-150 hover:text-[#9b3d6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"
                 >
@@ -327,7 +337,7 @@ export function Header({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#e7d9d5] px-5 py-4">
             <Link
-              href="/"
+              href={localizedHref("/")}
               onClick={() => setMobileMenuPath(null)}
               className="flex flex-col leading-none"
             >
@@ -349,7 +359,7 @@ export function Header({
             </Link>
             <button
               type="button"
-              aria-label="Menü bezárása"
+              aria-label={language === "en" ? "Close menu" : "Menü bezárása"}
               onClick={() => setMobileMenuPath(null)}
             >
               <X className="h-5 w-5 text-[#34262b]" strokeWidth={1.5} />
@@ -361,17 +371,17 @@ export function Header({
             {navigationCategories.map(({ href, label }) => (
               <Link
                 key={href}
-                href={href}
+                href={localizedHref(href)}
                 onClick={() => setMobileMenuPath(null)}
                 className="flex items-center justify-between border-b border-[#eee4df] py-4 text-[15px] font-semibold uppercase tracking-[0.06em] text-[#4a343d] transition hover:text-[#7f485c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
-                {label}
+                {categoryLabelByHref[href] ?? label}
                 <ChevronRight className="h-4 w-4 text-[#b8a7a9]" strokeWidth={1.5} />
               </Link>
             ))}
 
             <Link
-              href="/gemstones"
+              href={localizedHref("/gemstones")}
               onClick={() => setMobileMenuPath(null)}
               className="flex items-center justify-between border-b border-[#eee4df] py-4 text-[15px] font-semibold uppercase tracking-[0.06em] text-[#4a343d] transition hover:text-[#7f485c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
             >
@@ -399,7 +409,7 @@ export function Header({
                   specialtyItems.map((item) => (
                     <Link
                       key={item.id}
-                      href={getSpecialtyHref(item)}
+                      href={localizedHref(getSpecialtyHref(item))}
                       onClick={() => setMobileMenuPath(null)}
                       className="flex min-w-0 items-center justify-between gap-3 border-b border-[#eee4df] py-3 pl-4 font-[family:var(--font-serif)] text-[16px] font-medium text-[#5b464e] transition hover:text-[#7f485c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
                     >
@@ -419,7 +429,7 @@ export function Header({
             {headerSecondaryNavItems.map(({ href, label }) => (
               <Link
                 key={href}
-                href={href}
+                href={localizedHref(href)}
                 onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#eee4df] py-3 text-sm text-[#756269] transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
@@ -428,7 +438,7 @@ export function Header({
             ))}
             {user ? (
               <Link
-                href="/profile"
+                href={localizedHref("/profile")}
                 onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#eee4df] py-3 text-sm text-[#756269] transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
@@ -436,7 +446,7 @@ export function Header({
               </Link>
             ) : (
               <Link
-                href="/sign-in"
+                href={localizedHref("/sign-in")}
                 onClick={() => setMobileMenuPath(null)}
                 className="block border-b border-[#eee4df] py-3 text-sm text-[#756269] transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdfb]"
               >
@@ -475,11 +485,11 @@ export function Header({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#f0ede8] px-5 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b08898]">
-                Kuponjaim
+                {language === "en" ? "My coupons" : "Kuponjaim"}
               </p>
               <button
                 type="button"
-                aria-label="Bezárás"
+                aria-label={language === "en" ? "Close" : "Bezárás"}
                 onClick={() => setMobileCouponOpen(false)}
               >
                 <X className="h-4 w-4 text-[#34262b]" strokeWidth={1.5} />
@@ -491,7 +501,7 @@ export function Header({
               <div className="py-2.5">
                 {couponPreview.activeCoupons.length === 0 ? (
                   <p className="px-5 py-8 text-center text-sm text-[#aaa]">
-                    Nincs aktív kuponod
+                    {language === "en" ? "You have no active coupons" : "Nincs aktív kuponod"}
                   </p>
                 ) : (
                   couponPreview.activeCoupons.map((coupon) => (
@@ -517,11 +527,11 @@ export function Header({
 
               <div className="border-t border-[#f0ede8] px-5 py-3">
                 <Link
-                  href="/profile#kuponjaim"
+                  href={localizedHref("/profile#kuponjaim")}
                   className="flex items-center gap-1 text-[11px] text-[#756269] no-underline transition hover:text-[#4a343d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d0aeba]"
                   onClick={() => setMobileCouponOpen(false)}
                 >
-                  Összes kupon megtekintése <ArrowRight className="h-3 w-3" />
+                  {language === "en" ? "View all coupons" : "Összes kupon megtekintése"} <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
             </div>

@@ -16,9 +16,11 @@ type HomePromoTileGridProps = {
 function Tile({
   emphasis = false,
   tile,
+  newBadgeLabel = "Új",
 }: {
   emphasis?: boolean;
   tile: HomepagePromoTileView;
+  newBadgeLabel?: string;
 }) {
   const content = (
     <>
@@ -49,7 +51,7 @@ function Tile({
         ) : null}
         {tile.isNew ? (
           <span className="mt-3 inline-flex w-fit bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E0157A]">
-            Új
+            {newBadgeLabel}
           </span>
         ) : null}
       </div>
@@ -125,6 +127,10 @@ export function HomePromoTileGrid({
     typeof categoryBlock?.metadata.materialBody === "string"
       ? categoryBlock.metadata.materialBody
       : "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.";
+  const newBadgeLabel =
+    typeof categoryBlock?.metadata.newBadgeLabel === "string"
+      ? categoryBlock.metadata.newBadgeLabel
+      : "Új";
 
   if (visibleTiles.length === 0 && storefrontMaterialPicks.length === 0) {
     return null;
@@ -176,12 +182,12 @@ export function HomePromoTileGrid({
 
             <div className="grid gap-2.5 md:grid-cols-2 md:grid-rows-2 md:[grid-auto-rows:300px]">
               <div className="h-[220px] md:row-span-2 md:h-auto">
-                <Tile tile={emphasisTile} emphasis />
+                <Tile tile={emphasisTile} emphasis newBadgeLabel={newBadgeLabel} />
               </div>
               <div className="grid gap-2.5 md:row-span-2 md:grid-cols-2 md:grid-rows-2">
                 {smallTiles.slice(0, 4).map((tile) => (
                   <div key={tile.slotIndex} className="h-[220px] md:h-auto">
-                    <Tile tile={tile} />
+                    <Tile tile={tile} newBadgeLabel={newBadgeLabel} />
                   </div>
                 ))}
                 {smallTiles.length < 4

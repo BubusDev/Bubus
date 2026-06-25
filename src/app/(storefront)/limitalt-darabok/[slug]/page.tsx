@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LimitedEditionDetailPage } from "@/components/shop/LimitedEditionDetailPage";
+import { getLocalizedProduct } from "@/lib/i18n";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
 import { getSpecialEditionCampaign } from "@/lib/products-server";
+import { getRequestLocale } from "@/lib/request-locale";
 import { siteName } from "@/lib/site";
 
 type PageProps = {
@@ -17,12 +20,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!entry) {
     return {};
   }
+  const language = await getRequestLocale();
+  const product = getLocalizedProduct(entry.product, language);
+  const canonicalPath = getLocalizedPath(`/limitalt-darabok/${slug}`, language);
 
   return {
-    title: `${entry.product.name} | Limitált kiadás | ${siteName}`,
-    description: entry.product.shortDescription,
+    title: `${product.name} | ${language === "en" ? "Limited edition" : "Limitált kiadás"} | ${siteName}`,
+    description: product.shortDescription,
     alternates: {
-      canonical: `/limitalt-darabok/${slug}`,
+      canonical: canonicalPath,
+      languages: getAlternateLanguages(`/limitalt-darabok/${slug}`),
     },
   };
 }

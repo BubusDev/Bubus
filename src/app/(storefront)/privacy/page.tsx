@@ -2,12 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/legal/LegalPage";
+import { getAlternateLanguages, getLocalizedPath } from "@/lib/locale-routing";
+import { getRequestLocale } from "@/lib/request-locale";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getRequestLocale();
+  const canonicalPath = getLocalizedPath("/privacy", language);
+
   return {
-    title: "Adatkezelési tájékoztató (GDPR) — Chicks Jewelry",
-    description:
-      "GDPR és magyar adatvédelmi követelmények szerint kialakított adatkezelési tájékoztató a Chicks Jewelry weboldal használatáról, rendeléseiről, fiókkezeléséről és kapcsolódó adatfeldolgozókról.",
+    title: language === "en" ? "Privacy Policy — Chicks Jewelry" : "Adatkezelési tájékoztató (GDPR) — Chicks Jewelry",
+    description: language === "en"
+      ? "Privacy information for using the Chicks Jewelry website, account, orders, checkout and customer support."
+      : "GDPR és magyar adatvédelmi követelmények szerint kialakított adatkezelési tájékoztató a Chicks Jewelry weboldal használatáról, rendeléseiről, fiókkezeléséről és kapcsolódó adatfeldolgozókról.",
+    alternates: {
+      canonical: canonicalPath,
+      languages: getAlternateLanguages("/privacy"),
+    },
+    openGraph: {
+      title: language === "en" ? "Privacy Policy — Chicks Jewelry" : "Adatkezelési tájékoztató (GDPR) — Chicks Jewelry",
+      description: language === "en"
+        ? "How Chicks Jewelry handles order, account, payment and support related data."
+        : "GDPR és magyar adatvédelmi követelmények szerint kialakított adatkezelési tájékoztató.",
+      url: canonicalPath,
+    },
   };
 }
 
@@ -75,7 +92,76 @@ function DataTable({
   );
 }
 
-export default function PrivacyPage() {
+const sectionsEn = [
+  { id: "intro", title: "Introduction" },
+  { id: "controller", title: "Controller" },
+  { id: "data", title: "Data we process" },
+  { id: "purposes", title: "Purposes and legal bases" },
+  { id: "processors", title: "Processors" },
+  { id: "rights", title: "Your rights" },
+  { id: "contact", title: "Contact" },
+];
+
+export default async function PrivacyPage() {
+  const language = await getRequestLocale();
+
+  if (language === "en") {
+    return (
+      <LegalPage
+        eyebrow="Legal"
+        title="Privacy Policy"
+        lastUpdated="April 22, 2026"
+        sections={sectionsEn}
+      >
+        <p>
+          This English privacy summary explains how Chicks Jewelry handles personal data in connection
+          with browsing, orders, accounts, checkout, support and newsletter features. The final English
+          legal version should be reviewed before launch.
+        </p>
+        <h2 id="intro">Introduction</h2>
+        <p>
+          We process personal data in line with the GDPR and applicable Hungarian data protection rules.
+          The website is intended for users who are at least 16 years old.
+        </p>
+        <h2 id="controller">Controller</h2>
+        <p>
+          <strong>Controller:</strong> [PLACEHOLDER: Business name]
+          <br />
+          <strong>Registered office:</strong> [PLACEHOLDER: Registered address]
+          <br />
+          <strong>E-mail:</strong> [PLACEHOLDER: Privacy email]
+        </p>
+        <h2 id="data">Data we process</h2>
+        <ul>
+          <li>Account data such as name, e-mail address and hashed password.</li>
+          <li>Order and delivery data such as shipping name, address, phone number and ordered items.</li>
+          <li>Support messages and return-related information when you contact us.</li>
+          <li>Newsletter and cookie consent data where applicable.</li>
+        </ul>
+        <h2 id="purposes">Purposes and legal bases</h2>
+        <p>
+          Data is used to provide the webshop, process orders and payments, deliver products, maintain
+          customer accounts, answer support requests, comply with legal obligations and prevent fraud.
+        </p>
+        <h2 id="processors">Processors</h2>
+        <p>
+          We use service providers for hosting, database infrastructure, payments and transactional e-mail,
+          including Vercel, Neon, Stripe and Resend where applicable.
+        </p>
+        <h2 id="rights">Your rights</h2>
+        <p>
+          You may request access, rectification, erasure, restriction, portability, object to certain
+          processing, or withdraw consent where processing is based on consent.
+        </p>
+        <h2 id="contact">Contact</h2>
+        <p>
+          Privacy requests can be sent to <strong>[PLACEHOLDER: Privacy email]</strong>. We usually respond
+          within the GDPR response period.
+        </p>
+      </LegalPage>
+    );
+  }
+
   return (
     <>
       <LegalPage

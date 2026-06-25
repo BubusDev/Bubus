@@ -404,11 +404,16 @@ model HomepageContentBlock {
   id          String                  @id @default(cuid())
   key         HomepageContentBlockKey @unique
   title       String?
+  titleEn     String?
   eyebrow     String?
+  eyebrowEn   String?
   body        String?
+  bodyEn      String?
   imageUrl    String?
   imageAlt    String?
+  imageAltEn  String?
   buttonText  String?
+  buttonTextEn String?
   buttonHref  String?
   metadata    Json?
   isVisible   Boolean                 @default(true)
@@ -422,10 +427,13 @@ model HomepagePromoTile {
   id        String   @id @default(cuid())
   slotIndex Int
   title     String
+  titleEn   String?
   subtitle  String?
+  subtitleEn String?
   href      String?
   imageUrl  String?
   imageAlt  String?
+  imageAltEn String?
   isNew     Boolean  @default(false)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
