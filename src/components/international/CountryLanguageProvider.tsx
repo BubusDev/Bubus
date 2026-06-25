@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, memo, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 
 import {
   COUNTRY_COOKIE_NAME,
@@ -133,7 +132,6 @@ export function CountryLanguageProvider({
   children: ReactNode;
   initialSelection: InitialSelection;
 }) {
-  const router = useRouter();
   const [country, setCountry] = useState<SupportedCountry>(initialSelection.country);
   const [language, setLanguage] = useState<SupportedLanguage>(initialSelection.language);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
@@ -158,9 +156,9 @@ export function CountryLanguageProvider({
     const currentPath = `${window.location.pathname}${window.location.search}`;
     const localizedPath = getLocalizedPath(currentPath, normalizedLanguage);
     if (localizedPath !== currentPath) {
-      router.push(localizedPath);
+      window.location.href = localizedPath;
     }
-  }, [country, language, router]);
+  }, [country, language]);
 
   const value = useMemo<CountryLanguageContextValue>(
     () => ({
