@@ -619,14 +619,14 @@ export function HomepageInlineEditor({
           <FeaturedSlider tabs={visibleShowcaseTabs} contentBlock={visibleContent.featuredSlider} />
         </EditableWrap>
       ) : null}
-      <HomeEditorialSection />
+      <HomeEditorialSection language={contentLanguage} />
       <EditableWrap section="social" isEditing={isEditing} onEdit={setActiveSection}>
         <HomeInstagramPromo block={visibleContent.instagram} />
       </EditableWrap>
       <EditableWrap section="newsletter" isEditing={isEditing} onEdit={setActiveSection}>
         <HomeNewsletterBlock contentBlock={visibleContent.newsletter} status={newsletterStatus} />
       </EditableWrap>
-      <HomeFinalCta />
+      <HomeFinalCta language={contentLanguage} />
 
       <div className="fixed bottom-5 right-5 z-50 flex flex-wrap justify-end gap-2 rounded-full border border-[#f0c0d8] bg-white/94 p-2 shadow-[0_12px_36px_rgba(45,26,22,0.18)] backdrop-blur">
         {!isEditing && !isPreviewingDraft ? (

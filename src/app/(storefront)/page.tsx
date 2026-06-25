@@ -145,10 +145,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {showcaseTabs.length > 0 ? (
         <FeaturedSlider tabs={showcaseTabs} contentBlock={localizedHomepageContent.featuredSlider} />
       ) : null}
-      <HomeEditorialSection />
+      <HomeEditorialSection language={language} />
       <HomeInstagramPromo block={localizedHomepageContent.instagram} />
       <HomeNewsletterBlock contentBlock={localizedHomepageContent.newsletter} status={newsletterStatus} />
-      <HomeFinalCta />
+      <HomeFinalCta language={language} />
     </main>
   );
 }

@@ -75,7 +75,16 @@ export type TranslationKey =
   | "homepage.newsletterTitle"
   | "homepage.newsletterBody"
   | "homepage.socialBody"
-  | "homepage.freeShipping";
+  | "homepage.freeShipping"
+  | "homepage.editorialEyebrow"
+  | "homepage.editorialTitle"
+  | "homepage.editorialLead"
+  | "homepage.editorialFirstNote"
+  | "homepage.editorialSecondNote"
+  | "homepage.editorialCta"
+  | "homepage.finalCtaEyebrow"
+  | "homepage.finalCtaTitle"
+  | "homepage.finalCtaButton";
 
 export type Dictionary = Record<TranslationKey, string>;
 
@@ -155,6 +164,15 @@ const hu: Dictionary = {
   "homepage.newsletterBody": "Elsőként értesítünk az új kollekciókról, friss színekről és különleges ajánlatokról.",
   "homepage.socialBody": "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket.",
   "homepage.freeShipping": "Ingyenes szállítás",
+  "homepage.editorialEyebrow": "A Chicks szemlélet",
+  "homepage.editorialTitle": "Nem tömeg, hanem karakter.",
+  "homepage.editorialLead": "A kollekciók nem szezonális zajból indulnak, hanem kövekből, tónusokból és viselhető részletekből. Olyan ékszereket készítünk, amelyek nem kérnek figyelmet, mégis megmaradnak.",
+  "homepage.editorialFirstNote": "A darabok kis mennyiségben készülnek, ezért a kedvenc kombinációk sokszor csak rövid ideig érhetők el.",
+  "homepage.editorialSecondNote": "A cél egy finom, személyes ékszertár: rétegezhető, könnyen hordható, nem harsány, mégis emlékezetes részletekkel.",
+  "homepage.editorialCta": "Ismerd meg a köveket",
+  "homepage.finalCtaEyebrow": "Új darabok",
+  "homepage.finalCtaTitle": "Nézd meg, mi érkezett kis szériában.",
+  "homepage.finalCtaButton": "Újdonságok megnyitása",
 };
 
 const en: Dictionary = {
@@ -233,6 +251,15 @@ const en: Dictionary = {
   "homepage.newsletterBody": "Get early notes on new collections, fresh colors and special offers.",
   "homepage.socialBody": "Behind the scenes, new stones and styling ideas for people who love the details.",
   "homepage.freeShipping": "Free shipping",
+  "homepage.editorialEyebrow": "The Chicks point of view",
+  "homepage.editorialTitle": "Not mass, but character.",
+  "homepage.editorialLead": "Our collections do not start with seasonal noise, but with stones, tones and wearable details. We make jewelry that does not ask for attention, yet stays with you.",
+  "homepage.editorialFirstNote": "Pieces are made in small quantities, so favourite combinations are often available only for a short time.",
+  "homepage.editorialSecondNote": "The goal is a refined, personal jewelry wardrobe: layerable, easy to wear, quiet, yet memorable.",
+  "homepage.editorialCta": "Explore the stones",
+  "homepage.finalCtaEyebrow": "New pieces",
+  "homepage.finalCtaTitle": "See what arrived in small batches.",
+  "homepage.finalCtaButton": "Open new arrivals",
 };
 
 export const dictionaries: Record<SupportedLanguage, Dictionary> = { hu, en };
