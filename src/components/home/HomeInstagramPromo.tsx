@@ -25,9 +25,32 @@ const teamMembers: TeamMember[] = [
   { name: "Csapatag", role: "Ügyfélszolgálat" },
 ];
 
-function readTeamMembers(block: HomepageBlockView) {
+const teamMembersEn: TeamMember[] = [
+  { name: "Bubus", role: "Founder · Designer" },
+  { name: "Team member", role: "Maker" },
+  { name: "Team member", role: "Customer care" },
+];
+
+function localizedText(huValue: string, enValue: string | null | undefined, language: SupportedLanguage) {
+  if (language !== "en") return huValue;
+  return enValue?.trim() || huValue;
+}
+
+function localizedMetadataString(
+  metadata: Record<string, unknown>,
+  key: string,
+  language: SupportedLanguage,
+  fallback: string,
+) {
+  const value = metadata[key];
+  const enValue = metadata[`${key}En`];
+  const baseValue = typeof value === "string" ? value : fallback;
+  return localizedText(baseValue, typeof enValue === "string" ? enValue : null, language);
+}
+
+function readTeamMembers(block: HomepageBlockView, language: SupportedLanguage) {
   if (!Array.isArray(block.metadata.teamMembers)) {
-    return teamMembers;
+    return language === "en" ? teamMembersEn : teamMembers;
   }
 
   const members = block.metadata.teamMembers
@@ -35,28 +58,29 @@ function readTeamMembers(block: HomepageBlockView) {
       if (!item || typeof item !== "object") return null;
       const value = item as Record<string, unknown>;
       return {
-        name: typeof value.name === "string" ? value.name : "",
-        role: typeof value.role === "string" ? value.role : "",
+        name: localizedMetadataString(value, "name", language, ""),
+        role: localizedMetadataString(value, "role", language, ""),
         imageUrl: typeof value.imageUrl === "string" ? value.imageUrl : "",
       };
     })
     .filter((member): member is TeamMember => Boolean(member && (member.name || member.role)));
 
-  return members.length > 0 ? members : teamMembers;
+  return members.length > 0 ? members : language === "en" ? teamMembersEn : teamMembers;
 }
 
-function SocialImage({ block, label }: { block: HomepageBlockView; label: string }) {
+function SocialImage({ block, label, language }: { block: HomepageBlockView; label: string; language: SupportedLanguage }) {
   const imageUrl =
     label === "Facebook" && typeof block.metadata.facebookImageUrl === "string"
       ? block.metadata.facebookImageUrl
       : block.imageUrl;
+  const imageAlt = localizedText(block.imageAlt, block.imageAltEn, language);
 
   return (
     <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.82),rgba(248,204,224,0.72)_38%,rgba(226,150,183,0.72)_100%)] sm:min-h-[420px] lg:min-h-[500px]">
       {imageUrl ? (
         <Image
           src={imageUrl}
-          alt={block.imageAlt || label}
+          alt={imageAlt || label}
           fill
           sizes="(max-width: 1024px) 100vw, 620px"
           className="object-cover"
@@ -75,6 +99,7 @@ function SocialPanel({
   body,
   cta,
   href,
+  language,
 }: {
   block: HomepageBlockView;
   eyebrow: string;
@@ -83,6 +108,7 @@ function SocialPanel({
   body: string;
   cta: string;
   href: string;
+  language: SupportedLanguage;
 }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[0.88fr_1fr] lg:items-center">
@@ -103,16 +129,16 @@ function SocialPanel({
           {cta}
         </a>
       </div>
-      <SocialImage block={block} label={eyebrow} />
+      <SocialImage block={block} label={eyebrow} language={language} />
     </div>
   );
 }
 
-function TeamPanel({ block }: { block: HomepageBlockView }) {
-  const members = readTeamMembers(block);
-  const eyebrow = typeof block.metadata.teamEyebrow === "string" ? block.metadata.teamEyebrow : "Csapatunk";
-  const titleStart = typeof block.metadata.teamTitleStart === "string" ? block.metadata.teamTitleStart : "Akik";
-  const titleEmphasis = typeof block.metadata.teamTitleEmphasis === "string" ? block.metadata.teamTitleEmphasis : "készítik.";
+function TeamPanel({ block, language }: { block: HomepageBlockView; language: SupportedLanguage }) {
+  const members = readTeamMembers(block, language);
+  const eyebrow = localizedMetadataString(block.metadata, "teamEyebrow", language, language === "en" ? "Team" : "Csapatunk");
+  const titleStart = localizedMetadataString(block.metadata, "teamTitleStart", language, language === "en" ? "Made by" : "Akik");
+  const titleEmphasis = localizedMetadataString(block.metadata, "teamTitleEmphasis", language, language === "en" ? "our team." : "készítik.");
 
   return (
     <div>
@@ -147,22 +173,35 @@ function TeamPanel({ block }: { block: HomepageBlockView }) {
   );
 }
 
-export function HomeInstagramPromo({ block, language: _language }: HomeInstagramPromoProps) {
+export function HomeInstagramPromo({ block, language }: HomeInstagramPromoProps) {
   const [activeTab, setActiveTab] = useState<SocialTab>("instagram");
   const tabs: { id: SocialTab; label: string }[] = [
     {
       id: "instagram",
-      label: typeof block.metadata.instagramTabLabel === "string" ? block.metadata.instagramTabLabel : "Instagram",
+      label: localizedMetadataString(block.metadata, "instagramTabLabel", language, "Instagram"),
     },
     {
       id: "facebook",
-      label: typeof block.metadata.facebookTabLabel === "string" ? block.metadata.facebookTabLabel : "Facebook",
+      label: localizedMetadataString(block.metadata, "facebookTabLabel", language, "Facebook"),
     },
     {
       id: "team",
-      label: typeof block.metadata.teamTabLabel === "string" ? block.metadata.teamTabLabel : "Csapatunk",
+      label: localizedMetadataString(block.metadata, "teamTabLabel", language, language === "en" ? "Team" : "Csapatunk"),
     },
   ];
+  const eyebrow = localizedText(block.eyebrow, block.eyebrowEn, language);
+  const title = localizedText(block.title, block.titleEn, language);
+  const body = localizedText(block.body, block.bodyEn, language);
+  const buttonText = localizedText(block.buttonText, block.buttonTextEn, language);
+  const facebookBody = localizedMetadataString(
+    block.metadata,
+    "facebookBody",
+    language,
+    language === "en"
+      ? "Join the community for new pieces, feedback and behind-the-scenes notes."
+      : "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen.",
+  );
+  const facebookCta = localizedMetadataString(block.metadata, "facebookCta", language, language === "en" ? "Follow on Facebook" : "Kövess Facebookon");
 
   if (!block.isVisible) {
     return null;
@@ -192,15 +231,18 @@ export function HomeInstagramPromo({ block, language: _language }: HomeInstagram
           {activeTab === "instagram" ? (
             <SocialPanel
               block={block}
-              eyebrow={block.eyebrow || "Instagram"}
-              titleStart={block.title || "@chicks"}
-              titleEmphasis={block.title ? "" : "jewelry"}
+              eyebrow={eyebrow || "Instagram"}
+              titleStart={title || "@chicks"}
+              titleEmphasis={title ? "" : "jewelry"}
               body={
-                block.body ||
-                "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket."
+                body ||
+                (language === "en"
+                  ? "Behind the scenes, new stones and styling ideas for people who love the details."
+                  : "Kulisszák, új kövek és viselési ötletek azoknak, akik szeretik közelről látni a részleteket.")
               }
-              cta={block.buttonText || "Kövess Instagramon"}
+              cta={buttonText || (language === "en" ? "Follow on Instagram" : "Kövess Instagramon")}
               href={block.buttonHref || "https://instagram.com/chicksjewelry"}
+              language={language}
             />
           ) : null}
           {activeTab === "facebook" ? (
@@ -209,20 +251,17 @@ export function HomeInstagramPromo({ block, language: _language }: HomeInstagram
               eyebrow="Facebook"
               titleStart="Chicks"
               titleEmphasis="Jewelry"
-              body={
-                typeof block.metadata.facebookBody === "string"
-                  ? block.metadata.facebookBody
-                  : "Legyen részed a közösségben - újdonságok, visszajelzések és kulisszák egy helyen."
-              }
-              cta={typeof block.metadata.facebookCta === "string" ? block.metadata.facebookCta : "Kövess Facebookon"}
+              body={facebookBody}
+              cta={facebookCta}
               href={
                 typeof block.metadata.facebookHref === "string"
                   ? block.metadata.facebookHref
                   : "https://www.facebook.com/chicksjewelry"
               }
+              language={language}
             />
           ) : null}
-          {activeTab === "team" ? <TeamPanel block={block} /> : null}
+          {activeTab === "team" ? <TeamPanel block={block} language={language} /> : null}
         </div>
       </div>
     </section>

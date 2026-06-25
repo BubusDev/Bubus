@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
-import { validateSupportedLanguage, type SupportedLanguage } from "@/lib/international";
+import { LANGUAGE_COOKIE_NAME, validateSupportedLanguage, type SupportedLanguage } from "@/lib/international";
 import { LOCALE_HEADER_NAME, PATHNAME_HEADER_NAME, getLocaleFromPathname } from "@/lib/locale-routing";
 
 export async function getRequestLocale(): Promise<SupportedLanguage> {
@@ -11,6 +11,9 @@ export async function getRequestLocale(): Promise<SupportedLanguage> {
   const pathname = headerStore.get(PATHNAME_HEADER_NAME);
   const pathLocale = pathname ? getLocaleFromPathname(pathname) : null;
   if (pathLocale) return pathLocale;
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value;
+  if (cookieLocale) return validateSupportedLanguage(cookieLocale);
   if (pathname) return "hu";
 
   return "hu";

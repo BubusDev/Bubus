@@ -15,21 +15,43 @@ type HomePromoTileGridProps = {
   language: SupportedLanguage;
 };
 
+function localizedText(huValue: string, enValue: string | null | undefined, language: SupportedLanguage) {
+  if (language !== "en") return huValue;
+  return enValue?.trim() || huValue;
+}
+
+function localizedMetadataString(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+  language: SupportedLanguage,
+  fallback: string,
+) {
+  const value = metadata?.[key];
+  const enValue = metadata?.[`${key}En`];
+  const baseValue = typeof value === "string" ? value : fallback;
+  return localizedText(baseValue, typeof enValue === "string" ? enValue : null, language);
+}
+
 function Tile({
   emphasis = false,
   tile,
+  language,
   newBadgeLabel = "Új",
 }: {
   emphasis?: boolean;
   tile: HomepagePromoTileView;
+  language: SupportedLanguage;
   newBadgeLabel?: string;
 }) {
+  const title = localizedText(tile.title, tile.titleEn, language);
+  const subtitle = localizedText(tile.subtitle, tile.subtitleEn, language);
+  const imageAlt = localizedText(tile.imageAlt, tile.imageAltEn, language);
   const content = (
     <>
       {tile.imageUrl ? (
         <Image
           src={tile.imageUrl}
-          alt={tile.imageAlt}
+          alt={imageAlt}
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
           fill
           sizes={emphasis ? "(max-width: 1024px) 100vw, 650px" : "(max-width: 1024px) 100vw, 320px"}
@@ -46,10 +68,10 @@ function Tile({
               : "font-[family:var(--font-display)] text-[1.5rem] leading-none sm:text-[1.65rem]"
           }
         >
-          {tile.title}
+          {title}
         </p>
-        {tile.subtitle ? (
-          <p className="mt-2 max-w-[30ch] text-[12px] leading-5 text-white/78">{tile.subtitle}</p>
+        {subtitle ? (
+          <p className="mt-2 max-w-[30ch] text-[12px] leading-5 text-white/78">{subtitle}</p>
         ) : null}
         {tile.isNew ? (
           <span className="mt-3 inline-flex w-fit bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E0157A]">
@@ -74,7 +96,11 @@ function Tile({
   );
 }
 
-function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
+function MaterialTile({ pick, language }: { pick: HomepageMaterialPickView; language: SupportedLanguage }) {
+  const title = localizedText(pick.title, pick.titleEn, language);
+  const subtitle = localizedText(pick.subtitle, pick.subtitleEn, language);
+  const imageAlt = localizedText(pick.imageAlt, pick.imageAltEn, language);
+
   return (
     <Link
       href={pick.href}
@@ -83,7 +109,7 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
       {pick.imageUrl ? (
         <Image
           src={pick.imageUrl}
-          alt={pick.imageAlt}
+          alt={imageAlt}
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 315px"
@@ -101,9 +127,9 @@ function MaterialTile({ pick }: { pick: HomepageMaterialPickView }) {
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(22,24,20,0.02),rgba(22,24,20,0.58))]" />
       <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6 lg:p-7">
         <p className="font-[family:var(--font-display)] text-[1.55rem] leading-none tracking-[-0.03em] sm:text-[1.8rem]">
-          {pick.title}
+          {title}
         </p>
-        <p className="mt-2 text-[12px] leading-5 text-white/82">{pick.subtitle}</p>
+        <p className="mt-2 text-[12px] leading-5 text-white/82">{subtitle}</p>
       </div>
     </Link>
   );
@@ -113,27 +139,31 @@ export function HomePromoTileGrid({
   tiles,
   materialPicks = [],
   categoryBlock,
-  language: _language,
+  language,
 }: HomePromoTileGridProps) {
   const visibleTiles = tiles.filter((tile) => tile.isVisible);
   const storefrontMaterialPicks = materialPicks.filter((pick) => !pick.isLegacySource);
   const [emphasisTile, ...smallTiles] = visibleTiles;
-  const materialEyebrow =
-    typeof categoryBlock?.metadata.materialEyebrow === "string"
-      ? categoryBlock.metadata.materialEyebrow
-      : "Kurált fókusz";
-  const materialTitle =
-    typeof categoryBlock?.metadata.materialTitle === "string"
-      ? categoryBlock.metadata.materialTitle
-      : "Kő szerint válogatva.";
-  const materialBody =
-    typeof categoryBlock?.metadata.materialBody === "string"
-      ? categoryBlock.metadata.materialBody
-      : "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.";
-  const newBadgeLabel =
-    typeof categoryBlock?.metadata.newBadgeLabel === "string"
-      ? categoryBlock.metadata.newBadgeLabel
-      : "Új";
+  const materialEyebrow = localizedMetadataString(categoryBlock?.metadata, "materialEyebrow", language, language === "en" ? "Curated focus" : "Kurált fókusz");
+  const materialTitle = localizedMetadataString(categoryBlock?.metadata, "materialTitle", language, language === "en" ? "Shop by stone." : "Kő szerint válogatva.");
+  const materialBody = localizedMetadataString(
+    categoryBlock?.metadata,
+    "materialBody",
+    language,
+    language === "en"
+      ? "Shop by material, shade and mood to make choosing more personal."
+      : "Anyag, árnyalat és hangulat alapján szerkesztett darabok, hogy a választás személyesebb legyen egy egyszerű kategórialistánál.",
+  );
+  const newBadgeLabel = localizedMetadataString(categoryBlock?.metadata, "newBadgeLabel", language, language === "en" ? "New" : "Új");
+  const categoryEyebrow = categoryBlock
+    ? localizedText(categoryBlock.eyebrow, categoryBlock.eyebrowEn, language)
+    : "";
+  const categoryTitle = categoryBlock
+    ? localizedText(categoryBlock.title, categoryBlock.titleEn, language)
+    : "";
+  const categoryBody = categoryBlock
+    ? localizedText(categoryBlock.body, categoryBlock.bodyEn, language)
+    : "";
 
   if (visibleTiles.length === 0 && storefrontMaterialPicks.length === 0) {
     return null;
@@ -159,7 +189,7 @@ export function HomePromoTileGrid({
 
           <div className="mx-auto grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
             {storefrontMaterialPicks.slice(0, 5).map((pick) => (
-              <MaterialTile key={pick.id} pick={pick} />
+              <MaterialTile key={pick.id} pick={pick} language={language} />
             ))}
           </div>
         </section>
@@ -171,26 +201,28 @@ export function HomePromoTileGrid({
             <div className="mb-8 grid gap-5 sm:mb-10 md:grid-cols-2 md:items-end">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.34em] text-[#9C6B63]">
-                  {categoryBlock?.eyebrow || "Kategóriák"}
+                  {categoryEyebrow || (language === "en" ? "Categories" : "Kategóriák")}
                 </p>
                 <h2 className="mt-4 max-w-[13ch] font-[family:var(--font-display)] text-[2.55rem] leading-[0.95] text-[#2D1A16] sm:text-[3.55rem]">
-                  {categoryBlock?.title || "Vonalak, amik együtt is működnek."}
+                  {categoryTitle || (language === "en" ? "Pieces that work beautifully together." : "Vonalak, amik együtt is működnek.")}
                 </h2>
               </div>
               <p className="max-w-[48ch] text-sm leading-7 text-[#9C6B63] md:justify-self-end md:text-right">
-                {categoryBlock?.body ||
-                  "Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban."}
+                {categoryBody ||
+                  (language === "en"
+                    ? "Soft tones, layerable shapes and occasion pieces in a curated visual edit."
+                    : "Finom tónusok, rétegezhető formák és alkalmi darabok egy képi válogatásban.")}
               </p>
             </div>
 
             <div className="grid gap-2.5 md:grid-cols-2 md:grid-rows-2 md:[grid-auto-rows:300px]">
               <div className="h-[220px] md:row-span-2 md:h-auto">
-                <Tile tile={emphasisTile} emphasis newBadgeLabel={newBadgeLabel} />
+                <Tile tile={emphasisTile} emphasis language={language} newBadgeLabel={newBadgeLabel} />
               </div>
               <div className="grid gap-2.5 md:row-span-2 md:grid-cols-2 md:grid-rows-2">
                 {smallTiles.slice(0, 4).map((tile) => (
                   <div key={tile.slotIndex} className="h-[220px] md:h-auto">
-                    <Tile tile={tile} newBadgeLabel={newBadgeLabel} />
+                    <Tile tile={tile} language={language} newBadgeLabel={newBadgeLabel} />
                   </div>
                 ))}
                 {smallTiles.length < 4

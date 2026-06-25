@@ -46,6 +46,21 @@ const defaultFeatures: FeatureItem[] = [
   },
 ]
 
+const defaultFeaturesEn: FeatureItem[] = [
+  {
+    label: 'Small runs',
+    text: 'New pieces in limited quantities, released at a considered pace.',
+  },
+  {
+    label: 'Curated materials',
+    text: 'Stones and tones that stay beautiful up close.',
+  },
+  {
+    label: 'Fine details',
+    text: 'Quiet pieces with a memorable character.',
+  },
+]
+
 const sparklePositions = [
   { top: '15%', left: '68%', delay: '0s' },
   { top: '30%', left: '80%', delay: '0.7s' },
@@ -55,28 +70,52 @@ const sparklePositions = [
   { top: '45%', left: '92%', delay: '1s' },
 ]
 
+function localizedText(huValue: string, enValue: string | null | undefined, language: SupportedLanguage) {
+  if (language !== 'en') return huValue
+  return enValue?.trim() || huValue
+}
+
+function localizedMetadataString(
+  metadata: Record<string, unknown>,
+  key: string,
+  language: SupportedLanguage,
+  fallback: string,
+) {
+  const value = metadata[key]
+  const enValue = metadata[`${key}En`]
+  const baseValue = typeof value === 'string' ? value : fallback
+  return localizedText(baseValue, typeof enValue === 'string' ? enValue : null, language)
+}
+
 export default function HeroBanner({
   block,
   featureBlock,
   primaryCta,
   secondaryCta,
   features,
-  language: _language,
+  language,
 }: HeroBannerProps) {
   if (!block.isVisible) {
     return null
   }
 
-  const secondaryButtonText =
-    typeof block.metadata.secondaryButtonText === 'string'
-      ? block.metadata.secondaryButtonText
-      : 'Limitált darabok'
+  const title = localizedText(block.title, block.titleEn, language)
+  const eyebrow = localizedText(block.eyebrow, block.eyebrowEn, language)
+  const body = localizedText(block.body, block.bodyEn, language)
+  const imageAlt = localizedText(block.imageAlt, block.imageAltEn, language)
+  const buttonText = localizedText(block.buttonText, block.buttonTextEn, language)
+  const secondaryButtonText = localizedMetadataString(
+    block.metadata,
+    'secondaryButtonText',
+    language,
+    language === 'en' ? 'Limited pieces' : 'Limitált darabok',
+  )
   const secondaryButtonHref =
     typeof block.metadata.secondaryButtonHref === 'string'
       ? block.metadata.secondaryButtonHref
       : '/special-edition'
   const resolvedPrimaryCta = primaryCta ?? {
-    label: block.buttonText || 'Fedezd fel a válogatást',
+    label: buttonText || (language === 'en' ? 'Explore jewelry' : 'Fedezd fel a válogatást'),
     href: block.buttonHref || '/special-edition',
   }
   const resolvedSecondaryCta = secondaryCta ?? {
@@ -89,13 +128,13 @@ export default function HeroBanner({
           if (!item || typeof item !== 'object') return null
           const value = item as Record<string, unknown>
           return {
-            label: typeof value.label === 'string' ? value.label : '',
-            text: typeof value.text === 'string' ? value.text : '',
+            label: localizedMetadataString(value, 'label', language, ''),
+            text: localizedMetadataString(value, 'text', language, ''),
           }
         })
         .filter((item): item is FeatureItem => Boolean(item?.label || item?.text))
     : []
-  const resolvedFeatures = features ?? (metadataFeatures.length > 0 ? metadataFeatures : defaultFeatures)
+  const resolvedFeatures = features ?? (metadataFeatures.length > 0 ? metadataFeatures : language === 'en' ? defaultFeaturesEn : defaultFeatures)
   const imageUrl =
     block.imageUrl ||
     '/uploads/special-edition/jellyfish-e2a5b467-e672-495e-9248-6a94d4f7d6ad.jpg'
@@ -105,7 +144,7 @@ export default function HeroBanner({
       <div className="relative h-[360px] overflow-hidden bg-[#E0157A] md:h-[500px]">
         <Image
           src={imageUrl}
-          alt={block.imageAlt || block.title}
+          alt={imageAlt || title}
           fill
           priority
           sizes="100vw"
@@ -135,20 +174,22 @@ export default function HeroBanner({
             <p
               className={`${inter.className} mb-[18px] text-[10px] font-normal uppercase tracking-[0.22em] text-[rgba(255,220,240,0.8)]`}
             >
-              {block.eyebrow || 'Limitált butik válogatás'}
+              {eyebrow || (language === 'en' ? 'Limited boutique edit' : 'Limitált butik válogatás')}
             </p>
 
             <h1
               className={`${playfair.className} mb-[18px] text-[34px] font-normal leading-[1.08] text-white md:text-[52px]`}
             >
-              {block.title || 'Ne félj extra lenni! Viseld bátran a kiegészítőket!'}
+              {title || (language === 'en' ? 'Small-batch jewelry with a little extra presence.' : 'Ne félj extra lenni! Viseld bátran a kiegészítőket!')}
             </h1>
 
             <p
               className={`${inter.className} mb-9 max-w-[380px] text-[14px] font-light leading-[1.75] text-[rgba(255,255,255,0.85)]`}
             >
-              {block.body ||
-                'Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.'}
+              {body ||
+                (language === 'en'
+                  ? 'Gemstone bracelets and necklaces in limited runs, curated for your outfit, mood and season.'
+                  : 'Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.')}
             </p>
 
             <div className="flex flex-wrap gap-3">
