@@ -36,7 +36,11 @@ type CountryLanguageContextValue = {
 const CountryLanguageContext = createContext<CountryLanguageContextValue | null>(null);
 
 function persistValue(key: string, value: string) {
-  window.localStorage.setItem(key, value);
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Cookies are the source of truth for server rendering; localStorage is only a client convenience.
+  }
   document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
@@ -58,8 +62,8 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
   const dictionary = useMemo(() => getDictionary(draftLanguage), [draftLanguage]);
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#FAF7F4]/88 px-4 py-4 backdrop-blur-[2px] sm:items-center">
-      <div className="mobile-panel-reveal w-full max-w-[480px] rounded-[12px] border border-[#F0E8E2] bg-white px-6 py-7 shadow-[0_24px_70px_rgba(92,57,45,0.16),0_4px_18px_rgba(224,21,122,0.06)] sm:px-8 sm:py-8">
+    <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#2D1F1F]/18 px-4 py-4 sm:items-center">
+      <div className="mobile-panel-reveal w-full max-w-[480px] rounded-[12px] border border-[#F0E8E2] bg-white px-6 py-7 shadow-[0_18px_40px_rgba(92,57,45,0.14)] sm:px-8 sm:py-8">
         <div className="mb-6 h-px w-16 bg-[#E0157A]" />
         <p className="mb-3 text-[0.75rem] font-medium uppercase tracking-[0.1em] text-[#A0607A]">Chicks Jewelry</p>
         <h2
@@ -134,7 +138,7 @@ export function CountryLanguageProvider({
   const router = useRouter();
   const [country, setCountry] = useState<SupportedCountry>(initialSelection.country);
   const [language, setLanguage] = useState<SupportedLanguage>(initialSelection.language);
-  const [isSelectorOpen, setIsSelectorOpen] = useState(!initialSelection.hasStoredSelection);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
   const openSelector = useCallback(() => setIsSelectorOpen(true), []);
 
@@ -149,15 +153,14 @@ export function CountryLanguageProvider({
     persistValue(LANGUAGE_COOKIE_NAME, normalizedLanguage);
     setIsSelectorOpen(false);
 
-    if (hasChanged) {
-      window.dispatchEvent(new CustomEvent("chicks-country-language-changed"));
-      const currentPath = `${window.location.pathname}${window.location.search}`;
-      const localizedPath = getLocalizedPath(currentPath, normalizedLanguage);
-      if (localizedPath !== currentPath) {
-        router.push(localizedPath);
-      } else {
-        router.refresh();
-      }
+    if (!hasChanged) return;
+
+    window.dispatchEvent(new CustomEvent("chicks-country-language-changed"));
+
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    const localizedPath = getLocalizedPath(currentPath, normalizedLanguage);
+    if (localizedPath !== currentPath) {
+      router.push(localizedPath);
     }
   }, [country, language, router]);
 

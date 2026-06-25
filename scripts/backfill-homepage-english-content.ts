@@ -8,6 +8,27 @@ dotenv.config({ path: ".env.local", override: true });
 const prisma = new PrismaClient();
 
 const translations = new Map<string, string>([
+  ["A CHICKS SZEMLÉLET", "THE CHICKS PERSPECTIVE"],
+  ["A Chicks szemlélet", "THE CHICKS PERSPECTIVE"],
+  ["Nem tömeg, hanem karakter.", "Not mass-made. Made with character."],
+  [
+    "A kollekciók nem szezonális zajból indulnak, hanem kövekből, tónusokból és viselhető részletekből. Olyan ékszereket készítünk, amelyek nem kérnek figyelmet, mégis megmaradnak.",
+    "Our collections do not start from seasonal noise, but from stones, tones and wearable details. We create jewelry that does not ask for attention, yet stays with you.",
+  ],
+  [
+    "A darabok kis mennyiségben készülnek, ezért a kedvenc kombinációk sokszor csak rövid ideig érhetők el.",
+    "Our pieces are made in small quantities, so favourite combinations are often available only for a short time.",
+  ],
+  [
+    "A darabok kis mennyiségben készülnek — a kedvenc kombinációk sokszor csak rövid ideig érhetők el.",
+    "Our pieces are made in small quantities, so favourite combinations are often available only for a short time.",
+  ],
+  [
+    "A cél egy finom, személyes ékszertár: rétegezhető, könnyen hordható, nem harsány, mégis emlékezetes részletekkel.",
+    "The goal is a delicate, personal jewelry wardrobe: layerable, easy to wear, never loud, yet full of memorable details.",
+  ],
+  ["ISMERD MEG A KÖVEKET", "DISCOVER THE GEMSTONES"],
+  ["Ismerd meg a köveket", "DISCOVER THE GEMSTONES"],
   ["Ne félj extra lenni! Viseld bátran a kiegészítőket!", "Don’t be afraid to stand out. Wear your details boldly."],
   [
     "Féldrágakő karkötők és nyakláncok kis szériában - outfitedhez, hangulatodhoz, évszakodhoz.",

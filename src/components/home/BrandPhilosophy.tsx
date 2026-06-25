@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { Playfair_Display, Inter } from 'next/font/google'
 
+import { getDictionary } from "@/lib/i18n";
+import { getLocalizedPath } from "@/lib/locale-routing";
+import type { SupportedLanguage } from "@/lib/international";
+
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500'],
@@ -14,11 +18,18 @@ const inter = Inter({
 
 interface BrandPhilosophyProps {
   ctaHref?: string
+  language?: SupportedLanguage
 }
 
 export default function BrandPhilosophy({
-  ctaHref = '/kovek',
+  ctaHref = '/stones',
+  language = 'hu',
 }: BrandPhilosophyProps) {
+  const dictionary = getDictionary(language);
+  const titleParts = dictionary["homepage.editorialTitle"].split(". ");
+  const titleStart = titleParts[0] ? `${titleParts[0]}.` : dictionary["homepage.editorialTitle"];
+  const titleEmphasis = titleParts[1] ?? "";
+
   return (
     <section className="relative w-full bg-[#F5F2ED] px-12 py-16">
       <div className="pointer-events-none absolute right-12 top-14 text-7xl text-[#E5DED5]">
@@ -30,14 +41,16 @@ export default function BrandPhilosophy({
           <p
             className={`${inter.className} mb-7 text-[11px] font-normal uppercase tracking-[0.18em] text-[#8B8175]`}
           >
-            A Chicks szemlélet
+            {dictionary["homepage.editorialEyebrow"]}
           </p>
 
           <h2
             className={`${playfair.className} text-[40px] font-normal leading-[1.1] text-[#1C1917] sm:text-[52px]`}
           >
-            Nem tömeg, hanem{' '}
-            <em className="font-normal italic text-[#6B5D4F]">karakter.</em>
+            {titleStart}{' '}
+            {titleEmphasis ? (
+              <em className="font-normal italic text-[#6B5D4F]">{titleEmphasis}</em>
+            ) : null}
           </h2>
 
           <span
@@ -51,8 +64,7 @@ export default function BrandPhilosophy({
           <p
             className={`${playfair.className} mb-8 text-[22px] font-normal leading-[1.5] text-[#1C1917]`}
           >
-            A kollekciók nem szezonális zajból indulnak, hanem kövekből,
-            tónusokból és viselhető részletekből.
+            {dictionary["homepage.editorialLead"]}
           </p>
 
           <hr className="mb-8 h-px w-10 border-none bg-[#C4B8AC]" />
@@ -61,21 +73,18 @@ export default function BrandPhilosophy({
             className={`${inter.className} mb-10 grid gap-6 text-[13.5px] font-normal leading-[1.75] text-[#5C534A] sm:grid-cols-2`}
           >
             <p>
-              A darabok kis mennyiségben készülnek — a kedvenc kombinációk
-              sokszor csak rövid ideig érhetők el.
+              {dictionary["homepage.editorialFirstNote"]}
             </p>
             <p>
-              A cél egy finom, személyes ékszertár: rétegezhető, könnyen
-              hordható, nem harsány, mégis emlékezetes részletekkel.
+              {dictionary["homepage.editorialSecondNote"]}
             </p>
           </div>
 
-          {/* TODO: replace ctaHref with real route */}
           <Link
-            href={ctaHref}
+            href={getLocalizedPath(ctaHref, language)}
             className={`${inter.className} group inline-flex border-b border-[#1C1917] pb-1.5 text-[11px] font-normal uppercase tracking-[0.14em] text-[#1C1917] transition-colors hover:border-[#6B5D4F] hover:text-[#6B5D4F]`}
           >
-            Ismerd meg a köveket{' '}
+            {dictionary["homepage.editorialCta"]}{' '}
             <span className="inline-block transition-transform group-hover:translate-x-1">
               →
             </span>
