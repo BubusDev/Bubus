@@ -8,7 +8,6 @@ import {
   LANGUAGE_COOKIE_NAME,
   getCountryConfig,
   getCountryLabel,
-  getLanguageForCountry,
   supportedCountries,
   validateSupportedCountry,
   validateSupportedLanguage,
@@ -90,7 +89,6 @@ const CountryLanguageSelector = memo(function CountryLanguageSelector({
               onChange={(event) => {
                 const nextCountry = validateSupportedCountry(event.target.value);
                 setDraftCountry(nextCountry);
-                setDraftLanguage(getLanguageForCountry(nextCountry));
               }}
               className="h-12 w-full rounded-[8px] border border-[#E5E0DC] bg-white px-4 text-[0.95rem] text-[#2D1F1F] outline-none transition duration-200 hover:border-[#d9d0ca] focus:border-[#E0157A] focus:ring-[3px] focus:ring-[#E0157A]/10"
             >
@@ -144,7 +142,7 @@ export function CountryLanguageProvider({
 
   const saveSelection = useCallback((nextCountry: SupportedCountry, nextLanguage?: SupportedLanguage) => {
     const normalizedCountry = validateSupportedCountry(nextCountry);
-    const normalizedLanguage = validateSupportedLanguage(nextLanguage ?? getLanguageForCountry(normalizedCountry));
+    const normalizedLanguage = validateSupportedLanguage(nextLanguage ?? language);
     const hasChanged = normalizedCountry !== country || normalizedLanguage !== language;
 
     setCountry(normalizedCountry);
