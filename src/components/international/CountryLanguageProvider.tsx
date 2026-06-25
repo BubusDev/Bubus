@@ -2,6 +2,8 @@
 
 import { createContext, memo, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+import { Globe } from "lucide-react";
+
 import {
   COUNTRY_COOKIE_NAME,
   LANGUAGE_COOKIE_NAME,
@@ -197,10 +199,13 @@ export function CountryLanguageButton({ className = "" }: { className?: string }
     <button
       type="button"
       onClick={openSelector}
-      className="text-xl leading-none hover:opacity-70 transition-opacity"
+      className={className || "flex items-center gap-1 text-[#5f4a51] hover:text-[#9b3d6e] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b5c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbf8f5]"}
       aria-label="Change language"
     >
-      {language === 'en' ? '🇬🇧' : '🇭🇺'}
+      <Globe className="w-[1.1rem] h-[1.1rem]" strokeWidth={1.5} />
+      <span className="text-xs font-medium uppercase tracking-wide">
+        {language === 'en' ? 'EN' : 'HU'}
+      </span>
     </button>
   );
 }
