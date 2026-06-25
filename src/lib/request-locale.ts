@@ -11,6 +11,7 @@ export async function getRequestLocale(): Promise<SupportedLanguage> {
   const pathname = headerStore.get(PATHNAME_HEADER_NAME);
   const pathLocale = pathname ? getLocaleFromPathname(pathname) : null;
   if (pathLocale) return pathLocale;
+  if (pathname) return "hu";
 
   const cookieStore = await cookies();
   return validateSupportedLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);

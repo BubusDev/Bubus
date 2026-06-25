@@ -17,10 +17,7 @@ import { getHeaderUser } from "@/lib/auth";
 import { CONSENT_COOKIE_NAME, parseStoredConsentValue } from "@/lib/cookie-consent-client";
 import {
   COUNTRY_COOKIE_NAME,
-  LANGUAGE_COOKIE_NAME,
-  getLanguageForCountry,
   validateSupportedCountry,
-  validateSupportedLanguage,
 } from "@/lib/international";
 import { getRequestLocale } from "@/lib/request-locale";
 import { getNavigationCategories } from "@/lib/products-server";
@@ -42,14 +39,9 @@ export default async function StorefrontLayout({
   ]);
   const initialConsent = parseStoredConsentValue(cookieStore.get(CONSENT_COOKIE_NAME)?.value ?? null);
   const storedCountry = cookieStore.get(COUNTRY_COOKIE_NAME)?.value;
-  const storedLanguage = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value;
   const requestLocale = await getRequestLocale();
   const initialCountry = requestLocale === "en" && !storedCountry ? "DE" : validateSupportedCountry(storedCountry);
-  const initialLanguage = requestLocale === "en"
-    ? "en"
-    : storedLanguage
-      ? validateSupportedLanguage(storedLanguage)
-      : getLanguageForCountry(initialCountry);
+  const initialLanguage = requestLocale;
   const hasStoredCountryLanguageSelection = Boolean(storedCountry);
   const hasGoogleServices = Boolean(
     process.env.NEXT_PUBLIC_GA_ID?.trim() || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID?.trim(),

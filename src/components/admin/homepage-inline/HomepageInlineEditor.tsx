@@ -616,7 +616,11 @@ export function HomepageInlineEditor({
       </EditableWrap>
       {visibleShowcaseTabs.length > 0 ? (
         <EditableWrap section="featuredSlider" isEditing={isEditing} onEdit={setActiveSection}>
-          <FeaturedSlider tabs={visibleShowcaseTabs} contentBlock={visibleContent.featuredSlider} />
+          <FeaturedSlider
+            tabs={visibleShowcaseTabs}
+            contentBlock={visibleContent.featuredSlider}
+            language={contentLanguage}
+          />
         </EditableWrap>
       ) : null}
       <HomeEditorialSection language={contentLanguage} />

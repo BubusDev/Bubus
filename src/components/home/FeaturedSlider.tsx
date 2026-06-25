@@ -7,8 +7,9 @@ import { Playfair_Display, Inter } from 'next/font/google'
 
 import type { HomepageBlockView } from '@/lib/homepage-content'
 import { useCountryLanguage } from '@/components/international/CountryLanguageProvider'
-import { formatPriceForCountry, getDisplayPriceForCountry } from '@/lib/international'
+import { formatPriceForCountry, getDisplayPriceForCountry, type SupportedLanguage } from '@/lib/international'
 import { getBrowserDisplayImageUrl } from '@/lib/image-safety'
+import { getLocalizedPath } from '@/lib/locale-routing'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -61,12 +62,14 @@ type Product = {
 interface FeaturedSliderProps {
   tabs: ShowcaseTab[]
   contentBlock?: HomepageBlockView
+  language: SupportedLanguage
 }
 
 interface ProductCardProps {
   product: Product
   isWishlisted: boolean
   onWishlistToggle: (id: string) => void
+  language: SupportedLanguage
 }
 
 const CARD_WIDTH = 274
@@ -83,7 +86,7 @@ const requestedTabs = [
   },
 ]
 
-function getProductBadge(product: ShowcaseProduct, language: string): BadgeType {
+function getProductBadge(product: ShowcaseProduct, language: SupportedLanguage): BadgeType {
   if (product.isNew) return language === 'en' ? 'New' : 'Új'
   if (product.isOnSale) return language === 'en' ? 'Limited' : 'Limitált'
   return null
@@ -103,7 +106,7 @@ function getProductImage(product: ShowcaseProduct) {
   }
 }
 
-function mapProduct(product: ShowcaseProduct, language: string): Product {
+function mapProduct(product: ShowcaseProduct, language: SupportedLanguage): Product {
   const image = getProductImage(product)
   const name = language === 'en' && product.nameEn?.trim() ? product.nameEn.trim() : product.name
 
@@ -112,7 +115,7 @@ function mapProduct(product: ShowcaseProduct, language: string): Product {
     name,
     price: product.price,
     priceEur: product.priceEur,
-    href: `/product/${product.slug}`,
+    href: getLocalizedPath(`/product/${product.slug}`, language),
     imageUrl: image.url,
     imageAlt: image.alt,
     badge: getProductBadge(product, language),
@@ -229,12 +232,15 @@ function ProductCard({
   product,
   isWishlisted,
   onWishlistToggle,
+  language,
 }: ProductCardProps) {
   const { country } = useCountryLanguage()
   const displayPrice = useMemo(() => getDisplayPriceForCountry(product, country), [country, product])
   const priceLabel = useMemo(
-    () => displayPrice == null ? 'Not available for EU delivery' : formatPriceForCountry(displayPrice, country),
-    [country, displayPrice],
+    () => displayPrice == null
+      ? language === 'en' ? 'Not available for EU delivery' : 'EU szállításhoz még nem elérhető'
+      : formatPriceForCountry(displayPrice, country),
+    [country, displayPrice, language],
   )
   return (
     <article className="group w-full cursor-pointer md:w-[260px] md:flex-none">
@@ -269,8 +275,12 @@ function ProductCard({
           type="button"
           aria-label={
             isWishlisted
-              ? `${product.name} eltávolítása a kívánságlistáról`
-              : `${product.name} hozzáadása a kívánságlistához`
+              ? language === 'en'
+                ? `Remove ${product.name} from wishlist`
+                : `${product.name} eltávolítása a kívánságlistáról`
+              : language === 'en'
+                ? `Add ${product.name} to wishlist`
+                : `${product.name} hozzáadása a kívánságlistához`
           }
           aria-pressed={isWishlisted}
           onClick={() => onWishlistToggle(product.id)}
@@ -296,8 +306,7 @@ function ProductCard({
   )
 }
 
-export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderProps) {
-  const { language } = useCountryLanguage()
+export default function FeaturedSlider({ tabs, contentBlock, language }: FeaturedSliderProps) {
   const displayTabs = useMemo(() => getDisplayTabs(tabs, language), [tabs, language])
   const [pos, setPos] = useState(0)
   const [activeTab, setActiveTab] = useState('')
@@ -394,6 +403,7 @@ export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderPro
             product={product}
             isWishlisted={wishlistedIds.has(product.id)}
             onWishlistToggle={handleWishlistToggle}
+            language={language}
           />
         ))}
       </div>
@@ -412,6 +422,7 @@ export default function FeaturedSlider({ tabs, contentBlock }: FeaturedSliderPro
               product={product}
               isWishlisted={wishlistedIds.has(product.id)}
               onWishlistToggle={handleWishlistToggle}
+              language={language}
             />
           ))}
         </div>

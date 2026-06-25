@@ -46,7 +46,9 @@ function readStringList(formData: FormData, key: string) {
 
 function revalidate() {
   revalidatePath("/");
+  revalidatePath("/en");
   revalidatePath("/admin/content/homepage-showcase");
+  revalidatePath("/admin/content/homepage");
 }
 
 function readShowcaseTabInput(formData: FormData) {

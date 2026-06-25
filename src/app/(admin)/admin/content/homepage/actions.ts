@@ -31,7 +31,9 @@ function readCheckbox(formData: FormData, key: string) {
 
 function revalidateHomepageContent() {
   revalidatePath("/");
+  revalidatePath("/en");
   revalidatePath("/", "layout");
+  revalidatePath("/en", "layout");
   revalidatePath("/admin/content/homepage");
   revalidatePath("/admin/content/homepage-showcase");
 }
