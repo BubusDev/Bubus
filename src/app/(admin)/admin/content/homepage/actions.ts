@@ -11,11 +11,13 @@ import {
   type HomepageBlockView,
   type HomepageContentView,
   type HomepagePromoTileView,
+  getHomepageContent,
   replaceHomepageMaterialPicks,
   upsertHomepageBlock,
   upsertHomepagePromoTile,
 } from "@/lib/homepage-content";
 import { replaceInlineFeaturedProducts } from "@/lib/homepage-showcase";
+import { validateSupportedLanguage, type SupportedLanguage } from "@/lib/international";
 import { storefrontProductWhere } from "@/lib/product-lifecycle";
 import { productHasStone } from "@/lib/stone-product";
 import type { HomepageMaterialPickType } from "@/lib/homepage-content";
@@ -50,6 +52,7 @@ type InlineHomepageContentInput = Pick<
   HomepageContentView,
   "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter" | "promoTiles"
 > & {
+  language: SupportedLanguage;
   featuredProductIds?: string[];
   materialProductIds?: string[];
 };
@@ -116,35 +119,128 @@ function assertHref(value: string, label: string) {
   }
 }
 
-function toBlockValues(block: HomepageBlockView) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function shouldPreserveBaseFieldOnEnglishSave(
+  key: string,
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+) {
+  return `${key}En` in existing || `${key}En` in incoming;
+}
+
+function mergeLocalizedMetadataObject(
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+  language: SupportedLanguage,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...existing };
+
+  for (const [key, incomingValue] of Object.entries(incoming)) {
+    const existingValue = existing[key];
+
+    if (key.endsWith("En")) {
+      result[key] = language === "en" ? incomingValue : existingValue;
+      continue;
+    }
+
+    if (language === "en" && shouldPreserveBaseFieldOnEnglishSave(key, existing, incoming)) {
+      result[key] = existingValue;
+      continue;
+    }
+
+    if (Array.isArray(incomingValue)) {
+      const existingItems = Array.isArray(existingValue) ? existingValue : [];
+      result[key] = incomingValue.map((item, index) => {
+        const existingItem = existingItems[index];
+        if (isRecord(item)) {
+          return mergeLocalizedMetadataObject(isRecord(existingItem) ? existingItem : {}, item, language);
+        }
+        return language === "en" ? existingItem ?? item : item;
+      });
+      continue;
+    }
+
+    if (isRecord(incomingValue)) {
+      result[key] = mergeLocalizedMetadataObject(isRecord(existingValue) ? existingValue : {}, incomingValue, language);
+      continue;
+    }
+
+    result[key] = incomingValue;
+  }
+
+  return result;
+}
+
+function mergeLocalizedMetadata(
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+  language: SupportedLanguage,
+) {
+  return mergeLocalizedMetadataObject(existing, incoming, language);
+}
+
+function toBlockValues(block: HomepageBlockView, existingBlock: HomepageBlockView, language: SupportedLanguage) {
+  const localizedTextValues = language === "en"
+    ? {
+        title: existingBlock.title.trim(),
+        titleEn: block.titleEn.trim(),
+        eyebrow: existingBlock.eyebrow.trim(),
+        eyebrowEn: block.eyebrowEn.trim(),
+        body: existingBlock.body.trim(),
+        bodyEn: block.bodyEn.trim(),
+        imageAlt: existingBlock.imageAlt.trim(),
+        imageAltEn: block.imageAltEn.trim(),
+        buttonText: existingBlock.buttonText.trim(),
+        buttonTextEn: block.buttonTextEn.trim(),
+      }
+    : {
+        title: block.title.trim(),
+        titleEn: existingBlock.titleEn.trim(),
+        eyebrow: block.eyebrow.trim(),
+        eyebrowEn: existingBlock.eyebrowEn.trim(),
+        body: block.body.trim(),
+        bodyEn: existingBlock.bodyEn.trim(),
+        imageAlt: block.imageAlt.trim(),
+        imageAltEn: existingBlock.imageAltEn.trim(),
+        buttonText: block.buttonText.trim(),
+        buttonTextEn: existingBlock.buttonTextEn.trim(),
+      };
+
   return {
-    title: block.title.trim(),
-    titleEn: block.titleEn.trim(),
-    eyebrow: block.eyebrow.trim(),
-    eyebrowEn: block.eyebrowEn.trim(),
-    body: block.body.trim(),
-    bodyEn: block.bodyEn.trim(),
+    ...localizedTextValues,
     imageUrl: block.imageUrl.trim(),
-    imageAlt: block.imageAlt.trim(),
-    imageAltEn: block.imageAltEn.trim(),
-    buttonText: block.buttonText.trim(),
-    buttonTextEn: block.buttonTextEn.trim(),
     buttonHref: block.buttonHref.trim(),
-    metadata: block.metadata,
+    metadata: mergeLocalizedMetadata(existingBlock.metadata, block.metadata, language),
     isVisible: block.isVisible,
   };
 }
 
-function toTileValues(tile: HomepagePromoTileView) {
+function toTileValues(tile: HomepagePromoTileView, existingTile: HomepagePromoTileView, language: SupportedLanguage) {
+  const localizedTextValues = language === "en"
+    ? {
+        title: existingTile.title.trim(),
+        titleEn: tile.titleEn.trim(),
+        subtitle: existingTile.subtitle.trim(),
+        subtitleEn: tile.subtitleEn.trim(),
+        imageAlt: existingTile.imageAlt.trim(),
+        imageAltEn: tile.imageAltEn.trim(),
+      }
+    : {
+        title: tile.title.trim(),
+        titleEn: existingTile.titleEn.trim(),
+        subtitle: tile.subtitle.trim(),
+        subtitleEn: existingTile.subtitleEn.trim(),
+        imageAlt: tile.imageAlt.trim(),
+        imageAltEn: existingTile.imageAltEn.trim(),
+      };
+
   return {
-    title: tile.title.trim(),
-    titleEn: tile.titleEn.trim(),
-    subtitle: tile.subtitle.trim(),
-    subtitleEn: tile.subtitleEn.trim(),
+    ...localizedTextValues,
     href: tile.href.trim(),
     imageUrl: tile.imageUrl.trim(),
-    imageAlt: tile.imageAlt.trim(),
-    imageAltEn: tile.imageAltEn.trim(),
     isNew: tile.isNew,
     isVisible: tile.isVisible,
   };
@@ -171,6 +267,7 @@ export async function updateHomepageContentAction(
   input: InlineHomepageContentInput,
 ): Promise<{ ok: boolean; message: string }> {
   await requireAdminUser("/");
+  const language = validateSupportedLanguage(input.language);
 
   try {
     assertTitle(input.hero, "Hero");
@@ -220,15 +317,20 @@ export async function updateHomepageContentAction(
     const availableProductIds = new Set(selectedProducts.map((product) => product.id));
     const safeFeaturedProductIds = featuredProductIds.filter((id) => availableProductIds.has(id));
     const safeMaterialProductIds = materialProductIds.filter((id) => availableProductIds.has(id));
+    const currentContent = await getHomepageContent();
+    const currentTileBySlot = new Map(currentContent.promoTiles.map((tile) => [tile.slotIndex, tile]));
 
     await Promise.all([
-      upsertHomepageBlock("HERO", toBlockValues(input.hero)),
-      upsertHomepageBlock("HERO_FEATURE_BAR", toBlockValues(input.heroFeatureBar)),
-      upsertHomepageBlock("CATEGORY_GRID", toBlockValues(input.categoryGrid)),
-      upsertHomepageBlock("FEATURED_SLIDER", toBlockValues(input.featuredSlider)),
-      upsertHomepageBlock("INSTAGRAM", toBlockValues(input.instagram)),
-      upsertHomepageBlock("NEWSLETTER", toBlockValues(input.newsletter)),
-      ...input.promoTiles.map((tile) => upsertHomepagePromoTile(tile.slotIndex, toTileValues(tile))),
+      upsertHomepageBlock("HERO", toBlockValues(input.hero, currentContent.hero, language)),
+      upsertHomepageBlock("HERO_FEATURE_BAR", toBlockValues(input.heroFeatureBar, currentContent.heroFeatureBar, language)),
+      upsertHomepageBlock("CATEGORY_GRID", toBlockValues(input.categoryGrid, currentContent.categoryGrid, language)),
+      upsertHomepageBlock("FEATURED_SLIDER", toBlockValues(input.featuredSlider, currentContent.featuredSlider, language)),
+      upsertHomepageBlock("INSTAGRAM", toBlockValues(input.instagram, currentContent.instagram, language)),
+      upsertHomepageBlock("NEWSLETTER", toBlockValues(input.newsletter, currentContent.newsletter, language)),
+      ...input.promoTiles.map((tile) => {
+        const existingTile = currentTileBySlot.get(tile.slotIndex) ?? tile;
+        return upsertHomepagePromoTile(tile.slotIndex, toTileValues(tile, existingTile, language));
+      }),
       ...(shouldUpdateFeaturedProducts ? [replaceInlineFeaturedProducts(safeFeaturedProductIds)] : []),
       ...(shouldUpdateMaterialProducts
         ? [

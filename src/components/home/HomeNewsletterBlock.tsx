@@ -1,9 +1,11 @@
 import { subscribeNewsletterAction } from "@/app/(storefront)/newsletter/actions";
 import type { HomepageBlockView } from "@/lib/homepage-content";
+import type { SupportedLanguage } from "@/lib/international";
 
 type HomeNewsletterBlockProps = {
   contentBlock?: HomepageBlockView;
   status?: string;
+  language: SupportedLanguage;
 };
 
 function readPerks(contentBlock?: HomepageBlockView) {
@@ -18,7 +20,7 @@ function readPerks(contentBlock?: HomepageBlockView) {
   return perks.length > 0 ? perks : ["Új kollekciók előre", "Limitált darabok", "Különleges ajánlatok"];
 }
 
-export function HomeNewsletterBlock({ contentBlock, status }: HomeNewsletterBlockProps) {
+export function HomeNewsletterBlock({ contentBlock, status, language: _language }: HomeNewsletterBlockProps) {
   const statusMessage =
     status === "subscribed"
       ? typeof contentBlock?.metadata.subscribedMessage === "string"

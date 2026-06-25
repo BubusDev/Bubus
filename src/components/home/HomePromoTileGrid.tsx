@@ -6,11 +6,13 @@ import type {
   HomepageMaterialPickView,
   HomepagePromoTileView,
 } from "@/lib/homepage-content";
+import type { SupportedLanguage } from "@/lib/international";
 
 type HomePromoTileGridProps = {
   tiles: HomepagePromoTileView[];
   materialPicks?: HomepageMaterialPickView[];
   categoryBlock?: HomepageBlockView;
+  language: SupportedLanguage;
 };
 
 function Tile({
@@ -111,6 +113,7 @@ export function HomePromoTileGrid({
   tiles,
   materialPicks = [],
   categoryBlock,
+  language: _language,
 }: HomePromoTileGridProps) {
   const visibleTiles = tiles.filter((tile) => tile.isVisible);
   const storefrontMaterialPicks = materialPicks.filter((pick) => !pick.isLegacySource);

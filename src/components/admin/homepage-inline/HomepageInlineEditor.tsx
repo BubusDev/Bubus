@@ -22,12 +22,14 @@ import type {
   HomepagePromoTileView,
 } from "@/lib/homepage-content";
 import type { AdminShowcaseProductOption, ShowcaseTab } from "@/lib/homepage-showcase";
+import type { SupportedLanguage } from "@/lib/international";
 import { browserSafeProductImageAccept, getBrowserDisplayImageUrl } from "@/lib/image-safety";
 
 type EditableSection = "hero" | "featureBar" | "categoryGrid" | "featuredSlider" | "social" | "newsletter";
 
 type HomepageInlineEditorProps = {
   initialContent: HomepageContentView;
+  language: SupportedLanguage;
   newsletterStatus?: string;
   showcaseTabs: ShowcaseTab[];
   productOptions: AdminShowcaseProductOption[];
@@ -467,6 +469,7 @@ function EditableWrap({
 
 export function HomepageInlineEditor({
   initialContent,
+  language,
   newsletterStatus,
   showcaseTabs,
   productOptions,
@@ -485,14 +488,13 @@ export function HomepageInlineEditor({
   const [isEditing, setIsEditing] = useState(false);
   const [isPreviewingDraft, setIsPreviewingDraft] = useState(false);
   const [activeSection, setActiveSection] = useState<EditableSection | null>(null);
-  const [contentLanguage, setContentLanguage] = useState<"hu" | "en">("hu");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const isDraftVisible = isEditing || isPreviewingDraft;
   const rawVisibleContent = isDraftVisible ? draft : savedContent;
   const visibleContent = useMemo(
-    () => getLocalizedHomepageContent(rawVisibleContent, contentLanguage),
-    [rawVisibleContent, contentLanguage],
+    () => getLocalizedHomepageContent(rawVisibleContent, language),
+    [rawVisibleContent, language],
   );
   const currentFeaturedProductIds = isDraftVisible ? draftFeaturedProductIds : savedFeaturedProductIds;
   const currentMaterialProductIds = isDraftVisible ? draftMaterialProductIds : savedMaterialProductIds;
@@ -530,10 +532,11 @@ export function HomepageInlineEditor({
       instagram: draft.instagram,
       newsletter: draft.newsletter,
       promoTiles: draft.promoTiles,
+      language,
       ...(featuredProductsDirty ? { featuredProductIds: draftFeaturedProductIds } : {}),
       ...(materialProductsDirty ? { materialProductIds: draftMaterialProductIds } : {}),
     }),
-    [draft, draftFeaturedProductIds, draftMaterialProductIds, featuredProductsDirty, materialProductsDirty],
+    [draft, draftFeaturedProductIds, draftMaterialProductIds, featuredProductsDirty, language, materialProductsDirty],
   );
 
   function updateBlock(key: keyof Pick<HomepageContentView, "hero" | "heroFeatureBar" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter">, patch: Partial<HomepageBlockView>) {
@@ -605,13 +608,14 @@ export function HomepageInlineEditor({
   return (
     <main className="min-h-screen bg-[#fbfaf7]">
       <EditableWrap section="hero" isEditing={isEditing} onEdit={setActiveSection}>
-        <HeroBanner block={visibleContent.hero} featureBlock={visibleContent.heroFeatureBar} />
+        <HeroBanner block={visibleContent.hero} featureBlock={visibleContent.heroFeatureBar} language={language} />
       </EditableWrap>
       <EditableWrap section="categoryGrid" isEditing={isEditing} onEdit={setActiveSection}>
         <HomePromoTileGrid
           tiles={visibleContent.promoTiles}
           materialPicks={visibleMaterialPicks}
           categoryBlock={visibleContent.categoryGrid}
+          language={language}
         />
       </EditableWrap>
       {visibleShowcaseTabs.length > 0 ? (
@@ -619,18 +623,18 @@ export function HomepageInlineEditor({
           <FeaturedSlider
             tabs={visibleShowcaseTabs}
             contentBlock={visibleContent.featuredSlider}
-            language={contentLanguage}
+            language={language}
           />
         </EditableWrap>
       ) : null}
-      <HomeEditorialSection language={contentLanguage} />
+      <HomeEditorialSection language={language} />
       <EditableWrap section="social" isEditing={isEditing} onEdit={setActiveSection}>
-        <HomeInstagramPromo block={visibleContent.instagram} />
+        <HomeInstagramPromo block={visibleContent.instagram} language={language} />
       </EditableWrap>
       <EditableWrap section="newsletter" isEditing={isEditing} onEdit={setActiveSection}>
-        <HomeNewsletterBlock contentBlock={visibleContent.newsletter} status={newsletterStatus} />
+        <HomeNewsletterBlock contentBlock={visibleContent.newsletter} status={newsletterStatus} language={language} />
       </EditableWrap>
-      <HomeFinalCta language={contentLanguage} />
+      <HomeFinalCta language={language} />
 
       <div className="fixed bottom-5 right-5 z-50 flex flex-wrap justify-end gap-2 rounded-full border border-[#f0c0d8] bg-white/94 p-2 shadow-[0_12px_36px_rgba(45,26,22,0.18)] backdrop-blur">
         {!isEditing && !isPreviewingDraft ? (
@@ -687,8 +691,7 @@ export function HomepageInlineEditor({
             setDraftMaterialProductIds(ids);
             setMaterialProductsDirty(true);
           }}
-          contentLanguage={contentLanguage}
-          onContentLanguageChange={setContentLanguage}
+          language={language}
           onPreview={handlePreview}
           onSave={handleSave}
           onCancel={handleCancel}
@@ -713,8 +716,7 @@ function EditDrawer({
   materialProductIds,
   onFeaturedProductIdsChange,
   onMaterialProductIdsChange,
-  contentLanguage,
-  onContentLanguageChange,
+  language,
   onPreview,
   onSave,
   onCancel,
@@ -733,19 +735,18 @@ function EditDrawer({
   materialProductIds: string[];
   onFeaturedProductIdsChange: (ids: string[]) => void;
   onMaterialProductIdsChange: (ids: string[]) => void;
-  contentLanguage: "hu" | "en";
-  onContentLanguageChange: (language: "hu" | "en") => void;
+  language: SupportedLanguage;
   onPreview: () => void;
   onSave: () => void;
   onCancel: () => void;
   isSaving: boolean;
   status: string;
 }) {
-  const features = getFeatures(draft.heroFeatureBar, contentLanguage);
-  const perks = getPerks(draft.newsletter, contentLanguage);
-  const teamMembers = getTeamMembers(draft.instagram, contentLanguage);
-  const isEditingEnglish = contentLanguage === "en";
-  const missingEnglishWarning = "Hiányzik az angol szöveg";
+  const features = getFeatures(draft.heroFeatureBar, language);
+  const perks = getPerks(draft.newsletter, language);
+  const teamMembers = getTeamMembers(draft.instagram, language);
+  const isEditingEnglish = language === "en";
+  const missingEnglishWarning = "Missing English text";
   const blockTextField = (
     key: "hero" | "categoryGrid" | "featuredSlider" | "instagram" | "newsletter",
     field: "title" | "eyebrow" | "body" | "imageAlt" | "buttonText",
@@ -806,32 +807,6 @@ function EditDrawer({
             );
           })}
         </nav>
-        <div className="mt-4 rounded-xl border border-[#f0c0d8] bg-white p-2">
-          <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8f5367]">
-            Tartalom nyelve
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              ["hu", "Magyar tartalom"],
-              ["en", "English content"],
-            ].map(([value, label]) => {
-              const isActive = contentLanguage === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onContentLanguageChange(value as "hu" | "en")}
-                  className={[
-                    "rounded-lg px-3 py-2 text-xs font-semibold transition",
-                    isActive ? "bg-[#2D1A16] text-white" : "bg-[#fff7fb] text-[#8b2859] hover:bg-[#fdeaf4]",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-5 pb-28 sm:px-5">
@@ -844,7 +819,7 @@ function EditDrawer({
             <TextField label="Hero kép alt" value={getBlockText("hero", "imageAlt")} onChange={(value) => updateBlockText("hero", "imageAlt", value)} warning={englishWarningFor(getBlockText("hero", "imageAlt"))} />
             <TextField label="Primary CTA label" value={getBlockText("hero", "buttonText")} onChange={(value) => updateBlockText("hero", "buttonText", value)} warning={englishWarningFor(getBlockText("hero", "buttonText"))} />
             <TextField label="Primary CTA href" value={draft.hero.buttonHref} onChange={(value) => updateBlock("hero", { buttonHref: value })} />
-            <TextField label="Secondary CTA label" value={getLocalizedMetadataString(draft.hero, "secondaryButtonText", contentLanguage)} onChange={(value) => updateBlockMetadata("hero", { [getLanguageMetadataKey("secondaryButtonText", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.hero, "secondaryButtonText", contentLanguage))} />
+            <TextField label="Secondary CTA label" value={getLocalizedMetadataString(draft.hero, "secondaryButtonText", language)} onChange={(value) => updateBlockMetadata("hero", { [getLanguageMetadataKey("secondaryButtonText", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.hero, "secondaryButtonText", language))} />
             <TextField label="Secondary CTA href" value={getMetadataString(draft.hero, "secondaryButtonHref")} onChange={(value) => updateBlockMetadata("hero", { secondaryButtonHref: value })} />
           </>
         ) : null}
@@ -858,7 +833,7 @@ function EditDrawer({
                     const item = currentItems[itemIndex];
                     return item && typeof item === "object" ? { ...(item as Record<string, unknown>) } : {};
                   });
-                  next[index] = { ...next[index], [getLanguageMetadataKey("label", contentLanguage)]: value };
+                  next[index] = { ...next[index], [getLanguageMetadataKey("label", language)]: value };
                   updateBlockMetadata("heroFeatureBar", { features: next });
                 }} warning={englishWarningFor(feature.label)} />
                 <TextField label={`Feature ${index + 1} text`} value={feature.text} onChange={(value) => {
@@ -867,7 +842,7 @@ function EditDrawer({
                     const item = currentItems[itemIndex];
                     return item && typeof item === "object" ? { ...(item as Record<string, unknown>) } : {};
                   });
-                  next[index] = { ...next[index], [getLanguageMetadataKey("text", contentLanguage)]: value };
+                  next[index] = { ...next[index], [getLanguageMetadataKey("text", language)]: value };
                   updateBlockMetadata("heroFeatureBar", { features: next });
                 }} warning={englishWarningFor(feature.text)} multiline />
               </div>
@@ -881,9 +856,9 @@ function EditDrawer({
             <TextField label="Description" value={getBlockText("categoryGrid", "body")} onChange={(value) => updateBlockText("categoryGrid", "body", value)} warning={englishWarningFor(getBlockText("categoryGrid", "body"))} multiline />
             <div className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
               <p className="text-sm font-semibold text-[#2D1A16]">Kurált fókusz</p>
-              <TextField label="Material eyebrow" value={getLocalizedMetadataString(draft.categoryGrid, "materialEyebrow", contentLanguage)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialEyebrow", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialEyebrow", contentLanguage))} />
-              <TextField label="Material headline" value={getLocalizedMetadataString(draft.categoryGrid, "materialTitle", contentLanguage)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialTitle", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialTitle", contentLanguage))} />
-              <TextField label="Material description" value={getLocalizedMetadataString(draft.categoryGrid, "materialBody", contentLanguage)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialBody", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialBody", contentLanguage))} multiline />
+              <TextField label="Material eyebrow" value={getLocalizedMetadataString(draft.categoryGrid, "materialEyebrow", language)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialEyebrow", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialEyebrow", language))} />
+              <TextField label="Material headline" value={getLocalizedMetadataString(draft.categoryGrid, "materialTitle", language)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialTitle", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialTitle", language))} />
+              <TextField label="Material description" value={getLocalizedMetadataString(draft.categoryGrid, "materialBody", language)} onChange={(value) => updateBlockMetadata("categoryGrid", { [getLanguageMetadataKey("materialBody", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.categoryGrid, "materialBody", language))} multiline />
             </div>
             <ProductSelectionField
               title="Kő fókusz termékei"
@@ -933,7 +908,7 @@ function EditDrawer({
             <TextField label="Instagram CTA href" value={draft.instagram.buttonHref} onChange={(value) => updateBlock("instagram", { buttonHref: value })} />
             <TextField label="Instagram kép alt" value={getBlockText("instagram", "imageAlt")} onChange={(value) => updateBlockText("instagram", "imageAlt", value)} warning={englishWarningFor(getBlockText("instagram", "imageAlt"))} />
             <ImageField label="Facebook kép" value={getMetadataString(draft.instagram, "facebookImageUrl")} previewAlt="Facebook" onChange={(value) => updateBlockMetadata("instagram", { facebookImageUrl: value })} />
-            <TextField label="Facebook text" value={getLocalizedMetadataString(draft.instagram, "facebookBody", contentLanguage)} onChange={(value) => updateBlockMetadata("instagram", { [getLanguageMetadataKey("facebookBody", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.instagram, "facebookBody", contentLanguage))} multiline />
+            <TextField label="Facebook text" value={getLocalizedMetadataString(draft.instagram, "facebookBody", language)} onChange={(value) => updateBlockMetadata("instagram", { [getLanguageMetadataKey("facebookBody", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.instagram, "facebookBody", language))} multiline />
             <TextField label="Facebook CTA href" value={getMetadataString(draft.instagram, "facebookHref")} onChange={(value) => updateBlockMetadata("instagram", { facebookHref: value })} />
             {teamMembers.map((member, index) => (
               <div key={index} className="space-y-3 rounded-lg border border-[#f0c0d8] bg-white p-3">
@@ -949,7 +924,7 @@ function EditDrawer({
                     const item = currentItems[itemIndex];
                     return item && typeof item === "object" ? { ...(item as Record<string, unknown>) } : {};
                   });
-                  next[index] = { ...next[index], [getLanguageMetadataKey("name", contentLanguage)]: value };
+                  next[index] = { ...next[index], [getLanguageMetadataKey("name", language)]: value };
                   updateBlockMetadata("instagram", { teamMembers: next });
                 }} warning={englishWarningFor(member.name)} />
                 <TextField label="Szerep" value={member.role} onChange={(value) => {
@@ -958,7 +933,7 @@ function EditDrawer({
                     const item = currentItems[itemIndex];
                     return item && typeof item === "object" ? { ...(item as Record<string, unknown>) } : {};
                   });
-                  next[index] = { ...next[index], [getLanguageMetadataKey("role", contentLanguage)]: value };
+                  next[index] = { ...next[index], [getLanguageMetadataKey("role", language)]: value };
                   updateBlockMetadata("instagram", { teamMembers: next });
                 }} warning={englishWarningFor(member.role)} />
               </div>
@@ -976,13 +951,13 @@ function EditDrawer({
               <TextField key={index} label={`Perk ${index + 1}`} value={perk} onChange={(value) => {
                 const next = [...perks];
                 next[index] = value;
-                updateBlockMetadata("newsletter", { [getLanguageMetadataKey("perks", contentLanguage)]: next });
+                updateBlockMetadata("newsletter", { [getLanguageMetadataKey("perks", language)]: next });
               }} warning={englishWarningFor(perk)} />
             ))}
-            <TextField label="Placeholder" value={getLocalizedMetadataString(draft.newsletter, "placeholder", contentLanguage)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("placeholder", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "placeholder", contentLanguage))} />
-            <TextField label="Success message" value={getLocalizedMetadataString(draft.newsletter, "subscribedMessage", contentLanguage)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("subscribedMessage", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "subscribedMessage", contentLanguage))} />
-            <TextField label="Invalid email message" value={getLocalizedMetadataString(draft.newsletter, "invalidMessage", contentLanguage)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("invalidMessage", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "invalidMessage", contentLanguage))} />
-            <TextField label="Note text" value={getLocalizedMetadataString(draft.newsletter, "note", contentLanguage)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("note", contentLanguage)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "note", contentLanguage))} multiline />
+            <TextField label="Placeholder" value={getLocalizedMetadataString(draft.newsletter, "placeholder", language)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("placeholder", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "placeholder", language))} />
+            <TextField label="Success message" value={getLocalizedMetadataString(draft.newsletter, "subscribedMessage", language)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("subscribedMessage", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "subscribedMessage", language))} />
+            <TextField label="Invalid email message" value={getLocalizedMetadataString(draft.newsletter, "invalidMessage", language)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("invalidMessage", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "invalidMessage", language))} />
+            <TextField label="Note text" value={getLocalizedMetadataString(draft.newsletter, "note", language)} onChange={(value) => updateBlockMetadata("newsletter", { [getLanguageMetadataKey("note", language)]: value })} warning={englishWarningFor(getLocalizedMetadataString(draft.newsletter, "note", language))} multiline />
           </>
         ) : null}
       </div>

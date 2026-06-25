@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useState } from "react";
 
 import type { HomepageBlockView } from "@/lib/homepage-content";
+import type { SupportedLanguage } from "@/lib/international";
 
 type HomeInstagramPromoProps = {
   block: HomepageBlockView;
+  language: SupportedLanguage;
 };
 
 type SocialTab = "instagram" | "facebook" | "team";
@@ -145,7 +147,7 @@ function TeamPanel({ block }: { block: HomepageBlockView }) {
   );
 }
 
-export function HomeInstagramPromo({ block }: HomeInstagramPromoProps) {
+export function HomeInstagramPromo({ block, language: _language }: HomeInstagramPromoProps) {
   const [activeTab, setActiveTab] = useState<SocialTab>("instagram");
   const tabs: { id: SocialTab; label: string }[] = [
     {

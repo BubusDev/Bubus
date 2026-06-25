@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Playfair_Display, Inter } from 'next/font/google'
 
 import type { HomepageBlockView } from '@/lib/homepage-content'
+import type { SupportedLanguage } from '@/lib/international'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ interface HeroBannerProps {
   primaryCta?: { label: string; href: string }
   secondaryCta?: { label: string; href: string }
   features?: FeatureItem[]
+  language: SupportedLanguage
 }
 
 const defaultFeatures: FeatureItem[] = [
@@ -59,6 +61,7 @@ export default function HeroBanner({
   primaryCta,
   secondaryCta,
   features,
+  language: _language,
 }: HeroBannerProps) {
   if (!block.isVisible) {
     return null

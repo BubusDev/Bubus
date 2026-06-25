@@ -116,6 +116,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         />
         <HomepageInlineEditor
           initialContent={homepageContent}
+          language={language}
           showcaseTabs={showcaseTabs}
           productOptions={productOptions}
           initialFeaturedProductIds={inlineFeaturedProductIds}
@@ -136,18 +137,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
-      <HeroBanner block={localizedHomepageContent.hero} featureBlock={localizedHomepageContent.heroFeatureBar} />
+      <HeroBanner block={localizedHomepageContent.hero} featureBlock={localizedHomepageContent.heroFeatureBar} language={language} />
       <HomePromoTileGrid
         tiles={localizedHomepageContent.promoTiles}
         materialPicks={localizedHomepageContent.materialPicks}
         categoryBlock={localizedHomepageContent.categoryGrid}
+        language={language}
       />
       {showcaseTabs.length > 0 ? (
         <FeaturedSlider tabs={showcaseTabs} contentBlock={localizedHomepageContent.featuredSlider} language={language} />
       ) : null}
       <HomeEditorialSection language={language} />
-      <HomeInstagramPromo block={localizedHomepageContent.instagram} />
-      <HomeNewsletterBlock contentBlock={localizedHomepageContent.newsletter} status={newsletterStatus} />
+      <HomeInstagramPromo block={localizedHomepageContent.instagram} language={language} />
+      <HomeNewsletterBlock contentBlock={localizedHomepageContent.newsletter} status={newsletterStatus} language={language} />
       <HomeFinalCta language={language} />
     </main>
   );
