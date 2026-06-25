@@ -191,12 +191,16 @@ export function useCountryLanguage() {
 }
 
 export function CountryLanguageButton({ className = "" }: { className?: string }) {
-  const { country, language, openSelector } = useCountryLanguage();
-  const label = getDictionary(language)["nav.countryLanguage"];
+  const { language, openSelector } = useCountryLanguage();
 
   return (
-    <button type="button" onClick={openSelector} className={className}>
-      {label}: {country} / {language.toUpperCase()}
+    <button
+      type="button"
+      onClick={openSelector}
+      className="text-xl leading-none hover:opacity-70 transition-opacity"
+      aria-label="Change language"
+    >
+      {language === 'en' ? '🇬🇧' : '🇭🇺'}
     </button>
   );
 }
