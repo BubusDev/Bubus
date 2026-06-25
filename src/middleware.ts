@@ -54,7 +54,7 @@ function redirectWithNext(request: NextRequest, pathname: string) {
   return NextResponse.redirect(url);
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const locale = getLocaleFromPathname(pathname);
   const requestHeaders = new Headers(request.headers);
